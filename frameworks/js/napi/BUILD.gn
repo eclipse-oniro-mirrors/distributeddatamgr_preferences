@@ -15,94 +15,136 @@ import("//build/ohos/ace/ace.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
 import("//foundation/distributeddatamgr/relational_store/relational_store.gni")
 
-ohos_copy("preferences_declaration") {
-  sources = [ "./api" ]
-  outputs = [ target_out_dir + "/$target_name/" ]
-  module_source_dir = target_out_dir + "/$target_name"
-  module_install_name = ""
-}
+if (!is_mingw && !is_mac) {
+  ohos_copy("preferences_declaration") {
+    sources = [ "./api" ]
+    outputs = [ target_out_dir + "/$target_name/" ]
+    module_source_dir = target_out_dir + "/$target_name"
+    module_install_name = ""
+  }
 
-ohos_shared_library("storage") {
-  include_dirs = [
-    "include",
-    "${relational_store_js_common_path}/include",
-  ]
+  ohos_shared_library("storage") {
+    include_dirs = [
+      "include",
+      "${relational_store_js_common_path}/include",
+    ]
 
-  sources = [
-    "src/entry_point_storage.cpp",
-    "src/napi_storage.cpp",
-    "src/napi_storage_helper.cpp",
-  ]
+    sources = [
+      "src/entry_point_storage.cpp",
+      "src/napi_storage.cpp",
+      "src/napi_storage_helper.cpp",
+    ]
 
-  external_deps = [
-    "hilog_native:libhilog",
-    "ipc:ipc_core",
-    "napi:ace_napi",
-    "preferences:native_preferences",
-  ]
+    external_deps = [
+      "hilog_native:libhilog",
+      "ipc:ipc_core",
+      "napi:ace_napi",
+      "preferences:native_preferences",
+    ]
 
-  subsystem_name = "distributeddatamgr"
-  part_name = "preferences"
-  relative_install_dir = "module/data"
-}
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+    relative_install_dir = "module/data"
+  }
 
-ohos_shared_library("storage_napi") {
-  include_dirs = [
-    "include",
-    "${relational_store_js_common_path}/include",
-  ]
+  ohos_shared_library("storage_napi") {
+    include_dirs = [
+      "include",
+      "${relational_store_js_common_path}/include",
+    ]
 
-  sources = [
-    "${relational_store_js_common_path}/src/js_ability.cpp",
-    "${relational_store_js_common_path}/src/js_utils.cpp",
-    "src/entry_point_system_storage.cpp",
-    "src/napi_system_storage.cpp",
-  ]
+    sources = [
+      "${relational_store_js_common_path}/src/js_ability.cpp",
+      "${relational_store_js_common_path}/src/js_utils.cpp",
+      "src/entry_point_system_storage.cpp",
+      "src/napi_system_storage.cpp",
+    ]
 
-  deps = []
+    deps = []
 
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:napi_base_context",
-    "hilog_native:libhilog",
-    "ipc:ipc_core",
-    "napi:ace_napi",
-    "preferences:native_preferences",
-  ]
+    external_deps = [
+      "ability_base:want",
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:napi_base_context",
+      "hilog_native:libhilog",
+      "ipc:ipc_core",
+      "napi:ace_napi",
+      "preferences:native_preferences",
+    ]
 
-  subsystem_name = "distributeddatamgr"
-  part_name = "preferences"
-  relative_install_dir = "module"
-}
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+    relative_install_dir = "module"
+  }
 
-ohos_shared_library("preferences") {
-  include_dirs = [
-    "include",
-    "${relational_store_js_common_path}/include",
-  ]
+  ohos_shared_library("preferences") {
+    include_dirs = [
+      "include",
+      "${relational_store_js_common_path}/include",
+    ]
 
-  sources = [
-    "${relational_store_js_common_path}/src/js_ability.cpp",
-    "${relational_store_js_common_path}/src/js_utils.cpp",
-    "src/entry_point.cpp",
-    "src/napi_preferences.cpp",
-    "src/napi_preferences_helper.cpp",
-  ]
+    sources = [
+      "${relational_store_js_common_path}/src/js_ability.cpp",
+      "${relational_store_js_common_path}/src/js_utils.cpp",
+      "src/entry_point.cpp",
+      "src/napi_preferences.cpp",
+      "src/napi_preferences_helper.cpp",
+    ]
 
-  deps = []
+    deps = []
 
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:napi_base_context",
-    "hilog_native:libhilog",
-    "ipc:ipc_core",
-    "napi:ace_napi",
-    "preferences:native_preferences",
-  ]
+    external_deps = [
+      "ability_base:want",
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:napi_base_context",
+      "hilog_native:libhilog",
+      "ipc:ipc_core",
+      "napi:ace_napi",
+      "preferences:native_preferences",
+    ]
 
-  subsystem_name = "distributeddatamgr"
-  part_name = "preferences"
-  relative_install_dir = "module/data"
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+    relative_install_dir = "module/data"
+  }
+} else {
+  ohos_shared_library("preferences") {
+    include_dirs = [
+      "include",
+      "${relational_store_js_common_path}/include",
+
+      #编译previewer时c_utils:utils采用external_deps无效，deps报错，所以include
+      "//utils/native/base/include",
+    ]
+    cflags_cc = [ "-std=c++17" ]
+    defines = [
+      "INDEPENDENT_BUILD_PREFERENCES",
+      "INDEPENDENT_BUILD_RELATIONAL",
+    ]
+    buildos = "mac"
+    buildtool = "mac:clang_x64"
+    if (is_mingw) {
+      buildtool = "mingw:mingw_x86_64"
+      buildos = "windows"
+      defines += [ "INDEPENDENT_BUILD_PREFERENCES_WIN" ]
+    }
+
+    sources = [
+      "${relational_store_js_common_path}/mock/js_ability.cpp",
+      "${relational_store_js_common_path}/src/js_utils.cpp",
+      "src/entry_point.cpp",
+      "src/napi_preferences.cpp",
+      "src/napi_preferences_helper.cpp",
+    ]
+
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}(//build/toolchain/${buildtool})",
+      "//foundation/arkui/napi:ace_napi",
+      "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
+    ]
+
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+    relative_install_dir = "module/data"
+  }
 }

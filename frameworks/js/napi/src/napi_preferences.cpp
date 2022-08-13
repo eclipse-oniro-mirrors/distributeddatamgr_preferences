@@ -15,7 +15,9 @@
 
 #include "napi_preferences.h"
 
+#ifndef INDEPENDENT_BUILD_PREFERENCES
 #include <linux/limits.h>
+#endif
 
 #include <cerrno>
 #include <cmath>

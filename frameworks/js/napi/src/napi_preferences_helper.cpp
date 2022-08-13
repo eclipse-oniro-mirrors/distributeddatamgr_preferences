@@ -14,7 +14,9 @@
  */
 #include "napi_preferences_helper.h"
 
+#ifndef INDEPENDENT_BUILD_PREFERENCES
 #include <linux/limits.h>
+#endif
 
 #include <string>
 
