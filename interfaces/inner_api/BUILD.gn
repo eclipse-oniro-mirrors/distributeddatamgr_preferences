@@ -19,7 +19,6 @@ config("native_preferences_config") {
     "${preferences_native_path}/include",
   ]
 
-  #编译previewer时c_utils:utils采用external_deps无效，deps报错，所以include
   if (is_mingw || is_mac) {
     include_dirs += [ "//utils/native/base/include" ]
   }
