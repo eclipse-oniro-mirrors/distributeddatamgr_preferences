@@ -52,7 +52,7 @@ ohos_shared_library("native_preferences") {
     buildtool = "mingw:mingw_x86_64"
     buildos = "windows"
     defines = [ "WINDOWS_PLATFORM" ]
-    
+
     if (is_mac) {
       buildos = "mac"
       buildtool = "mac:clang_x64"

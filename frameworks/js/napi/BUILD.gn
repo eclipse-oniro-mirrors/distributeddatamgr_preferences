@@ -115,11 +115,11 @@ if (!is_mingw && !is_mac) {
       "//utils/native/base/include",
     ]
     cflags_cc = [ "-std=c++17" ]
-    
+
     buildtool = "mingw:mingw_x86_64"
     buildos = "windows"
     defines = [ "WINDOWS_PLATFORM" ]
-    
+
     if (is_mac) {
       buildos = "mac"
       buildtool = "mac:clang_x64"
