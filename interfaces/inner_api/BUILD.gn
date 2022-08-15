@@ -25,6 +25,10 @@ config("native_preferences_public_config") {
   include_dirs = [ "include" ]
 }
 
+config("adaptor_config") {
+  include_dirs = [ "//utils/native/base/include" ]
+}
+
 ohos_shared_library("native_preferences") {
   sources = [
     "${preferences_native_path}/src/preferences_helper.cpp",
@@ -39,7 +43,12 @@ ohos_shared_library("native_preferences") {
   configs = [ ":native_preferences_config" ]
 
   if (is_mingw || is_mac) {
+    configs += [ ":adaptor_config" ]
     cflags_cc = [ "-std=c++17" ]
+    ldflags = [
+              "-static",
+              "-lws2_32"
+            ]
     defines = [
       "INDEPENDENT_BUILD_PREFERENCES",
       "INDEPENDENT_BUILD_RELATIONAL",
@@ -51,12 +60,9 @@ ohos_shared_library("native_preferences") {
       buildos = "windows"
       defines += [ "INDEPENDENT_BUILD_PREFERENCES_WIN" ]
     }
-
-    include_dirs += [ "//utils/native/base/include" ]
-
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}(//build/toolchain/${buildtool})",
-      "//third_party/libxml2:libxml2(//build/toolchain/${buildtool})",
+      "//third_party/libxml2:libxml2_adapter(//build/toolchain/${buildtool})",
     ]
   } else {
     deps = [ "//third_party/libxml2:libxml2" ]
