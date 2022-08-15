@@ -111,7 +111,7 @@ if (!is_mingw && !is_mac) {
   ohos_shared_library("preferences") {
     include_dirs = [
       "include",
-      "${relational_store_js_common_path}/include",
+      "${relational_store_js_common_path}/mock/include",
       "//utils/native/base/include",
     ]
     cflags_cc = [ "-std=c++17" ]
@@ -127,7 +127,7 @@ if (!is_mingw && !is_mac) {
     }
 
     sources = [
-      "${relational_store_js_common_path}/mock/js_ability.cpp",
+      "${relational_store_js_common_path}/mock/src/js_ability.cpp",
       "${relational_store_js_common_path}/src/js_utils.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
