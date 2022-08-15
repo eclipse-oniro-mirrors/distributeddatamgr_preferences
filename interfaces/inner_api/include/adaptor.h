@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NATIVE_PREFERENCES_ADAPTOR_H
-#define NATIVE_PREFERENCES_ADAPTOR_H
+#ifndef PREFERENCES_ADAPTOR_H
+#define PREFERENCES_ADAPTOR_H
 
-#ifdef INDEPENDENT_BUILD_PREFERENCES_WIN
+#ifdef WINDOWS_PLATFORM
 #include <unistd.h>
 #include <iostream>
 #define REALPATH(filePath, realPath, maxlen) (_fullpath(realPath, filePath, maxlen))
@@ -27,4 +27,4 @@
 #define INT_MAX 2147483647
 #endif
 
-#endif // NATIVE_PREFERENCES_ADAPTOR_H
+#endif // PREFERENCES_ADAPTOR_H

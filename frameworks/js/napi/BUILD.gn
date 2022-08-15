@@ -115,16 +115,15 @@ if (!is_mingw && !is_mac) {
       "//utils/native/base/include",
     ]
     cflags_cc = [ "-std=c++17" ]
-    defines = [
-      "INDEPENDENT_BUILD_PREFERENCES",
-      "INDEPENDENT_BUILD_RELATIONAL",
-    ]
-    buildos = "mac"
-    buildtool = "mac:clang_x64"
-    if (is_mingw) {
-      buildtool = "mingw:mingw_x86_64"
-      buildos = "windows"
-      defines += [ "INDEPENDENT_BUILD_PREFERENCES_WIN" ]
+    
+    buildtool = "mingw:mingw_x86_64"
+    buildos = "windows"
+    defines = [ "WINDOWS_PLATFORM" ]
+    
+    if (is_mac) {
+      buildos = "mac"
+      buildtool = "mac:clang_x64"
+      defines += [ "MAC_PLATFORM" ]
     }
 
     sources = [

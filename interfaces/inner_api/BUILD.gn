@@ -49,16 +49,14 @@ ohos_shared_library("native_preferences") {
       "-static",
       "-lws2_32",
     ]
-    defines = [
-      "INDEPENDENT_BUILD_PREFERENCES",
-      "INDEPENDENT_BUILD_RELATIONAL",
-    ]
-    buildos = "mac"
-    buildtool = "mac:clang_x64"
-    if (is_mingw) {
-      buildtool = "mingw:mingw_x86_64"
-      buildos = "windows"
-      defines += [ "INDEPENDENT_BUILD_PREFERENCES_WIN" ]
+    buildtool = "mingw:mingw_x86_64"
+    buildos = "windows"
+    defines = [ "WINDOWS_PLATFORM" ]
+    
+    if (is_mac) {
+      buildos = "mac"
+      buildtool = "mac:clang_x64"
+      defines += [ "MAC_PLATFORM" ]
     }
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}(//build/toolchain/${buildtool})",
