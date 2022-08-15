@@ -55,7 +55,7 @@ ohos_shared_library("native_preferences") {
 
     if (is_mac) {
       buildos = "mac"
-      buildtool = "mac:clang_x64"
+      buildtool = "ohos:ohos_clang_arm64"
       defines += [ "MAC_PLATFORM" ]
     }
     deps = [

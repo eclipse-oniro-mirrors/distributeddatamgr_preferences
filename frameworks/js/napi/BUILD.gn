@@ -122,7 +122,7 @@ if (!is_mingw && !is_mac) {
 
     if (is_mac) {
       buildos = "mac"
-      buildtool = "mac:clang_x64"
+      buildtool = "ohos:ohos_clang_arm64"
       defines += [ "MAC_PLATFORM" ]
     }
 
