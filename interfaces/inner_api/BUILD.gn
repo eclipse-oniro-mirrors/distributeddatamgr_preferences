@@ -46,9 +46,9 @@ ohos_shared_library("native_preferences") {
     configs += [ ":adaptor_config" ]
     cflags_cc = [ "-std=c++17" ]
     ldflags = [
-              "-static",
-              "-lws2_32"
-            ]
+      "-static",
+      "-lws2_32",
+    ]
     defines = [
       "INDEPENDENT_BUILD_PREFERENCES",
       "INDEPENDENT_BUILD_RELATIONAL",
