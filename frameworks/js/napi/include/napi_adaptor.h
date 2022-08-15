@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NATIVE_PREFERENCES_LOGGER_H
-#define NATIVE_PREFERENCES_LOGGER_H
+#ifndef PREFERENCES_JSKIT_NAPI_ADAPTOR_H
+#define PREFERENCES_JSKIT_NAPI_ADAPTOR_H
 
 #ifndef INDEPENDENT_BUILD_PREFERENCES
 #include <linux/limits.h>
