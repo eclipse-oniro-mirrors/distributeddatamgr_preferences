@@ -15,12 +15,18 @@
 #ifndef PREFERENCES_ADAPTOR_H
 #define PREFERENCES_ADAPTOR_H
 
+#ifndef FILE_MODE
+#define FILE_MODE 0771
+#endif
+
 #ifdef WINDOWS_PLATFORM
 #include <unistd.h>
 #include <iostream>
 #define REALPATH(filePath, realPath, maxlen) (_fullpath(realPath, filePath, maxlen))
+#define MKDIR(filePath) (mkdir(filePath))
 #else
 #define REALPATH(filePath, realPath, maxlen) (realpath(filePath, realPath))
+#define MKDIR(filePath) (mkdir(filePath, FILE_MODE))
 #endif
 
 #ifndef INT_MAX

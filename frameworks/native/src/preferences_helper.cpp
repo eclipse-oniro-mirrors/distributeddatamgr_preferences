@@ -84,7 +84,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     std::string realFilePath(canonicalPath);
 #if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
     if (access(realFilePath.c_str(), E_OK) != 0) {
-        if (mkdir(realFilePath.c_str())) {
+        if (MKDIR(realFilePath.c_str())) {
             errorCode = E_INVALID_FILE_PATH;
         }
     }
