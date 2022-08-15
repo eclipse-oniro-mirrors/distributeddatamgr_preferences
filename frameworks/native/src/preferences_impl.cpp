@@ -26,6 +26,8 @@
 #include "preferences_xml_utils.h"
 #include "securec.h"
 
+#include "adaptor.h"
+
 namespace OHOS {
 namespace NativePreferences {
 static bool IsFileExist(const std::filesystem::path &inputPath)

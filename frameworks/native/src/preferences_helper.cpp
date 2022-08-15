@@ -21,10 +21,7 @@
 #include <cerrno>
 #include <utility>
 
-#ifdef INDEPENDENT_BUILD_PREFERENCES_WIN
-#include <unistd.h>
-#include <iostream>
-#endif
+#include "adaptor.h"
 
 #include "logger.h"
 #include "preferences.h"
@@ -53,11 +50,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         errorCode = E_EMPTY_FILE_PATH;
         return "";
     }
-#ifdef INDEPENDENT_BUILD_PREFERENCES_WIN
-    if (path.length()>=3 && path[1] != ':') {
-#else
-    if (path.front() != '/') {
-#endif
+    if (path.front() != '/' && path.at(1) != ':') {
         LOG_ERROR("The path can not be relative path.");
         errorCode = E_RELATIVE_PATH;
         return "";

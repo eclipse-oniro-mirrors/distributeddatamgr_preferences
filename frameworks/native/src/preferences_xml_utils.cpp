@@ -23,11 +23,7 @@
 #include "libxml/parser.h"
 #include "logger.h"
 
-#ifdef INDEPENDENT_BUILD_PREFERENCES_WIN
-#define REALPATH(filePath, realPath, maxlen) (_fullpath(realPath, filePath, maxlen))
-#else
-#define REALPATH(filePath, realPath, maxlen) (realpath(filePath, realPath))
-#endif
+#include "adaptor.h"
 
 namespace OHOS {
 namespace NativePreferences {

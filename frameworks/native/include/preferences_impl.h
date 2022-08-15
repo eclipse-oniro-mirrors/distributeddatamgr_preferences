@@ -31,12 +31,6 @@
 #include "preferences_value.h"
 #include "task_pool.h"
 
-#ifdef INDEPENDENT_BUILD_PREFERENCES_WIN
-#define REALPATH(filePath, realPath, maxlen) (_fullpath(realPath, filePath, maxlen))
-#else
-#define REALPATH(filePath, realPath, maxlen) (realpath(filePath, realPath))
-#endif
-
 namespace OHOS {
 namespace NativePreferences {
 class PreferencesImpl : public Preferences {
