@@ -22,3 +22,5 @@
 #else
 #define REALPATH(filePath, realPath, maxlen) (realpath(filePath, realPath))
 #endif
+
+#endif // NATIVE_PREFERENCES_ADAPTOR_H

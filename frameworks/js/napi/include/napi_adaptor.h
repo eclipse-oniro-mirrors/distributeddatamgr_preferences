@@ -19,3 +19,5 @@
 #ifndef INDEPENDENT_BUILD_PREFERENCES
 #include <linux/limits.h>
 #endif
+
+#endif // PREFERENCES_JSKIT_NAPI_ADAPTOR_H
