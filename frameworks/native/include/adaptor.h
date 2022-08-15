@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef NATIVE_PREFERENCES_LOGGER_H
+#define NATIVE_PREFERENCES_LOGGER_H
 
 #ifdef INDEPENDENT_BUILD_PREFERENCES_WIN
 #include <unistd.h>

@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef NATIVE_PREFERENCES_LOGGER_H
+#define NATIVE_PREFERENCES_LOGGER_H
+
 #ifndef INDEPENDENT_BUILD_PREFERENCES
 #include <linux/limits.h>
 #endif
