@@ -14,7 +14,7 @@
  */
 #include "napi_preferences_helper.h"
 
-#include "napi_adaptor.h"
+#include "adaptor.h"
 
 #include <string>
 

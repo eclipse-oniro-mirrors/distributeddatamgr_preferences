@@ -12,12 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef NATIVE_PREFERENCES_ADAPTOR_H
+#define NATIVE_PREFERENCES_ADAPTOR_H
 
-#ifndef PREFERENCES_JSKIT_NAPI_ADAPTOR_H
-#define PREFERENCES_JSKIT_NAPI_ADAPTOR_H
-
-#ifndef INDEPENDENT_BUILD_PREFERENCES
-#include <linux/limits.h>
+#ifdef INDEPENDENT_BUILD_PREFERENCES_WIN
+#include <unistd.h>
+#include <iostream>
+#define REALPATH(filePath, realPath, maxlen) (_fullpath(realPath, filePath, maxlen))
+#else
+#define REALPATH(filePath, realPath, maxlen) (realpath(filePath, realPath))
 #endif
 
-#endif // PREFERENCES_JSKIT_NAPI_ADAPTOR_H
+#ifndef INT_MAX
+#define INT_MAX 2147483647
+#endif
+
+#endif // NATIVE_PREFERENCES_ADAPTOR_H

@@ -15,7 +15,7 @@
 
 #include "napi_preferences.h"
 
-#include "napi_adaptor.h"
+#include "adaptor.h"
 
 #include <cerrno>
 #include <cmath>
