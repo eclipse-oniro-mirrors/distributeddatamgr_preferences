@@ -26,9 +26,7 @@ config("native_preferences_public_config") {
 }
 
 config("adaptor_config") {
-  include_dirs = [
-    "//utils/native/base/include",
-  ]
+  include_dirs = [ "//utils/native/base/include" ]
 }
 
 ohos_shared_library("native_preferences") {

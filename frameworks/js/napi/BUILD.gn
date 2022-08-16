@@ -115,7 +115,7 @@ if (!is_mingw && !is_mac) {
       "//utils/native/base/include",
       "${relational_store_js_common_path}/include",
     ]
-    cflags_cc =  [
+    cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
     ]
