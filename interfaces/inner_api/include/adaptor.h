@@ -19,14 +19,28 @@
 #define FILE_MODE 0771
 #endif
 
+#ifndef FILE_EXIST
+#define FILE_EXIST 0
+#endif
+
 #ifdef WINDOWS_PLATFORM
 #include <unistd.h>
 #include <iostream>
 #define REALPATH(filePath, realPath, maxlen) (_fullpath(realPath, filePath, maxlen))
 #define MKDIR(filePath) (mkdir(filePath))
+#define ACCESS(filePath) (_access(realFilePath.c_str(), FILE_EXIST))
 #else
+#include <cstdlib>
 #define REALPATH(filePath, realPath, maxlen) (realpath(filePath, realPath))
+
+#ifdef MAC_PLATFORM
+#include <stdarg.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #define MKDIR(filePath) (mkdir(filePath, FILE_MODE))
+#define ACCESS(filePath) (access(realFilePath.c_str(), FILE_EXIST))
+#endif
+
 #endif
 
 #ifndef INT_MAX
