@@ -21,6 +21,8 @@
 #include <cerrno>
 #include <utility>
 
+#include "adaptor.h"
+
 #include "logger.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -31,7 +33,6 @@ namespace OHOS {
 namespace NativePreferences {
 std::map<std::string, std::shared_ptr<Preferences>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
-
 static bool IsFileExist(const std::filesystem::path &path)
 {
     FILE *file = std::fopen(path.c_str(), "r");
@@ -49,7 +50,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         errorCode = E_EMPTY_FILE_PATH;
         return "";
     }
-    if (path.front() != '/') {
+    if (path.front() != '/' && path.at(1) != ':') {
         LOG_ERROR("The path can not be relative path.");
         errorCode = E_RELATIVE_PATH;
         return "";
@@ -67,11 +68,12 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     }
     std::string filePath = path.substr(0, pos);
     char canonicalPath[PATH_MAX + 1] = { 0 };
-    if (realpath(filePath.c_str(), canonicalPath) == nullptr) {
+    if (REALPATH(filePath.c_str(), canonicalPath, PATH_MAX) == nullptr) {
         LOG_ERROR("Failed to obtain real path, errno:%{public}d", errno);
         errorCode = E_INVALID_FILE_PATH;
         return "";
     }
+
     std::string fileName = path.substr(pos + 1, path.length());
     if (fileName.empty()) {
         LOG_ERROR("file name can not be empty.");
@@ -80,6 +82,13 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     }
     errorCode = E_OK;
     std::string realFilePath(canonicalPath);
+#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
+    if (ACCESS(realFilePath.c_str()) != 0) {
+        if (MKDIR(realFilePath.c_str())) {
+            errorCode = E_INVALID_FILE_PATH;
+        }
+    }
+#endif
     return realFilePath.append("/").append(fileName);
 }
 

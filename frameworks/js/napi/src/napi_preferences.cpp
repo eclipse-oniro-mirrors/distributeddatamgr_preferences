@@ -15,7 +15,7 @@
 
 #include "napi_preferences.h"
 
-#include <linux/limits.h>
+#include "adaptor.h"
 
 #include <cerrno>
 #include <cmath>

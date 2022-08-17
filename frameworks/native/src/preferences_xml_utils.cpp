@@ -23,6 +23,8 @@
 #include "libxml/parser.h"
 #include "logger.h"
 
+#include "adaptor.h"
+
 namespace OHOS {
 namespace NativePreferences {
 static bool ParseNodeElement(const xmlNode *node, Element &element);
@@ -42,7 +44,7 @@ bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, std::vecto
         return false;
     }
     char path[PATH_MAX + 1] = { 0x00 };
-    if (strlen(fileName.c_str()) > PATH_MAX || realpath(fileName.c_str(), path) == nullptr) {
+    if (strlen(fileName.c_str()) > PATH_MAX || REALPATH(fileName.c_str(), path, PATH_MAX) == nullptr) {
         LOG_ERROR("The file name is incorrect.");
         return false;
     }

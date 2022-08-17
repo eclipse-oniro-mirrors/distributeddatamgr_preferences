@@ -25,6 +25,10 @@ config("native_preferences_public_config") {
   include_dirs = [ "include" ]
 }
 
+config("adaptor_config") {
+  include_dirs = [ "//utils/native/base/include" ]
+}
+
 ohos_shared_library("native_preferences") {
   sources = [
     "${preferences_native_path}/src/preferences_helper.cpp",
@@ -38,12 +42,33 @@ ohos_shared_library("native_preferences") {
 
   configs = [ ":native_preferences_config" ]
 
-  deps = [ "//third_party/libxml2:libxml2" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog_native:libhilog",
-  ]
+  if (is_mingw || is_mac) {
+    configs += [ ":adaptor_config" ]
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+    ]
+    if (is_mac) {
+      buildos = "mac"
+      buildtool = "mac:clang_arm64"
+      defines = [ "MAC_PLATFORM" ]
+    } else {
+      buildtool = "mingw:mingw_x86_64"
+      buildos = "windows"
+      defines = [ "WINDOWS_PLATFORM" ]
+      ldflags = [ "-lws2_32" ]
+    }
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}(//build/toolchain/${buildtool})",
+      "//third_party/libxml2:libxml2_adapter(//build/toolchain/${buildtool})",
+    ]
+  } else {
+    deps = [ "//third_party/libxml2:libxml2" ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog_native:libhilog",
+    ]
+  }
 
   public_configs = [ ":native_preferences_public_config" ]
 

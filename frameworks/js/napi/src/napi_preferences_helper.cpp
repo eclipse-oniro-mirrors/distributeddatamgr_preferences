@@ -14,7 +14,7 @@
  */
 #include "napi_preferences_helper.h"
 
-#include <linux/limits.h>
+#include "adaptor.h"
 
 #include <string>
 

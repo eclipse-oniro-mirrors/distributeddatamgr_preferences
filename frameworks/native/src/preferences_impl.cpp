@@ -26,12 +26,15 @@
 #include "preferences_xml_utils.h"
 #include "securec.h"
 
+#include "adaptor.h"
+
 namespace OHOS {
 namespace NativePreferences {
 static bool IsFileExist(const std::filesystem::path &inputPath)
 {
     char path[PATH_MAX + 1] = { 0x00 };
-    if (strlen(inputPath.c_str()) > PATH_MAX || realpath(inputPath.c_str(), path) == nullptr) {
+
+    if (strlen(inputPath.c_str()) > PATH_MAX || REALPATH(inputPath.c_str(), path, PATH_MAX)  == nullptr) {
         return false;
     }
     const char *pathString = path;
