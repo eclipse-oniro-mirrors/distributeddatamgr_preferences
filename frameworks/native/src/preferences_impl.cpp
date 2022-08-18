@@ -26,15 +26,12 @@
 #include "preferences_xml_utils.h"
 #include "securec.h"
 
-#include "adaptor.h"
-
 namespace OHOS {
 namespace NativePreferences {
 static bool IsFileExist(const std::filesystem::path &inputPath)
 {
     char path[PATH_MAX + 1] = { 0x00 };
-
-    if (strlen(inputPath.c_str()) > PATH_MAX || REALPATH(inputPath.c_str(), path, PATH_MAX)  == nullptr) {
+    if (strlen(inputPath.c_str()) > PATH_MAX || realpath(inputPath.c_str(), path) == nullptr) {
         return false;
     }
     const char *pathString = path;
@@ -341,7 +338,7 @@ void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesyste
         for (std::string val : values) {
             Element element;
             element.tag_ = std::string("string");
-            element.value_ = (std::string)val;
+            element.value_ = val;
             elem.children_.push_back(element);
         }
     } else if (value.IsInt()) {
@@ -362,7 +359,7 @@ void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesyste
         elem.value_ = std::to_string((double)value);
     } else if (value.IsString()) {
         elem.tag_ = std::string("string");
-        elem.value_ = (std::string)value;
+        elem.value_ = std::string(value);
     } else {
         LOG_WARN("WriteSettingXml:%{private}s, unknown element type.", filePath.c_str());
     }
