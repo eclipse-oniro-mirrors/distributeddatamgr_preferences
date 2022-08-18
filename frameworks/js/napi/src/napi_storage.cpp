@@ -218,7 +218,7 @@ void ParseDefValue(const napi_env &env, const napi_value &arg, StorageAysncConte
         char *str = new char[MAX_VALUE_LENGTH];
         size_t valueSize = 0;
         napi_get_value_string_utf8(env, arg, str, MAX_VALUE_LENGTH, &valueSize);
-        PreferencesValue value((std::string)(str));
+        PreferencesValue value(str);
         asyncContext->defValue = value;
         delete[] str;
     } else if (valueType == napi_boolean) {
