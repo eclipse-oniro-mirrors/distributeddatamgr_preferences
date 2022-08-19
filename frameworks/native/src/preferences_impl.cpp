@@ -336,7 +336,7 @@ void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesyste
     } else if (value.IsStringArray()) {
         elem.tag_ = std::string("stringArray");
         auto values = (std::vector<std::string>)value;
-        for (std::string val : values) {
+        for (std::string &val : values) {
             Element element;
             element.tag_ = std::string("string");
             element.value_ = val;
