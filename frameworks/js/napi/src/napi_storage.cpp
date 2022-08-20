@@ -22,6 +22,7 @@
 #include <limits>
 
 #include "js_logger.h"
+#include "js_utils.h"
 #include "napi_async_proxy.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -205,27 +206,31 @@ void ParseKey(const napi_env &env, const napi_value &arg, StorageAysncContext *a
     asyncContext->key = key;
 }
 
-void ParseDefValue(const napi_env &env, const napi_value &arg, StorageAysncContext *asyncContext)
+void ParseDefValue(const napi_env &env, const napi_value &jsVal, StorageAysncContext *asyncContext)
 {
     napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, arg, &valueType);
+    napi_typeof(env, jsVal, &valueType);
     if (valueType == napi_number) {
         double number = 0.0;
-        napi_get_value_double(env, arg, &number);
-        PreferencesValue value((double)number);
-        asyncContext->defValue = value;
+        if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2Double error");
+            return;
+        }
+        asyncContext->defValue = number;
     } else if (valueType == napi_string) {
-        char *str = new char[MAX_VALUE_LENGTH];
-        size_t valueSize = 0;
-        napi_get_value_string_utf8(env, arg, str, MAX_VALUE_LENGTH, &valueSize);
-        PreferencesValue value(str);
-        asyncContext->defValue = value;
-        delete[] str;
+        std::string str;
+        if (JSUtils::Convert2String(env, jsVal, str) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2String error");
+            return;
+        }
+        asyncContext->defValue = str;
     } else if (valueType == napi_boolean) {
         bool bValue = false;
-        napi_get_value_bool(env, arg, &bValue);
-        PreferencesValue value((bool)(bValue));
-        asyncContext->defValue = value;
+        if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2Bool error");
+            return;
+        }
+        asyncContext->defValue = bValue;
     } else {
         LOG_ERROR("Wrong second parameter type");
     }
