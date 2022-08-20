@@ -30,6 +30,7 @@ if (!is_mingw && !is_mac) {
     ]
 
     sources = [
+      "${relational_store_js_common_path}/src/js_utils.cpp",
       "src/entry_point_storage.cpp",
       "src/napi_storage.cpp",
       "src/napi_storage_helper.cpp",
