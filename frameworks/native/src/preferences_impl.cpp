@@ -335,10 +335,10 @@ void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesyste
     } else if (value.IsStringArray()) {
         elem.tag_ = std::string("stringArray");
         auto values = (std::vector<std::string>)value;
-        for (std::string val : values) {
+        for (std::string &val : values) {
             Element element;
             element.tag_ = std::string("string");
-            element.value_ = (std::string)val;
+            element.value_ = val;
             elem.children_.push_back(element);
         }
     } else if (value.IsInt()) {
@@ -359,7 +359,7 @@ void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesyste
         elem.value_ = std::to_string((double)value);
     } else if (value.IsString()) {
         elem.tag_ = std::string("string");
-        elem.value_ = (std::string)value;
+        elem.value_ = std::string(value);
     } else {
         LOG_WARN("WriteSettingXml:%{private}s, unknown element type.", filePath.c_str());
     }
