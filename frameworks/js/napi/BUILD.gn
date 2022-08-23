@@ -25,11 +25,13 @@ ohos_copy("preferences_declaration") {
 ohos_shared_library("storage") {
   include_dirs = [
     "include",
+    "${relational_store_napi_path}/rdb/include",
     "${relational_store_js_common_path}/include",
   ]
 
   sources = [
     "${relational_store_js_common_path}/src/js_utils.cpp",
+    "${relational_store_napi_path}/rdb/src/napi_uv_queue.cpp",
     "src/entry_point_storage.cpp",
     "src/napi_storage.cpp",
     "src/napi_storage_helper.cpp",
@@ -81,11 +83,13 @@ ohos_shared_library("preferences") {
   include_dirs = [
     "include",
     "${relational_store_js_common_path}/include",
+    "${relational_store_napi_path}/rdb/include",
   ]
 
   sources = [
     "${relational_store_js_common_path}/src/js_ability.cpp",
     "${relational_store_js_common_path}/src/js_utils.cpp",
+    "${relational_store_napi_path}/rdb/src/napi_uv_queue.cpp",
     "src/entry_point.cpp",
     "src/napi_preferences.cpp",
     "src/napi_preferences_helper.cpp",
