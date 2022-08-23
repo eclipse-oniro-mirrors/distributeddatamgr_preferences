@@ -31,6 +31,7 @@
 
 using namespace OHOS::NativePreferences;
 using namespace OHOS::AppDataMgrJsKit;
+using namespace OHOS::RdbJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -564,30 +565,22 @@ napi_value StorageProxy::UnRegisterObserver(napi_env env, napi_callback_info inf
     return nullptr;
 }
 
-StorageObserverImpl::StorageObserverImpl(napi_env env, napi_value callback) : observerRef(nullptr)
+StorageObserverImpl::StorageObserverImpl(napi_env env, napi_value callback) : NapiUvQueue(env, callback)
 {
-    this->env_ = env;
-    napi_create_reference(env_, callback, 1, &observerRef);
 }
 
 StorageObserverImpl::~StorageObserverImpl()
 {
-    napi_delete_reference(env_, observerRef);
 }
 
-void StorageObserverImpl::OnChange(Preferences &preferences, const std::string &key)
+void StorageObserverImpl::OnChange(const std::string &key)
 {
     LOG_DEBUG("OnChange key:%{public}s", key.c_str());
-    napi_value callback = nullptr;
-    napi_value global = nullptr;
-    napi_value result = nullptr;
-    napi_value args[1] = { 0 };
 
-    napi_create_string_utf8(env_, key.c_str(), key.size(), &args[0]);
-    napi_get_reference_value(env_, observerRef, &callback);
-    napi_get_global(env_, &global);
-
-    napi_call_function(env_, global, callback, 1, args, &result);
+    CallFunction([key](napi_env env, int &argc, napi_value *argv) {
+        argc = 1;
+        argv[0] = JSUtils::Convert2JSValue(env, key);
+    });
     LOG_DEBUG("OnChange key end");
 }
 } // namespace PreferencesJsKit
