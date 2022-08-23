@@ -20,6 +20,7 @@
 #include <cerrno>
 #include <cmath>
 #include <limits>
+#include <list>
 
 #include "js_logger.h"
 #include "js_utils.h"
