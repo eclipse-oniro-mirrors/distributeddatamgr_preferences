@@ -59,8 +59,9 @@ private:
     std::shared_ptr<OHOS::NativePreferences::PreferencesObserver> observer_;
 };
 
-class StorageObserverImpl : public OHOS::NativePreferences::PreferencesObserver ,
-                            public OHOS::RdbJsKit::NapiUvQueue{
+class StorageObserverImpl
+    : public OHOS::NativePreferences::PreferencesObserver
+    , public OHOS::RdbJsKit::NapiUvQueue {
 public:
     StorageObserverImpl(napi_env env, napi_value callback);
     virtual ~StorageObserverImpl();
