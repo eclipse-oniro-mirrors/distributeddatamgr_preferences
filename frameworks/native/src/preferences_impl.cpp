@@ -541,7 +541,7 @@ void PreferencesImpl::notifyPreferencesObserver(const PreferencesImpl::MemoryToD
         for (auto it = request.preferencesObservers_.begin(); it != request.preferencesObservers_.end(); ++it) {
             std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
             if (std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock()) {
-                sharedPreferencesObserver->OnChange(*this, *key);
+                sharedPreferencesObserver->OnChange(*key);
             }
         }
     }
