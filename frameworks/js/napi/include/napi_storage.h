@@ -60,8 +60,7 @@ private:
 };
 
 class StorageObserverImpl
-    : public OHOS::NativePreferences::PreferencesObserver
-    , public OHOS::RdbJsKit::NapiUvQueue {
+    : public OHOS::NativePreferences::PreferencesObserver, public OHOS::RdbJsKit::NapiUvQueue {
 public:
     StorageObserverImpl(napi_env env, napi_value callback);
     virtual ~StorageObserverImpl();

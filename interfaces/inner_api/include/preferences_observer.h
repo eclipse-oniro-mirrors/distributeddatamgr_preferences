@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace NativePreferences {
-
 class PreferencesObserver {
 public:
     virtual ~PreferencesObserver();

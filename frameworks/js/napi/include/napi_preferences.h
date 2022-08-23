@@ -55,8 +55,7 @@ private:
 };
 
 class PreferencesObserverImpl
-    : public OHOS::NativePreferences::PreferencesObserver
-    , public OHOS::RdbJsKit::NapiUvQueue {
+    : public OHOS::NativePreferences::PreferencesObserver, public OHOS::RdbJsKit::NapiUvQueue {
 public:
     PreferencesObserverImpl(napi_env env, napi_value callback);
     virtual ~PreferencesObserverImpl();
