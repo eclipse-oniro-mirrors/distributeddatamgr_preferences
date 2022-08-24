@@ -22,6 +22,7 @@
 #include <limits>
 
 #include "js_logger.h"
+#include "js_utils.h"
 #include "napi_async_proxy.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -30,6 +31,7 @@
 
 using namespace OHOS::NativePreferences;
 using namespace OHOS::AppDataMgrJsKit;
+using namespace OHOS::RdbJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -205,27 +207,31 @@ void ParseKey(const napi_env &env, const napi_value &arg, StorageAysncContext *a
     asyncContext->key = key;
 }
 
-void ParseDefValue(const napi_env &env, const napi_value &arg, StorageAysncContext *asyncContext)
+void ParseDefValue(const napi_env &env, const napi_value &jsVal, StorageAysncContext *asyncContext)
 {
     napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, arg, &valueType);
+    napi_typeof(env, jsVal, &valueType);
     if (valueType == napi_number) {
         double number = 0.0;
-        napi_get_value_double(env, arg, &number);
-        PreferencesValue value((double)number);
-        asyncContext->defValue = value;
+        if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2Double error");
+            return;
+        }
+        asyncContext->defValue = number;
     } else if (valueType == napi_string) {
-        char *str = new char[MAX_VALUE_LENGTH];
-        size_t valueSize = 0;
-        napi_get_value_string_utf8(env, arg, str, MAX_VALUE_LENGTH, &valueSize);
-        PreferencesValue value((std::string)(str));
-        asyncContext->defValue = value;
-        delete[] str;
+        std::string str;
+        if (JSUtils::Convert2String(env, jsVal, str) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2String error");
+            return;
+        }
+        asyncContext->defValue = str;
     } else if (valueType == napi_boolean) {
         bool bValue = false;
-        napi_get_value_bool(env, arg, &bValue);
-        PreferencesValue value((bool)(bValue));
-        asyncContext->defValue = value;
+        if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2Bool error");
+            return;
+        }
+        asyncContext->defValue = bValue;
     } else {
         LOG_ERROR("Wrong second parameter type");
     }
@@ -559,30 +565,22 @@ napi_value StorageProxy::UnRegisterObserver(napi_env env, napi_callback_info inf
     return nullptr;
 }
 
-StorageObserverImpl::StorageObserverImpl(napi_env env, napi_value callback) : observerRef(nullptr)
+StorageObserverImpl::StorageObserverImpl(napi_env env, napi_value callback) : NapiUvQueue(env, callback)
 {
-    this->env_ = env;
-    napi_create_reference(env_, callback, 1, &observerRef);
 }
 
 StorageObserverImpl::~StorageObserverImpl()
 {
-    napi_delete_reference(env_, observerRef);
 }
 
-void StorageObserverImpl::OnChange(Preferences &preferences, const std::string &key)
+void StorageObserverImpl::OnChange(const std::string &key)
 {
     LOG_DEBUG("OnChange key:%{public}s", key.c_str());
-    napi_value callback = nullptr;
-    napi_value global = nullptr;
-    napi_value result = nullptr;
-    napi_value args[1] = { 0 };
 
-    napi_create_string_utf8(env_, key.c_str(), key.size(), &args[0]);
-    napi_get_reference_value(env_, observerRef, &callback);
-    napi_get_global(env_, &global);
-
-    napi_call_function(env_, global, callback, 1, args, &result);
+    CallFunction([key](napi_env env, int &argc, napi_value *argv) {
+        argc = 1;
+        argv[0] = JSUtils::Convert2JSValue(env, key);
+    });
     LOG_DEBUG("OnChange key end");
 }
 } // namespace PreferencesJsKit
