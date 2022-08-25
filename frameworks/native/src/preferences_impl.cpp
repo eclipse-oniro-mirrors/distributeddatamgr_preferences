@@ -25,13 +25,15 @@
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"
+
 #include "adaptor.h"
 
 namespace OHOS {
 namespace NativePreferences {
-static bool IsFileExist(const std::filesystem::path &inputPath)
+static bool IsFileExist(const std::string &inputPath)
 {
     char path[PATH_MAX + 1] = { 0x00 };
+
     if (strlen(inputPath.c_str()) > PATH_MAX || REALPATH(inputPath.c_str(), path, PATH_MAX)  == nullptr) {
         return false;
     }
@@ -44,7 +46,7 @@ static bool IsFileExist(const std::filesystem::path &inputPath)
     return false;
 }
 
-PreferencesImpl::PreferencesImpl(const std::filesystem::path &filePath)
+PreferencesImpl::PreferencesImpl(const std::string &filePath)
     : loaded_(false), filePath_(filePath), backupPath_(MakeBackupPath(filePath_)),
       brokenPath_(MakeBrokenPath(filePath_)), taskPool_(TaskPool(MAX_TP_THREADS, MIN_TP_THREADS))
 {
@@ -52,16 +54,16 @@ PreferencesImpl::PreferencesImpl(const std::filesystem::path &filePath)
     diskStateGeneration_ = 0;
 }
 
-std::filesystem::path PreferencesImpl::MakeBackupPath(const std::filesystem::path &prefPath)
+std::string PreferencesImpl::MakeBackupPath(const std::string &prefPath)
 {
-    std::filesystem::path backupPath = prefPath;
+    std::string backupPath = prefPath;
     backupPath += ".bak";
     return backupPath;
 }
 
-std::filesystem::path PreferencesImpl::MakeBrokenPath(const std::filesystem::path &prefPath)
+std::string PreferencesImpl::MakeBrokenPath(const std::string &prefPath)
 {
-    std::filesystem::path brokenPath = prefPath;
+    std::string brokenPath = prefPath;
     brokenPath += ".bak";
     return brokenPath;
 }
@@ -257,7 +259,7 @@ void ReadXmlArrayElement(Element element, std::map<std::string, PreferencesValue
 }
 
 void ReadXmlElement(
-    Element element, std::map<std::string, PreferencesValue> &prefMap, const std::filesystem::path &prefPath)
+    Element element, std::map<std::string, PreferencesValue> &prefMap, const std::string &prefPath)
 {
     if (element.tag_.compare("int") == 0) {
         std::stringstream ss;
@@ -297,10 +299,10 @@ void ReadXmlElement(
 }
 
 bool PreferencesImpl::ReadSettingXml(
-    const std::filesystem::path &prefPath, std::map<std::string, PreferencesValue> &prefMap)
+    const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap)
 {
     std::vector<Element> settings;
-    if (!PreferencesXmlUtils::ReadSettingXml(prefPath.generic_string(), settings)) {
+    if (!PreferencesXmlUtils::ReadSettingXml(prefPath, settings)) {
         LOG_ERROR("ReadSettingXml:%{private}s failed!", filePath_.c_str());
         return false;
     }
@@ -312,7 +314,7 @@ bool PreferencesImpl::ReadSettingXml(
     return true;
 }
 
-void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesystem::path filePath)
+void WriteXmlElement(Element &elem, PreferencesValue value, const std::string filePath)
 {
     if (value.IsDoubleArray()) {
         elem.tag_ = std::string("doubleArray");
@@ -336,10 +338,10 @@ void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesyste
     } else if (value.IsStringArray()) {
         elem.tag_ = std::string("stringArray");
         auto values = (std::vector<std::string>)value;
-        for (std::string &val : values) {
+        for (std::string val : values) {
             Element element;
             element.tag_ = std::string("string");
-            element.value_ = val;
+            element.value_ = (std::string)val;
             elem.children_.push_back(element);
         }
     } else if (value.IsInt()) {
@@ -367,7 +369,7 @@ void WriteXmlElement(Element &elem, PreferencesValue value, const std::filesyste
 }
 
 bool PreferencesImpl::WriteSettingXml(
-    const std::filesystem::path &prefPath, const std::map<std::string, PreferencesValue> &prefMap)
+    const std::string &prefPath, const std::map<std::string, PreferencesValue> &prefMap)
 {
     std::vector<Element> settings;
     for (auto it = prefMap.begin(); it != prefMap.end(); it++) {
@@ -379,7 +381,7 @@ bool PreferencesImpl::WriteSettingXml(
         settings.push_back(elem);
     }
 
-    return PreferencesXmlUtils::WriteSettingXml(prefPath.generic_string(), settings);
+    return PreferencesXmlUtils::WriteSettingXml(prefPath, settings);
 }
 
 bool PreferencesImpl::HasKey(const std::string &key)

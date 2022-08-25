@@ -144,8 +144,8 @@ public:
 
     void UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) override;
 
-    static std::filesystem::path MakeBackupPath(const std::filesystem::path &prefPath);
-    static std::filesystem::path MakeBrokenPath(const std::filesystem::path &prefPath);
+    static std::string MakeBackupPath(const std::string &prefPath);
+    static std::string MakeBrokenPath(const std::string &prefPath);
 
 private:
     class MemoryToDiskRequest {
@@ -183,8 +183,8 @@ private:
     void WriteToDiskFile(std::shared_ptr<MemoryToDiskRequest> mcr);
     bool CheckRequestValidForStateGeneration(const MemoryToDiskRequest &mcr);
 
-    bool ReadSettingXml(const std::filesystem::path &prefPath, std::map<std::string, PreferencesValue> &prefMap);
-    bool WriteSettingXml(const std::filesystem::path &prefPath, const std::map<std::string, PreferencesValue> &prefMap);
+    bool ReadSettingXml(const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap);
+    bool WriteSettingXml(const std::string &prefPath, const std::map<std::string, PreferencesValue> &prefMap);
 
     bool loaded_;
 
@@ -200,9 +200,9 @@ private:
     std::map<std::string, PreferencesValue> map_;
     std::list<std::string> modifiedKeys_;
 
-    const std::filesystem::path filePath_;
-    const std::filesystem::path backupPath_;
-    const std::filesystem::path brokenPath_;
+    const std::string filePath_;
+    const std::string backupPath_;
+    const std::string brokenPath_;
     // Task pool
     /* max threads of the task pool. */
     static constexpr int MAX_TP_THREADS = 10;

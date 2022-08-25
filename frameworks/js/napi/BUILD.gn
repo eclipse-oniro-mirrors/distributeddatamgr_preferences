@@ -126,22 +126,20 @@ if (!is_mingw && !is_mac) {
     ]
     if (is_mac) {
       buildos = "mac"
-      buildtool = "mac:clang_arm64"
       defines = [ "MAC_PLATFORM" ]
     } else {
-      buildtool = "mingw:mingw_x86_64"
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
     }
     sources = [
       "${relational_store_js_common_path}/mock/src/js_ability.cpp",
-      "${relational_store_js_common_path}/src/js_utils.cpp",
+      "${relational_store_js_common_path}/mock/src/js_utils.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
     ]
     deps = [
-      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}(//build/toolchain/${buildtool})",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
       "//foundation/arkui/napi:ace_napi",
       "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
     ]

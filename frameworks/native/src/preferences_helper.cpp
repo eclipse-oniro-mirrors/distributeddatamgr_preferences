@@ -33,7 +33,7 @@ namespace OHOS {
 namespace NativePreferences {
 std::map<std::string, std::shared_ptr<Preferences>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
-static bool IsFileExist(const std::filesystem::path &path)
+static bool IsFileExist(const std::string &path)
 {
     FILE *file = std::fopen(path.c_str(), "r");
     if (file != nullptr) {
@@ -69,7 +69,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     std::string filePath = path.substr(0, pos);
     char canonicalPath[PATH_MAX + 1] = { 0 };
     if (REALPATH(filePath.c_str(), canonicalPath, PATH_MAX) == nullptr) {
-        LOG_ERROR("Failed to obtain real path, errno:%{public}d", errno);
+        LOG_ERROR("Failed to obtain real path, errno:%{public}d, path:%{public}s", errno, filePath.c_str());
         errorCode = E_INVALID_FILE_PATH;
         return "";
     }
@@ -105,7 +105,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string
         return it->second;
     }
 
-    std::filesystem::path filePath = realPath.c_str();
+    std::string filePath = realPath.c_str();
     std::shared_ptr<PreferencesImpl> pref = std::make_shared<PreferencesImpl>(filePath);
     errCode = pref->Init();
     if (errCode != E_OK) {
@@ -129,9 +129,9 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         prefsCache_.erase(it);
     }
 
-    std::filesystem::path filePath = realPath.c_str();
-    std::filesystem::path backupPath = PreferencesImpl::MakeBackupPath(filePath);
-    std::filesystem::path brokenPath = PreferencesImpl::MakeBrokenPath(filePath);
+    std::string filePath = realPath.c_str();
+    std::string backupPath = PreferencesImpl::MakeBackupPath(filePath);
+    std::string brokenPath = PreferencesImpl::MakeBrokenPath(filePath);
 
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
