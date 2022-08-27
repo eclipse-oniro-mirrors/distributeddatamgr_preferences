@@ -119,6 +119,7 @@ if (!is_mingw && !is_mac) {
       "${relational_store_js_common_path}/mock/include",
       "//utils/native/base/include",
       "${relational_store_js_common_path}/include",
+      "${relational_store_napi_path}/rdb/include",
     ]
     cflags_cc = [
       "-std=c++17",
@@ -134,6 +135,7 @@ if (!is_mingw && !is_mac) {
     sources = [
       "${relational_store_js_common_path}/mock/src/js_ability.cpp",
       "${relational_store_js_common_path}/mock/src/js_utils.cpp",
+      "${relational_store_napi_path}/rdb/src/napi_uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
