@@ -67,6 +67,15 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
     std::string filePath = path.substr(0, pos);
+#ifdef MAC_PLATFORM
+    if (ACCESS(filePath.c_str()) != 0) {
+        if (MKDIR(filePath.c_str())) {
+            LOG_ERROR("Failed to obtain real path");
+            errorCode = E_INVALID_FILE_PATH;
+            return "";
+        }
+    }
+#endif
     char canonicalPath[PATH_MAX + 1] = { 0 };
     if (REALPATH(filePath.c_str(), canonicalPath, PATH_MAX) == nullptr) {
         LOG_ERROR("Failed to obtain real path, errno:%{public}d", errno);
@@ -85,7 +94,9 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 #if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
     if (ACCESS(realFilePath.c_str()) != 0) {
         if (MKDIR(realFilePath.c_str())) {
+            LOG_ERROR("Failed to obtain real path");
             errorCode = E_INVALID_FILE_PATH;
+            return "";
         }
     }
 #endif
