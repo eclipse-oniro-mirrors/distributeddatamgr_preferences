@@ -50,17 +50,15 @@ ohos_shared_library("native_preferences") {
     ]
     if (is_mac) {
       buildos = "mac"
-      buildtool = "mac:clang_arm64"
       defines = [ "MAC_PLATFORM" ]
     } else {
-      buildtool = "mingw:mingw_x86_64"
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
     }
     deps = [
-      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}(//build/toolchain/${buildtool})",
-      "//third_party/libxml2:libxml2_adapter(//build/toolchain/${buildtool})",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
+      "//developtools/global_resource_tool/build/libxml2:restool_libxml2",
     ]
   } else {
     deps = [ "//third_party/libxml2:libxml2" ]
