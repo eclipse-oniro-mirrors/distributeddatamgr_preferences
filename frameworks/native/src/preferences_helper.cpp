@@ -86,8 +86,8 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         errorCode = E_EMPTY_FILE_NAME;
         return "";
     }
-    std::string realFilePath(canonicalPath);
     errorCode = E_OK;
+    std::string realFilePath(canonicalPath);
     return realFilePath.append("/").append(fileName);
 }
 
