@@ -26,19 +26,19 @@
 #ifdef WINDOWS_PLATFORM
 #include <unistd.h>
 #include <iostream>
-#define REALPATH(filePath, realPath, maxlen) (_fullpath(realPath, filePath, maxlen))
+#define REALPATH(filePath, realPath, ...) (_fullpath(realPath, filePath, ##__VA_ARGS__))
 #define MKDIR(filePath) (mkdir(filePath))
-#define ACCESS(filePath) (_access(realFilePath.c_str(), FILE_EXIST))
+#define ACCESS(filePath) (_access(filePath, FILE_EXIST))
 #else
 #include <cstdlib>
-#define REALPATH(filePath, realPath, maxlen) (realpath(filePath, realPath))
+#define REALPATH(filePath, realPath, ...) (realpath(filePath, realPath))
 
 #ifdef MAC_PLATFORM
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #define MKDIR(filePath) (mkdir(filePath, FILE_MODE))
-#define ACCESS(filePath) (access(realFilePath.c_str(), FILE_EXIST))
+#define ACCESS(filePath) (access(filePath, FILE_EXIST))
 #endif
 
 #endif
