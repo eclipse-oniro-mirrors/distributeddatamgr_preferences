@@ -52,7 +52,7 @@
                 "napi",
                 "hilog_native",
                 "ipc",
-                "utils_base",
+                "c_utils",
                 "ability_base"
             ],
             "third_party": [
