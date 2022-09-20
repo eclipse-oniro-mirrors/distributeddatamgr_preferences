@@ -30,6 +30,7 @@ config("adaptor_config") {
 }
 
 ohos_shared_library("native_preferences") {
+  all_dependent_configs = [ ":native_preferences_public_config" ]
   sources = [
     "${preferences_native_path}/src/preferences_helper.cpp",
     "${preferences_native_path}/src/preferences_impl.cpp",
