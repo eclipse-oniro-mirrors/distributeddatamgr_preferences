@@ -40,7 +40,6 @@ if (!is_mingw && !is_mac) {
 
     external_deps = [
       "hilog_native:libhilog",
-      "ipc:ipc_core",
       "napi:ace_napi",
       "preferences:native_preferences",
     ]
@@ -66,11 +65,9 @@ if (!is_mingw && !is_mac) {
     deps = []
 
     external_deps = [
-      "ability_base:want",
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
       "hilog_native:libhilog",
-      "ipc:ipc_core",
       "napi:ace_napi",
       "preferences:native_preferences",
     ]
@@ -99,11 +96,9 @@ if (!is_mingw && !is_mac) {
     deps = []
 
     external_deps = [
-      "ability_base:want",
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
       "hilog_native:libhilog",
-      "ipc:ipc_core",
       "napi:ace_napi",
       "preferences:native_preferences",
     ]
