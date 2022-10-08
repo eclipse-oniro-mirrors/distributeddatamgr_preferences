@@ -21,7 +21,7 @@
 #include "js_ability.h"
 #include "js_logger.h"
 #include "js_utils.h"
-#include "napi_async_proxy.h"
+#include "napi_async_proxy_v9.h"
 #include "napi_preferences.h"
 #include "preferences_errno.h"
 #include "securec.h"
@@ -31,98 +31,129 @@ using namespace OHOS::AppDataMgrJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
-struct HelperAysncContext : NapiAsyncProxy<HelperAysncContext>::AysncContext {
+struct HelperAysncContext : NapiAsyncProxyV9<HelperAysncContext>::AysncContext {
     std::string path;
     std::shared_ptr<Context> context;
 };
 
-void ParseContext(const napi_env &env, const napi_value &object, HelperAysncContext *asyncContext)
+bool ParseContext(const napi_env &env, const napi_value &object, std::string &parmName, std::string &parmType, HelperAysncContext *asyncContext)
 {
+    parmName = "context";
+    parmType = "StageContext or FAContext.";
     auto context = JSAbility::GetContext(env, object);
-    NAPI_ASSERT_RETURN_VOID(env, context != nullptr, "ParseContext get context failed.");
+    if (context == nullptr) {
+        LOG_ERROR("ParseContext get context failed.");
+        return false;
+    }
     asyncContext->context = context;
+    return true;
 }
 
-void ParseName(const napi_env &env, const napi_value &value, HelperAysncContext *asyncContext)
+bool ParseName(const napi_env &env, const napi_value &value, std::string &parmName, std::string &parmType, HelperAysncContext *asyncContext)
 {
+    parmName = "name";
+    parmType = "no empty string.";
     LOG_DEBUG("ParseName start");
-    NAPI_ASSERT_RETURN_VOID(env, asyncContext->context != nullptr, "ParseName context is null.");
+    if (asyncContext->context == nullptr) {
+        LOG_ERROR("ParseName context is null.");
+        return false;
+    }
     std::string name = JSUtils::Convert2String(env, value);
-    NAPI_ASSERT_RETURN_VOID(env, !name.empty(), "Get preferences name empty.");
-
+    if (name.empty()) {
+        LOG_ERROR("Get preferences name empty.");
+        return false;
+    }
     size_t pos = name.find_first_of('/');
-    NAPI_ASSERT_RETURN_VOID(env, pos == std::string::npos, "A name without path should be input.");
+    if (pos != std::string::npos) {
+        parmType = "without '/' string.";
+        LOG_ERROR("A name without path should be input.");
+        return false;
+    }
     std::string preferencesDir = asyncContext->context->GetPreferencesDir();
     asyncContext->path = preferencesDir.append("/").append(name);
+    return true;
 }
 
 napi_value GetPreferences(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("GetPreferences start");
-    NapiAsyncProxy<HelperAysncContext> proxy;
+    NapiAsyncProxyV9<HelperAysncContext> proxy;
     proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
+    std::vector<NapiAsyncProxyV9<HelperAysncContext>::InputParser> parsers;
     parsers.push_back(ParseContext);
     parsers.push_back(ParseName);
-    proxy.ParseInputs(parsers);
-
+    if (!proxy.ParseInputs(parsers)) {
+        return nullptr;
+    }
     return proxy.DoAsyncWork(
         "GetPreferences",
-        [](HelperAysncContext *asyncContext) {
-            int errCode = OK;
+        [](HelperAysncContext *asyncContext, std::string &errorMessage) {
+            int errCode = E_OK;
             OHOS::NativePreferences::PreferencesHelper::GetPreferences(asyncContext->path, errCode);
-            LOG_DEBUG("GetPreferences return %{public}d", errCode);
-            return errCode;
+            LOG_DEBUG("GetPreferences execfunction return %{public}d", errCode);
+            errorMessage = "GetPreferences execute failed";
+            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
         },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
+        [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+            int errCode = E_OK;
             napi_value path = nullptr;
             napi_create_string_utf8(asyncContext->env, asyncContext->path.c_str(), NAPI_AUTO_LENGTH, &path);
             auto ret = PreferencesProxy::NewInstance(asyncContext->env, path, &output);
-            return (ret == napi_ok) ? OK : ERR;
+            errCode = (ret == napi_ok) ? E_OK : E_ERROR;
+            LOG_DEBUG("GetPreferences completefunction return %{public}d", errCode);
+            errorMessage = "GetPreferences complete failed";
+            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
         });
 }
 
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<HelperAysncContext> proxy;
+    NapiAsyncProxyV9<HelperAysncContext> proxy;
     proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
+    std::vector<NapiAsyncProxyV9<HelperAysncContext>::InputParser> parsers;
     parsers.push_back(ParseContext);
     parsers.push_back(ParseName);
-    proxy.ParseInputs(parsers);
-
+    if (!proxy.ParseInputs(parsers)) {
+        return nullptr;
+    }
     return proxy.DoAsyncWork(
         "DeletePreferences",
-        [](HelperAysncContext *asyncContext) {
+        [](HelperAysncContext *asyncContext, std::string &errorMessage) {
             int errCode = PreferencesHelper::DeletePreferences(asyncContext->path);
-            LOG_DEBUG("DeletePreferences return %{public}d", errCode);
-            return errCode;
+            LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
+            errorMessage = "DeletePreferences execute failed";
+            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
         },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
+        [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
-            return OK;
+            LOG_DEBUG("DeletePreferences completefunction return %{public}d", E_OK);
+            errorMessage = "DeletePreferences complete failed";
+            return E_OK;
         });
 }
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<HelperAysncContext> proxy;
+    NapiAsyncProxyV9<HelperAysncContext> proxy;
     proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
+    std::vector<NapiAsyncProxyV9<HelperAysncContext>::InputParser> parsers;
     parsers.push_back(ParseContext);
     parsers.push_back(ParseName);
-    proxy.ParseInputs(parsers);
-
+    if (!proxy.ParseInputs(parsers)) {
+        return nullptr;
+    }
     return proxy.DoAsyncWork(
-        "RemovePreferencesFromCache",
-        [](HelperAysncContext *asyncContext) {
+        "removePreferencesFromCache",
+        [](HelperAysncContext *asyncContext, std::string &errorMessage) {
             int errCode = PreferencesHelper::RemovePreferencesFromCache(asyncContext->path);
             LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
-            return errCode;
+            errorMessage = "RemovePreferencesFromCache execute failed";
+            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
         },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
+        [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
-            return OK;
+            errorMessage = "RemovePreferencesFromCache complete failed";
+            return E_OK;
         });
 }
 

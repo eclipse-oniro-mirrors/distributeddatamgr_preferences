@@ -16,7 +16,6 @@
     "package": "com.example.myapplication",
     "name": ".MyApplication",
     "deviceType": [
-      "default",
       "phone"
     ],
     "distro": {

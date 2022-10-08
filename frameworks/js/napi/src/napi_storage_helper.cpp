@@ -69,7 +69,7 @@ napi_value GetStorage(napi_env env, napi_callback_info info)
     return proxy.DoAsyncWork(
         "GetStorage",
         [](HelperAysncContext *asyncContext) {
-            int errCode = OK;
+            int errCode = E_OK;
             OHOS::NativePreferences::PreferencesHelper::GetPreferences(asyncContext->path, errCode);
             LOG_DEBUG("GetPreferences return %{public}d", errCode);
             return errCode;
@@ -78,7 +78,7 @@ napi_value GetStorage(napi_env env, napi_callback_info info)
             napi_value path = nullptr;
             napi_create_string_utf8(asyncContext->env, asyncContext->path.c_str(), NAPI_AUTO_LENGTH, &path);
             auto ret = StorageProxy::NewInstance(asyncContext->env, path, &output);
-            return (ret == napi_ok) ? OK : ERR;
+            return (ret == napi_ok) ? E_OK : E_ERROR;
         });
 }
 
@@ -140,7 +140,7 @@ napi_value DeleteStorage(napi_env env, napi_callback_info info)
         },
         [](HelperAysncContext *asyncContext, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
-            return OK;
+            return E_OK;
         });
 }
 
@@ -180,7 +180,7 @@ napi_value RemoveStorageFromCache(napi_env env, napi_callback_info info)
         },
         [](HelperAysncContext *asyncContext, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
-            return OK;
+            return E_OK;
         });
 }
 

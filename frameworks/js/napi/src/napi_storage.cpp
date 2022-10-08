@@ -249,7 +249,7 @@ napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
     return proxy.DoAsyncWork(
         "GetValue",
         [](StorageAysncContext *asyncContext) {
-            int errCode = OK;
+            int errCode = E_OK;
             StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
             if (asyncContext->defValue.IsBool()) {
                 bool tmpValue = (bool)obj->value_->GetBool(asyncContext->key, (bool)asyncContext->defValue);
@@ -261,13 +261,13 @@ napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
                 double tmpValue = obj->value_->GetDouble(asyncContext->key, (double)asyncContext->defValue);
                 asyncContext->defValue = PreferencesValue((double)tmpValue);
             } else {
-                errCode = ERR;
+                errCode = E_ERROR;
             }
 
             return errCode;
         },
         [](StorageAysncContext *asyncContext, napi_value &output) {
-            int errCode = OK;
+            int errCode = E_OK;
             if (asyncContext->defValue.IsBool()) {
                 napi_get_boolean(asyncContext->env, (bool)asyncContext->defValue, &output);
             } else if (asyncContext->defValue.IsString()) {
@@ -276,7 +276,7 @@ napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
             } else if (asyncContext->defValue.IsDouble()) {
                 napi_create_double(asyncContext->env, (double)asyncContext->defValue, &output);
             } else {
-                errCode = ERR;
+                errCode = E_ERROR;
             }
 
             return errCode;
@@ -343,7 +343,7 @@ napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
     return proxy.DoAsyncWork(
         "SetValue",
         [](StorageAysncContext *asyncContext) {
-            int errCode = OK;
+            int errCode = E_OK;
             StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
             if (asyncContext->defValue.IsBool()) {
                 errCode = obj->value_->PutBool(asyncContext->key, (bool)asyncContext->defValue);
@@ -352,14 +352,14 @@ napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
             } else if (asyncContext->defValue.IsDouble()) {
                 errCode = obj->value_->PutDouble(asyncContext->key, (double)asyncContext->defValue);
             } else {
-                errCode = ERR;
+                errCode = E_ERROR;
             }
 
             return errCode;
         },
         [](StorageAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
+            return (status == napi_ok) ? E_OK : E_ERROR;
         });
 }
 
@@ -404,7 +404,7 @@ napi_value StorageProxy::Delete(napi_env env, napi_callback_info info)
         },
         [](StorageAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
+            return (status == napi_ok) ? E_OK : E_ERROR;
         });
 }
 
@@ -446,11 +446,11 @@ napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
             StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
             asyncContext->hasKey = obj->value_->HasKey(asyncContext->key);
 
-            return OK;
+            return E_OK;
         },
         [](StorageAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_boolean(asyncContext->env, asyncContext->hasKey, &output);
-            return (status == napi_ok) ? OK : ERR;
+            return (status == napi_ok) ? E_OK : E_ERROR;
         });
 }
 
@@ -469,7 +469,7 @@ napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
         },
         [](StorageAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
+            return (status == napi_ok) ? E_OK : E_ERROR;
         });
 }
 
@@ -513,7 +513,7 @@ napi_value StorageProxy::Clear(napi_env env, napi_callback_info info)
         },
         [](StorageAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
+            return (status == napi_ok) ? E_OK : E_ERROR;
         });
 }
 
