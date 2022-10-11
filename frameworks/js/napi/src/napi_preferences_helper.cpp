@@ -89,13 +89,13 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "GetPreferences",
-        [](HelperAysncContext *asyncContext, std::string &errorMessage) {
-            int errCode = OK;
+        [](HelperAysncContext *asyncContext) {
+            int errCode = E_OK;
             OHOS::NativePreferences::PreferencesHelper::GetPreferences(asyncContext->path, errCode);
             LOG_DEBUG("GetPreferences return %{public}d", errCode);
             return errCode;
         },
-        [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](HelperAysncContext *asyncContext, napi_value &output) {
             napi_value path = nullptr;
             napi_create_string_utf8(asyncContext->env, asyncContext->path.c_str(), NAPI_AUTO_LENGTH, &path);
             auto ret = PreferencesProxy::NewInstance(asyncContext->env, path, &output);
@@ -115,13 +115,13 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "DeletePreferences",
-        [](HelperAysncContext *asyncContext, std::string &errorMessage) {
+        [](HelperAysncContext *asyncContext) {
             int errCode = PreferencesHelper::DeletePreferences(asyncContext->path);
             LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
-            errorMessage = "Failed to delete preferences.";
-            return (errCode == OK) ? OK : E_PREFERENCES_ERROR;
+            asyncContext->errorMessage = "Failed to delete preferences file";
+            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
         },
-        [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](HelperAysncContext *asyncContext, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
             LOG_DEBUG("DeletePreferences completefunction return %{public}d", E_OK);
             return OK;
@@ -140,12 +140,12 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "RemovePreferencesFromCache",
-        [](HelperAysncContext *asyncContext, std::string &errorMessage) {
+        [](HelperAysncContext *asyncContext) {
             int errCode = PreferencesHelper::RemovePreferencesFromCache(asyncContext->path);
             LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
             return errCode;
         },
-        [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](HelperAysncContext *asyncContext, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
             return OK;
         });

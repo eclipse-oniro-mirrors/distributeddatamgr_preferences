@@ -80,7 +80,7 @@ void PreferencesProxy::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("on", RegisterObserver),
         DECLARE_NAPI_FUNCTION("off", UnRegisterObserver),
     };
-    
+
     napi_value cons = nullptr;
     napi_define_class(env, "Storage", NAPI_AUTO_LENGTH, New, nullptr,
         sizeof(descriptors) / sizeof(napi_property_descriptor), descriptors, &cons);
@@ -158,7 +158,8 @@ bool IsFloat(double input)
     return abs(input - floor(input)) >= 0; // DBL_EPSILON;
 }
 
-bool ParseKey(const napi_env &env, const napi_value &arg, std::string &parmName, std::string &parmType, PreferencesAysncContext *asyncContext)
+bool ParseKey(const napi_env &env, const napi_value &arg, std::string &parmName, std::string &parmType,
+    PreferencesAysncContext *asyncContext)
 {
     parmName = "key";
     parmType = "no empty string.";
@@ -248,7 +249,8 @@ int32_t ParseDefObject(const napi_env &env, const napi_value &jsVal, Preferences
     return E_OK;
 }
 
-bool ParseDefValue(const napi_env &env, const napi_value &jsVal, std::string &parmName, std::string &parmType, PreferencesAysncContext *asyncContext)
+bool ParseDefValue(const napi_env &env, const napi_value &jsVal, std::string &parmName, std::string &parmType,
+    PreferencesAysncContext *asyncContext)
 {
     parmName = "value";
     parmType = "ValueType.";
@@ -323,7 +325,7 @@ int32_t GetAllArr(
     return OK;
 }
 
-int32_t GetAllExecute(PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output)
+int32_t GetAllExecute(PreferencesAysncContext *asyncContext, napi_value &output)
 {
     if (napi_create_object(asyncContext->env, &output) != napi_ok) {
         LOG_ERROR("PreferencesProxy::GetAll creat object failed");
@@ -380,7 +382,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "GetAll",
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
+        [](PreferencesAysncContext *asyncContext) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             asyncContext->allElements = obj->value_->GetAll();
             return OK;
@@ -424,13 +426,13 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "GetValue",
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
+        [](PreferencesAysncContext *asyncContext) {
             int errCode = OK;
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             asyncContext->defValue = obj->value_->Get(asyncContext->key, asyncContext->defValue);
             return errCode;
         },
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](PreferencesAysncContext *asyncContext, napi_value &output) {
             int errCode = OK;
             if (asyncContext->defValue.IsBool()) {
                 if (JSUtils::Convert2JSValue(asyncContext->env, (bool)asyncContext->defValue, output) != E_OK) {
@@ -461,7 +463,6 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
         });
 }
 
-
 napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
 {
     NapiAsyncProxyV9<PreferencesAysncContext> proxy;
@@ -474,13 +475,13 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "SetValue",
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
+        [](PreferencesAysncContext *asyncContext) {
             int errCode = ERR;
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             errCode = obj->value_->Put(asyncContext->key, asyncContext->defValue);
             return errCode;
         },
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](PreferencesAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
             return (status == napi_ok) ? OK : ERR;
         });
@@ -497,12 +498,12 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "Delete",
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
+        [](PreferencesAysncContext *asyncContext) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             int errCode = obj->value_->Delete(asyncContext->key);
             return (errCode == OK) ? OK : ERR;
         },
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](PreferencesAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
             return (status == napi_ok) ? OK : ERR;
         });
@@ -519,12 +520,12 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "HasKey",
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
+        [](PreferencesAysncContext *asyncContext) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             asyncContext->hasKey = obj->value_->HasKey(asyncContext->key);
             return OK;
         },
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](PreferencesAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_boolean(asyncContext->env, asyncContext->hasKey, &output);
             return (status == napi_ok) ? OK : ERR;
         });
@@ -540,11 +541,11 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "Flush",
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
+        [](PreferencesAysncContext *asyncContext) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             return obj->value_->FlushSync();
         },
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](PreferencesAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
             return (status == napi_ok) ? OK : ERR;
         });
@@ -560,11 +561,11 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     }
     return proxy.DoAsyncWork(
         "Clear",
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
+        [](PreferencesAysncContext *asyncContext) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             return obj->value_->Clear();
         },
-        [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
+        [](PreferencesAysncContext *asyncContext, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
             return (status == napi_ok) ? OK : ERR;
         });
@@ -579,16 +580,12 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
-    if(type != napi_string){
-        NapiThrowError::ThrowParameterCodeError(env, "type", "'change'.");
-        return nullptr;
-    }
+    RDB_NAPI_ASSERT(env, type == napi_string, E_RDB_PARAMETER_ERROR,
+        "Parameter error. The type of 'type' must be string 'change'.");
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
-    if(type != napi_function){
-        NapiThrowError::ThrowParameterCodeError(env, "callback", "function type.");
-        return nullptr;
-    }
+    RDB_NAPI_ASSERT(env, type == napi_function, E_RDB_PARAMETER_ERROR,
+        "Parameter error. The type of 'callback' must be function type.");
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
@@ -610,16 +607,12 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
-    if(type != napi_string){
-        NapiThrowError::ThrowParameterCodeError(env, "type", "'change'.");
-        return nullptr;
-    }
+    RDB_NAPI_ASSERT(env, type == napi_string, E_RDB_PARAMETER_ERROR,
+        "Parameter error. The type of 'type' must be string 'change'.");
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
-    if(type != napi_function){
-        NapiThrowError::ThrowParameterCodeError(env, "callback", "function type.");
-        return nullptr;
-    }
+    RDB_NAPI_ASSERT(env, type == napi_function, E_RDB_PARAMETER_ERROR,
+        "Parameter error. The type of 'callback' must be function type.");
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
