@@ -82,7 +82,7 @@ void PreferencesProxy::Init(napi_env env, napi_value exports)
     };
     
     napi_value cons = nullptr;
-    napi_define_class(env, "Preferences", NAPI_AUTO_LENGTH, New, nullptr,
+    napi_define_class(env, "Storage", NAPI_AUTO_LENGTH, New, nullptr,
         sizeof(descriptors) / sizeof(napi_property_descriptor), descriptors, &cons);
 
     napi_create_reference(env, cons, 1, &constructor_);
@@ -278,7 +278,6 @@ bool ParseDefValue(const napi_env &env, const napi_value &jsVal, std::string &pa
     } else if (valueType == napi_object) {
         if (ParseDefObject(env, jsVal, asyncContext) != E_OK) {
             LOG_ERROR("ParseDefValue::ParseDefObject failed");
-            return false;
         }
     } else {
         LOG_ERROR("ParseDefValue Wrong second parameter type");
@@ -294,73 +293,81 @@ int32_t GetAllArr(
     if (value.IsDoubleArray()) {
         if (JSUtils::Convert2JSDoubleArr(asyncContext->env, (std::vector<double>)value, jsArr) != E_OK) {
             LOG_ERROR("PreferencesProxy::GetAllArr Convert2JSValue failed");
-            return E_ERROR;
+            return ERR;
         }
         if (napi_set_named_property(asyncContext->env, output, key.c_str(), jsArr) != napi_ok) {
             LOG_ERROR("PreferencesProxy::GetAllArr set property doubleArr failed");
-            return E_ERROR;
+            return ERR;
         }
     } else if (value.IsStringArray()) {
         if (JSUtils::Convert2JSStringArr(asyncContext->env, (std::vector<std::string>)value, jsArr) != E_OK) {
             LOG_ERROR("PreferencesProxy::GetAllArr Convert2JSValue failed");
-            return E_ERROR;
+            return ERR;
         }
         if (napi_set_named_property(asyncContext->env, output, key.c_str(), jsArr) != napi_ok) {
             LOG_ERROR("PreferencesProxy::GetAll set property stringArr failed");
-            return E_ERROR;
+            return ERR;
         }
     } else if (value.IsBoolArray()) {
         if (JSUtils::Convert2JSBoolArr(asyncContext->env, (std::vector<bool>)value, jsArr) != E_OK) {
             LOG_ERROR("PreferencesProxy::GetAllArr Convert2JSValue failed");
-            return E_ERROR;
+            return ERR;
         }
 
         napi_status status = napi_set_named_property(asyncContext->env, output, key.c_str(), jsArr);
         if (status != napi_ok) {
             LOG_ERROR("PreferencesProxy::GetAll set property boolArr failed, status = %{public}d", status);
-            return E_ERROR;
+            return ERR;
         }
     }
-    return E_OK;
+    return OK;
 }
 
 int32_t GetAllExecute(PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output)
 {
     if (napi_create_object(asyncContext->env, &output) != napi_ok) {
+        LOG_ERROR("PreferencesProxy::GetAll creat object failed");
         return ERR;
     }
     napi_value jsVal = nullptr;
     for (const auto &[key, value] : asyncContext->allElements) {
         if (value.IsBool()) {
             if (JSUtils::Convert2JSValue(asyncContext->env, (bool)value, jsVal) != E_OK) {
+                LOG_ERROR("PreferencesProxy::GetAll get property bool failed");
                 return ERR;
             }
             if (napi_set_named_property(asyncContext->env, output, key.c_str(), jsVal) != napi_ok) {
+                LOG_ERROR("PreferencesProxy::GetAll set property bool failed");
                 return ERR;
             }
         } else if (value.IsDouble()) {
             if (JSUtils::Convert2JSValue(asyncContext->env, (double)value, jsVal) != E_OK) {
+                LOG_ERROR("PreferencesProxy::GetAll get property double failed");
                 return ERR;
             }
             if (napi_set_named_property(asyncContext->env, output, key.c_str(), jsVal) != napi_ok) {
+                LOG_ERROR("PreferencesProxy::GetAll set property double failed");
                 return ERR;
             }
         } else if (value.IsString()) {
             std::string tempStr = (std::string)value;
             if (JSUtils::Convert2JSValue(asyncContext->env, (std::string)value, jsVal) != napi_ok) {
+                LOG_ERROR("PreferencesProxy::GetAll get property string failed");
                 return ERR;
             }
             if (napi_set_named_property(asyncContext->env, output, key.c_str(), jsVal) != napi_ok) {
+                LOG_ERROR("PreferencesProxy::GetAll set property string failed");
                 return ERR;
             }
         } else {
             int errCode = GetAllArr(key, value, asyncContext, output);
-            if (errCode != E_OK) {
+            if (errCode != OK) {
+                LOG_ERROR("PreferencesProxy::GetAll set property array failed");
                 return ERR;
             }
         }
     }
-    return E_OK;
+    return OK;
 }
 
 napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
@@ -376,7 +383,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             asyncContext->allElements = obj->value_->GetAll();
-            return E_OK;
+            return OK;
         },
         GetAllExecute);
 }
@@ -418,28 +425,32 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     return proxy.DoAsyncWork(
         "GetValue",
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
-            int errCode = E_OK;
+            int errCode = OK;
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             asyncContext->defValue = obj->value_->Get(asyncContext->key, asyncContext->defValue);
-            return (errCode == E_OK) ? OK : ERR;
+            return errCode;
         },
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
-            int errCode = E_OK;
+            int errCode = OK;
             if (asyncContext->defValue.IsBool()) {
                 if (JSUtils::Convert2JSValue(asyncContext->env, (bool)asyncContext->defValue, output) != E_OK) {
+                    LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue boolVal failed");
                     errCode = ERR;
                 }
             } else if (asyncContext->defValue.IsString()) {
                 if (JSUtils::Convert2JSValue(asyncContext->env, (std::string)asyncContext->defValue, output) != E_OK) {
+                    LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue stringVal failed");
                     errCode = ERR;
                 }
             } else if (asyncContext->defValue.IsDouble()) {
                 if (JSUtils::Convert2JSValue(asyncContext->env, (double)asyncContext->defValue, output) != E_OK) {
+                    LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue boolVal failed");
                     errCode = ERR;
                 }
             } else if (asyncContext->defValue.IsDoubleArray() || asyncContext->defValue.IsStringArray()
                        || asyncContext->defValue.IsBoolArray()) {
                 if (GetArrayValue(asyncContext, output) != E_OK) {
+                    LOG_ERROR("PreferencesProxy::GetValue GetArrayValue failed");
                     errCode = ERR;
                 }
             } else {
@@ -464,14 +475,14 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     return proxy.DoAsyncWork(
         "SetValue",
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
-            int errCode = E_ERROR;
+            int errCode = ERR;
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             errCode = obj->value_->Put(asyncContext->key, asyncContext->defValue);
-            return (errCode == E_OK) ? OK : ERR;
+            return errCode;
         },
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? E_OK : ERR;
+            return (status == napi_ok) ? OK : ERR;
         });
 }
 
@@ -489,11 +500,11 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
             int errCode = obj->value_->Delete(asyncContext->key);
-            return (errCode == E_OK) ? OK : ERR;
+            return (errCode == OK) ? OK : ERR;
         },
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? E_OK : ERR;
+            return (status == napi_ok) ? OK : ERR;
         });
 }
 
@@ -531,8 +542,7 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
         "Flush",
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
-            int errCode = obj->value_->FlushSync();
-            return (errCode == E_OK) ? OK : ERR;
+            return obj->value_->FlushSync();
         },
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);
@@ -552,8 +562,7 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
         "Clear",
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage) {
             PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(asyncContext->boundObj);
-            int errCode = obj->value_->Clear();
-            return (errCode == E_OK) ? OK : ERR;
+            return obj->value_->Clear();
         },
         [](PreferencesAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_status status = napi_get_undefined(asyncContext->env, &output);

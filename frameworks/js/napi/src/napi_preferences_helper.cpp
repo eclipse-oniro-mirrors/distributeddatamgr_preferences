@@ -90,19 +90,16 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     return proxy.DoAsyncWork(
         "GetPreferences",
         [](HelperAysncContext *asyncContext, std::string &errorMessage) {
-            int errCode = E_OK;
+            int errCode = OK;
             OHOS::NativePreferences::PreferencesHelper::GetPreferences(asyncContext->path, errCode);
-            LOG_DEBUG("GetPreferences execfunction return %{public}d", errCode);
-            return (errCode == E_OK) ? OK : ERR;
+            LOG_DEBUG("GetPreferences return %{public}d", errCode);
+            return errCode;
         },
         [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
-            int errCode = E_OK;
             napi_value path = nullptr;
             napi_create_string_utf8(asyncContext->env, asyncContext->path.c_str(), NAPI_AUTO_LENGTH, &path);
             auto ret = PreferencesProxy::NewInstance(asyncContext->env, path, &output);
-            errCode = (ret == napi_ok) ? E_OK : E_ERROR;
-            LOG_DEBUG("GetPreferences completefunction return %{public}d", errCode);
-            return (errCode == E_OK) ? OK : ERR;
+            return (ret == napi_ok) ? OK : ERR;
         });
 }
 
@@ -121,13 +118,13 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
         [](HelperAysncContext *asyncContext, std::string &errorMessage) {
             int errCode = PreferencesHelper::DeletePreferences(asyncContext->path);
             LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
-            errorMessage = "Failed to delete preferences file";
-            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
+            errorMessage = "Failed to delete preferences.";
+            return (errCode == OK) ? OK : E_PREFERENCES_ERROR;
         },
         [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
             LOG_DEBUG("DeletePreferences completefunction return %{public}d", E_OK);
-            return E_OK;
+            return OK;
         });
 }
 
@@ -142,15 +139,15 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
         return nullptr;
     }
     return proxy.DoAsyncWork(
-        "removePreferencesFromCache",
+        "RemovePreferencesFromCache",
         [](HelperAysncContext *asyncContext, std::string &errorMessage) {
             int errCode = PreferencesHelper::RemovePreferencesFromCache(asyncContext->path);
             LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
-            return (errCode == E_OK) ? OK : ERR;
+            return errCode;
         },
         [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
-            return E_OK;
+            return OK;
         });
 }
 
