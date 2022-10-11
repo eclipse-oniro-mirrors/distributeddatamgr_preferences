@@ -36,7 +36,8 @@ struct HelperAysncContext : NapiAsyncProxyV9<HelperAysncContext>::AysncContext {
     std::shared_ptr<Context> context;
 };
 
-bool ParseContext(const napi_env &env, const napi_value &object, std::string &parmName, std::string &parmType, HelperAysncContext *asyncContext)
+bool ParseContext(const napi_env &env, const napi_value &object, std::string &parmName, std::string &parmType,
+    HelperAysncContext *asyncContext)
 {
     parmName = "context";
     parmType = "StageContext or FAContext.";
@@ -49,7 +50,8 @@ bool ParseContext(const napi_env &env, const napi_value &object, std::string &pa
     return true;
 }
 
-bool ParseName(const napi_env &env, const napi_value &value, std::string &parmName, std::string &parmType, HelperAysncContext *asyncContext)
+bool ParseName(const napi_env &env, const napi_value &value, std::string &parmName, std::string &parmType,
+    HelperAysncContext *asyncContext)
 {
     parmName = "name";
     parmType = "no empty string.";
@@ -91,8 +93,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
             int errCode = E_OK;
             OHOS::NativePreferences::PreferencesHelper::GetPreferences(asyncContext->path, errCode);
             LOG_DEBUG("GetPreferences execfunction return %{public}d", errCode);
-            errorMessage = "GetPreferences execute failed";
-            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
+            return (errCode == E_OK) ? OK : ERR;
         },
         [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             int errCode = E_OK;
@@ -101,8 +102,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
             auto ret = PreferencesProxy::NewInstance(asyncContext->env, path, &output);
             errCode = (ret == napi_ok) ? E_OK : E_ERROR;
             LOG_DEBUG("GetPreferences completefunction return %{public}d", errCode);
-            errorMessage = "GetPreferences complete failed";
-            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
+            return (errCode == E_OK) ? OK : ERR;
         });
 }
 
@@ -121,13 +121,12 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
         [](HelperAysncContext *asyncContext, std::string &errorMessage) {
             int errCode = PreferencesHelper::DeletePreferences(asyncContext->path);
             LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
-            errorMessage = "DeletePreferences execute failed";
+            errorMessage = "Failed to delete preferences file";
             return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
         },
         [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
             LOG_DEBUG("DeletePreferences completefunction return %{public}d", E_OK);
-            errorMessage = "DeletePreferences complete failed";
             return E_OK;
         });
 }
@@ -147,12 +146,10 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
         [](HelperAysncContext *asyncContext, std::string &errorMessage) {
             int errCode = PreferencesHelper::RemovePreferencesFromCache(asyncContext->path);
             LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
-            errorMessage = "RemovePreferencesFromCache execute failed";
-            return (errCode == E_OK) ? OK : E_PREFERENCES_ERROR;
+            return (errCode == E_OK) ? OK : ERR;
         },
         [](HelperAysncContext *asyncContext, std::string &errorMessage, napi_value &output) {
             napi_get_undefined(asyncContext->env, &output);
-            errorMessage = "RemovePreferencesFromCache complete failed";
             return E_OK;
         });
 }
