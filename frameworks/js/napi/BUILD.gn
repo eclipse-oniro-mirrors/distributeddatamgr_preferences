@@ -80,14 +80,15 @@ if (!is_mingw && !is_mac) {
   ohos_shared_library("preferences") {
     include_dirs = [
       "include",
-      "${relational_store_js_common_path}/include",
+      "common/include",
       "${relational_store_napi_path}/rdb/include",
     ]
 
     sources = [
-      "${relational_store_js_common_path}/src/js_ability.cpp",
-      "${relational_store_js_common_path}/src/js_utils.cpp",
       "${relational_store_napi_path}/rdb/src/napi_uv_queue.cpp",
+      "common/src/js_ability.cpp",
+      "common/src/js_utils.cpp",
+      "common/src/async_call.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",

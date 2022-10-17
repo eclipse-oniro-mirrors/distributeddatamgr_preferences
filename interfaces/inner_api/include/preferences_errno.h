@@ -41,7 +41,7 @@ constexpr int E_KEY_EXCEED_LENGTH_LIMIT = (E_BASE - 16);
 constexpr int E_VALUE_EXCEED_LENGTH_LIMIT = (E_BASE - 17);
 constexpr int E_DEFAULT_EXCEED_LENGTH_LIMIT = (E_BASE - 18);
 constexpr int E_NAPI_GET_ERROR = (E_BASE - 19);
-constexpr int E_PREFERENCES_PARAMETER_ERROR = 401;
+
 constexpr int E_PREFERENCES_ERROR = 15500010;
 } // namespace NativePreferences
 } // namespace OHOS
