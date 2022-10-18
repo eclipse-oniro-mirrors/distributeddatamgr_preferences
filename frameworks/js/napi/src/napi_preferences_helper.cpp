@@ -82,8 +82,8 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetPreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 2 || argc == 3, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 parameters!"));
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
         PRE_CALL_RETURN(ParseContext(env, argv[0], context));
         PRE_CALL_RETURN(ParseName(env, argv[1], context));
         return OK;
@@ -112,8 +112,8 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 2 || argc == 3, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 parameters!"));
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
         PRE_CALL_RETURN(ParseContext(env, argv[0], context));
         PRE_CALL_RETURN(ParseName(env, argv[1], context));
         return OK;
@@ -121,8 +121,8 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     auto exec = [context](AsyncCall::Context *ctx) -> int {
         int errCode = PreferencesHelper::DeletePreferences(context->path);
         LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
-        PRE_SETERR_RETURN(errCode == E_OK, 
-                context->SetError(E_PREFERENCES_ERROR, "Failed to delete preferences file."));
+        PRE_SETERR_RETURN(errCode == E_OK, context->SetError(E_PREFERENCES_ERROR, "Failed to delete preferences "
+                                                                                  "file."));
 
         return (errCode == E_OK) ? OK : ERR;
     };
@@ -142,8 +142,8 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 2 || argc == 3, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 parameters!"));
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
         PRE_CALL_RETURN(ParseContext(env, argv[0], context));
         PRE_CALL_RETURN(ParseName(env, argv[1], context));
         return OK;

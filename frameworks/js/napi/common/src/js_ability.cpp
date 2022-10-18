@@ -31,12 +31,12 @@ Context::Context(std::shared_ptr<AbilityRuntime::Context> stageContext)
         moduleName_ = hapInfo->moduleName;
     }
     auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::ExtensionContext>(stageContext);
-	if(extensionContext != nullptr) {
-	    auto abilityInfo = extensionContext->GetAbilityInfo();
-		uri_ = abilityInfo->uri;
-	}
+    if (extensionContext != nullptr) {
+        auto abilityInfo = extensionContext->GetAbilityInfo();
+        uri_ = abilityInfo->uri;
+    }
     LOG_DEBUG("Stage: area:%{public}d database:%{private}s preferences:%{private}s bundle:%{public}s hap:%{public}s",
-              area_, databaseDir_.c_str(), preferencesDir_.c_str(), bundleName_.c_str(), moduleName_.c_str());
+        area_, databaseDir_.c_str(), preferencesDir_.c_str(), bundleName_.c_str(), moduleName_.c_str());
 }
 
 Context::Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)

@@ -177,7 +177,8 @@ int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<Prefere
     return OK;
 }
 
-int32_t ParseDoubleElement(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
+int32_t ParseDoubleElement(
+    const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     std::vector<double> array;
     if (JSUtils::Convert2DoubleVector(env, jsVal, array) != E_OK) {
@@ -188,7 +189,8 @@ int32_t ParseDoubleElement(const napi_env &env, const napi_value &jsVal, std::sh
     return E_OK;
 }
 
-int32_t ParseBoolElement(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
+int32_t ParseBoolElement(
+    const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
 {
     std::vector<bool> array;
     if (JSUtils::Convert2BoolVector(env, jsVal, array) != E_OK) {
@@ -199,7 +201,8 @@ int32_t ParseBoolElement(const napi_env &env, const napi_value &jsVal, std::shar
     return E_OK;
 }
 
-int32_t ParseStringElement(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
+int32_t ParseStringElement(
+    const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     std::vector<std::string> array;
     if (JSUtils::Convert2StrVector(env, jsVal, array) != E_OK) {
@@ -210,8 +213,8 @@ int32_t ParseStringElement(const napi_env &env, const napi_value &jsVal, std::sh
     return E_OK;
 }
 
-int32_t ParseObjectElement(
-    napi_valuetype valueType, const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
+int32_t ParseObjectElement(napi_valuetype valueType, const napi_env &env, const napi_value &jsVal,
+    std::shared_ptr<PreferencesAysncContext> context)
 {
     if (valueType == napi_number) {
         return ParseDoubleElement(env, jsVal, context);
@@ -288,8 +291,8 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
     return OK;
 }
 
-int32_t GetAllArr(
-    const std::string &key, const PreferencesValue &value, std::shared_ptr<PreferencesAysncContext > context, napi_value &output)
+int32_t GetAllArr(const std::string &key, const PreferencesValue &value,
+    std::shared_ptr<PreferencesAysncContext> context, napi_value &output)
 {
     napi_value jsArr = nullptr;
     if (value.IsDoubleArray()) {
@@ -377,8 +380,8 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetAll start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 0 || argc == 1, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 parameters!"));
+        PRE_SETERR_RETURN(argc == 0 || argc == 1, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 "
+                                                                                   "parameters!"));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -425,8 +428,8 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 2 || argc == 3, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 parameters!"));
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
         PRE_CALL_RETURN(ParseKey(env, argv[0], context));
         PRE_CALL_RETURN(ParseDefValue(env, argv[1], context));
         return OK;
@@ -476,8 +479,8 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("SetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 2 || argc == 3, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 parameters!"));
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
         PRE_CALL_RETURN(ParseKey(env, argv[0], context));
         PRE_CALL_RETURN(ParseDefValue(env, argv[1], context));
         return OK;
@@ -504,8 +507,8 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     LOG_DEBUG("Delete start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 1 || argc == 2, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 1 or 2 parameters!"));
+        PRE_SETERR_RETURN(argc == 1 || argc == 2, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 1 or 2 "
+                                                                                   "parameters!"));
         PRE_CALL_RETURN(ParseKey(env, argv[0], context));
         return OK;
     };
@@ -530,15 +533,15 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     LOG_DEBUG("HasKey start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 1 || argc == 2, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 1 or 2 parameters!"));
+        PRE_SETERR_RETURN(argc == 1 || argc == 2, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 1 or 2 "
+                                                                                   "parameters!"));
         PRE_CALL_RETURN(ParseKey(env, argv[0], context));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
         context->hasKey = obj->value_->HasKey(context->key);
-            return OK;
+        return OK;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
        napi_status status = napi_get_boolean(env, context->hasKey, &result);
@@ -556,8 +559,8 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     LOG_DEBUG("Flush start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 0 || argc == 1, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 parameters!"));
+        PRE_SETERR_RETURN(argc == 0 || argc == 1, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 "
+                                                                                   "parameters!"));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -580,8 +583,8 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     LOG_DEBUG("Clear start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 0 || argc == 1, 
-                context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 parameters!"));
+        PRE_SETERR_RETURN(argc == 0 || argc == 1, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 "
+                                                                                   "parameters!"));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {

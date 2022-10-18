@@ -109,9 +109,9 @@ void SetBusinessError(napi_env env, napi_value *businessError, const int errCode
     napi_create_int32(env, errCode, &Code);
     if (errMessage.empty()) {
         napi_create_string_utf8(env, "async call failed", NAPI_AUTO_LENGTH, &Message);
-    }else{
+    } else {
         napi_create_string_utf8(env, errMessage.c_str(), NAPI_AUTO_LENGTH, &Message);
-    }    
+    }
     napi_set_named_property(env, *businessError, "code", Code);
     napi_set_named_property(env, *businessError, "message", Message);
 }
