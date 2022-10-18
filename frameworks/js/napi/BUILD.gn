@@ -110,10 +110,10 @@ if (!is_mingw && !is_mac) {
 } else {
   ohos_shared_library("preferences") {
     include_dirs = [
-      "include",
       "common/mock/include",
-      "//commonlibrary/c_utils/base/include",
       "common/include",
+      "include",
+      "//commonlibrary/c_utils/base/include",
     ]
     cflags_cc = [
       "-std=c++17",
@@ -127,6 +127,7 @@ if (!is_mingw && !is_mac) {
       defines = [ "WINDOWS_PLATFORM" ]
     }
     sources = [
+      "common/src/async_call.cpp",
       "common/mock/src/js_ability.cpp",
       "common/mock/src/js_utils.cpp",
       "common/src/napi_uv_queue.cpp",

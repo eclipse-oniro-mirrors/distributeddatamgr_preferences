@@ -57,7 +57,7 @@ int ParseContext(const napi_env &env, const napi_value &object, std::shared_ptr<
     LOG_DEBUG("ParseContext begin");
     auto abilitycontext = JSAbility::GetContext(env, object);
     PRE_SETERR_RETURN(abilitycontext != nullptr,
-        context->SetError(E_PARAM_ERROR, "a Context. Get context error.", "context"));
+        context->SetError(E_PARAM_ERROR, "a Context.", "context"));
     context->abilitycontext = abilitycontext;
     LOG_DEBUG("ParseContext end");
     return OK;
