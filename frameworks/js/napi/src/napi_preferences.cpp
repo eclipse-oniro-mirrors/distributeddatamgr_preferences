@@ -462,7 +462,6 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
         } else {
             errCode = ERR;
         }
-
         LOG_DEBUG("GetValue end.");
         return errCode;
     };

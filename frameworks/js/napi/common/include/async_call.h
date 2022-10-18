@@ -72,7 +72,6 @@ class AsyncCall final {
 public:
     class Context {
     public:
-        int apivison;
         int errorCode = OK;
         napi_env _env = nullptr;
         std::string errorMessage = "";

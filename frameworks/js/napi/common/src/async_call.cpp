@@ -27,11 +27,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
     napi_status status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
     if (status != napi_ok) {
         context->errorCode = E_PARAM_ERROR;
-        if (context->apivison >= 9) {
-            PRE_NAPI_ASSERT_RETURN_VOID(env, status == napi_ok, E_PARAM_ERROR, "Parameter error. Get args failed.");
-        } else {
-            NAPI_ASSERT_RETURN_VOID(env, context->errorCode == OK, "Parameter error. Get args failed.");
-        }
+        PRE_NAPI_ASSERT_RETURN_VOID(env, status == napi_ok, E_PARAM_ERROR, "Parameter error. Get args failed.");
     }
 
     context_ = new AsyncContext();
@@ -42,11 +38,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
         argc = argc - 1;
     }
     context->errorCode = (*context)(env, argc, argv, self);
-    if (context->apivison > 8) {
-        PRE_NAPI_ASSERT_RETURN_VOID(env, context->errorCode == OK, context->errorCode, context->errorMessage.c_str());
-    } else {
-        NAPI_ASSERT_RETURN_VOID(env, context->errorCode == OK, "Parameter processing function failed.");
-    }
+    PRE_NAPI_ASSERT_RETURN_VOID(env, context->errorCode == OK, context->errorCode, context->errorMessage.c_str());
     context_->ctx = std::move(context);
     napi_create_reference(env, self, 1, &context_->self);
 }
@@ -145,9 +137,7 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
     } else {
         napi_value businessError = nullptr;
         napi_create_object(env, &businessError);
-        if (context->ctx->apivison > 8) {
-            SetBusinessError(env, &businessError, context->ctx->errorCode, context->ctx->errorMessage);
-        }
+        SetBusinessError(env, &businessError, context->ctx->errorCode, context->ctx->errorMessage);
         result[ARG_ERROR] = businessError;
         napi_get_undefined(env, &result[ARG_DATA]);
     }
