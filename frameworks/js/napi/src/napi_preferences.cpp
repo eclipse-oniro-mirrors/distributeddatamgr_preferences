@@ -544,7 +544,7 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
-       napi_status status = napi_get_boolean(env, context->hasKey, &result);
+        napi_status status = napi_get_boolean(env, context->hasKey, &result);
         LOG_DEBUG("HasKey end.");
         return (status == napi_ok) ? OK : ERR;
     };
