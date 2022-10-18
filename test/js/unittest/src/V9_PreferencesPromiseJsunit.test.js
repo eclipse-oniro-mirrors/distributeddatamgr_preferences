@@ -40,53 +40,6 @@ describe('_preferencesTest', async function () {
         await data_preferences.deletePreferences(context, NAME)
     })
 
-    it('testPreferencesPromise001', 0, function (done) {
-        console.log("testPreferencesPromise001 begin.")
-        try{
-            if(mPreference== undefined) {
-                console.log("mPreference undefined")
-                expect(false).assertTrue()
-            }
-            mPreference.clear().then(()=>{                    
-                mPreference.put(KEY_TEST_STRING_ELEMENT, '123').then((ret)=>{
-                    mPreference.get(KEY_TEST_STRING_ELEMENT, "defaultvalue").then((pre)=>{
-                        expect('123').assertEqual(pre)
-                        mPreference.flush().then(()=>{
-                            data_preferences.removePreferencesFromCache(context, NAME).then(()=>{
-                                mPreference.get(KEY_TEST_STRING_ELEMENT, "defaultvalue").then((pre2)=>{
-                                    expect('123').assertEqual(pre2)
-                                    done()
-                                    console.log("testPreferencesPromise001 end.")
-                                }).catch((err) => {
-                                    console.log("get err =" + err + ", code =" + err.code +", message =" + err.message)
-                                    expect(false).assertTrue()
-                                })
-                            }).catch((err) => {
-                                console.log("removePreferencesFromCache err =" + err + ", code =" + err.code +", message =" + err.message)
-                                expect(false).assertTrue()
-                            })
-                        }).catch((err) => {
-                            console.log("flush err =" + err + ", code =" + err.code +", message =" + err.message)
-                            expect(false).assertTrue()
-                        })
-                    }).catch((err) => {
-                        console.log("get err =" + err + ", code =" + err.code +", message =" + err.message)
-                        expect(false).assertTrue()
-                    })
-                }).catch((err) => {
-                    console.log("put err =" + err + ", code =" + err.code +", message =" + err.message)
-                    expect(false).assertTrue()
-                })
-            }).catch((err) => {
-                console.log("clear err =" + err + ", code =" + err.code +", message =" + err.message)
-                expect(false).assertTrue()
-            })
-        } catch(err) {
-            console.log("trycatch err =" + err + ", code =" + err.code +", message =" + err.message)
-            expect(false).assertTrue()
-        }
-    })
-
     //get error parsers
     it('testPreferencesPromise002', 0, function (done) {
         console.log("testPreferencesPromise002 begin.")

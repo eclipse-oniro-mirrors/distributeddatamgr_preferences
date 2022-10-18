@@ -39,59 +39,6 @@ describe('preferencesTest', async function () {
         console.info('afterAll')
         await data_preferences.deletePreferences(context, NAME)
     })
-    /**
-     * @tc.name has、delete、get、flush String callback interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0120
-     * @tc.desc flush String callback interface test
-     */
-    it('testPreferencesCallback001', 0, function (done) {
-        console.log("testPreferencesCallback001 begin.")
-        try{
-            mPreference.clear(function (err, val) {
-                if(err){
-                    console.log("clear err =" + err + ", code =" + err.code +", message =" + err.message)
-                    expect(false).assertTrue()
-                }
-                mPreference.put(KEY_TEST_STRING_ELEMENT, 'abc', function (err, ret) {
-                    if(err){
-                        console.log("put err =" + err + ", code =" + err.code +", message =" + err.message)
-                        expect(false).assertTrue()
-                    }
-                    mPreference.get(KEY_TEST_STRING_ELEMENT, "defaultvalue", function (err, pre) {
-                        if(err){
-                            console.log("get err =" + err + ", code =" + err.code +", message =" + err.message)
-                            expect(false).assertTrue()
-                        }
-                        expect('abc').assertEqual(pre)
-                        mPreference.flush(function (err, val) {
-                            if(err){
-                                console.log("flush err =" + err + ", code =" + err.code +", message =" + err.message)
-                                expect(false).assertTrue()
-                            }
-                            data_preferences.removePreferencesFromCache(context, NAME,(err)=>{
-                                if(err){
-                                    console.log("removePreferencesFromCache err =" + err + ", code =" + err.code +", message =" + err.message)
-                                    expect(false).assertTrue()
-                                }
-                                mPreference.get(KEY_TEST_STRING_ELEMENT, "defaultvalue", function (err, pre2) {
-                                    if(err){
-                                        console.log("get err =" + err + ", code =" + err.code +", message =" + err.message)
-                                        expect(false).assertTrue()
-                                    }
-                                    expect('abc').assertEqual(pre2)
-                                    done()
-                                    console.log("testPreferencesCallback001 end.")
-                                })
-                            })
-                        })
-                    })
-                })
-            })
-        } catch(err) {
-            console.log("trycatch err =" + err + ", code =" + err.code +", message =" + err.message)
-            expect(false).assertTrue()
-        }
-    })
 
     // get err parsers
     it('testPreferencesCallback002', 0, function (done) {
