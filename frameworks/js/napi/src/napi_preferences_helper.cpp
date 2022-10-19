@@ -12,17 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "napi_preferences_helper.h"
-
-#include "adaptor.h"
-
 #include <string>
 
+#include "adaptor.h"
+#include "async_call.h"
 #include "js_ability.h"
 #include "js_logger.h"
 #include "js_utils.h"
-#include "napi_async_proxy.h"
 #include "napi_preferences.h"
+#include "napi_preferences_helper.h"
 #include "preferences_errno.h"
 #include "securec.h"
 
@@ -31,99 +29,139 @@ using namespace OHOS::AppDataMgrJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
-struct HelperAysncContext : NapiAsyncProxy<HelperAysncContext>::AysncContext {
+struct HelperAysncContext : public AsyncCall::Context {
     std::string path;
-    std::shared_ptr<Context> context;
+    std::shared_ptr<OHOS::AppDataMgrJsKit::Context> abilitycontext;
+
+    HelperAysncContext() : Context(nullptr, nullptr)
+    {
+    }
+    HelperAysncContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output))
+    {
+    }
+    virtual ~HelperAysncContext(){};
+
+    int operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        napi_unwrap(env, self, &boundObj);
+        return Context::operator()(env, argc, argv, self);
+    }
+    int operator()(napi_env env, napi_value &result) override
+    {
+        return Context::operator()(env, result);
+    }
 };
 
-void ParseContext(const napi_env &env, const napi_value &object, HelperAysncContext *asyncContext)
+int ParseContext(const napi_env &env, const napi_value &object, std::shared_ptr<HelperAysncContext> context)
 {
-    auto context = JSAbility::GetContext(env, object);
-    NAPI_ASSERT_RETURN_VOID(env, context != nullptr, "ParseContext get context failed.");
-    asyncContext->context = context;
+    LOG_DEBUG("ParseContext begin");
+    auto abilitycontext = JSAbility::GetContext(env, object);
+    PRE_SETERR_RETURN(abilitycontext != nullptr,
+        context->SetError(E_PARAM_ERROR, "a Context.", "context"));
+    context->abilitycontext = abilitycontext;
+    LOG_DEBUG("ParseContext end");
+    return OK;
 }
 
-void ParseName(const napi_env &env, const napi_value &value, HelperAysncContext *asyncContext)
+int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<HelperAysncContext> context)
 {
     LOG_DEBUG("ParseName start");
-    NAPI_ASSERT_RETURN_VOID(env, asyncContext->context != nullptr, "ParseName context is null.");
     std::string name = JSUtils::Convert2String(env, value);
-    NAPI_ASSERT_RETURN_VOID(env, !name.empty(), "Get preferences name empty.");
+    PRE_SETERR_RETURN(!name.empty(), context->SetError(E_PARAM_ERROR, "a non empty string.", "name"));
 
     size_t pos = name.find_first_of('/');
-    NAPI_ASSERT_RETURN_VOID(env, pos == std::string::npos, "A name without path should be input.");
-    std::string preferencesDir = asyncContext->context->GetPreferencesDir();
-    asyncContext->path = preferencesDir.append("/").append(name);
+    PRE_SETERR_RETURN(pos == std::string::npos, context->SetError(E_PARAM_ERROR, "a without path string.", "name"));
+
+    std::string preferencesDir = context->abilitycontext->GetPreferencesDir();
+    context->path = preferencesDir.append("/").append(name);
+    return OK;
 }
 
 napi_value GetPreferences(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("GetPreferences start");
-    NapiAsyncProxy<HelperAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseContext);
-    parsers.push_back(ParseName);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "GetPreferences",
-        [](HelperAysncContext *asyncContext) {
-            int errCode = OK;
-            OHOS::NativePreferences::PreferencesHelper::GetPreferences(asyncContext->path, errCode);
-            LOG_DEBUG("GetPreferences return %{public}d", errCode);
-            return errCode;
-        },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
-            napi_value path = nullptr;
-            napi_create_string_utf8(asyncContext->env, asyncContext->path.c_str(), NAPI_AUTO_LENGTH, &path);
-            auto ret = PreferencesProxy::NewInstance(asyncContext->env, path, &output);
-            return (ret == napi_ok) ? OK : ERR;
-        });
+    auto context = std::make_shared<HelperAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
+        PRE_CALL_RETURN(ParseContext(env, argv[0], context));
+        PRE_CALL_RETURN(ParseName(env, argv[1], context));
+        return OK;
+    };
+    auto exec = [context](AsyncCall::Context *ctx) -> int {
+        int errCode = E_OK;
+        OHOS::NativePreferences::PreferencesHelper::GetPreferences(context->path, errCode);
+        LOG_DEBUG("GetPreferences return %{public}d", errCode);
+        return errCode;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_value path = nullptr;
+        napi_create_string_utf8(env, context->path.c_str(), NAPI_AUTO_LENGTH, &path);
+        auto ret = PreferencesProxy::NewInstance(env, path, &result);
+        LOG_DEBUG("GetPreferences end.");
+        return (ret == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
+    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    return asyncCall.Call(env, exec);
 }
 
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<HelperAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseContext);
-    parsers.push_back(ParseName);
-    proxy.ParseInputs(parsers);
+    LOG_DEBUG("DeletePreferences start");
+    auto context = std::make_shared<HelperAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
+        PRE_CALL_RETURN(ParseContext(env, argv[0], context));
+        PRE_CALL_RETURN(ParseName(env, argv[1], context));
+        return OK;
+    };
+    auto exec = [context](AsyncCall::Context *ctx) -> int {
+        int errCode = PreferencesHelper::DeletePreferences(context->path);
+        LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
+        PRE_SETERR_RETURN(errCode == E_OK, context->SetError(E_PREFERENCES_ERROR, "Failed to delete preferences "
+                                                                                  "file."));
 
-    return proxy.DoAsyncWork(
-        "DeletePreferences",
-        [](HelperAysncContext *asyncContext) {
-            int errCode = PreferencesHelper::DeletePreferences(asyncContext->path);
-            LOG_DEBUG("DeletePreferences return %{public}d", errCode);
-            return errCode;
-        },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
-            napi_get_undefined(asyncContext->env, &output);
-            return OK;
-        });
+        return (errCode == E_OK) ? OK : ERR;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(env, &result);
+        LOG_DEBUG("DeletePreferences end.");
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
+    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    return asyncCall.Call(env, exec);
 }
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<HelperAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseContext);
-    parsers.push_back(ParseName);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "RemovePreferencesFromCache",
-        [](HelperAysncContext *asyncContext) {
-            int errCode = PreferencesHelper::RemovePreferencesFromCache(asyncContext->path);
-            LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
-            return errCode;
-        },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
-            napi_get_undefined(asyncContext->env, &output);
-            return OK;
-        });
+    LOG_DEBUG("DeletePreferences start");
+    auto context = std::make_shared<HelperAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
+                                                                                   "parameters!"));
+        PRE_CALL_RETURN(ParseContext(env, argv[0], context));
+        PRE_CALL_RETURN(ParseName(env, argv[1], context));
+        return OK;
+    };
+    auto exec = [context](AsyncCall::Context *ctx) -> int {
+        int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
+        LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
+        return (errCode == E_OK) ? OK : ERR;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(env, &result);
+        LOG_DEBUG("RemovePreferencesFromCache end.");
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
+    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    return asyncCall.Call(env, exec);
 }
 
 napi_value InitPreferencesHelper(napi_env env, napi_value exports)
