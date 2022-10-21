@@ -27,7 +27,6 @@ static napi_value Init(napi_env env, napi_value exports)
 {
     PreferencesProxy::Init(env, exports);
     InitPreferencesHelper(env, exports);
-
     return exports;
 }
 EXTERN_C_END

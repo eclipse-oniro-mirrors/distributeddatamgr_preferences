@@ -79,15 +79,15 @@ if (!is_mingw && !is_mac) {
 
   ohos_shared_library("preferences") {
     include_dirs = [
+      "common/include",
       "include",
-      "${relational_store_js_common_path}/include",
-      "${relational_store_napi_path}/rdb/include",
     ]
 
     sources = [
-      "${relational_store_js_common_path}/src/js_ability.cpp",
-      "${relational_store_js_common_path}/src/js_utils.cpp",
-      "${relational_store_napi_path}/rdb/src/napi_uv_queue.cpp",
+      "common/src/async_call.cpp",
+      "common/src/js_ability.cpp",
+      "common/src/js_utils.cpp",
+      "common/src/napi_uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
@@ -110,11 +110,10 @@ if (!is_mingw && !is_mac) {
 } else {
   ohos_shared_library("preferences") {
     include_dirs = [
+      "common/mock/include",
+      "common/include",
       "include",
-      "${relational_store_js_common_path}/mock/include",
       "//commonlibrary/c_utils/base/include",
-      "${relational_store_js_common_path}/include",
-      "${relational_store_napi_path}/rdb/include",
     ]
     cflags_cc = [
       "-std=c++17",
@@ -128,9 +127,10 @@ if (!is_mingw && !is_mac) {
       defines = [ "WINDOWS_PLATFORM" ]
     }
     sources = [
-      "${relational_store_js_common_path}/mock/src/js_ability.cpp",
-      "${relational_store_js_common_path}/mock/src/js_utils.cpp",
-      "${relational_store_napi_path}/rdb/src/napi_uv_queue.cpp",
+      "common/mock/src/js_ability.cpp",
+      "common/mock/src/js_utils.cpp",
+      "common/src/async_call.cpp",
+      "common/src/napi_uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
