@@ -31,20 +31,16 @@ public:
     explicit Context(std::shared_ptr<AbilityRuntime::Context> stageContext);
     explicit Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext);
 
-    std::string GetDatabaseDir();
     std::string GetPreferencesDir();
     std::string GetBundleName();
     std::string GetModuleName();
-    std::string GetUri();
     int32_t GetArea() const;
 
 private:
     int32_t area_ = 0;
-    std::string databaseDir_;
     std::string preferencesDir_;
     std::string bundleName_;
     std::string moduleName_;
-    std::string uri_;
 };
 
 class JSAbility final {
