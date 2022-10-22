@@ -66,7 +66,10 @@ int ParseContext(const napi_env &env, const napi_value &object, std::shared_ptr<
 int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<HelperAysncContext> context)
 {
     LOG_DEBUG("ParseName start");
-    std::string name = JSUtils::Convert2String(env, value);
+    std::string name;
+    if(JSUtils::Convert2String(env, value,name)!=OK){
+        return ERR;
+    }
     PRE_SETERR_RETURN(!name.empty(), context->SetError(E_PARAM_ERROR, "a non empty string.", "name"));
 
     size_t pos = name.find_first_of('/');
