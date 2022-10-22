@@ -23,6 +23,7 @@
 #include "js_logger.h"
 #include "js_utils.h"
 #include "napi_preferences.h"
+#include "napi_preferences_error.h"
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_value.h"
@@ -171,7 +172,8 @@ int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<Prefere
     char key[MAX_KEY_LENGTH] = { 0 };
     size_t keySize = 0;
     napi_status status = napi_get_value_string_utf8(env, arg, key, MAX_KEY_LENGTH, &keySize);
-    PRE_SETERR_RETURN(status == napi_ok, context->SetError(E_PARAM_ERROR, "a non empty string.", "key"));
+    std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("key", "a non empty string.");
+    PRE_CHECK_RETURN_CALL_RESULT(status == napi_ok, context->SetError(paramError));
 
     context->key = key;
     return OK;
@@ -257,27 +259,28 @@ int32_t ParseDefObject(const napi_env &env, const napi_value &jsVal, std::shared
 
 int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
 {
-    napi_valuetype valueType = napi_undefined;
+    napi_valuetype valueType = napi_undefined;    
+    std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
     napi_typeof(env, jsVal, &valueType);
     if (valueType == napi_number) {
         double number = 0.0;
         if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Double error");
-            PRE_SETERR_RETURN(true, context->SetError(E_PARAM_ERROR, "ValueType.", "value"));
+            PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
         }
         context->defValue = number;
     } else if (valueType == napi_string) {
         std::string str;
         if (JSUtils::Convert2String(env, jsVal, str) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2String error");
-            PRE_SETERR_RETURN(true, context->SetError(E_PARAM_ERROR, "ValueType.", "value"));
+            PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
         }
         context->defValue = str;
     } else if (valueType == napi_boolean) {
         bool bValue = false;
         if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Bool error");
-            PRE_SETERR_RETURN(true, context->SetError(E_PARAM_ERROR, "ValueType.", "value"));
+            PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
         }
         context->defValue = bValue;
     } else if (valueType == napi_object) {
@@ -286,7 +289,7 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
         }
     } else {
         LOG_ERROR("ParseDefValue Wrong second parameter type");
-        PRE_SETERR_RETURN(true, context->SetError(E_PARAM_ERROR, "ValueType.", "value"));
+        PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
     }
     return OK;
 }
@@ -380,8 +383,8 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetAll start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 0 || argc == 1, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 "
-                                                                                   "parameters!"));
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -395,7 +398,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     };
     context->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
     return asyncCall.Call(env, exec);
 }
 
@@ -428,10 +431,10 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
-                                                                                   "parameters!"));
-        PRE_CALL_RETURN(ParseKey(env, argv[0], context));
-        PRE_CALL_RETURN(ParseDefValue(env, argv[1], context));
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -470,7 +473,7 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     };
     context->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
     return asyncCall.Call(env, exec);
 }
 
@@ -479,10 +482,10 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("SetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 2 || argc == 3, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 2 or 3 "
-                                                                                   "parameters!"));
-        PRE_CALL_RETURN(ParseKey(env, argv[0], context));
-        PRE_CALL_RETURN(ParseDefValue(env, argv[1], context));
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -498,7 +501,7 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     };
     context->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
     return asyncCall.Call(env, exec);
 }
 
@@ -507,9 +510,9 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     LOG_DEBUG("Delete start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 1 || argc == 2, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 1 or 2 "
-                                                                                   "parameters!"));
-        PRE_CALL_RETURN(ParseKey(env, argv[0], context));
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -524,7 +527,7 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     };
     context->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
     return asyncCall.Call(env, exec);
 }
 
@@ -533,9 +536,9 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     LOG_DEBUG("HasKey start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 1 || argc == 2, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 1 or 2 "
-                                                                                   "parameters!"));
-        PRE_CALL_RETURN(ParseKey(env, argv[0], context));
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -550,7 +553,7 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     };
     context->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
     return asyncCall.Call(env, exec);
 }
 
@@ -559,8 +562,8 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     LOG_DEBUG("Flush start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 0 || argc == 1, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 "
-                                                                                   "parameters!"));
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -574,7 +577,7 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     };
     context->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
     return asyncCall.Call(env, exec);
 }
 
@@ -583,8 +586,8 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     LOG_DEBUG("Clear start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_SETERR_RETURN(argc == 0 || argc == 1, context->SetError(E_PARAM_ERROR, "Parameter error. Should be 0 or 1 "
-                                                                                   "parameters!"));
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
         return OK;
     };
     auto exec = [context](AsyncCall::Context *ctx) -> int {
@@ -598,7 +601,7 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     };
     context->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_RETURN_NULLPTR(context->errorCode == OK);
+    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
     return asyncCall.Call(env, exec);
 }
 
@@ -611,12 +614,10 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
-    PRE_NAPI_ASSERT(env, type == napi_string, E_PARAM_ERROR,
-        "Parameter error. The type of 'type' must be string 'change'.");
+    PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
-    PRE_NAPI_ASSERT(env, type == napi_function, E_PARAM_ERROR,
-        "Parameter error. The type of 'callback' must be function type.");
+    PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("callback", "function type."));
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
@@ -638,12 +639,10 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
-    PRE_NAPI_ASSERT(env, type == napi_string, E_PARAM_ERROR,
-        "Parameter error. The type of 'type' must be string 'change'.");
+    PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
-    PRE_NAPI_ASSERT(env, type == napi_function, E_PARAM_ERROR,
-        "Parameter error. The type of 'callback' must be function type.");
+    PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("callback", "function type."));
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
