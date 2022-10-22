@@ -29,15 +29,9 @@ public:
     explicit Context();
 
     std::string GetPreferencesDir();
-    std::string GetBundleName();
-    std::string GetModuleName();
-    int32_t GetArea() const;
 
 private:
-    int32_t area_ = 0;
     std::string preferencesDir_;
-    std::string bundleName_;
-    std::string moduleName_;
 };
 
 class JSAbility final {

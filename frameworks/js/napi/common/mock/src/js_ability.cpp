@@ -24,27 +24,25 @@ namespace AppDataMgrJsKit {
 Context::Context()
 {
     std::string baseDir = "";
-    bundleName_ = "com.example.myapplication";
+#ifdef WINDOWS_PLATFORM
+    baseDir = getenv("TEMP");
+    if (!baseDir.empty()) {
+        preferencesDir_ = baseDir + "\\HuaweiDevEcoStudioPreferences";
+    }
+#endif
+
+#ifdef MAC_PLATFORM
+    baseDir = getenv("LOGNAME");
+    baseDir = "/Users/" + baseDir + "/Library/Caches";
+    if (!baseDir.empty()) {
+        preferencesDir_ = baseDir + "/HuaweiDevEcoStudioPreferences";
+    }
+#endif
 }
 
 std::string Context::GetPreferencesDir()
 {
     return preferencesDir_;
-}
-
-std::string Context::GetBundleName()
-{
-    return bundleName_;
-}
-
-std::string Context::GetModuleName()
-{
-    return moduleName_;
-}
-
-int32_t Context::GetArea() const
-{
-    return area_;
 }
 
 bool JSAbility::CheckContext(napi_env env, napi_callback_info info)
