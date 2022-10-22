@@ -367,7 +367,7 @@ int32_t JSUtils::Convert2JSDoubleArr(napi_env env, std::vector<double> value, na
         return ERR;
     }
     for (size_t i = 0; i < arrLen; i++) {
-	    napi_value val = nullptr;
+        napi_value val = nullptr;
         if (Convert2JSValue(env, value[i], val) != OK) {
             LOG_ERROR("JSUtils::Convert2JSValue creat double failed");
             return ERR;
