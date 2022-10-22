@@ -32,7 +32,6 @@ public:
     explicit Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext);
 
     std::string GetPreferencesDir();
-    std::string GetBundleName();
 
 private:
     std::string preferencesDir_;

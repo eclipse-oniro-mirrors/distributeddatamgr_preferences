@@ -575,11 +575,12 @@ StorageObserverImpl::~StorageObserverImpl()
 
 void StorageObserverImpl::OnChange(const std::string &key)
 {
-    LOG_DEBUG("OnChange key:%{public}s", key.c_str());
-
     CallFunction([key](napi_env env, int &argc, napi_value *argv) {
-        argc = 1;
-        argv[0] = JSUtils::Convert2JSValue(env, key);
+       argc = 1;
+        int status = JSUtils::Convert2JSValue(env, key, argv[0]);
+        if (status != OK){
+            LOG_DEBUG("OnChange CallFunction error.");
+        }
     });
     LOG_DEBUG("OnChange key end");
 }

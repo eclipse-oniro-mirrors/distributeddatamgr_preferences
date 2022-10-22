@@ -67,10 +67,8 @@ int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<Help
 {
     LOG_DEBUG("ParseName start");
     std::string name;
-    if(JSUtils::Convert2String(env, value,name)!=OK){
-        return ERR;
-    }
-    PRE_SETERR_RETURN(!name.empty(), context->SetError(E_PARAM_ERROR, "a non empty string.", "name"));
+    int status = JSUtils::Convert2String(env, value,name);
+    PRE_SETERR_RETURN(status ==OK || !name.empty(), context->SetError(E_PARAM_ERROR, "a non empty string.", "name"));
 
     size_t pos = name.find_first_of('/');
     PRE_SETERR_RETURN(pos == std::string::npos, context->SetError(E_PARAM_ERROR, "a without path string.", "name"));

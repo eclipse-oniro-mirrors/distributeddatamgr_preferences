@@ -16,26 +16,13 @@
 #include "js_utils.h"
 
 #include "js_logger.h"
+
+#ifndef MAC_PLATFORM
 #include "securec.h"
+#endif
 
 namespace OHOS {
 namespace AppDataMgrJsKit {
-std::string JSUtils::Convert2String(napi_env env, napi_value jsStr, bool useDefaultBufSize)
-{
-    size_t str_buffer_size = 0;
-    napi_get_value_string_utf8(env, jsStr, nullptr, 0, &str_buffer_size);
-    str_buffer_size = (useDefaultBufSize && (str_buffer_size > DEFAULT_BUF_SIZE))
-                          ? (DEFAULT_BUF_SIZE + BUF_CACHE_MARGIN)
-                          : (str_buffer_size + BUF_CACHE_MARGIN);
-    char *buf = new char[str_buffer_size + 1];
-    size_t len = 0;
-    napi_get_value_string_utf8(env, jsStr, buf, str_buffer_size, &len);
-    buf[len] = 0;
-    std::string value(buf);
-    delete[] buf;
-    return value;
-}
-
 int32_t JSUtils::Convert2String(napi_env env, napi_value jsStr, std::string &output)
 {
     char *str = new char[MAX_VALUE_LENGTH + 1];
@@ -151,113 +138,6 @@ int32_t JSUtils::Convert2DoubleVector(napi_env env, napi_value value, std::vecto
         output.push_back(number);
     }
     return OK;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, const std::vector<std::string> &value)
-{
-    napi_value jsValue;
-    napi_status status = napi_create_array_with_length(env, value.size(), &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-
-    for (size_t i = 0; i < value.size(); ++i) {
-        napi_set_element(env, jsValue, i, Convert2JSValue(env, value[i]));
-    }
-    return jsValue;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, const std::string &value)
-{
-    napi_value jsValue;
-    napi_status status = napi_create_string_utf8(env, value.c_str(), value.size(), &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-    return jsValue;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, const std::vector<uint8_t> &value)
-{
-    napi_value jsValue;
-    void *native = nullptr;
-    napi_value buffer = nullptr;
-    napi_status status = napi_create_arraybuffer(env, value.size(), &native, &buffer);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-    int result = memcpy_s(native, value.size(), value.data(), value.size());
-    if (result != EOK && value.size() > 0) {
-        return nullptr;
-    }
-    status = napi_create_typedarray(env, napi_uint8_array, value.size(), buffer, 0, &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-    return jsValue;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, int32_t value)
-{
-    napi_value jsValue;
-    napi_status status = napi_create_int32(env, value, &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-    return jsValue;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, int64_t value)
-{
-    napi_value jsValue;
-    napi_status status = napi_create_int64(env, value, &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-    return jsValue;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, double value)
-{
-    napi_value jsValue;
-    napi_status status = napi_create_double(env, value, &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-    return jsValue;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, bool value)
-{
-    napi_value jsValue;
-    napi_status status = napi_get_boolean(env, value, &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-    return jsValue;
-}
-
-napi_value JSUtils::Convert2JSValue(napi_env env, const std::map<std::string, int> &value)
-{
-    napi_value jsValue;
-    napi_status status = napi_create_array_with_length(env, value.size(), &jsValue);
-    if (status != napi_ok) {
-        return nullptr;
-    }
-
-    int index = 0;
-    for (const auto &[device, result] : value) {
-        napi_value jsElement;
-        status = napi_create_array_with_length(env, SYNC_RESULT_ELEMNT_NUM, &jsElement);
-        if (status != napi_ok) {
-            return nullptr;
-        }
-        napi_set_element(env, jsElement, 0, Convert2JSValue(env, device));
-        napi_set_element(env, jsElement, 1, Convert2JSValue(env, result));
-        napi_set_element(env, jsValue, index++, jsElement);
-    }
-
-    return jsValue;
 }
 
 int32_t JSUtils::Convert2JSValue(napi_env env, std::string value, napi_value &output)

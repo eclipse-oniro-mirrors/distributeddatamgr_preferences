@@ -23,19 +23,16 @@ namespace AppDataMgrJsKit {
 Context::Context(std::shared_ptr<AbilityRuntime::Context> stageContext)
 {
     preferencesDir_ = stageContext->GetPreferencesDir();
-    auto hapInfo = stageContext->GetHapModuleInfo();
     auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::ExtensionContext>(stageContext);
     if (extensionContext != nullptr) {
         auto abilityInfo = extensionContext->GetAbilityInfo();
     }
-    LOG_DEBUG("Stage: preferences:%{private}s",preferencesDir_.c_str());
 }
 
 Context::Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
 {
     preferencesDir_ = abilityContext->GetPreferencesDir();
     auto abilityInfo = abilityContext->GetAbilityInfo();
-    LOG_DEBUG("FA: preferences:%{private}s", preferencesDir_.c_str());
 }
 
 std::string Context::GetPreferencesDir()
