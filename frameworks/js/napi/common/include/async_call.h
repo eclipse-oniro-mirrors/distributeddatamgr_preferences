@@ -25,7 +25,6 @@
 #include "napi/native_node_api.h"
 #include "napi_preferences_error.h"
 
-
 namespace OHOS {
 namespace AppDataMgrJsKit {
 
