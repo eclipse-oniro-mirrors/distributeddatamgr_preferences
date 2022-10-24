@@ -24,7 +24,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
     size_t argc = MAX_INPUT_COUNT;
     napi_value self = nullptr;
     napi_value argv[MAX_INPUT_COUNT] = { nullptr };
-    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
 
     context_ = new AsyncContext();
     napi_valuetype valueType = napi_undefined;

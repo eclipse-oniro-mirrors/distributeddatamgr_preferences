@@ -59,9 +59,10 @@ constexpr int E_PREFERENCES_ERROR = 15500010;
 #define PRE_CHECK_RETURN_CALL_RESULT(assertion, theCall) \
     do {                                                 \
         if (!(assertion)) {                              \
-            return (theCall);                            \
+            (theCall);                                   \
+            return ERR;                                  \
         }                                                \
-    } while (0)
+    } while (0)                                          
 
 class Error {
 public:
