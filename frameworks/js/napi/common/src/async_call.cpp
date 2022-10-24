@@ -24,11 +24,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
     size_t argc = MAX_INPUT_COUNT;
     napi_value self = nullptr;
     napi_value argv[MAX_INPUT_COUNT] = { nullptr };
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    if (status != napi_ok) {
-        context->errorCode = E_PARAM_ERROR;
-        PRE_NAPI_ASSERT_RETURN_VOID(env, status == napi_ok, E_PARAM_ERROR, "Parameter error. Get args failed.");
-    }
+    NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
 
     context_ = new AsyncContext();
     napi_valuetype valueType = napi_undefined;
@@ -37,8 +33,10 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
         napi_create_reference(env, argv[argc - 1], 1, &context_->callback);
         argc = argc - 1;
     }
-    context->errorCode = (*context)(env, argc, argv, self);
-    PRE_NAPI_ASSERT_RETURN_VOID(env, context->errorCode == OK, context->errorCode, context->errorMessage.c_str());
+    // int -->input_(env, argc, argv, self)
+    int status = (*context)(env, argc, argv, self);
+    // if input return is not ok, then napi_throw_error context error
+    PRE_NAPI_ASSERT_RETURN_VOID(env, status == OK, context->error);
     context_->ctx = std::move(context);
     napi_create_reference(env, self, 1, &context_->self);
 }
@@ -99,21 +97,21 @@ void AsyncCall::OnExecute(napi_env env, void *data)
 {
     LOG_DEBUG("run the async runnable");
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
-    context->ctx->errorCode = context->ctx->Exec();
+    context->ctx->Exec();
 }
 
-void SetBusinessError(napi_env env, napi_value *businessError, const int errCode, const std::string errMessage)
+void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<Error> error, int apiversion)
 {
-    napi_value Code = nullptr;
-    napi_value Message = nullptr;
-    napi_create_int32(env, errCode, &Code);
-    if (errMessage.empty()) {
-        napi_create_string_utf8(env, "async call failed", NAPI_AUTO_LENGTH, &Message);
-    } else {
-        napi_create_string_utf8(env, errMessage.c_str(), NAPI_AUTO_LENGTH, &Message);
+    napi_create_object(env, businessError);
+    //if error is not inner error, and api version greater 8
+    if (error != nullptr || apiversion > 8) {
+        napi_value code = nullptr;
+        napi_value msg = nullptr;
+        napi_create_int32(env, error->GetCode(), &code);
+        napi_create_string_utf8(env, error->GetMessage().c_str(), NAPI_AUTO_LENGTH, &msg);
+        napi_set_named_property(env, *businessError, "code", code);
+        napi_set_named_property(env, *businessError, "message", msg);
     }
-    napi_set_named_property(env, *businessError, "code", Code);
-    napi_set_named_property(env, *businessError, "message", Message);
 }
 
 void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
@@ -121,13 +119,14 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
     LOG_DEBUG("run the js callback function");
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     napi_value output = nullptr;
-    int completeStatus = ERR;
-    int executeStatus = context->ctx->errorCode;
-    if (status == napi_ok && executeStatus == OK) {
-        completeStatus = (*context->ctx)(env, output);
+    int outStatus = ERR;
+    // if async execute status is not napi_ok then un-execute out function
+    if (status == napi_ok) {
+        outStatus = (*context->ctx)(env, output);
     }
     napi_value result[ARG_BUTT] = { 0 };
-    if (executeStatus == OK && completeStatus == OK) {
+    // if out function status is ok then async renturn output data, else return error.
+    if (outStatus == OK) {
         napi_get_undefined(env, &result[ARG_ERROR]);
         if (output != nullptr) {
             result[ARG_DATA] = output;
@@ -136,14 +135,13 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
         }
     } else {
         napi_value businessError = nullptr;
-        napi_create_object(env, &businessError);
-        SetBusinessError(env, &businessError, context->ctx->errorCode, context->ctx->errorMessage);
+        SetBusinessError(env, &businessError, context->ctx->error, context->ctx->apiversion);
         result[ARG_ERROR] = businessError;
         napi_get_undefined(env, &result[ARG_DATA]);
     }
     if (context->defer != nullptr) {
         // promise
-        if (executeStatus == OK && completeStatus == OK) {
+        if (status == napi_ok && outStatus == OK) {
             napi_resolve_deferred(env, context->defer, result[ARG_DATA]);
         } else {
             napi_reject_deferred(env, context->defer, result[ARG_ERROR]);

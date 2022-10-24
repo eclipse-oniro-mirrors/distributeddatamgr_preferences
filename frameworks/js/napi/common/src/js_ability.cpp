@@ -22,64 +22,22 @@ namespace OHOS {
 namespace AppDataMgrJsKit {
 Context::Context(std::shared_ptr<AbilityRuntime::Context> stageContext)
 {
-    databaseDir_ = stageContext->GetDatabaseDir();
     preferencesDir_ = stageContext->GetPreferencesDir();
-    bundleName_ = stageContext->GetBundleName();
-    area_ = stageContext->GetArea();
-    auto hapInfo = stageContext->GetHapModuleInfo();
-    if (hapInfo != nullptr) {
-        moduleName_ = hapInfo->moduleName;
-    }
     auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::ExtensionContext>(stageContext);
     if (extensionContext != nullptr) {
         auto abilityInfo = extensionContext->GetAbilityInfo();
-        uri_ = abilityInfo->uri;
     }
-    LOG_DEBUG("Stage: area:%{public}d database:%{private}s preferences:%{private}s bundle:%{public}s hap:%{public}s",
-        area_, databaseDir_.c_str(), preferencesDir_.c_str(), bundleName_.c_str(), moduleName_.c_str());
 }
 
 Context::Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
 {
-    databaseDir_ = abilityContext->GetDatabaseDir();
     preferencesDir_ = abilityContext->GetPreferencesDir();
-    bundleName_ = abilityContext->GetBundleName();
-    area_ = abilityContext->GetArea();
     auto abilityInfo = abilityContext->GetAbilityInfo();
-    if (abilityInfo != nullptr) {
-        moduleName_ = abilityInfo->moduleName;
-    }
-    LOG_DEBUG("FA: area:%{public}d database:%{private}s preferences:%{private}s bundle:%{public}s hap:%{public}s",
-              area_, databaseDir_.c_str(), preferencesDir_.c_str(), bundleName_.c_str(), moduleName_.c_str());
-}
-
-std::string Context::GetDatabaseDir()
-{
-    return databaseDir_;
 }
 
 std::string Context::GetPreferencesDir()
 {
     return preferencesDir_;
-}
-
-std::string Context::GetBundleName()
-{
-    return bundleName_;
-}
-
-std::string Context::GetModuleName()
-{
-    return moduleName_;
-}
-
-int32_t Context::GetArea() const
-{
-    return area_;
-}
-std::string Context::GetUri()
-{
-    return uri_;
 }
 
 bool JSAbility::CheckContext(napi_env env, napi_callback_info info)

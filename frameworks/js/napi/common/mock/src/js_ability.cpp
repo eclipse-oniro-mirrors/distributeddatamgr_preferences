@@ -27,7 +27,6 @@ Context::Context()
 #ifdef WINDOWS_PLATFORM
     baseDir = getenv("TEMP");
     if (!baseDir.empty()) {
-        databaseDir_ = baseDir + "\\HuaweiDevEcoStudioDatabases";
         preferencesDir_ = baseDir + "\\HuaweiDevEcoStudioPreferences";
     }
 #endif
@@ -36,41 +35,14 @@ Context::Context()
     baseDir = getenv("LOGNAME");
     baseDir = "/Users/" + baseDir + "/Library/Caches";
     if (!baseDir.empty()) {
-        databaseDir_ = baseDir + "/HuaweiDevEcoStudioDatabases";
         preferencesDir_ = baseDir + "/HuaweiDevEcoStudioPreferences";
     }
 #endif
-    bundleName_ = "com.example.myapplication";
-}
-
-std::string Context::GetDatabaseDir()
-{
-    return databaseDir_;
 }
 
 std::string Context::GetPreferencesDir()
 {
     return preferencesDir_;
-}
-
-std::string Context::GetBundleName()
-{
-    return bundleName_;
-}
-
-std::string Context::GetModuleName()
-{
-    return moduleName_;
-}
-
-int32_t Context::GetArea() const
-{
-    return area_;
-}
-
-std::string Context::GetUri()
-{
-    return uri_;
 }
 
 bool JSAbility::CheckContext(napi_env env, napi_callback_info info)
