@@ -62,7 +62,7 @@ constexpr int E_PREFERENCES_ERROR = 15500010;
             (theCall);                                   \
             return ERR;                                  \
         }                                                \
-    } while (0)                                          
+    } while (0)
 
 class Error {
 public:
