@@ -578,7 +578,7 @@ void StorageObserverImpl::OnChange(const std::string &key)
     CallFunction([key](napi_env env, int &argc, napi_value *argv) {
         argc = 1;
         int status = JSUtils::Convert2JSValue(env, key, argv[0]);
-        if (status != OK){
+        if (status != OK) {
             LOG_DEBUG("OnChange CallFunction error.");
         }
     });

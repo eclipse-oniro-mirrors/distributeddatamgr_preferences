@@ -257,9 +257,9 @@ int32_t ParseDefObject(const napi_env &env, const napi_value &jsVal, std::shared
     return E_OK;
 }
 
-int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
+int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
-    napi_valuetype valueType = napi_undefined;    
+    napi_valuetype valueType = napi_undefined;
     std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
     napi_typeof(env, jsVal, &valueType);
     if (valueType == napi_number) {
@@ -666,7 +666,7 @@ void PreferencesObserverImpl::OnChange(const std::string &key)
     CallFunction([key](napi_env env, int &argc, napi_value *argv) {
         argc = 1;
         int status = JSUtils::Convert2JSValue(env, key, argv[0]);
-        if (status != OK){
+        if (status != OK) {
             LOG_DEBUG("OnChange CallFunction error.");
         }
     });
