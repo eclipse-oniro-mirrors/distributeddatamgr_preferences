@@ -37,26 +37,13 @@ public:
     static constexpr int32_t MAX_VALUE_LENGTH = 8 * 1024;
     static constexpr int32_t SYNC_RESULT_ELEMNT_NUM = 2;
 
-    static std::string Convert2String(napi_env env, napi_value jsStr, bool useDefaultBufSize = true);
     static int32_t Convert2Bool(napi_env env, napi_value jsBool, bool &output);
     static int32_t Convert2Double(napi_env env, napi_value jsNum, double &output);
     static int32_t Convert2String(napi_env env, napi_value jsStr, std::string &output);
-    static std::vector<std::string> Convert2StrVector(napi_env env, napi_value value);
-    static std::vector<uint8_t> Convert2U8Vector(napi_env env, napi_value jsValue);
-    static std::string ConvertAny2String(napi_env env, const napi_value jsValue);
 
     static int32_t Convert2StrVector(napi_env env, napi_value value, std::vector<std::string> &output);
     static int32_t Convert2BoolVector(napi_env env, napi_value value, std::vector<bool> &output);
     static int32_t Convert2DoubleVector(napi_env env, napi_value value, std::vector<double> &output);
-
-    static napi_value Convert2JSValue(napi_env env, const std::vector<std::string> &value);
-    static napi_value Convert2JSValue(napi_env env, const std::string &value);
-    static napi_value Convert2JSValue(napi_env env, const std::vector<uint8_t> &value);
-    static napi_value Convert2JSValue(napi_env env, int32_t value);
-    static napi_value Convert2JSValue(napi_env env, int64_t value);
-    static napi_value Convert2JSValue(napi_env env, double value);
-    static napi_value Convert2JSValue(napi_env env, bool value);
-    static napi_value Convert2JSValue(napi_env env, const std::map<std::string, int> &value);
 
     static int32_t Convert2JSValue(napi_env env, std::string value, napi_value &output);
     static int32_t Convert2JSValue(napi_env env, bool value, napi_value &output);
