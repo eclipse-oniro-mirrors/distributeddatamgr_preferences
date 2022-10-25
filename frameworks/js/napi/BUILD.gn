@@ -128,8 +128,8 @@ if (!is_mingw && !is_mac) {
     }
     sources = [
       "common/mock/src/js_ability.cpp",
-      "common/mock/src/js_utils.cpp",
       "common/src/async_call.cpp",
+      "common/src/js_utils.cpp",
       "common/src/napi_uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
