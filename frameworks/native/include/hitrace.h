@@ -22,15 +22,17 @@ namespace OHOS {
 namespace NativePreferences {
 class HiTrace final {
 public:
-    inline HiTrace(const std::string &value) {
+    inline HiTrace(const std::string &value)
+    {
         StartTrace(HITRACE_TAG_DISTRIBUTEDDATA, value);
     }
 
-    inline ~HiTrace() {
+    inline ~HiTrace()
+    {
         FinishTrace(HITRACE_TAG_DISTRIBUTEDDATA);
     }
 };
-}
-}
+} // namespace NativePreferences
+} // namespace OHOS
 
 #endif
