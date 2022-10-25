@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "adaptor.h"
-
+#include "hitrace.h"
 #include "logger.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -93,6 +93,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 
 std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string &path, int &errCode)
 {
+    HiTrace trace(std::string(__FUNCTION__));
     std::string realPath = GetRealPath(path, errCode);
     if (realPath == "" || errCode != E_OK) {
         return nullptr;
@@ -116,6 +117,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string
 
 int PreferencesHelper::DeletePreferences(const std::string &path)
 {
+    HiTrace trace(std::string(__FUNCTION__));
     int errCode = E_OK;
     std::string realPath = GetRealPath(path, errCode);
     if (realPath == "" || errCode != E_OK) {
@@ -144,6 +146,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
 
 int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
 {
+    HiTrace trace(std::string(__FUNCTION__));
     int errCode = E_OK;
     std::string realPath = GetRealPath(path, errCode);
     if (realPath == "" || errCode != E_OK) {
