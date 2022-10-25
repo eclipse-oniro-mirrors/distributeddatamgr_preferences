@@ -21,7 +21,6 @@
 #include <functional>
 #include <sstream>
 
-#include "hitrace.h"
 #include "logger.h"
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
@@ -490,7 +489,6 @@ int PreferencesImpl::Clear()
 
 void PreferencesImpl::Flush()
 {
-    HiTrace trace(std::string(__FUNCTION__));
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = false;
 
