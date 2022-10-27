@@ -489,6 +489,7 @@ int PreferencesImpl::Clear()
 
 void PreferencesImpl::Flush()
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = false;
 

@@ -18,7 +18,6 @@
 #include <limits>
 #include <list>
 
-#include "adaptor.h"
 #include "async_call.h"
 #include "js_logger.h"
 #include "js_utils.h"
@@ -358,7 +357,6 @@ int32_t GetAllExecute(std::shared_ptr<PreferencesAysncContext > context, napi_va
                 return ERR;
             }
         } else if (value.IsString()) {
-            std::string tempStr = (std::string)value;
             if (JSUtils::Convert2JSValue(context->_env, (std::string)value, jsVal) != napi_ok) {
                 LOG_ERROR("PreferencesProxy::GetAll get property string failed");
                 return ERR;
