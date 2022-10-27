@@ -14,7 +14,6 @@
  */
 #include <string>
 
-#include "adaptor.h"
 #include "async_call.h"
 #include "js_ability.h"
 #include "js_logger.h"
