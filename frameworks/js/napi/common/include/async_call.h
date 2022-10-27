@@ -40,8 +40,8 @@ public:
         using OutputAction = std::function<int(napi_env, napi_value &)>;
         using ExecAction = std::function<void(Context *)>;
         Context(InputAction input, OutputAction output)
-            : input_(std::move(input)), output_(std::move(output)),
-              apiversion(0){};
+            : apiversion(0), input_(std::move(input)),
+              output_(std::move(output)){};
         virtual ~Context(){};
         void SetAction(InputAction input, OutputAction output = nullptr)
         {
