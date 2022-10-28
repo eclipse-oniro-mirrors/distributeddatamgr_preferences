@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "napi_preferences_helper.h"
+
 #include <string>
 
 #include "async_call.h"
@@ -19,7 +21,6 @@
 #include "js_logger.h"
 #include "js_utils.h"
 #include "napi_preferences.h"
-#include "napi_preferences_helper.h"
 #include "napi_preferences_error.h"
 #include "preferences_errno.h"
 #include "securec.h"
