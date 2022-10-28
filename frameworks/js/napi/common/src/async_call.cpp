@@ -17,7 +17,7 @@
 #include "js_logger.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace AppDataMgrPreJsKit {
 AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context) : env_(env)
 {
     context->_env = env;
@@ -165,5 +165,5 @@ void AsyncCall::DeleteContext(napi_env env, AsyncContext *context)
     }
     delete context;
 }
-} // namespace AppDataMgrJsKit
+} // namespace AppDataMgrPreJsKit
 } // namespace OHOS

@@ -19,7 +19,7 @@
 #include "js_logger.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace AppDataMgrPreJsKit {
 Context::Context(std::shared_ptr<AbilityRuntime::Context> stageContext)
 {
     preferencesDir_ = stageContext->GetPreferencesDir();
@@ -78,5 +78,5 @@ std::shared_ptr<Context> JSAbility::GetContext(napi_env env, napi_value value)
     }
     return std::make_shared<Context>(abilityContext);
 }
-} // namespace AppDataMgrJsKit
+} // namespace AppDataMgrPreJsKit
 } // namespace OHOS
