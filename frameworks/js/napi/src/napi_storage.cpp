@@ -18,7 +18,6 @@
 #include <cerrno>
 #include <cmath>
 #include <limits>
-#include <linux/limits.h>
 
 #include "js_logger.h"
 #include "js_utils.h"
@@ -142,11 +141,6 @@ template<typename T> bool CheckNumberType(double input)
         return false;
     }
     return true;
-}
-
-bool IsFloat(double input)
-{
-    return abs(input - floor(input)) >= 0; // DBL_EPSILON;
 }
 
 napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
