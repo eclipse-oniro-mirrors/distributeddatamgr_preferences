@@ -23,7 +23,7 @@
 #include "napi/native_node_api.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace AppDataMgrPreJsKit {
 class Context {
 public:
     explicit Context();
@@ -39,7 +39,7 @@ public:
     static bool CheckContext(napi_env env, napi_callback_info info);
     static std::shared_ptr<Context> GetContext(napi_env env, napi_value object);
 };
-} // namespace AppDataMgrJsKit
+} // namespace AppDataMgrPreJsKit
 } // namespace OHOS
 
 #endif // DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H

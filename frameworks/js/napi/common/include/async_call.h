@@ -26,7 +26,7 @@
 #include "napi_preferences_error.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace AppDataMgrPreJsKit {
 
 class AsyncCall final {
 public:
@@ -118,6 +118,6 @@ private:
     AsyncContext *context_ = nullptr;
     napi_env env_ = nullptr;
 };
-} // namespace AppDataMgrJsKit
+} // namespace AppDataMgrPreJsKit
 } // namespace OHOS
 #endif

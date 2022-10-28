@@ -25,7 +25,7 @@
 #include "napi_base_context.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace AppDataMgrPreJsKit {
 class Context {
 public:
     explicit Context(std::shared_ptr<AbilityRuntime::Context> stageContext);
@@ -42,7 +42,7 @@ public:
     static bool CheckContext(napi_env env, napi_callback_info info);
     static std::shared_ptr<Context> GetContext(napi_env env, napi_value object);
 };
-} // namespace AppDataMgrJsKit
+} // namespace AppDataMgrPreJsKit
 } // namespace OHOS
 
 #endif // DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H
