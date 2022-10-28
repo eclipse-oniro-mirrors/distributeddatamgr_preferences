@@ -15,7 +15,6 @@
 #include "napi_storage_helper.h"
 
 #include <linux/limits.h>
-
 #include <string>
 
 #include "js_logger.h"

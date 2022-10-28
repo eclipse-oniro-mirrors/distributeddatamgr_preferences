@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "napi_preferences.h"
+
 #include <cerrno>
 #include <cmath>
 #include <limits>
@@ -22,7 +24,6 @@
 #include "async_call.h"
 #include "js_logger.h"
 #include "js_utils.h"
-#include "napi_preferences.h"
 #include "napi_preferences_error.h"
 #include "preferences.h"
 #include "preferences_errno.h"

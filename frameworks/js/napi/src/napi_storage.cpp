@@ -15,11 +15,10 @@
 
 #include "napi_storage.h"
 
-#include <linux/limits.h>
-
 #include <cerrno>
 #include <cmath>
 #include <limits>
+#include <linux/limits.h>
 
 #include "js_logger.h"
 #include "js_utils.h"
