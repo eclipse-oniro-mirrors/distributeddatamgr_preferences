@@ -79,15 +79,15 @@ if (!is_mingw && !is_mac) {
 
   ohos_shared_library("preferences") {
     include_dirs = [
-      "common/include",
+      "../common/include",
       "include",
     ]
 
     sources = [
-      "common/src/async_call.cpp",
-      "common/src/js_ability.cpp",
-      "common/src/js_utils.cpp",
-      "common/src/napi_uv_queue.cpp",
+      "../common/src/async_call.cpp",
+      "../common/src/js_ability.cpp",
+      "../common/src/js_utils.cpp",
+      "../common/src/napi_uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
@@ -110,8 +110,8 @@ if (!is_mingw && !is_mac) {
 } else {
   ohos_shared_library("preferences") {
     include_dirs = [
-      "common/mock/include",
-      "common/include",
+      "../common/mock/include",
+      "../common/include",
       "include",
       "//commonlibrary/c_utils/base/include",
     ]
@@ -127,10 +127,10 @@ if (!is_mingw && !is_mac) {
       defines = [ "WINDOWS_PLATFORM" ]
     }
     sources = [
-      "common/mock/src/js_ability.cpp",
-      "common/src/async_call.cpp",
-      "common/src/js_utils.cpp",
-      "common/src/napi_uv_queue.cpp",
+      "../common/mock/src/js_ability.cpp",
+      "../common/src/async_call.cpp",
+      "../common/src/js_utils.cpp",
+      "../common/src/napi_uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
