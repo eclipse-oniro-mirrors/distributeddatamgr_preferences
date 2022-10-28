@@ -29,7 +29,7 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
-using namespace OHOS::AppDataMgrPreJsKit;
+using namespace OHOS::PreferencesJsKit;
 using namespace OHOS::RdbJsKit;
 
 namespace OHOS {

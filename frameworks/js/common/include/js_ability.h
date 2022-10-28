@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,15 +18,18 @@
 #include <iostream>
 #include <string>
 
+#include "ability.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "napi_base_context.h"
 
 namespace OHOS {
-namespace AppDataMgrPreJsKit {
+namespace PreferencesJsKit {
 class Context {
 public:
-    explicit Context();
+    explicit Context(std::shared_ptr<AbilityRuntime::Context> stageContext);
+    explicit Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext);
 
     std::string GetPreferencesDir();
 
@@ -39,7 +42,7 @@ public:
     static bool CheckContext(napi_env env, napi_callback_info info);
     static std::shared_ptr<Context> GetContext(napi_env env, napi_value object);
 };
-} // namespace AppDataMgrPreJsKit
+} // namespace PreferencesJsKit
 } // namespace OHOS
 
 #endif // DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H

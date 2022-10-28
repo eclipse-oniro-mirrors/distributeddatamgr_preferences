@@ -22,7 +22,7 @@
 #endif
 
 namespace OHOS {
-namespace AppDataMgrPreJsKit {
+namespace PreferencesJsKit {
 int32_t JSUtils::Convert2String(napi_env env, napi_value jsStr, std::string &output)
 {
     char *str = new char[MAX_VALUE_LENGTH + 1];
@@ -235,5 +235,5 @@ int32_t JSUtils::Convert2JSStringArr(napi_env env, std::vector<std::string> valu
     }
     return OK;
 }
-} // namespace AppDataMgrPreJsKit
+} // namespace PreferencesJsKit
 } // namespace OHOS
