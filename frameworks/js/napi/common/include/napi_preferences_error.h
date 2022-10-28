@@ -26,16 +26,16 @@ constexpr int ERR = -1;
 constexpr int E_PARAM_ERROR = 401;
 constexpr int E_PREFERENCES_ERROR = 15500010;
 
-#define PRE_NAPI_ASSERT_BASE(env, assertion, error, retVal)                    \
-  do {                                                                         \
-    if (!(assertion)) {                                                        \
-      LOG_ERROR("throw error: code = %{public}d , message = %{public}s",       \
-                (error)->GetCode(), (error)->GetMessage().c_str());            \
-      napi_throw_error((env), std::to_string((error)->GetCode()).c_str(),      \
-                       (error)->GetMessage().c_str());                         \
-      return retVal;                                                           \
-    }                                                                          \
-  } while (0)
+#define PRE_NAPI_ASSERT_BASE(env, assertion, error, retVal)                        \
+    do {                                                                           \
+        if (!(assertion)) {                                                        \
+            LOG_ERROR("throw error: code = %{public}d , message = %{public}s",     \
+                      (error)->GetCode(), (error)->GetMessage().c_str());          \
+            napi_throw_error((env), std::to_string((error)->GetCode()).c_str(),    \
+                             (error)->GetMessage().c_str());                       \
+            return retVal;                                                         \
+        }                                                                          \
+    } while (0)
 
 #define PRE_NAPI_ASSERT(env, assertion, error) PRE_NAPI_ASSERT_BASE(env, assertion, error, nullptr)
 
