@@ -48,7 +48,8 @@ struct PreferencesAysncContext : public AsyncCall::Context {
     PreferencesAysncContext() : Context(nullptr, nullptr)
     {
     }
-    PreferencesAysncContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output))
+    PreferencesAysncContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)), hasKey(false)
     {
     }
     virtual ~PreferencesAysncContext(){};
