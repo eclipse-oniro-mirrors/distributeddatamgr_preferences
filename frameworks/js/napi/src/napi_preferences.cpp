@@ -16,8 +16,8 @@
 #include "napi_preferences.h"
 
 #include <cerrno>
+#include <climits>
 #include <cmath>
-#include <limits>
 #include <list>
 
 #include "async_call.h"
@@ -160,11 +160,6 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
                        nullptr, // finalize_hint
                        &obj->wrapper_));
     return thiz;
-}
-
-bool IsFloat(double input)
-{
-    return abs(input - floor(input)) >= 0; // DBL_EPSILON;
 }
 
 int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<PreferencesAysncContext > context)
