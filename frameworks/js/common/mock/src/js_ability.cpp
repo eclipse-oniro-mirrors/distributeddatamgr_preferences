@@ -20,7 +20,7 @@
 #include "js_logger.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace PreferencesJsKit {
 Context::Context()
 {
     std::string baseDir = "";
@@ -54,5 +54,5 @@ std::shared_ptr<Context> JSAbility::GetContext(napi_env env, napi_value value)
 {
     return std::make_shared<Context>();
 }
-} // namespace AppDataMgrJsKit
+} // namespace PreferencesJsKit
 } // namespace OHOS

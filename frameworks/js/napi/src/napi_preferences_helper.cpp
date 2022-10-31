@@ -26,13 +26,13 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
-using namespace OHOS::AppDataMgrJsKit;
+using namespace OHOS::PreferencesJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
 struct HelperAysncContext : public AsyncCall::Context {
     std::string path;
-    std::shared_ptr<OHOS::AppDataMgrJsKit::Context> abilitycontext;
+    std::shared_ptr<OHOS::PreferencesJsKit::Context> abilitycontext;
 
     HelperAysncContext() : Context(nullptr, nullptr)
     {

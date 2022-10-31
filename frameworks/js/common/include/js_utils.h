@@ -26,7 +26,7 @@
 #include "napi/native_node_api.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace PreferencesJsKit {
 class JSUtils final {
 public:
     static constexpr int OK = 0;
@@ -52,7 +52,7 @@ public:
     static int32_t Convert2JSBoolArr(napi_env env, std::vector<bool> value, napi_value &output);
     static int32_t Convert2JSDoubleArr(napi_env env, std::vector<double> value, napi_value &output);
 };
-} // namespace AppDataMgrJsKit
+} // namespace PreferencesJsKit
 } // namespace OHOS
 
 #endif // DISTRIBUTEDDATAMGR_APPDATAMGR_JSUTILS_H

@@ -18,7 +18,7 @@
 #include "js_logger.h"
 
 namespace OHOS {
-namespace AppDataMgrJsKit {
+namespace PreferencesJsKit {
 constexpr int MAX_INPUT_COUNT = 10;
 constexpr int OK = 0;
 constexpr int ERR = -1;
@@ -121,7 +121,7 @@ public:
 private:
     std::string apiname;
 };
-} // namespace AppDataMgrJsKit
+} // namespace PreferencesJsKit
 } // namespace OHOS
 
 #endif // PRE_JS_NAPI_ERROR_H
