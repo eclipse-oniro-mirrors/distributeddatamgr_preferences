@@ -42,7 +42,7 @@ struct PreferencesAysncContext : public AsyncCall::Context {
     std::string key;
     PreferencesValue defValue = PreferencesValue((int)0);
     std::map<std::string, PreferencesValue> allElements;
-    bool hasKey;
+    bool hasKey = false;
     std::list<std::string> keysModified;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
 
@@ -50,7 +50,7 @@ struct PreferencesAysncContext : public AsyncCall::Context {
     {
     }
     PreferencesAysncContext(InputAction input, OutputAction output)
-        : Context(std::move(input), std::move(output)), hasKey(false)
+        : Context(std::move(input), std::move(output))
     {
     }
     virtual ~PreferencesAysncContext(){};
