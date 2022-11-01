@@ -50,10 +50,11 @@ group("unittest") {
 
   deps = [ ":NativePreferencesTest" ]
 }
+
 ###############################################################################
 group("fuzztest") {
   testonly = true
   deps = []
-  deps +=[ "fuzztest/preferences_fuzzer:fuzztest" ]
+  deps += [ "fuzztest/preferences_fuzzer:fuzztest" ]
 }
 ###############################################################################
