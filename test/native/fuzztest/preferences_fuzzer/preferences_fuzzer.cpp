@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,13 +34,6 @@ public:
     static std::shared_ptr<Preferences> Preferences_;
 
     static const std::string LONG_KEY;
-
-//    static const std::string KEY_TEST_INT_ELEMENT;
-//    static const std::string KEY_TEST_LONG_ELEMENT;
-//    static const std::string KEY_TEST_FLOAT_ELEMENT;
-//    static const std::string KEY_TEST_DOUBLE_ELEMENT;
-//    static const std::string KEY_TEST_BOOL_ELEMENT;
-//    static const std::string KEY_TEST_STRING_ELEMENT;
 };
 
 std::shared_ptr<Preferences> PreferencesFuzzTest::Preferences_ = nullptr;
@@ -56,9 +49,6 @@ void PreferencesFuzzTest::SetUpTestCase(void)
 
 void PreferencesFuzzTest::TearDownTestCase(void)
 {
-    // Preferences_ = nullptr;
-    // int ret = PreferencesHelper::DeletePreferences("/data/test/test");
-    // EXPECT_EQ(errCode, E_OK);
 }
 
 void PreferencesFuzzTest::SetUp(void)
@@ -67,11 +57,6 @@ void PreferencesFuzzTest::SetUp(void)
 
 void PreferencesFuzzTest::TearDown(void)
 {
-    // /* clear all data after every case */
-    // if (Preferences_) {
-    //     Preferences_->Clear();
-    //     Preferences_->Flush();
-    // }
 }
 
 bool PutIntFuzz(const uint8_t *data, size_t size)
@@ -105,7 +90,7 @@ bool PutStringFuzz(const uint8_t *data, size_t size)
     std::string skey(data, data + size);
     std::string svalue(data, data + size);
     int ret = PreferencesFuzzTest::Preferences_->PutString(skey, svalue);
-     if (!ret) {
+    if (!ret) {
         result = true;
     }
     return result;
@@ -223,7 +208,6 @@ bool GetLongFuzz(const uint8_t *data, size_t size)
         return true;
     }
 }
-
 } // namespace OHOS
 
 /* Fuzzer entry point */
