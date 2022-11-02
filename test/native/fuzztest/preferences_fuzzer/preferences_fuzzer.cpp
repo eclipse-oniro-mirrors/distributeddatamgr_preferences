@@ -15,12 +15,11 @@
 
 #include "preferences_fuzzer.h"
 
-#include "preferences.h"
-
-#include "preferences_helper.h"
-#include "preferences_errno.h"
 #include <iostream>
 
+#include "preferences.h"
+#include "preferences_errno.h"
+#include "preferences_helper.h"
 
 using namespace OHOS::NativePreferences;
 

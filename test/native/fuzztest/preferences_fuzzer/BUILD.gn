@@ -36,7 +36,7 @@ ohos_fuzztest("PreferencesFuzzTest") {
     "c_utils:utils",
     "hilog_native:libhilog",
     "ipc:ipc_core",
-    "preferences:native_preferences"
+    "preferences:native_preferences",
   ]
 }
 
