@@ -85,7 +85,8 @@
             ],
             "test": [
                 "//foundation/distributeddatamgr/preferences/test/native:unittest",
-                "//foundation/distributeddatamgr/preferences/test/js:unittest"
+                "//foundation/distributeddatamgr/preferences/test/js:unittest",
+                "//foundation/distributeddatamgr/preferences/test/native/fuzztest/preferences_fuzzer:PreferencesFuzzTest"
             ]
         }
     }

@@ -1,0 +1,52 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/test.gni")
+config("module_private_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "//foundation/distributeddatamgr/preferences/interfaces/inner_api/include",
+  ]
+}
+
+##############################fuzztest##########################################
+ohos_fuzztest("PreferencesFuzzTest") {
+  module_out_path = "preferences/impl"
+
+  fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/native/fuzztest/preferences_fuzzer"
+
+  sources = [ "preferences_fuzzer.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog_native:libhilog",
+    "ipc:ipc_core",
+    "preferences:native_preferences",
+  ]
+}
+
+###############################################################################
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [
+    # deps file
+    ":PreferencesFuzzTest",
+  ]
+}
+###############################################################################
