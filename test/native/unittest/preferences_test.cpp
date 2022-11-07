@@ -25,6 +25,7 @@
 #include "preferences_errno.h"
 #include "preferences_helper.h"
 #include "preferences_observer.h"
+#include "preferences_value.h"
 
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;
@@ -703,4 +704,50 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_025, TestSize.Level1)
     EXPECT_EQ(ret, true);
     ret = pref->GetBool(PreferencesTest::KEY_TEST_BOOL_ELEMENT);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OperatorTest_001
+ * @tc.desc: normal testcase of PreferencesValue Operator
+ * @tc.type: FUNC
+ * @tc.require: AR000CU2BN
+ * @tc.author: xiuhongju
+ */
+HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
+{
+    int valueInt = 1;
+    int retInt = PreferencesValue(valueInt);
+    EXPECT_EQ(valueInt, retInt);
+
+    int64_t valueInt64 = 1;
+    int64_t retInt64 = PreferencesValue(valueInt64);
+    EXPECT_EQ(valueInt64, retInt64);
+
+    float valueFloat = 1.0;
+    float retFloat = PreferencesValue(valueFloat);
+    EXPECT_EQ(valueFloat, retFloat);
+
+    double valueDouble = 1.0;
+    double retDouble = PreferencesValue(valueDouble);
+    EXPECT_EQ(valueDouble, retDouble);
+
+    bool valueBool = true;
+    bool retBool = PreferencesValue(valueBool);
+    EXPECT_EQ(valueBool, retBool);
+
+    string valueString = "test";
+    string retString = PreferencesValue(valueString);
+    EXPECT_EQ(valueString, retString);
+
+    std::vector<bool> valueVectorBool(2, true);
+    std::vector<bool> retVectorBool = PreferencesValue(valueVectorBool);
+    EXPECT_EQ(valueVectorBool, retVectorBool);
+
+    std::vector<double> valueVectorDouble(2, 1.0);
+    std::vector<double> retVectorDouble = PreferencesValue(valueVectorDouble);
+    EXPECT_EQ(valueVectorDouble, retVectorDouble);
+
+    std::vector<string> valueVectorString(2, "test");
+    std::vector<string> retVectorString = PreferencesValue(valueVectorString);
+    EXPECT_EQ(valueVectorString, retVectorString);
 }

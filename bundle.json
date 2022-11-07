@@ -76,7 +76,6 @@
                             "preferences_observer.h",
                             "preferences_helper.h",
                             "preferences_errno.h",
-                            "preferences_xml_utils.h",
                             "preferences_value.h"
                         ],
                         "header_base": "//foundation/distributeddatamgr/preferences/interfaces/inner_api/include"
