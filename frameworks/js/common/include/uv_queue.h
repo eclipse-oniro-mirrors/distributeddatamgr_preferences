@@ -12,36 +12,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef NAPI_UV_QUEUE_H
-#define NAPI_UV_QUEUE_H
-
+#ifndef OHOS_UV_QUEUE_H
+#define OHOS_UV_QUEUE_H
 #include <functional>
-
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "uv.h"
 
-namespace OHOS::RdbJsKit {
-class NapiUvQueue {
-    using NapiArgsGenerator = std::function<void(napi_env env, int &argc, napi_value *argv)>;
-
+namespace OHOS::PreferencesJsKit {
+class UvQueue final {
 public:
-    NapiUvQueue(napi_env env, napi_value callback);
+    using NapiArgsGenerator = std::function<void(napi_env env, int& argc, napi_value* argv)>;
+    using NapiCallbackGetter = std::function<napi_value(napi_env env)>;
+    UvQueue(napi_env env);
+    ~UvQueue();
 
-    virtual ~NapiUvQueue();
-
-    bool operator==(napi_value value);
-
-    void CallFunction(NapiArgsGenerator genArgs = NapiArgsGenerator());
-
+    napi_env GetEnv();
+    void AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs = NapiArgsGenerator());
 private:
+    struct UvEntry {
+        napi_env env;
+        NapiCallbackGetter callback;
+        NapiArgsGenerator args;
+    };
     napi_env env_ = nullptr;
-    napi_ref callback_ = nullptr;
-    NapiArgsGenerator args;
-    uv_loop_s *loop_ = nullptr;
-
-    static constexpr int MAX_CALLBACK_ARG_NUM = 6;
+    uv_loop_s* loop_ = nullptr;
 };
-} // namespace OHOS::RdbJsKit
-#endif
+} // namespace OHOS::PreferencesJsKit
+#endif // OHOS_UV_QUEUE_H

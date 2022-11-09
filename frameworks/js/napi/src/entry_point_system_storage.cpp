@@ -22,7 +22,7 @@ EXTERN_C_START
  */
 static napi_value Init(napi_env env, napi_value exports)
 {
-    OHOS::SystemStorageJsKit::InitSystemStorage(env, exports);
+    OHOS::PreferencesJsKit::InitSystemStorage(env, exports);
     return exports;
 }
 EXTERN_C_END
