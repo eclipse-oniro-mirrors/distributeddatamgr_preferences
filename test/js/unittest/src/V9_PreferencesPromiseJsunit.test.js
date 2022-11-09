@@ -40,6 +40,12 @@ describe('_preferencesTest', async function () {
         await data_preferences.deletePreferences(context, NAME)
     })
 
+    beforeEach(async function () {
+        console.info('beforeEach')
+        await mPreference.clear();
+        await mPreference.flush();
+    })
+
     it('testPreferencesPromise001', 0, function (done) {
         console.log("testPreferencesPromise001 begin.")
         try{
@@ -106,12 +112,13 @@ describe('_preferencesTest', async function () {
     })
 
     //get OK parsers
-    it('testPreferencesPromise003', 0, function (done) {
+    it('testPreferencesPromise003', 0, async function (done) {
         console.log("testPreferencesPromise003 begin.")
         try{
-            mPreference.get(KEY_TEST_STRING_ELEMENT, KEY_TEST_INT_ELEMENT).then((ret)=>{
-                expect('123').assertEqual(ret)
+            await mPreference.put(KEY_TEST_STRING_ELEMENT, '123');
+            mPreference.get(KEY_TEST_STRING_ELEMENT, KEY_TEST_INT_ELEMENT).then((ret) => {
                 done()
+                expect('123').assertEqual(ret)
                 console.log("testPreferencesPromise003 end.")
             }).catch((err) => {
                 console.log("get err =" + err + ", code =" + err.code +", message =" + err.message)
@@ -278,74 +285,78 @@ describe('_preferencesTest', async function () {
             expect(false).assertTrue()
         }
     })
-        
-     //on OK parsers
-     it('testPreferencesPromise014', 0, async function () {
+
+    //on OK parsers
+    it('testPreferencesPromise014', 0, async function (done) {
         console.log("testPreferencesPromise014 begin.")
         await mPreference.clear();
         try {
             var observer = function (key) {
                 console.info('testPreferencesPromise014 key' + key);
-                expect('abc').assertEqual(key);
+                done();
+                expect(KEY_TEST_STRING_ELEMENT).assertEqual(key);
             };
             mPreference.on('change', observer);
-            mPreference.put(KEY_TEST_STRING_ELEMENT, "abc");
+            await mPreference.put(KEY_TEST_STRING_ELEMENT, "abc");
+            await mPreference.flush();
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
             expect(false).assertTrue()
+        } finally {
+            mPreference.off('change', observer);
         }
     })
 
     //on err parsers
-    it('testPreferencesPromise014', 0, async function () {
-        console.log("testPreferencesPromise014 begin.")
+    it('testPreferencesPromise015', 0, async function (done) {
+        console.log("testPreferencesPromise015 begin.")
         await mPreference.clear();
         try {
             var observer = function (key) {
-                console.info('testPreferencesPromise014 key' + key);
-                expect('abc').assertEqual(key);
+                console.info('testPreferencesPromise015 key' + key);
+                expect(KEY_TEST_STRING_ELEMENT).assertEqual(key);
             };
             mPreference.on('sschange', observer);
-            mPreference.put(KEY_TEST_STRING_ELEMENT, "abc");
+            expect(false).assertTrue()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            done()
-            expect(false).assertTrue()
+            done();
         }
     })
 
     //off OK parsers
-    it('testPreferencesPromise015', 0, async function () {
-        console.log("testPreferencesPromise015 begin.")
-        try {
-            var observer = function (key) {
-                console.info('testPreferencesPromise015 key' + key);
-                expect('').assertEqual(key);
-            };
-            mPreference.on('change', observer);
-            mPreference.off('change', observer);
-            mPreference.put(KEY_TEST_STRING_ELEMENT, "abc");
-        } catch (err) {
-            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            expect(false).assertTrue()
-        }
-    })
-
-    //off err parsers
-    it('testPreferencesPromise016', 0, async function () {
+    it('testPreferencesPromise016', 0, async function (done) {
         console.log("testPreferencesPromise016 begin.")
         try {
             var observer = function (key) {
                 console.info('testPreferencesPromise016 key' + key);
-                expect('').assertEqual(key);
+                expect(false).assertTrue()
+            };
+            mPreference.on('change', observer);
+            mPreference.off('change', observer);
+            await mPreference.put(KEY_TEST_STRING_ELEMENT, "abb");
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect(false).assertTrue()
+        }
+        done();
+    })
+
+    //off err parsers
+    it('testPreferencesPromise017', 0, async function (done) {
+        console.log("testPreferencesPromise017 begin.")
+        try {
+            var observer = function (key) {
+                console.info('testPreferencesPromise017 key' + key);
+                expect(KEY_TEST_STRING_ELEMENT).assertEqual(key);
             };
             mPreference.on('change', observer);
             mPreference.off('sschange', observer);
-            mPreference.put(KEY_TEST_STRING_ELEMENT, "abc");
+            expect(false).assertTrue()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            done()
-            expect(false).assertTrue()
+            done();
         }
     })
 })

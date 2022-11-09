@@ -20,8 +20,8 @@
 #include "napi/native_node_api.h"
 
 namespace OHOS {
-namespace SystemStorageJsKit {
+namespace PreferencesJsKit {
 napi_value InitSystemStorage(napi_env env, napi_value exports);
-} // namespace SystemStorageJsKit
+} // namespace PreferencesJsKit
 } // namespace OHOS
 #endif // PREFERENCES_JSKIT_NAPI_SYSTEM_STORAGE_H

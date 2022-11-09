@@ -26,7 +26,6 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
-using namespace OHOS::PreferencesJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
