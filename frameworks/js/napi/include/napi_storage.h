@@ -18,10 +18,13 @@
 
 #include <assert.h>
 
+#include <list>
+
+#include "js_observer.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
-#include "napi_uv_queue.h"
+#include "napi_preferences_observer.h"
 #include "preferences.h"
 #include "preferences_helper.h"
 
@@ -53,18 +56,16 @@ private:
     static napi_value RegisterObserver(napi_env env, napi_callback_info info);
     static napi_value UnRegisterObserver(napi_env env, napi_callback_info info);
 
+    bool HasRegisteredObserver(napi_value callback);
+    void RegisterObserver(napi_value callback);
+    void UnRegisterObserver(napi_value callback);
+
     std::shared_ptr<OHOS::NativePreferences::Preferences> value_;
     napi_env env_;
     napi_ref wrapper_;
-    std::shared_ptr<OHOS::NativePreferences::PreferencesObserver> observer_;
-};
-
-class StorageObserverImpl
-    : public OHOS::NativePreferences::PreferencesObserver, public OHOS::RdbJsKit::NapiUvQueue {
-public:
-    StorageObserverImpl(napi_env env, napi_value callback);
-    virtual ~StorageObserverImpl();
-    void OnChange(const std::string &key) override;
+    std::mutex listMutex_ {};
+    std::shared_ptr<UvQueue> uvQueue_;
+    std::list<std::shared_ptr<JSPreferencesObserver>> dataObserver_;
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS

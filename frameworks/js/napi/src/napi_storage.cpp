@@ -28,8 +28,6 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
-using namespace OHOS::AppDataMgrJsKit;
-using namespace OHOS::RdbJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -45,13 +43,17 @@ struct StorageAysncContext : NapiAsyncProxy<StorageAysncContext>::AysncContext {
 static __thread napi_ref constructor_;
 
 StorageProxy::StorageProxy(std::shared_ptr<OHOS::NativePreferences::Preferences> &value)
-    : value_(value), env_(nullptr), wrapper_(nullptr)
+    : value_(value), env_(nullptr), wrapper_(nullptr), uvQueue_(nullptr)
 {
 }
 
 StorageProxy::~StorageProxy()
 {
     napi_delete_reference(env_, wrapper_);
+    for (auto& observer : dataObserver_) {
+        value_->UnRegisterObserver(observer);
+    }
+    dataObserver_.clear();
 }
 
 void StorageProxy::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
@@ -129,6 +131,8 @@ napi_value StorageProxy::New(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, preference != nullptr, "failed to call native");
     StorageProxy *obj = new StorageProxy(preference);
     obj->env_ = env;
+    obj->value_ = std::move(preference);
+    obj->uvQueue_ = std::make_shared<UvQueue>(env);
     NAPI_CALL(env, napi_wrap(env, thiz, obj, StorageProxy::Destructor,
                        nullptr, // finalize_hint
                        &obj->wrapper_));
@@ -519,18 +523,18 @@ napi_value StorageProxy::RegisterObserver(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
-    NAPI_ASSERT(env, type == napi_string, "key not string type");
+    NAPI_ASSERT(env, type == napi_string, "type should be 'change'");
+
+    std::string change;
+    int ret = JSUtils::Convert2String(env, args[0], change);
+    NAPI_ASSERT(env, ret == OK && change == "change", "type should be 'change'");
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
     NAPI_ASSERT(env, type == napi_function, "observer not function type");
 
     StorageProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
-
-    // reference save
-    obj->observer_ = std::make_shared<StorageObserverImpl>(env, args[1]);
-    obj->value_->RegisterObserver(obj->observer_);
-    LOG_DEBUG("RegisterObserver end");
+    obj->RegisterObserver(args[1]);
 
     return nullptr;
 }
@@ -546,36 +550,55 @@ napi_value StorageProxy::UnRegisterObserver(napi_env env, napi_callback_info inf
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     NAPI_ASSERT(env, type == napi_string, "key not string type");
 
+    std::string change;
+    int ret = JSUtils::Convert2String(env, args[0], change);
+    NAPI_ASSERT(env, ret == OK && change == "change", "type should be 'change'");
+
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
     NAPI_ASSERT(env, type == napi_function, "observer not function type");
 
     StorageProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
-    obj->value_->UnRegisterObserver(obj->observer_);
-    obj->observer_.reset();
-    obj->observer_ = nullptr;
-    LOG_DEBUG("UnRegisterObserver end");
+    obj->UnRegisterObserver(args[1]);
+
     return nullptr;
 }
 
-StorageObserverImpl::StorageObserverImpl(napi_env env, napi_value callback) : NapiUvQueue(env, callback)
+bool StorageProxy::HasRegisteredObserver(napi_value callback)
 {
-}
-
-StorageObserverImpl::~StorageObserverImpl()
-{
-}
-
-void StorageObserverImpl::OnChange(const std::string &key)
-{
-    CallFunction([key](napi_env env, int &argc, napi_value *argv) {
-        argc = 1;
-        int status = JSUtils::Convert2JSValue(env, key, argv[0]);
-        if (status != OK) {
-            LOG_DEBUG("OnChange CallFunction error.");
+    std::lock_guard<std::mutex> lck(listMutex_);
+    for (auto &it : dataObserver_) {
+        if (JSUtils::Equals(env_, callback, it->GetCallback())) {
+            LOG_INFO("The observer has already subscribed.");
+            return true;
         }
-    });
-    LOG_DEBUG("OnChange key end");
+    }
+    return false;
+}
+
+void StorageProxy::RegisterObserver(napi_value callback)
+{
+    if (!HasRegisteredObserver(callback)) {
+        auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
+        value_->RegisterObserver(observer);
+        dataObserver_.push_back(observer);
+        LOG_INFO("The observer subscribed success.");
+    }
+}
+
+void StorageProxy::UnRegisterObserver(napi_value callback)
+{
+    std::lock_guard<std::mutex> lck(listMutex_);
+    auto it = dataObserver_.begin();
+    while (it != dataObserver_.end()) {
+        if (!JSUtils::Equals(env_, callback, (*it)->GetCallback())) {
+            ++it;
+            continue; // specified observer and not current iterator
+        }
+        value_->UnRegisterObserver(*it);
+        it = dataObserver_.erase(it);
+        LOG_INFO("The observer unsubscribed success.");
+    }
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS

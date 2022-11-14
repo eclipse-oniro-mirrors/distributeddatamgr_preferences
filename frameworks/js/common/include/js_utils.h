@@ -51,6 +51,8 @@ public:
     static int32_t Convert2JSStringArr(napi_env env, std::vector<std::string> value, napi_value &output);
     static int32_t Convert2JSBoolArr(napi_env env, std::vector<bool> value, napi_value &output);
     static int32_t Convert2JSDoubleArr(napi_env env, std::vector<double> value, napi_value &output);
+
+    static bool Equals(napi_env env, napi_value value, napi_ref copy);
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS

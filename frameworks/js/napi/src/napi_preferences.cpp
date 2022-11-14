@@ -30,8 +30,6 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
-using namespace OHOS::PreferencesJsKit;
-using namespace OHOS::RdbJsKit;
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -69,13 +67,17 @@ struct PreferencesAysncContext : public AsyncCall::Context {
 static __thread napi_ref constructor_;
 
 PreferencesProxy::PreferencesProxy(std::shared_ptr<OHOS::NativePreferences::Preferences> &value)
-    : value_(value), env_(nullptr), wrapper_(nullptr)
+    : value_(value), env_(nullptr), wrapper_(nullptr), uvQueue_(nullptr)
 {
 }
 
 PreferencesProxy::~PreferencesProxy()
 {
     napi_delete_reference(env_, wrapper_);
+    for (auto& observer : dataObserver_) {
+        value_->UnRegisterObserver(observer);
+    }
+    dataObserver_.clear();
 }
 
 void PreferencesProxy::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
@@ -156,6 +158,8 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, preference != nullptr, "failed to call native");
     PreferencesProxy *obj = new PreferencesProxy(preference);
     obj->env_ = env;
+    obj->value_ = std::move(preference);
+    obj->uvQueue_ = std::make_shared<UvQueue>(env);
     NAPI_CALL(env, napi_wrap(env, thiz, obj, PreferencesProxy::Destructor,
                        nullptr, // finalize_hint
                        &obj->wrapper_));
@@ -611,16 +615,16 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
 
+    std::string chang;
+    int ret = JSUtils::Convert2String(env, args[0], chang);
+    PRE_NAPI_ASSERT(env, ret == OK && chang == "change", std::make_shared<ParamTypeError>("type", "string 'change'."));
+
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
     PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("callback", "function type."));
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
-
-    // reference save
-    obj->observer_ = std::make_shared<PreferencesObserverImpl>(env, args[1]);
-    obj->value_->RegisterObserver(obj->observer_);
-    LOG_DEBUG("RegisterObserver end");
+    obj->RegisteredObserver(args[1]);
 
     return nullptr;
 }
@@ -636,36 +640,55 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
 
+    std::string chang;
+    int ret = JSUtils::Convert2String(env, args[0], chang);
+    PRE_NAPI_ASSERT(env, ret == OK && chang == "change", std::make_shared<ParamTypeError>("type", "string 'change'."));
+
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
     PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("callback", "function type."));
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
-    obj->value_->UnRegisterObserver(obj->observer_);
-    obj->observer_.reset();
-    obj->observer_ = nullptr;
-    LOG_DEBUG("UnRegisterObserver end");
+    obj->UnRegisteredObserver(args[1]);
+
     return nullptr;
 }
 
-PreferencesObserverImpl::PreferencesObserverImpl(napi_env env, napi_value callback) : NapiUvQueue(env, callback)
+bool PreferencesProxy::HasRegisteredObserver(napi_value callback)
 {
-}
-
-PreferencesObserverImpl::~PreferencesObserverImpl()
-{
-}
-
-void PreferencesObserverImpl::OnChange(const std::string &key)
-{
-    CallFunction([key](napi_env env, int &argc, napi_value *argv) {
-        argc = 1;
-        int status = JSUtils::Convert2JSValue(env, key, argv[0]);
-        if (status != OK) {
-            LOG_DEBUG("OnChange CallFunction error.");
+    std::lock_guard<std::mutex> lck(listMutex_);
+    for (auto &it : dataObserver_) {
+        if (JSUtils::Equals(env_, callback, it->GetCallback())) {
+            LOG_INFO("The observer has already subscribed.");
+            return true;
         }
-    });
-    LOG_DEBUG("OnChange key end");
+    }
+    return false;
+}
+
+void PreferencesProxy::RegisteredObserver(napi_value callback)
+{
+    if (!HasRegisteredObserver(callback)) {
+        auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
+        value_->RegisterObserver(observer);
+        dataObserver_.push_back(observer);
+        LOG_INFO("The observer subscribed success.");
+    }
+}
+
+void PreferencesProxy::UnRegisteredObserver(napi_value callback)
+{
+    std::lock_guard<std::mutex> lck(listMutex_);
+    auto it = dataObserver_.begin();
+    while (it != dataObserver_.end()) {
+        if (!JSUtils::Equals(env_, callback, (*it)->GetCallback())) {
+            ++it;
+            continue; // specified observer and not current iterator
+        }
+        value_->UnRegisterObserver(*it);
+        it = dataObserver_.erase(it);
+        LOG_INFO("The observer unsubscribed success.");
+    }
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS
