@@ -23,11 +23,10 @@
 #include "preferences_errno.h"
 #include "preferences_helper.h"
 
-using namespace OHOS::AppDataMgrJsKit;
 using namespace OHOS::NativePreferences;
 
 namespace OHOS {
-namespace SystemStorageJsKit {
+namespace PreferencesJsKit {
 struct AsyncContext {
     std::string key;
     std::string def;
@@ -55,8 +54,9 @@ void ParseString(napi_env env, napi_value &object, const char *name, const bool 
     bool exist = false;
     napi_has_named_property(env, object, name, &exist);
     if (exist && (napi_get_named_property(env, object, name, &value) == napi_ok)) {
-        std::string key = JSUtils::Convert2String(env, value);
-        NAPI_ASSERT_RETURN_VOID(env, enable || !key.empty(), "StorageOptions is empty.");
+        std::string key = "";
+        int32_t ret = JSUtils::Convert2String(env, value, key);
+        NAPI_ASSERT_RETURN_VOID(env, enable || (ret == E_OK && !key.empty()), "StorageOptions is empty.");
         output = std::move(key);
     }
 }
@@ -279,5 +279,5 @@ napi_value InitSystemStorage(napi_env env, napi_value exports)
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(properties) / sizeof(*properties), properties));
     return exports;
 }
-} // namespace SystemStorageJsKit
+} // namespace PreferencesJsKit
 } // namespace OHOS

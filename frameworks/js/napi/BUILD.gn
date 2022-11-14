@@ -26,14 +26,15 @@ if (!is_mingw && !is_mac) {
   ohos_shared_library("storage") {
     include_dirs = [
       "include",
-      "${relational_store_napi_path}/rdb/include",
-      "${relational_store_js_common_path}/include",
+      "../common/include",
     ]
 
     sources = [
-      "${relational_store_js_common_path}/src/js_utils.cpp",
-      "${relational_store_napi_path}/rdb/src/napi_uv_queue.cpp",
+      "../common/src/js_observer.cpp",
+      "../common/src/js_utils.cpp",
+      "../common/src/uv_queue.cpp",
       "src/entry_point_storage.cpp",
+      "src/napi_preferences_observer.cpp",
       "src/napi_storage.cpp",
       "src/napi_storage_helper.cpp",
     ]
@@ -52,12 +53,12 @@ if (!is_mingw && !is_mac) {
   ohos_shared_library("storage_napi") {
     include_dirs = [
       "include",
-      "${relational_store_js_common_path}/include",
+      "../common/include",
     ]
 
     sources = [
-      "${relational_store_js_common_path}/src/js_ability.cpp",
-      "${relational_store_js_common_path}/src/js_utils.cpp",
+      "../common/src/js_ability.cpp",
+      "../common/src/js_utils.cpp",
       "src/entry_point_system_storage.cpp",
       "src/napi_system_storage.cpp",
     ]
@@ -86,11 +87,13 @@ if (!is_mingw && !is_mac) {
     sources = [
       "../common/src/async_call.cpp",
       "../common/src/js_ability.cpp",
+      "../common/src/js_observer.cpp",
       "../common/src/js_utils.cpp",
-      "../common/src/napi_uv_queue.cpp",
+      "../common/src/uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
+      "src/napi_preferences_observer.cpp",
     ]
 
     deps = []
@@ -129,11 +132,13 @@ if (!is_mingw && !is_mac) {
     sources = [
       "../common/mock/src/js_ability.cpp",
       "../common/src/async_call.cpp",
+      "../common/src/js_observer.cpp",
       "../common/src/js_utils.cpp",
-      "../common/src/napi_uv_queue.cpp",
+      "../common/src/uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
+      "src/napi_preferences_observer.cpp",
     ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
