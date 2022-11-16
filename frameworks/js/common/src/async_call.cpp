@@ -28,6 +28,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
 
     context_ = new AsyncContext();
     napi_valuetype valueType = napi_undefined;
+    PRE_NAPI_ASSERT_RETURN_VOID(env, argc > 0, context->error);
     napi_typeof(env, argv[argc - 1], &valueType);
     if (valueType == napi_function) {
         napi_create_reference(env, argv[argc - 1], 1, &context_->callback);
