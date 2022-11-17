@@ -88,8 +88,6 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_001, TestSize.Level1
 HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level1)
 {
     int errCode = E_OK;
-    static constexpr int maxPathLength = 4096;
-    std::string path = "/data/test/test_helper";
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
     EXPECT_EQ(errCode, E_EMPTY_FILE_PATH);
 
@@ -99,9 +97,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level1
     pref = PreferencesHelper::GetPreferences(":data/test/test_helper", errCode);
     EXPECT_EQ(errCode, E_RELATIVE_PATH);
 
-    for (int i = 0; i < maxPathLength; ++i) {
-        path.append(std::to_string(i));
-    }
+    std::string path = "/data/test/test_helper" + std::string(4096, 't');
     pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_PATH_EXCEED_MAX_LENGTH);
 
@@ -117,7 +113,6 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level1
 HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_003, TestSize.Level1)
 {
     int errCode = E_OK;
-    std::string path = "data/test/test_helper";
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
     EXPECT_EQ(errCode, E_EMPTY_FILE_PATH);
 

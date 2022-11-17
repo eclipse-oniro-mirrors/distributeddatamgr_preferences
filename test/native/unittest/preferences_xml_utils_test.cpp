@@ -56,11 +56,7 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Leve
     bool ret = PreferencesXmlUtils::ReadSettingXml("", settings);
     EXPECT_EQ(ret, false);
 
-    static constexpr int maxPathLength = 4096;
-    std::string path = "/data/test/test_helper";
-    for (int i = 0; i < maxPathLength; ++i) {
-        path.append(std::to_string(i));
-    }
+    std::string path = "/data/test/test_helper" + std::string(4096, 't');
     ret = PreferencesXmlUtils::ReadSettingXml(path, settings);
     EXPECT_EQ(ret, false);
 
@@ -79,11 +75,7 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_002, TestSize.Leve
     bool ret = PreferencesXmlUtils::ReadSettingXml("", settings);
     EXPECT_EQ(ret, false);
 
-    static constexpr int maxPathLength = 4096;
-    std::string path = "/data/test/test_helper";
-    for (int i = 0; i < maxPathLength; ++i) {
-        path.append(std::to_string(i));
-    }
+    std::string path = "/data/test/test_helper" + std::string(4096, 't');
     ret = PreferencesXmlUtils::ReadSettingXml(path, settings);
     EXPECT_EQ(ret, false);
 
