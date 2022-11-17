@@ -62,8 +62,8 @@ void PreferencesXmlUtilsTest::TearDown(void)
 */
 HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Level1)
 {
-    std::vector<Element> settings ={};
-    bool ret = PreferencesXmlUtils::ReadSettingXml("",settings);
+    std::vector<Element> settings = {};
+    bool ret = PreferencesXmlUtils::ReadSettingXml("", settings);
     EXPECT_EQ(ret, false);
 
     static const int maxPathLength = 4096;
@@ -71,10 +71,10 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Leve
     for (int i = 0; i < maxPathLength; ++i) {
         path.append(std::to_string(i));
     }
-    ret = PreferencesXmlUtils::ReadSettingXml(path,settings);
+    ret = PreferencesXmlUtils::ReadSettingXml(path, settings);
     EXPECT_EQ(ret, false);
 
-    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper",settings);
+    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper", settings);
     EXPECT_EQ(ret, false);
 }
 
@@ -87,8 +87,8 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Leve
 */
 HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_002, TestSize.Level1)
 {
-    std::vector<Element> settings ={};
-    bool ret = PreferencesXmlUtils::ReadSettingXml("",settings);
+    std::vector<Element> settings = {};
+    bool ret = PreferencesXmlUtils::ReadSettingXml("", settings);
     EXPECT_EQ(ret, false);
 
     static const int maxPathLength = 4096;
@@ -96,10 +96,10 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_002, TestSize.Leve
     for (int i = 0; i < maxPathLength; ++i) {
         path.append(std::to_string(i));
     }
-    ret = PreferencesXmlUtils::ReadSettingXml(path,settings);
+    ret = PreferencesXmlUtils::ReadSettingXml(path, settings);
     EXPECT_EQ(ret, false);
 
-    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper",settings);
+    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper", settings);
     EXPECT_EQ(ret, false);
 }
 

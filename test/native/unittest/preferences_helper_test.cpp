@@ -140,17 +140,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level1
 {
     int pref = PreferencesHelper::DeletePreferences("");
     EXPECT_EQ(pref, E_EMPTY_FILE_PATH);
-}
 
-/**
- * @tc.name: NativePreferencesHelperTest_005
- * @tc.desc: error testcase of RemovePreferences
- * @tc.type: FUNC
- * @tc.require: SR000CU2BL
- * @tc.author: xiuhongju
- */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level1)
-{
-    int pref = PreferencesHelper::RemovePreferencesFromCache("");
+    pref = PreferencesHelper::RemovePreferencesFromCache("");
     EXPECT_EQ(pref, E_EMPTY_FILE_PATH);
 }

@@ -32,7 +32,6 @@ ohos_unittest("NativePreferencesTest") {
     "unittest/preferences_file_test.cpp",
     "unittest/preferences_helper_test.cpp",
     "unittest/preferences_test.cpp",
-    "unittest/preferences_impl_test.cpp",
     "unittest/preferences_xml_utils_test.cpp",
   ]
 
