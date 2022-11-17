@@ -16,15 +16,7 @@
 #include "preferences_xml_utils.h"
 
 #include <gtest/gtest.h>
-
-#include <cctype>
-#include <iostream>
 #include <string>
-
-#include "logger.h"
-#include "preferences.h"
-#include "preferences_errno.h"
-#include "preferences_observer.h"
 
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;
@@ -57,8 +49,6 @@ void PreferencesXmlUtilsTest::TearDown(void)
 * @tc.name: NativePreferencesImplTest_001
 * @tc.desc: normal testcase of DeletePreferences
 * @tc.type: FUNC
-* @tc.require: SR000CU2BL
-* @tc.author: xiuhongju
 */
 HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Level1)
 {
@@ -66,8 +56,8 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Leve
     bool ret = PreferencesXmlUtils::ReadSettingXml("", settings);
     EXPECT_EQ(ret, false);
 
-    static const int maxPathLength = 4096;
-    string path = "/data/test/test_helper";
+    static constexpr int maxPathLength = 4096;
+    std::string path = "/data/test/test_helper";
     for (int i = 0; i < maxPathLength; ++i) {
         path.append(std::to_string(i));
     }
@@ -82,8 +72,6 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Leve
 * @tc.name: NativePreferencesImplTest_002
 * @tc.desc: normal testcase of DeletePreferences
 * @tc.type: FUNC
-* @tc.require: SR000CU2BL
-* @tc.author: xiuhongju
 */
 HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_002, TestSize.Level1)
 {
@@ -91,8 +79,8 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_002, TestSize.Leve
     bool ret = PreferencesXmlUtils::ReadSettingXml("", settings);
     EXPECT_EQ(ret, false);
 
-    static const int maxPathLength = 4096;
-    string path = "/data/test/test_helper";
+    static constexpr int maxPathLength = 4096;
+    std::string path = "/data/test/test_helper";
     for (int i = 0; i < maxPathLength; ++i) {
         path.append(std::to_string(i));
     }
