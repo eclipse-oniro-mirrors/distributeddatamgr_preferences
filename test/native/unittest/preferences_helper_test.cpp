@@ -79,3 +79,57 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_001, TestSize.Level1
     ret = PreferencesHelper::DeletePreferences("/data/test/test_helper");
     EXPECT_EQ(ret, E_OK);
 }
+
+/**
+ * @tc.name: NativePreferencesHelperTest_002
+ * @tc.desc: error testcase of Preferences
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level1)
+{
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
+    EXPECT_EQ(errCode, E_EMPTY_FILE_PATH);
+
+    pref = PreferencesHelper::GetPreferences("data/test/test_helper", errCode);
+    EXPECT_EQ(errCode, E_RELATIVE_PATH);
+
+    pref = PreferencesHelper::GetPreferences(":data/test/test_helper", errCode);
+    EXPECT_EQ(errCode, E_RELATIVE_PATH);
+
+    std::string path = "/data/test/test_helper" + std::string(4096, 't');
+    pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_EQ(errCode, E_PATH_EXCEED_MAX_LENGTH);
+
+    pref = PreferencesHelper::GetPreferences(":data/test/test_helper/", errCode);
+    EXPECT_EQ(errCode, E_RELATIVE_PATH);
+}
+
+/**
+ * @tc.name: NativePreferencesHelperTest_003
+ * @tc.desc: error testcase of Preferences
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_003, TestSize.Level1)
+{
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
+    EXPECT_EQ(errCode, E_EMPTY_FILE_PATH);
+
+    pref = PreferencesHelper::GetPreferences("data/test/test_helper", errCode);
+    EXPECT_EQ(errCode, E_RELATIVE_PATH);
+}
+
+/**
+ * @tc.name: NativePreferencesHelperTest_004
+ * @tc.desc: error testcase of DeletePreferences
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level1)
+{
+    int pref = PreferencesHelper::DeletePreferences("");
+    EXPECT_EQ(pref, E_EMPTY_FILE_PATH);
+
+    pref = PreferencesHelper::RemovePreferencesFromCache("");
+    EXPECT_EQ(pref, E_EMPTY_FILE_PATH);
+}
