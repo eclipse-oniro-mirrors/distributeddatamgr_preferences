@@ -20,7 +20,7 @@
 #include "napi/native_node_api.h"
 
 namespace OHOS {
-namespace PreferencesJsKit {
+namespace StorageJsKit {
 napi_value InitPreferenceHelper(napi_env env, napi_value exports);
 }
 } // namespace OHOS

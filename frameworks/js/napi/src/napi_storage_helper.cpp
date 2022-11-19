@@ -14,7 +14,7 @@
  */
 #include "napi_storage_helper.h"
 
-#include <linux/limits.h>
+#include <limits.h>
 #include <string>
 
 #include "js_logger.h"
@@ -24,9 +24,10 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
+using namespace OHOS::PreferencesJsKit;
 
 namespace OHOS {
-namespace PreferencesJsKit {
+namespace StorageJsKit {
 struct HelperAysncContext : NapiAsyncProxy<HelperAysncContext>::AysncContext {
     std::string path;
 };
