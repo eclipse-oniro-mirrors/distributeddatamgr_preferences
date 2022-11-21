@@ -28,9 +28,10 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
+using namespace OHOS::PreferencesJsKit;
 
 namespace OHOS {
-namespace PreferencesJsKit {
+namespace StorageJsKit {
 #define MAX_KEY_LENGTH Preferences::MAX_KEY_LENGTH
 #define MAX_VALUE_LENGTH Preferences::MAX_VALUE_LENGTH
 

@@ -17,7 +17,7 @@
 #include "napi_storage.h"
 #include "napi_storage_helper.h"
 
-using namespace OHOS::PreferencesJsKit;
+using namespace OHOS::StorageJsKit;
 
 EXTERN_C_START
 /*
