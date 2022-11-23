@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "adaptor.h"
 #include "async_call.h"
 #include "js_logger.h"
 
@@ -20,6 +21,7 @@ namespace OHOS {
 namespace PreferencesJsKit {
 AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context) : env_(env)
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     context->_env = env;
     size_t argc = MAX_INPUT_COUNT;
     napi_value self = nullptr;
@@ -54,6 +56,7 @@ AsyncCall::~AsyncCall()
 
 napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec)
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     if ((context_ == nullptr) || (context_->ctx == nullptr)) {
         LOG_DEBUG("context_ or context_->ctx is null");
         return nullptr;
@@ -97,6 +100,7 @@ napi_value AsyncCall::SyncCall(napi_env env, AsyncCall::Context::ExecAction exec
 
 void AsyncCall::OnExecute(napi_env env, void *data)
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     LOG_DEBUG("run the async runnable");
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     context->ctx->Exec();
@@ -118,6 +122,7 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
 
 void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     LOG_DEBUG("run the js callback function");
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     napi_value output = nullptr;

@@ -16,6 +16,7 @@
 
 #include <string>
 
+#include "adaptor.h"
 #include "async_call.h"
 #include "js_ability.h"
 #include "js_logger.h"
@@ -81,6 +82,7 @@ int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<Help
 
 napi_value GetPreferences(napi_env env, napi_callback_info info)
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     LOG_DEBUG("GetPreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
@@ -141,6 +143,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
