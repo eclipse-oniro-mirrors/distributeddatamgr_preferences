@@ -167,12 +167,12 @@ describe('preferencesTest', function () {
         const promise = mPreferences.clear();
         promise.then(async (ret) => {
             let per = await mPreferences.get(KEY_TEST_STRING_ELEMENT, "defaultvalue");
+            done();
             expect("defaultvalue").assertEqual(per);
         }).catch((err) => {
             expect(null).assertFail();
         });
         await promise;
-        done();
     })
 
     /**
@@ -362,12 +362,12 @@ describe('preferencesTest', function () {
             expect(true).assertEqual(per);
             await mPreferences.flush();
             let per2 = await mPreferences.get(KEY_TEST_BOOLEAN_ELEMENT, false);
+            done();
             expect(true).assertEqual(per2);
         }).catch((err) => {
             expect(null).assertFail();
         });
         await promise;
-        done();
     })
 
     /**
@@ -382,12 +382,12 @@ describe('preferencesTest', function () {
             expect(4.0).assertEqual(per);
             await mPreferences.flush();
             let per2 = await mPreferences.get(KEY_TEST_FLOAT_ELEMENT, 0.0);
+            done();
             expect(4.0).assertEqual(per2);
         }).catch((err) => {
             expect(null).assertFail();
         });
         await promise;
-        done();
     })
 
     /**
@@ -402,12 +402,12 @@ describe('preferencesTest', function () {
             expect(4).assertEqual(per);
             await mPreferences.flush();
             let per2 = await mPreferences.get(KEY_TEST_INT_ELEMENT, 0);
+            done();
             expect(4).assertEqual(per2);
         }).catch((err) => {
             expect(null).assertFail();
         });
         await promise;
-        done();
     })
 
     /**
@@ -422,12 +422,12 @@ describe('preferencesTest', function () {
             expect(4).assertEqual(per);
             await mPreferences.flush();
             let per2 = await mPreferences.get(KEY_TEST_LONG_ELEMENT, 0);
+            done();
             expect(4).assertEqual(per2);
         }).catch((err) => {
             expect(null).assertFail();
         });
         await promise;
-        done();
     })
 
     /**
@@ -442,11 +442,11 @@ describe('preferencesTest', function () {
             expect('').assertEqual(per);
             await mPreferences.flush();
             let per2 = await mPreferences.get(KEY_TEST_STRING_ELEMENT, "defaultvalue")
+            done();
             expect('').assertEqual(per2);
         }).catch((err) => {
             expect(null).assertFail();
         });
         await promise;
-        done();
     })
 })
