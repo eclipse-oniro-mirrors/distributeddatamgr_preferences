@@ -57,12 +57,12 @@ describe('preferencesTest', function () {
             await pref.put('test', 2);
             await pref.flush();
             var value = await mPreferences.get('test', 0);
+            done();
             expect(value).assertEqual(2);
         }).catch((err) => {
             expect(null).assertFail();
         });
         await promise;
-        done();
     })
 
     /**
