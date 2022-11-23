@@ -36,9 +36,10 @@ public:
         std::shared_ptr<Error> error;
         napi_env _env = nullptr;
         void *boundObj = nullptr;
+        int execStatus = ERR;
         using InputAction = std::function<int(napi_env, size_t, napi_value *, napi_value)>;
         using OutputAction = std::function<int(napi_env, napi_value &)>;
-        using ExecAction = std::function<void(Context *)>;
+        using ExecAction = std::function<int(Context *)>;
         Context(InputAction input, OutputAction output)
             : apiversion(0), input_(std::move(input)),
               output_(std::move(output)){};
@@ -79,10 +80,10 @@ public:
         }
 
         // execute function
-        virtual void Exec()
+        virtual int Exec()
         {
             if (exec_ == nullptr) {
-                return;
+                return ERR;
             }
             return exec_(this);
         };
