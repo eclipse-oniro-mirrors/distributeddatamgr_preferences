@@ -102,6 +102,7 @@ if (!is_mingw && !is_mac) {
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
       "hilog_native:libhilog",
+      "hitrace_native:hitrace_meter",
       "napi:ace_napi",
       "preferences:native_preferences",
     ]

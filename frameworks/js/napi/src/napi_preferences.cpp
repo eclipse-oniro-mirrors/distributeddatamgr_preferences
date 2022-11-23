@@ -20,6 +20,7 @@
 #include <limits>
 #include <list>
 
+#include "adaptor.h"
 #include "async_call.h"
 #include "js_logger.h"
 #include "js_utils.h"
@@ -432,6 +433,7 @@ int32_t GetArrayValue(std::shared_ptr<PreferencesAysncContext > context, napi_va
 
 napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
 {
+    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     LOG_DEBUG("GetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
