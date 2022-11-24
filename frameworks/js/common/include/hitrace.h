@@ -24,11 +24,15 @@ namespace OHOS {
 namespace PreferencesJsKit {
 class HiTrace final {
 public:
-  inline HiTrace(const std::string &value) {
-    StartTrace(HITRACE_TAG_DISTRIBUTEDDATA, "NAPI_" + value);
-  }
+    inline HiTrace(const std::string &value)
+    {
+        StartTrace(HITRACE_TAG_DISTRIBUTEDDATA, "NAPI_" + value);
+    }
 
-  inline ~HiTrace() { FinishTrace(HITRACE_TAG_DISTRIBUTEDDATA); }
+    inline ~HiTrace()
+    {
+        FinishTrace(HITRACE_TAG_DISTRIBUTEDDATA);
+    }
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS
