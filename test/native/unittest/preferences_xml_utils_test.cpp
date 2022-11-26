@@ -103,5 +103,5 @@ HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
     PreferencesXmlUtils::WriteSettingXml(file, settings);
 
     bool ret = PreferencesXmlUtils::ReadSettingXml(file, settings);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, true);
 }
