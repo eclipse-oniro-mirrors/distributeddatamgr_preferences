@@ -16,6 +16,7 @@
 #include "preferences_xml_utils.h"
 
 #include <gtest/gtest.h>
+
 #include <string>
 
 using namespace testing::ext;
@@ -83,3 +84,24 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_002, TestSize.Leve
     EXPECT_EQ(ret, false);
 }
 
+/**
+* @tc.name: StringNodeElementTest_001
+* @tc.desc: StringNodeElement testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
+{
+    std::string file = "/data/test/test";
+    std::remove(file.c_str());
+
+    std::vector<Element> settings;
+    Element elem;
+    elem.key_ = "stringKey";
+    elem.tag_ = std::string("string");
+    elem.value_ = "test";
+    settings.push_back(elem);
+    PreferencesXmlUtils::WriteSettingXml(file, settings);
+
+    bool ret = PreferencesXmlUtils::ReadSettingXml(file, settings);
+    EXPECT_EQ(ret, true);
+}
