@@ -19,6 +19,10 @@
 
 #include <string>
 
+#include "preferences.h"
+#include "preferences_errno.h"
+#include "preferences_helper.h"
+
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;
 
