@@ -106,7 +106,7 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
 {
     napi_create_object(env, businessError);
     // if error is not inner error, and api version greater 8
-    if (error != nullptr || apiversion > 8) {
+    if (error != nullptr && apiversion > 8) {
         napi_value code = nullptr;
         napi_value msg = nullptr;
         napi_create_int32(env, error->GetCode(), &code);
