@@ -104,11 +104,18 @@ void AsyncCall::OnExecute(napi_env env, void *data)
 
 void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<Error> error, int apiversion)
 {
+    LOG_DEBUG("SetBusinessError enter");
+    napi_value code = nullptr;
+    napi_value msg = nullptr;
     napi_create_object(env, businessError);
-    // if error is not inner error, and api version greater 8
-    if (error != nullptr || apiversion > 8) {
-        napi_value code = nullptr;
-        napi_value msg = nullptr;
+    if (apiversion <= 8) {
+        napi_create_string_utf8(env, "async error.", NAPI_AUTO_LENGTH, &msg);
+        napi_set_named_property(env, *businessError, "message", msg);
+        return;
+    }
+    // if error is not inner error
+    if (error != nullptr) {
+        LOG_DEBUG("SetBusinessError enter V9");
         napi_create_int32(env, error->GetCode(), &code);
         napi_create_string_utf8(env, error->GetMessage().c_str(), NAPI_AUTO_LENGTH, &msg);
         napi_set_named_property(env, *businessError, "code", code);

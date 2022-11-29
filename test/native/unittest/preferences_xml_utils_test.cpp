@@ -19,6 +19,10 @@
 
 #include <string>
 
+#include "preferences.h"
+#include "preferences_errno.h"
+#include "preferences_helper.h"
+
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;
 
@@ -102,6 +106,51 @@ HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
     settings.push_back(elem);
     PreferencesXmlUtils::WriteSettingXml(file, settings);
 
-    bool ret = PreferencesXmlUtils::ReadSettingXml(file, settings);
-    EXPECT_EQ(ret, true);
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    std::string retString = pref->GetString("stringKey", "");
+    EXPECT_EQ(retString, elem.value_);
+
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+* @tc.name: ArrayNodeElementTest_001
+* @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_001, TestSize.Level1)
+{
+    std::string file = "/data/test/test";
+    std::remove(file.c_str());
+    std::vector<Element> settings;
+
+    Element elem;
+    elem.key_ = "stringArrayKey";
+    elem.tag_ = std::string("stringArray");
+    elem.value_ = "testStringArray";
+
+    Element elemChild;
+    elemChild.key_ = "stringKey";
+    elemChild.tag_ = std::string("string");
+
+    elemChild.value_ = "test_child1";
+    elem.children_.push_back(elemChild);
+    elemChild.value_ = "test_child2";
+    elem.children_.push_back(elemChild);
+    settings.push_back(elem);
+    std::vector<std::string> inputStringArray = { "test_child1", "test_child2" };
+    PreferencesXmlUtils::WriteSettingXml(file, settings);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    auto retStringArray = pref->Get("stringArrayKey", "");
+    EXPECT_EQ(retStringArray.operator std::vector<std::string>(), inputStringArray);
+
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
 }

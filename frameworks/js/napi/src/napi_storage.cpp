@@ -202,7 +202,7 @@ void ParseKey(const napi_env &env, const napi_value &arg, StorageAysncContext *a
     char key[MAX_KEY_LENGTH] = { 0 };
     size_t keySize = 0;
     napi_get_value_string_utf8(env, arg, key, MAX_KEY_LENGTH, &keySize);
-    asyncContext->key = key;
+    asyncContext->key = std::string(key);
 }
 
 void ParseDefValue(const napi_env &env, const napi_value &jsVal, StorageAysncContext *asyncContext)
