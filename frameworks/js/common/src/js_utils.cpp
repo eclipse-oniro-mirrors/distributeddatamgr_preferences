@@ -249,5 +249,15 @@ int32_t JSUtils::Convert2JSStringArr(napi_env env, std::vector<std::string> valu
     }
     return OK;
 }
+
+napi_value JSUtils::Convert2JSValue(napi_env env, int32_t value)
+{
+    napi_value jsValue;
+    napi_status status = napi_create_int32(env, value, &jsValue);
+    if (status != napi_ok) {
+        return nullptr;
+    }
+    return jsValue;
+}
 } // namespace PreferencesJsKit
 } // namespace OHOS
