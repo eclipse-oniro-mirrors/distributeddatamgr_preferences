@@ -52,6 +52,8 @@ public:
     static int32_t Convert2JSBoolArr(napi_env env, std::vector<bool> value, napi_value &output);
     static int32_t Convert2JSDoubleArr(napi_env env, std::vector<double> value, napi_value &output);
 
+    static napi_value Convert2JSValue(napi_env env, int32_t value);
+
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
 };
 } // namespace PreferencesJsKit
