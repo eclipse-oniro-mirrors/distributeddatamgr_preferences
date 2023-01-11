@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@
 #include <string>
 
 #include "js_logger.h"
+#include "js_utils.h"
 #include "napi_async_proxy.h"
 #include "napi_storage.h"
+#include "preferences.h"
 #include "preferences_errno.h"
 #include "securec.h"
 
@@ -192,6 +194,8 @@ napi_value InitPreferenceHelper(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("deleteStorageSync", DeleteStorageSync),
         DECLARE_NAPI_FUNCTION("removeStorageFromCache", RemoveStorageFromCache),
         DECLARE_NAPI_FUNCTION("removeStorageFromCacheSync", RemoveStorageFromCacheSync),
+        DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_KEY_LENGTH)),
+        DECLARE_NAPI_PROPERTY("MAX_VALUE_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_VALUE_LENGTH)),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(properties) / sizeof(*properties), properties));
     return exports;
