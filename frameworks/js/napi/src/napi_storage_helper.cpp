@@ -18,12 +18,12 @@
 #include <string>
 
 #include "js_logger.h"
+#include "js_utils.h"
 #include "napi_async_proxy.h"
 #include "napi_storage.h"
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "securec.h"
-#include "js_utils.h"
 
 using namespace OHOS::NativePreferences;
 using namespace OHOS::PreferencesJsKit;
