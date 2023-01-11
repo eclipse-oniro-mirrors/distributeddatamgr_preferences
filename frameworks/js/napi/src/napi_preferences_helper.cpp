@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,8 +173,8 @@ napi_value InitPreferencesHelper(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getPreferences", GetPreferences),
         DECLARE_NAPI_FUNCTION("deletePreferences", DeletePreferences),
         DECLARE_NAPI_FUNCTION("removePreferencesFromCache", RemovePreferencesFromCache),
-        DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(Preferences::MAX_KEY_LENGTH)),
-        DECLARE_NAPI_PROPERTY("MAX_VALUE_LENGTH", JSUtils::Convert2JSValue(Preferences::MAX_VALUE_LENGTH)),
+        DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_KEY_LENGTH)),
+        DECLARE_NAPI_PROPERTY("MAX_VALUE_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_VALUE_LENGTH)),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(properties) / sizeof(*properties), properties));
     return exports;
