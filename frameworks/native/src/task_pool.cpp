@@ -231,7 +231,13 @@ int TaskPool::SpawnThreads(bool isStart)
     int limits = isStart ? minThreads_ : (curThreads_ + 1);
     while (curThreads_ < limits) {
         ++curThreads_;
-        std::thread thread([this]() { TaskWorker(); });
+
+        std::thread thread([this]() {
+            auto realName = std::string("Preferences_TaskWorker");
+            pthread_setname_np(pthread_self(), realName.c_str());
+            TaskWorker();
+        });
+
         LOG_INFO("Spawn task pool threads, min:%d cur:%d max:%d", minThreads_, curThreads_, maxThreads_);
         thread.detach();
     }

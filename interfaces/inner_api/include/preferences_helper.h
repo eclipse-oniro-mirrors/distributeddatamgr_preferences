@@ -27,8 +27,33 @@ namespace OHOS {
 namespace NativePreferences {
 class PreferencesHelper {
 public:
+
+    /**
+     * @brief Obtains a preferences instance matching a specified preferences file name.
+     *
+     * @param path Indicates the preferences file name
+     * @param errCode Indicates the error code. Returns 0 for success, others for failure.
+     *
+     * @return Returns a Preferences instance matching the specified preferences file name.
+     */
     static std::shared_ptr<Preferences> GetPreferences(const std::string &path, int &errCode);
+
+    /**
+     * @brief Deletes a preferences instance matching a specified preferences file name.
+     *
+     * @param path Indicates the preferences file name
+     *
+     * @return Returns 0 for success, others for failure.
+     */
     static int DeletePreferences(const std::string &path);
+
+    /**
+     * @brief Remove a preferences instance matching a specified preferences file name from cache.
+     *
+     * @param path Indicates the preferences file name
+     *
+     * @return Returns 0 for success, others for failure.
+     */
     static int RemovePreferencesFromCache(const std::string &path);
 
 private:
