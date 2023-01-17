@@ -32,15 +32,23 @@ public:
     {
     }
 
+    /**
+    * @brief The constant Indicates the maximum length of the key in the preferences.
+    */
     static const unsigned int MAX_KEY_LENGTH = 80;
 
+    /**
+     * @brief The constant Indicates the maximum length of the value in the preferences.
+     */
     static const unsigned int MAX_VALUE_LENGTH = 8 * 1024;
 
     /**
      * @brief Obtains the value of a preferences.
      *
+     * This function is used to get the value of the corresponding key in the preference.
+     *
      * @param key Indicates the key of the preferences. It cannot be empty.
-     * @param value Indicates the default value of the preferences.
+     * @param defValue Indicates the default value of the preferences.
      *
      * @return Returns the value matching the specified key if it is found; returns the default value otherwise.
      */
@@ -48,6 +56,8 @@ public:
 
     /**
      * @brief Sets a value for the key in the preferences.
+     *
+     *  This function is used to set or update the value of the corresponding key in the preferences.
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the default value of the preferences.
@@ -59,72 +69,88 @@ public:
     /**
      * @brief Obtains the int value of a preferences.
      *
-     * @param key Indicates the key of the preferences. It cannot be empty.
-     * @param value Indicates the default value of the preferences.
+     * This function is used to get an int value of the corresponding key in the preference.
      *
-     * @return Returns 0 for success, others for failure.
+     * @param key Indicates the key of the preferences. It cannot be empty.
+     * @param defValue Indicates the default value of the preferences.
+     *
+     * @return Returns a int value matching the specified key if it is found; returns the default value otherwise.
      */
     virtual int GetInt(const std::string &key, const int &defValue = {}) = 0;
 
     /**
      * @brief Obtains the string value of a preferences.
      *
-     * @param key Indicates the key of the preferences. It cannot be empty.
-     * @param value Indicates the default value of the preferences.
+     * This function is used to get a string value of the corresponding key in the preference.
      *
-     * @return Returns 0 for success, others for failure.
+     * @param key Indicates the key of the preferences. It cannot be empty.
+     * @param defValue Indicates the default value of the preferences.
+     *
+     * @return Returns a string value matching the specified key if it is found; returns the default value otherwise.
      */
     virtual std::string GetString(const std::string &key, const std::string &defValue = {}) = 0;
 
     /**
      * @brief Obtains the bool value of a preferences.
      *
-     * @param key Indicates the key of the preferences. It cannot be empty.
-     * @param value Indicates the default value of the preferences.
+     * This function is used to get a bool value of the corresponding key in the preference.
      *
-     * @return Returns 0 for success, others for failure.
+     * @param key Indicates the key of the preferences. It cannot be empty.
+     * @param defValue Indicates the default value of the preferences.
+     *
+     * @return Returns a bool value matching the specified key if it is found; returns the default value otherwise.
      */
     virtual bool GetBool(const std::string &key, const bool &defValue = {}) = 0;
 
     /**
      * @brief Obtains the float value of a preferences.
      *
-     * @param key Indicates the key of the preferences. It cannot be empty.
-     * @param value Indicates the default value of the preferences.
+     * This function is used to get a float value of the corresponding key in the preference.
      *
-     * @return Returns 0 for success, others for failure.
+     * @param key Indicates the key of the preferences. It cannot be empty.
+     * @param defValue Indicates the default value of the preferences.
+     *
+     * @return Returns a int float matching the specified key if it is found; returns the default value otherwise.
      */
     virtual float GetFloat(const std::string &key, const float &defValue = {}) = 0;
 
     /**
      * @brief Obtains the double value of a preferences.
      *
-     * @param key Indicates the key of the preferences. It cannot be empty.
-     * @param value Indicates the default value of the preferences.
+     * This function is used to get a double value of the corresponding key in the preference.
      *
-     * @return Returns 0 for success, others for failure.
+     * @param key Indicates the key of the preferences. It cannot be empty.
+     * @param defValue Indicates the default value of the preferences.
+     *
+     * @return Returns a double value matching the specified key if it is found; returns the default value otherwise.
      */
     virtual double GetDouble(const std::string &key, const double &defValue = {}) = 0;
 
     /**
      * @brief Obtains the long value of a preferences.
      *
-     * @param key Indicates the key of the preferences. It cannot be empty.
-     * @param value Indicates the default value of the preferences.
+     * This function is used to get a long value of the corresponding key in the preference.
      *
-     * @return Returns 0 for success, others for failure.
+     * @param key Indicates the key of the preferences. It cannot be empty.
+     * @param defValue Indicates the default value of the preferences.
+     *
+     * @return Returns a long value matching the specified key if it is found; returns the default value otherwise.
      */
     virtual int64_t GetLong(const std::string &key, const int64_t &defValue = {}) = 0;
 
     /**
      * @brief Obtains all the keys and values of a preferences.
      *
+     * This function is used to get all keys and values in an object.
+     *
      * @return Returns a map, the key is string type and the value is PreferencesValue type.
      */
     virtual std::map<std::string, PreferencesValue> GetAll() = 0;
 
     /**
-     * @brief Checks whether contains a preferences matching a specified key..
+     * @brief Checks whether contains a preferences matching a specified key.
+     *
+     * This function is used to Checks whether contains a preferences matching a specified key.
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      *
@@ -134,6 +160,8 @@ public:
 
     /**
      * @brief Put or update an int value of a preferences.
+     *
+     * This function is used to put or update an int value of the corresponding key in the preference.
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the value of preferences to put or update.
@@ -145,6 +173,8 @@ public:
     /**
      * @brief Put or update an string value for the key.
      *
+     * This function is used to put or update a string value of the corresponding key in the preference.
+     *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the value of preferences to put or update.
      *
@@ -154,6 +184,8 @@ public:
 
     /**
      * @brief Put or update bool string value for the key.
+     *
+     * This function is used to put or update a bool value of the corresponding key in the preference.
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the value of preferences to put or update.
@@ -165,6 +197,8 @@ public:
     /**
      * @brief Put or update an long value for the key.
      *
+     * This function is used to put or update a long value of the corresponding key in the preference.
+     *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the value of preferences to put or update.
      *
@@ -174,6 +208,8 @@ public:
 
     /**
      * @brief Put or update an float value for the key.
+     *
+     * This function is used to put or update a float value of the corresponding key in the preference.
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the value of preferences to put or update.
@@ -185,6 +221,8 @@ public:
     /**
      * @brief Put or update an double value for the key.
      *
+     * This function is used to put or update a double value of the corresponding key in the preference.
+     *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the value of preferences to put or update.
      *
@@ -195,14 +233,18 @@ public:
     /**
      * @brief Deletes the preferences with a specified key.
      *
-     * @param key Indicates the key of the preferences. It cannot be empty..
+     * This function is used to delete the preferences with a specified key in the preference.
+     *
+     * @param key Indicates the key of the preferences. It cannot be empty.
      *
      * @return Returns 0 for success, others for failure.
      */
     virtual int Delete(const std::string &key) = 0;
 
     /**
-     * @brief Clears all preferences.synchronously saves the {@link Preferences} object to the file.
+     * @brief Clears all preferences.
+     *
+     * This function is used to clear all preferences in an object.
      *
      * @return Returns 0 for success, others for failure.
      */
@@ -210,16 +252,23 @@ public:
 
     /**
      * @brief Asynchronously saves the preferences to the file.
+     *
+     * This function is used to saves the preferences to the file.
      */
     virtual void Flush() = 0;
 
     /**
      * @brief Synchronously saves the preferences to the file.
+     *
+     * This function is used to saves the preferences to the file synchronously.
+     * @return The result of write to disk. Returns 0 for success, others for failure.
      */
     virtual int FlushSync() = 0;
 
     /**
-     * @brief  Registers an observer to listen for the change of a preferences.
+     * @brief  Registers an observer.
+     *
+     * This function is used to registers an observer to listen for the change of a preferences.
      *
      * @param preferencesObserver Indicates callback function for data changes.
      */
@@ -227,6 +276,8 @@ public:
 
     /**
      * @brief  Unregister an existing observer.
+     *
+     * This function is used to unregister an existing observer.
      *
      * @param preferencesObserver Indicates callback function for data changes.
      */
