@@ -20,9 +20,12 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+// The observer class of preferences.
 class PreferencesObserver {
 public:
     virtual ~PreferencesObserver();
+
     /**
      * @brief  A callback function when the data changes.
      *

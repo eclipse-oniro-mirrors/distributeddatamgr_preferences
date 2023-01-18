@@ -30,6 +30,7 @@ constexpr int E_OK = 0;
 * @brief The base code of the exception error code.
 */
 constexpr int E_BASE = -1000; // different from the other errno.
+
 /**
 * @brief The error code for common exceptions.
 */

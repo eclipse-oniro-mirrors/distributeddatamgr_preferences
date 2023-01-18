@@ -26,6 +26,8 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+// The function class of the preference. Various operations on preference instances are provided in this class.
 class Preferences {
 public:
     virtual ~Preferences()
@@ -110,7 +112,7 @@ public:
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param defValue Indicates the default value of the preferences.
      *
-     * @return Returns a int float matching the specified key if it is found; returns the default value otherwise.
+     * @return Returns a float value matching the specified key if it is found; returns the default value otherwise.
      */
     virtual float GetFloat(const std::string &key, const float &defValue = {}) = 0;
 
@@ -253,14 +255,17 @@ public:
     /**
      * @brief Asynchronously saves the preferences to the file.
      *
-     * This function is used to saves the preferences to the file.
+     * This function is used to saves the preferences to the file. Files are written to disk only after
+     * this interface or {@link FlushSync}is called.
      */
     virtual void Flush() = 0;
 
     /**
      * @brief Synchronously saves the preferences to the file.
      *
-     * This function is used to saves the preferences to the file synchronously.
+     * This function is used to saves the preferences to the file synchronously. Files are written to disk only after
+     * this interface or {@link Flush} is called.
+     *
      * @return The result of write to disk. Returns 0 for success, others for failure.
      */
     virtual int FlushSync() = 0;

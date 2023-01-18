@@ -22,6 +22,8 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+// The PreferencesValue class of the preference. Various operations on PreferencesValue are provided in this class.
 class PreferencesValue {
 public:
     ~PreferencesValue()
@@ -30,13 +32,11 @@ public:
 
     /**
      * @brief Move constructor.
-     *
      */
     PreferencesValue(PreferencesValue &&preferencesValue) noexcept;
 
     /**
      * @brief Copy constructor.
-     *
      */
     PreferencesValue(const PreferencesValue &preferencesValue);
 
