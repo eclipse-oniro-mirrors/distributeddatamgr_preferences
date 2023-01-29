@@ -1,17 +1,17 @@
 /*
-* Copyright (c) 2021 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef PREFERENCES_ERRNO_H
 #define PREFERENCES_ERRNO_H
@@ -62,12 +62,13 @@ constexpr int E_NOT_PERMIT = (E_BASE - 5); // operation is not permitted
 constexpr int E_KEY_EMPTY = (E_BASE - 6);
 
 /**
-* @brief The error code for The key string length exceed the max length (80).
+* @brief The error code for the key string length exceed the max length (80).
 */
 constexpr int E_KEY_EXCEED_MAX_LENGTH = (E_BASE - 7);
 
 /**
-* @brief The error code for .
+* @brief The error code for the former Preferences object pointer is held by another thread and may
+* not be able to be deleted.
 */
 constexpr int E_PTR_EXIST_ANOTHER_HOLDER = (E_BASE - 8);
 

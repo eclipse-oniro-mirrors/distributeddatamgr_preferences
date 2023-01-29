@@ -21,7 +21,9 @@
 namespace OHOS {
 namespace NativePreferences {
 
-// The observer class of preferences.
+/**
+ * The observer class of preferences.
+ */
 class PreferencesObserver {
 public:
     virtual ~PreferencesObserver();

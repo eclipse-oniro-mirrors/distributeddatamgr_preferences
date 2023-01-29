@@ -26,9 +26,12 @@
 namespace OHOS {
 namespace NativePreferences {
 
-// The observer class of preferences. This class is used to obtain and delete preference instances.
+/**
+ * The observer class of preferences. This class is used to obtain and delete preference instances.
+ */
 class PreferencesHelper {
 public:
+
     /**
      * @brief Obtains a preferences instance matching a specified preferences file name.
      *

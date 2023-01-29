@@ -23,7 +23,9 @@
 namespace OHOS {
 namespace NativePreferences {
 
-// The PreferencesValue class of the preference. Various operations on PreferencesValue are provided in this class.
+/**
+ * The PreferencesValue class of the preference. Various operations on PreferencesValue are provided in this class.
+ */
 class PreferencesValue {
 public:
     ~PreferencesValue()
@@ -141,63 +143,63 @@ public:
     PreferencesValue &operator=(const PreferencesValue &preferencesValue);
 
     /**
-     * @brief Determines whether the int type in _value is currently used.
+     * @brief Determines whether the int type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsInt() const;
 
     /**
-     * @brief Determines whether the long type in _value is currently used.
+     * @brief Determines whether the long type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsLong() const;
 
     /**
-     * @brief Determines whether the float type in _value is currently used.
+     * @brief Determines whether the float type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsFloat() const;
 
     /**
-     * @brief Determines whether the double type in _value is currently used.
+     * @brief Determines whether the double type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsDouble() const;
 
     /**
-     * @brief Determines whether the bool type in _value is currently used.
+     * @brief Determines whether the bool type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsBool() const;
 
     /**
-     * @brief Determines whether the string type in _value is currently used.
+     * @brief Determines whether the string type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsString() const;
 
     /**
-     * @brief Determines whether the string array type in _value is currently used.
+     * @brief Determines whether the string array type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsStringArray() const;
 
     /**
-     * @brief Determines whether the bool array type in _value is currently used.
+     * @brief Determines whether the bool array type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
     bool IsBoolArray() const;
 
     /**
-     * @brief Determines whether the double array type in _value is currently used.
+     * @brief Determines whether the double array type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
@@ -206,74 +208,74 @@ public:
     /**
      * @brief Type conversion function.
      *
-     * @return The int type value in _value.
+     * @return The int type PreferencesValue.
      */
     operator int() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns float type value in _value.
+     * @return Returns float type PreferencesValue.
      */
     operator float() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns double type value in _value.
+     * @return Returns double type PreferencesValue.
      */
     operator double() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns bool type value in _value.
+     * @return Returns bool type PreferencesValue.
      */
     operator bool() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns int64_t type value in _value.
+     * @return Returns int64_t type PreferencesValue.
      */
     operator int64_t() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns string type value in _value.
+     * @return Returns string type PreferencesValue.
      */
     operator std::string() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns vector<double> type value in _value.
+     * @return Returns vector<double> type PreferencesValue.
      */
     operator std::vector<double>() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns vector<bool> type value in _value.
+     * @return Returns vector<bool> type PreferencesValue.
      */
     operator std::vector<bool>() const;
 
     /**
      * @brief Type conversion function.
      *
-     * @return Returns vector<string> type value in _value.
+     * @return Returns vector<string> type PreferencesValue.
      */
     operator std::vector<std::string>() const;
 
     /**
      * @brief Overloaded operator "==".
      *
-     * This function is used to determine whether the input value is the same as the current PreferencesValue.
+     * This function is used to determine whether the input value is equal to the current PreferencesValue.
      *
      * @param value Indicates a PreferencesValue.
      *
-     * @return Returning true means this._value is , false means it isn't.
+     * @return Returning true means the input value is equal to the current PreferencesValue, false means it isn't.
      */
     bool operator==(const PreferencesValue &value);
 

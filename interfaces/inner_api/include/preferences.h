@@ -27,7 +27,9 @@
 namespace OHOS {
 namespace NativePreferences {
 
-// The function class of the preference. Various operations on preference instances are provided in this class.
+/**
+ * The function class of the preference. Various operations on preference instances are provided in this class.
+ */
 class Preferences {
 public:
     virtual ~Preferences()
