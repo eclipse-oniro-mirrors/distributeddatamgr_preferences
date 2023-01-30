@@ -25,10 +25,48 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+/**
+ * The observer class of preferences. This class is used to obtain and delete preference instances.
+ */
 class PreferencesHelper {
 public:
+
+    /**
+     * @brief Obtains a preferences instance matching a specified preferences file name.
+     *
+     * The preferences instance does not load data from the specified file every time. This is because if The
+     * preferences instance is being used in another thread, it will be cached until it will no longer be used to and
+     * performed {@link RemovePreferencesFromCache}.
+     *
+     * @param path Indicates the preferences file name
+     * @param errCode Indicates the error code. Returns 0 for success, others for failure.
+     *
+     * @return Returns a Preferences instance matching the specified preferences file name.
+     */
     static std::shared_ptr<Preferences> GetPreferences(const std::string &path, int &errCode);
+
+    /**
+     * @brief Deletes a preferences instance matching a specified preferences file name.
+     *
+     * Calling this interface will delete both the preference instance in the cache and the corresponding file on disk.
+     * If you only want to remove preference instances from cache, call interface {@link RemovePreferencesFromCache}.
+     *
+     * @param path Indicates the preferences file name.
+     *
+     * @return Returns 0 for success, others for failure.
+     */
     static int DeletePreferences(const std::string &path);
+
+    /**
+     * @brief Remove a preferences instance matching a specified preferences file name from cache.
+     *
+     * This function is used to remove a preferences instance matching a specified preferences file name from cache.
+     *
+     * @param path Indicates the preferences file name
+     *
+     * @return Returns 0 for success, others for failure.
+     */
     static int RemovePreferencesFromCache(const std::string &path);
 
 private:
