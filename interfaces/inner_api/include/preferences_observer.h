@@ -20,21 +20,9 @@
 
 namespace OHOS {
 namespace NativePreferences {
-
-/**
- * The observer class of preferences.
- */
 class PreferencesObserver {
 public:
     virtual ~PreferencesObserver();
-
-    /**
-     * @brief  A callback function when the data changes.
-     *
-     * This function is the callback when the value corresponding to key in the preferences changes.
-     *
-     * @param key Indicates the key of the preferences. It cannot be empty.
-     */
     virtual void OnChange(const std::string &key) = 0;
 };
 } // End of namespace NativePreferences
