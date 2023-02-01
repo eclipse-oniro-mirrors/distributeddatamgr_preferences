@@ -41,6 +41,8 @@ ohos_shared_library("native_preferences") {
     "${preferences_native_path}/src/task_queue.cpp",
   ]
 
+  innerapi_tags = [ "platformsdk" ]
+
   configs = [ ":native_preferences_config" ]
 
   if (is_mingw || is_mac) {
