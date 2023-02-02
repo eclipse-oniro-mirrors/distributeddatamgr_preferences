@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "../include/napi_storage.h"
+#include "napi_storage.h"
 
 #include <cerrno>
 #include <cmath>

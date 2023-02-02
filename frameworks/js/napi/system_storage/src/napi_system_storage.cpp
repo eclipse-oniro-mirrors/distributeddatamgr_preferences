@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "../include/napi_system_storage.h"
+#include "napi_system_storage.h"
 
 #include <string>
 
