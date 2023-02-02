@@ -80,10 +80,10 @@ if (!is_mingw && !is_mac) {
       "../common/src/js_observer.cpp",
       "../common/src/js_utils.cpp",
       "../common/src/uv_queue.cpp",
+      "../common/src/napi_preferences_observer.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
-      "src/napi_preferences_observer.cpp",
     ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
