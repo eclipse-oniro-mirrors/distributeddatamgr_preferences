@@ -63,9 +63,9 @@
         "build": {
             "sub_component": [
                 "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
-                "//foundation/distributeddatamgr/preferences/frameworks/js/napi:preferences",
-                "//foundation/distributeddatamgr/preferences/frameworks/js/napi:storage",
-                "//foundation/distributeddatamgr/preferences/frameworks/js/napi:storage_napi"
+                "//foundation/distributeddatamgr/preferences/frameworks/js/napi/preferences:preferences",
+                "//foundation/distributeddatamgr/preferences/frameworks/js/napi/storage:storage",
+                "//foundation/distributeddatamgr/preferences/frameworks/js/napi/system_storage:storage_napi"
             ],
             "inner_kits": [
                 {

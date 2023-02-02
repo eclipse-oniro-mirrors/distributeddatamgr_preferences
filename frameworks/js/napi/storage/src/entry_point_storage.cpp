@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "../include/napi_storage.h"
+#include "../include/napi_storage_helper.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "napi_storage.h"
-#include "napi_storage_helper.h"
 
 using namespace OHOS::StorageJsKit;
 

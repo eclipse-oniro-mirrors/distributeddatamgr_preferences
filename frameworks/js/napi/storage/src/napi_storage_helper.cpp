@@ -12,15 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "napi_storage_helper.h"
+#include "../include/napi_storage_helper.h"
 
 #include <linux/limits.h>
+
 #include <string>
 
+#include "../include/napi_storage.h"
 #include "js_logger.h"
 #include "js_utils.h"
 #include "napi_async_proxy.h"
-#include "napi_storage.h"
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "securec.h"
