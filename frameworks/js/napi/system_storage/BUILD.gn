@@ -21,8 +21,6 @@ if (!is_mingw && !is_mac) {
     outputs = [ target_out_dir + "/$target_name/" ]
     module_source_dir = target_out_dir + "/$target_name"
     module_install_name = ""
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
   }
 
   ohos_shared_library("storage_napi") {
