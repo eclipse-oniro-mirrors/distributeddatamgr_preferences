@@ -51,7 +51,7 @@ StorageProxy::StorageProxy(std::shared_ptr<OHOS::NativePreferences::Preferences>
 StorageProxy::~StorageProxy()
 {
     napi_delete_reference(env_, wrapper_);
-    for (auto& observer : dataObserver_) {
+    for (auto &observer : dataObserver_) {
         value_->UnRegisterObserver(observer);
     }
     dataObserver_.clear();
@@ -66,13 +66,20 @@ void StorageProxy::Destructor(napi_env env, void *nativeObject, void *finalize_h
 void StorageProxy::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptors[] = {
-        DECLARE_NAPI_FUNCTION("putSync", SetValueSync),        DECLARE_NAPI_FUNCTION("put", SetValue),
-        DECLARE_NAPI_FUNCTION("getSync", GetValueSync),        DECLARE_NAPI_FUNCTION("get", GetValue),
-        DECLARE_NAPI_FUNCTION("deleteSync", DeleteSync),       DECLARE_NAPI_FUNCTION("delete", Delete),
-        DECLARE_NAPI_FUNCTION("clearSync", ClearSync),         DECLARE_NAPI_FUNCTION("clear", Clear),
-        DECLARE_NAPI_FUNCTION("hasSync", HasKeySync),          DECLARE_NAPI_FUNCTION("has", HasKey),
-        DECLARE_NAPI_FUNCTION("flushSync", FlushSync),         DECLARE_NAPI_FUNCTION("flush", Flush),
-        DECLARE_NAPI_FUNCTION("on", RegisterObserver),         DECLARE_NAPI_FUNCTION("off", UnRegisterObserver),
+        DECLARE_NAPI_FUNCTION("putSync", SetValueSync),
+        DECLARE_NAPI_FUNCTION("put", SetValue),
+        DECLARE_NAPI_FUNCTION("getSync", GetValueSync),
+        DECLARE_NAPI_FUNCTION("get", GetValue),
+        DECLARE_NAPI_FUNCTION("deleteSync", DeleteSync),
+        DECLARE_NAPI_FUNCTION("delete", Delete),
+        DECLARE_NAPI_FUNCTION("clearSync", ClearSync),
+        DECLARE_NAPI_FUNCTION("clear", Clear),
+        DECLARE_NAPI_FUNCTION("hasSync", HasKeySync),
+        DECLARE_NAPI_FUNCTION("has", HasKey),
+        DECLARE_NAPI_FUNCTION("flushSync", FlushSync),
+        DECLARE_NAPI_FUNCTION("flush", Flush),
+        DECLARE_NAPI_FUNCTION("on", RegisterObserver),
+        DECLARE_NAPI_FUNCTION("off", UnRegisterObserver),
     };
     napi_value cons = nullptr;
     napi_define_class(env, "Storage", NAPI_AUTO_LENGTH, New, nullptr,
@@ -601,5 +608,5 @@ void StorageProxy::UnRegisterObserver(napi_value callback)
         LOG_INFO("The observer unsubscribed success.");
     }
 }
-} // namespace PreferencesJsKit
+} // namespace StorageJsKit
 } // namespace OHOS
