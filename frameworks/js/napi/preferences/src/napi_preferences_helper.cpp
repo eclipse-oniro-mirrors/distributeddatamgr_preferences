@@ -70,7 +70,7 @@ int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<Help
     std::string name;
     int status = JSUtils::Convert2String(env, value, name);
     std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("name", "a without path non empty string.");
-    PRE_CHECK_RETURN_CALL_RESULT(status ==OK || !name.empty(), context->SetError(paramError));
+    PRE_CHECK_RETURN_CALL_RESULT(status == OK || !name.empty(), context->SetError(paramError));
 
     size_t pos = name.find_first_of('/');
     PRE_CHECK_RETURN_CALL_RESULT(pos == std::string::npos, context->SetError(paramError));

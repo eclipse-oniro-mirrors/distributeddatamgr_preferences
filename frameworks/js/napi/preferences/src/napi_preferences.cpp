@@ -47,8 +47,7 @@ struct PreferencesAysncContext : public AsyncCall::Context {
     PreferencesAysncContext() : Context(nullptr, nullptr)
     {
     }
-    PreferencesAysncContext(InputAction input, OutputAction output)
-        : Context(std::move(input), std::move(output))
+    PreferencesAysncContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output))
     {
     }
     virtual ~PreferencesAysncContext(){};
@@ -74,7 +73,7 @@ PreferencesProxy::PreferencesProxy(std::shared_ptr<OHOS::NativePreferences::Pref
 PreferencesProxy::~PreferencesProxy()
 {
     napi_delete_reference(env_, wrapper_);
-    for (auto& observer : dataObserver_) {
+    for (auto &observer : dataObserver_) {
         value_->UnRegisterObserver(observer);
     }
     dataObserver_.clear();
@@ -166,7 +165,7 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
     return thiz;
 }
 
-int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<PreferencesAysncContext > context)
+int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<PreferencesAysncContext> context)
 {
     // get input key
     char key[MAX_KEY_LENGTH] = { 0 };
@@ -191,8 +190,7 @@ int32_t ParseDoubleElement(
     return E_OK;
 }
 
-int32_t ParseBoolElement(
-    const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
+int32_t ParseBoolElement(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     std::vector<bool> array;
     if (JSUtils::Convert2BoolVector(env, jsVal, array) != E_OK) {
@@ -230,7 +228,7 @@ int32_t ParseObjectElement(napi_valuetype valueType, const napi_env &env, const 
     }
 }
 
-int32_t ParseDefObject(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext > context)
+int32_t ParseDefObject(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     napi_valuetype valueType = napi_undefined;
     uint32_t arrLen = 0;
@@ -331,7 +329,7 @@ int32_t GetAllArr(const std::string &key, const PreferencesValue &value,
     return OK;
 }
 
-int32_t GetAllExecute(std::shared_ptr<PreferencesAysncContext > context, napi_value &output)
+int32_t GetAllExecute(std::shared_ptr<PreferencesAysncContext> context, napi_value &output)
 {
     if (napi_create_object(context->_env, &output) != napi_ok) {
         LOG_ERROR("PreferencesProxy::GetAll creat object failed");
@@ -401,17 +399,15 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     return asyncCall.Call(env, exec);
 }
 
-int32_t GetArrayValue(std::shared_ptr<PreferencesAysncContext > context, napi_value &output)
+int32_t GetArrayValue(std::shared_ptr<PreferencesAysncContext> context, napi_value &output)
 {
     if (context->defValue.IsDoubleArray()) {
-        if (JSUtils::Convert2JSDoubleArr(context->_env, (std::vector<double>)context->defValue, output)
-            != E_OK) {
+        if (JSUtils::Convert2JSDoubleArr(context->_env, (std::vector<double>)context->defValue, output) != E_OK) {
             LOG_ERROR("GetArrayValue Convert2JSValue get doubleArray failed");
             return E_NAPI_GET_ERROR;
         }
     } else if (context->defValue.IsStringArray()) {
-        if (JSUtils::Convert2JSStringArr(context->_env, (std::vector<std::string>)context->defValue, output)
-            != E_OK) {
+        if (JSUtils::Convert2JSStringArr(context->_env, (std::vector<std::string>)context->defValue, output) != E_OK) {
             LOG_ERROR("GetArrayValue Convert2JSValue get stringArray failed");
             return E_NAPI_GET_ERROR;
         }
@@ -459,7 +455,7 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
                 errCode = ERR;
             }
         } else if (context->defValue.IsDoubleArray() || context->defValue.IsStringArray()
-                    || context->defValue.IsBoolArray()) {
+                   || context->defValue.IsBoolArray()) {
             if (GetArrayValue(context, result) != E_OK) {
                 LOG_ERROR("PreferencesProxy::GetValue GetArrayValue failed");
                 errCode = ERR;

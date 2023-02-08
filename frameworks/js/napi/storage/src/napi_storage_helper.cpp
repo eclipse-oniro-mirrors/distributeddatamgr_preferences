@@ -15,6 +15,7 @@
 #include "napi_storage_helper.h"
 
 #include <linux/limits.h>
+
 #include <string>
 
 #include "js_logger.h"
@@ -200,5 +201,5 @@ napi_value InitPreferenceHelper(napi_env env, napi_value exports)
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(properties) / sizeof(*properties), properties));
     return exports;
 }
-} // namespace PreferencesJsKit
+} // namespace StorageJsKit
 } // namespace OHOS
