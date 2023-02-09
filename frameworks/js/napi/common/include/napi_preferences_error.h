@@ -50,11 +50,14 @@ constexpr int E_PREFERENCES_ERROR = 15500010;
         }                                       \
     } while (0)
 
-#define PRE_CHECK_RETURN_NULLPTR(assertion) \
-    do {                                    \
-        if (!(assertion)) {                 \
-            return nullptr;                 \
-        }                                   \
+#define PRE_CHECK_RETURN_NULLPTR(context, assertion) \
+    do {                                             \
+        if (!(assertion)) {                          \
+            /* avoid cyclic dependence */            \
+            (context)->exec_ = nullptr;              \
+            (context)->output_ = nullptr;            \
+            return nullptr;                          \
+        }                                            \
     } while (0)
 
 #define PRE_CHECK_RETURN_CALL_RESULT(assertion, theCall) \
@@ -64,6 +67,9 @@ constexpr int E_PREFERENCES_ERROR = 15500010;
             return ERR;                                  \
         }                                                \
     } while (0)
+
+#define PRE_NAPI_ASSERT_RETURN_VOID(env, assertion, error) \
+    PRE_NAPI_ASSERT_BASE(env, assertion, error, NAPI_RETVAL_NOTHING)
 
 class Error {
 public:

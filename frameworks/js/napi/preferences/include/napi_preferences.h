@@ -34,11 +34,12 @@ class PreferencesProxy {
 public:
     static void Init(napi_env env, napi_value exports);
     static napi_value New(napi_env env, napi_callback_info info);
-    static napi_status NewInstance(napi_env env, napi_value arg, napi_value *instance);
+    static napi_status NewInstance(
+        napi_env env, std::shared_ptr<OHOS::NativePreferences::Preferences> value, napi_value *instance);
     static void Destructor(napi_env env, void *nativeObject, void *finalize_hint);
 
 private:
-    explicit PreferencesProxy(std::shared_ptr<OHOS::NativePreferences::Preferences> &value);
+    explicit PreferencesProxy();
     ~PreferencesProxy();
 
     static napi_value GetValue(napi_env env, napi_callback_info info);
@@ -57,7 +58,6 @@ private:
 
     std::shared_ptr<OHOS::NativePreferences::Preferences> value_;
     napi_env env_;
-    napi_ref wrapper_;
 
     std::mutex listMutex_ {};
     std::list<std::shared_ptr<JSPreferencesObserver>> dataObserver_;
