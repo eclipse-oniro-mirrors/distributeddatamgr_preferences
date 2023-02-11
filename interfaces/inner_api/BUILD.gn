@@ -59,7 +59,7 @@ ohos_shared_library("native_preferences") {
     }
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
-      "//developtools/global_resource_tool/build/libxml2:restool_libxml2",
+      "//third_party/libxml2:static_libxml2",
     ]
   } else {
     deps = [ "//third_party/libxml2:libxml2" ]
