@@ -274,7 +274,6 @@ void TaskPool::ExitGenericWorker()
 void TaskPool::TaskWorker()
 {
     BecomeGenericWorker();
-
     while (true) {
         TaskQueue *taskQueue = nullptr;
         Task task = nullptr;

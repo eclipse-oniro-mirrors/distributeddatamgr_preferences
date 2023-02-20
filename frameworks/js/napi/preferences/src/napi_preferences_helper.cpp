@@ -16,7 +16,7 @@
 
 #include <string>
 
-#include "async_call.h"
+#include "napi_async_call.h"
 #include "js_ability.h"
 #include "js_logger.h"
 #include "js_utils.h"
@@ -30,27 +30,15 @@ using namespace OHOS::NativePreferences;
 
 namespace OHOS {
 namespace PreferencesJsKit {
-struct HelperAysncContext : public AsyncCall::Context {
+struct HelperAysncContext : public BaseContext {
     std::string path;
     std::shared_ptr<OHOS::PreferencesJsKit::Context> abilitycontext;
-
-    HelperAysncContext() : Context(nullptr, nullptr)
-    {
-    }
-    HelperAysncContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output))
+    std::shared_ptr<Preferences> proxy;
+    
+    HelperAysncContext()
     {
     }
     virtual ~HelperAysncContext(){};
-
-    int operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
-    {
-        napi_unwrap(env, self, &boundObj);
-        return Context::operator()(env, argc, argv, self);
-    }
-    int operator()(napi_env env, napi_value &result) override
-    {
-        return Context::operator()(env, result);
-    }
 };
 
 int ParseContext(const napi_env &env, const napi_value &object, std::shared_ptr<HelperAysncContext> context)
@@ -91,23 +79,23 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
         return OK;
     };
-    auto exec = [context](AsyncCall::Context *ctx) -> int {
+    auto exec = [context]() -> int {
         int errCode = E_OK;
-        OHOS::NativePreferences::PreferencesHelper::GetPreferences(context->path, errCode);
+        context->proxy = OHOS::NativePreferences::PreferencesHelper::GetPreferences(context->path, errCode);
         LOG_DEBUG("GetPreferences return %{public}d", errCode);
         return errCode;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
         napi_value path = nullptr;
         napi_create_string_utf8(env, context->path.c_str(), NAPI_AUTO_LENGTH, &path);
-        auto ret = PreferencesProxy::NewInstance(env, path, &result);
+        auto ret = PreferencesProxy::NewInstance(env, context->proxy, &result);
         LOG_DEBUG("GetPreferences end.");
         return (ret == napi_ok) ? OK : ERR;
     };
-    context->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
-    return asyncCall.Call(env, exec);
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
@@ -121,7 +109,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
         return OK;
     };
-    auto exec = [context](AsyncCall::Context *ctx) -> int {
+    auto exec = [context]() -> int {
         int errCode = PreferencesHelper::DeletePreferences(context->path);
         LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
         std::shared_ptr<Error> deleteError = std::make_shared<DeleteError>();
@@ -134,10 +122,10 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
         LOG_DEBUG("DeletePreferences end.");
         return (status == napi_ok) ? OK : ERR;
     };
-    context->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
-    return asyncCall.Call(env, exec);
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
@@ -151,7 +139,7 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
         return OK;
     };
-    auto exec = [context](AsyncCall::Context *ctx) -> int {
+    auto exec = [context]() -> int {
         int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
         LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
         return (errCode == E_OK) ? OK : ERR;
@@ -161,10 +149,10 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
         LOG_DEBUG("RemovePreferencesFromCache end.");
         return (status == napi_ok) ? OK : ERR;
     };
-    context->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(context));
-    PRE_CHECK_RETURN_NULLPTR(context->error == nullptr || context->error->GetCode() == OK);
-    return asyncCall.Call(env, exec);
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value InitPreferencesHelper(napi_env env, napi_value exports)

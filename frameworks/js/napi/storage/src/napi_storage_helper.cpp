@@ -20,7 +20,7 @@
 
 #include "js_logger.h"
 #include "js_utils.h"
-#include "napi_async_proxy.h"
+#include "napi_async_call.h"
 #include "napi_storage.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -31,8 +31,12 @@ using namespace OHOS::PreferencesJsKit;
 
 namespace OHOS {
 namespace StorageJsKit {
-struct HelperAysncContext : NapiAsyncProxy<HelperAysncContext>::AysncContext {
+struct HelperAysncContext : public BaseContext {
     std::string path;
+    HelperAysncContext()
+    {
+    }
+    virtual ~HelperAysncContext(){};
 };
 
 napi_value GetStorageSync(napi_env env, napi_callback_info info)
@@ -47,41 +51,47 @@ napi_value GetStorageSync(napi_env env, napi_callback_info info)
     return instance;
 }
 
-void ParseString(const napi_env &env, const napi_value &value, HelperAysncContext *asyncContext)
+int ParseString(const napi_env &env, const napi_value &value, std::shared_ptr<HelperAysncContext> asyncContext)
 {
     if (asyncContext == nullptr) {
         LOG_WARN("error input");
-        return;
+        return ERR;
     }
     char *path = new char[PATH_MAX];
     size_t pathLen = 0;
     napi_get_value_string_utf8(env, value, path, PATH_MAX, &pathLen);
     asyncContext->path = path;
     delete[] path;
+    return OK;
 }
 
 napi_value GetStorage(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<HelperAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseString);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "GetStorage",
-        [](HelperAysncContext *asyncContext) {
-            int errCode = OK;
-            OHOS::NativePreferences::PreferencesHelper::GetPreferences(asyncContext->path, errCode);
-            LOG_DEBUG("GetPreferences return %{public}d", errCode);
-            return errCode;
-        },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
-            napi_value path = nullptr;
-            napi_create_string_utf8(asyncContext->env, asyncContext->path.c_str(), NAPI_AUTO_LENGTH, &path);
-            auto ret = StorageProxy::NewInstance(asyncContext->env, path, &output);
-            return (ret == napi_ok) ? OK : ERR;
-        });
+    LOG_DEBUG("GetStorage start");
+    auto context = std::make_shared<HelperAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseString(env, argv[0], context));
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        int errCode = E_OK;
+        OHOS::NativePreferences::PreferencesHelper::GetPreferences(context->path, errCode);
+        LOG_DEBUG("GetPreferences return %{public}d", errCode);
+        return errCode;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_value path = nullptr;
+        napi_create_string_utf8(env, context->path.c_str(), NAPI_AUTO_LENGTH, &path);
+        auto ret = StorageProxy::NewInstance(env, path, &result);
+        LOG_DEBUG("GetPreferences end.");
+        return (ret == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_status GetInputPath(napi_env env, napi_callback_info info, std::string &pathString)
@@ -127,23 +137,31 @@ napi_value DeleteStorageSync(napi_env env, napi_callback_info info)
 
 napi_value DeleteStorage(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<HelperAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseString);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "DeleteStorage",
-        [](HelperAysncContext *asyncContext) {
-            int errCode = PreferencesHelper::DeletePreferences(asyncContext->path);
-            LOG_DEBUG("DeletePreferences return %{public}d", errCode);
-            return errCode;
-        },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
-            napi_get_undefined(asyncContext->env, &output);
-            return OK;
-        });
+    LOG_DEBUG("DeletePreferences start");
+    auto context = std::make_shared<HelperAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseString(env, argv[0], context));
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        int errCode = PreferencesHelper::DeletePreferences(context->path);
+        LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
+        std::shared_ptr<Error> deleteError = std::make_shared<DeleteError>();
+        PRE_CHECK_RETURN_CALL_RESULT(errCode == E_OK, context->SetError(deleteError));
+        
+        return (errCode == E_OK) ? OK : ERR;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(env, &result);
+        LOG_DEBUG("DeletePreferences end.");
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value RemoveStorageFromCacheSync(napi_env env, napi_callback_info info)
@@ -167,23 +185,28 @@ napi_value RemoveStorageFromCacheSync(napi_env env, napi_callback_info info)
 
 napi_value RemoveStorageFromCache(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<HelperAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<HelperAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseString);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "RemoveStorageFromCache",
-        [](HelperAysncContext *asyncContext) {
-            int errCode = PreferencesHelper::RemovePreferencesFromCache(asyncContext->path);
-            LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
-            return errCode;
-        },
-        [](HelperAysncContext *asyncContext, napi_value &output) {
-            napi_get_undefined(asyncContext->env, &output);
-            return OK;
-        });
+    LOG_DEBUG("RemovePreferencesFromCache start");
+    auto context = std::make_shared<HelperAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseString(env, argv[0], context));
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
+        LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
+        return (errCode == E_OK) ? OK : ERR;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(env, &result);
+        LOG_DEBUG("RemovePreferencesFromCache end.");
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value InitPreferenceHelper(napi_env env, napi_value exports)
