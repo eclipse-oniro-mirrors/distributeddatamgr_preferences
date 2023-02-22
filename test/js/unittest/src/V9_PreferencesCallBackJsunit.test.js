@@ -291,4 +291,322 @@ describe('preferencesTest', async function () {
             expect(false).assertTrue()
         }
     })
+
+    /**
+     * @tc.name test put interface
+     * @tc.desc test put interface input parameter is illegal.
+     */
+    it('testPreferencesPutIllegal0001', 0, async function (done) {
+        let illegalKey = 123;
+        let legalValue = "test";
+        try {
+            mPreference.put(illegalKey, legalValue, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.desc test put interface input parameter is illegal.
+     */
+    it('testPreferencesPutIllegal0002', 0, async function (done) {
+        let illegalKey = true;
+        let legalValue = "test";
+        try {
+            mPreference.put(illegalKey, legalValue, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.desc test put interface input parameter key exceed 80bytes.
+     */
+    it('testPreferencesPutIllegal0003', 0, async function (done) {
+        let illegalKey = '1';
+        illegalKey = illegalKey.repeat(81);
+        try {
+            mPreference.put(illegalKey, "123456", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.desc test put interface input parameter key is legal.
+     */
+    it('testPreferencesPutIllegal0004', 0, async function (done) {
+        let legalKey = '1';
+        legalKey = legalKey.repeat(80);
+        try {
+            mPreference.put(legalKey, "123456", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect(false).assertEqual(true);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.desc test put interface input parameter value exceed 8192bytes.
+     */
+    it('testPreferencesPutIllegal0005', 0, async function (done) {
+        let illegalValue = '1';
+        illegalValue = illegalValue.repeat(8193);
+        try {
+            mPreference.put("test", illegalValue, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.desc test put interface input parameter value is legal.
+     */
+    it('testPreferencesPutIllegal0006', 0, async function (done) {
+        let legalValue = '1';
+        legalValue = legalValue.repeat(8192);
+        try {
+            mPreference.put("test", legalValue, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect(false).assertEqual(true);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.desc test get interface input parameter is illegal.
+     */
+    it('testPreferencesGetIllegal0001', 0, async function (done) {
+        let illegalKey = true;
+        try {
+            mPreference.get(illegalKey, "defaultValue", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.desc test get interface input parameter is illegal.
+     */
+    it('testPreferencesGetIllegal0002', 0, async function (done) {
+        let illegalKey = 123;
+        try {
+            mPreference.get(illegalKey, "defaultValue", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.desc test get interface input parameter key exceed 80bytes.
+     */
+    it('testPreferencesGetIllegal0003', 0, async function (done) {
+        let illegalKey = "1";
+        illegalKey = illegalKey.repeat(81);
+        try {
+            mPreference.get(illegalKey, "defaultValue", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.desc test get interface input parameter key is legal.
+     */
+    it('testPreferencesGetIllegal0004', 0, async function (done) {
+        let legalKey = "1";
+        legalKey = legalKey.repeat(80);
+        try {
+            mPreference.get(legalKey, "defaultValue", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect(false).assertEqual(true);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test delete interface
+     * @tc.desc test delete interface input parameter is illegal.
+     */
+    it('testPreferencesDeleteIllegal0001', 0, async function (done) {
+        let illegalKey = 123;
+        try {
+            mPreference.delete(illegalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test delete interface
+     * @tc.desc test delete interface input parameter is illegal.
+     */
+    it('testPreferencesDeleteIllegal0002', 0, async function (done) {
+        let illegalKey = false;
+        try {
+            mPreference.delete(illegalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test delete interface
+     * @tc.desc test delete interface input parameter key exceed 80bytes.
+     */
+    it('testPreferencesDeleteIllegal0003', 0, async function (done) {
+        let illegalKey = '1';
+        illegalKey = illegalKey.repeat(81);
+        try {
+            mPreference.delete(illegalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test delete interface
+     * @tc.desc test delete interface input parameter key is legal.
+     */
+    it('testPreferencesDeleteIllegal0004', 0, async function (done) {
+        let legalKey = '1';
+        legalKey = legalKey.repeat(80);
+        try {
+            mPreference.delete(legalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect(false).assertEqual(true);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test has interface
+     * @tc.desc test has interface input parameter is illegal.
+     */
+    it('testPreferencesHasIllegal0001', 0, async function (done) {
+        let illegalKey = false;
+        try {
+            mPreference.has(illegalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test has interface
+     * @tc.desc test has interface input parameter is illegal.
+     */
+    it('testPreferencesHasIllegal0002', 0, async function (done) {
+        let illegalKey = 123;
+        try {
+            mPreference.has(illegalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test has interface
+     * @tc.desc test has interface input parameter key exceed 80bytes.
+     */
+    it('testPreferencesHasIllegal0003', 0, async function (done) {
+        let illegalKey = '1';
+        illegalKey = illegalKey.repeat(81);
+        try {
+            mPreference.has(illegalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test has interface
+     * @tc.desc test has interface input parameter key is legal.
+     */
+    it('testPreferencesHasIllegal0004', 0, async function (done) {
+        let legalKey = '1';
+        legalKey = legalKey.repeat(80);
+        try {
+            mPreference.has(legalKey, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect(false).assertEqual(true);
+            done();
+        }
+    })
 })

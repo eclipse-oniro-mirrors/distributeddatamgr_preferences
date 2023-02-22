@@ -163,6 +163,36 @@ template<typename T> bool CheckNumberType(double input)
     return true;
 }
 
+int ParseString(napi_env env, napi_value jsStr, std::string &output, const unsigned int maxLength)
+{
+    size_t strBufferSize = 0;
+    napi_status status = napi_get_value_string_utf8(env, jsStr, nullptr, 0, &strBufferSize);
+    if (status != napi_ok) {
+        LOG_ERROR("GetString: get strBufferSize failed, status = %{public}d", status);
+        return ERR;
+    }
+    if (strBufferSize > maxLength) {
+        LOG_ERROR("GetString: string over maximum length.");
+        return ERR;
+    }
+    char *str = new (std::nothrow) char[strBufferSize + 1];
+    if (str == nullptr) {
+        LOG_ERROR("GetString: new failed");
+        return ERR;
+    }
+    size_t valueSize = 0;
+    status = napi_get_value_string_utf8(env, jsStr, str, strBufferSize + 1, &valueSize);
+    if (status != napi_ok) {
+        LOG_ERROR("GetString: get jsVal failed, status = %{public}d", status);
+        delete[] str;
+        return ERR;
+    }
+    str[valueSize] = 0;
+    output = std::string(str);
+    delete[] str;
+    return OK;
+}
+
 napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
 {
     napi_value thiz = nullptr;
@@ -177,9 +207,8 @@ napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for key");
 
     // get input key
-    char key[MAX_KEY_LENGTH] = { 0 };
-    size_t keySize = 0;
-    NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], key, MAX_KEY_LENGTH, &keySize));
+    std::string key;
+    NAPI_ASSERT(env, ParseString(env, args[0], key, MAX_KEY_LENGTH) == E_OK, "ParseString failed");
     StorageProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
     NAPI_ASSERT(env, (obj != nullptr && obj->value_ != nullptr), "unwrap null native pointer");
@@ -213,11 +242,45 @@ napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
 
 int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<StorageAysncContext> asyncContext)
 {
+    napi_valuetype keyType = napi_undefined;
+    napi_typeof(env, arg, &keyType);
+    if (keyType != napi_string) {
+        LOG_ERROR("ParseKey: key type must be string.");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "string type.");
+        asyncContext->SetError(paramError);
+        return ERR;
+    }
+    size_t keyBufferSize = 0;
+    napi_status status = napi_get_value_string_utf8(env, arg, nullptr, 0, &keyBufferSize);
+    if (status != napi_ok) {
+        LOG_ERROR("ParseKey: get keyBufferSize failed");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        asyncContext->SetError(paramError);
+        return ERR;
+    }
+    if (keyBufferSize > MAX_KEY_LENGTH) {
+        LOG_ERROR("the length of the key is over maximum length.");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 80 bytes.");
+        asyncContext->SetError(paramError);
+        return ERR;
+    }
     // get input key
-    char key[MAX_KEY_LENGTH] = { 0 };
+    char *key = new (std::nothrow) char[keyBufferSize + 1];
+    if (key == nullptr) {
+        return ERR;
+    }
     size_t keySize = 0;
-    napi_get_value_string_utf8(env, arg, key, MAX_KEY_LENGTH, &keySize);
+    status = napi_get_value_string_utf8(env, arg, key, keyBufferSize + 1, &keySize);
+    if (status != napi_ok) {
+        LOG_ERROR("ParseKey: get keySize failed");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        asyncContext->SetError(paramError);
+        delete[] key;
+        return ERR;
+    }
+    key[keySize] = 0;
     asyncContext->key = std::string(key);
+    delete[] key;
     return OK;
 }
 
@@ -229,13 +292,23 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
         double number = 0.0;
         if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Double error");
+            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            asyncContext->SetError(paramError);
             return ERR;
         }
         asyncContext->defValue = number;
     } else if (valueType == napi_string) {
         std::string str;
-        if (JSUtils::Convert2String(env, jsVal, str) != E_OK) {
+        auto ret = JSUtils::Convert2String(env, jsVal, str);
+        if (ret != E_OK) {
             LOG_ERROR("ParseDefValue Convert2String error");
+            if (ret == EXCEED_MAX_LENGTH) {
+                std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 8192 bytes.");
+                asyncContext->SetError(paramError);
+                return ERR;
+            }
+            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            asyncContext->SetError(paramError);
             return ERR;
         }
         asyncContext->defValue = str;
@@ -243,11 +316,16 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
         bool bValue = false;
         if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Bool error");
+            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            asyncContext->SetError(paramError);
             return ERR;
         }
         asyncContext->defValue = bValue;
     } else {
         LOG_ERROR("Wrong second parameter type");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        asyncContext->SetError(paramError);
+        return ERR;
     }
     return OK;
 }
@@ -257,8 +335,7 @@ napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetValue start");
     auto context = std::make_shared<StorageAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
         napi_unwrap(env, self, &context->boundObj);
@@ -316,12 +393,10 @@ napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
     napi_valuetype valueType = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[0], &valueType));
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for key");
-
-    // get input key
-    char key[MAX_KEY_LENGTH] = { 0 };
-    size_t out = 0;
-    NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], key, MAX_KEY_LENGTH, &out));
-
+    
+    std::string key;
+    NAPI_ASSERT(env, ParseString(env, args[0], key, MAX_KEY_LENGTH) == E_OK, "ParseString failed");
+    
     StorageProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
     NAPI_ASSERT(env, (obj != nullptr && obj->value_ != nullptr), "unwrap null native pointer");
@@ -330,21 +405,16 @@ napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
     if (valueType == napi_number) {
         double value = 0.0;
         NAPI_CALL(env, napi_get_value_double(env, args[1], &value));
-        int result = obj->value_->PutDouble(key, value);
-        NAPI_ASSERT(env, result == E_OK, "call PutDouble failed");
+        NAPI_ASSERT(env, obj->value_->PutDouble(key, value) == E_OK, "call PutDouble failed");
     } else if (valueType == napi_string) {
-        char *value = new char[MAX_VALUE_LENGTH];
-        napi_get_value_string_utf8(env, args[1], value, MAX_VALUE_LENGTH, &out);
-        // get value
-        int result = obj->value_->PutString(key, value);
-        delete[] value;
-        NAPI_ASSERT(env, result == E_OK, "call PutString failed");
+        std::string value;
+        NAPI_ASSERT(env, ParseString(env, args[1], value, MAX_VALUE_LENGTH) == E_OK, "ParseString failed");
+        NAPI_ASSERT(env, obj->value_->PutString(key, value) == E_OK, "call PutString failed");
     } else if (valueType == napi_boolean) {
         bool value = false;
         NAPI_CALL(env, napi_get_value_bool(env, args[1], &value));
         // get value
-        int result = obj->value_->PutBool(key, value);
-        NAPI_ASSERT(env, result == E_OK, "call PutBool failed");
+        NAPI_ASSERT(env, obj->value_->PutBool(key, value) == E_OK, "call PutBool failed");
     } else {
         NAPI_ASSERT(env, false, "Wrong second parameter type");
     }
@@ -356,8 +426,7 @@ napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("SetValue start");
     auto context = std::make_shared<StorageAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
         napi_unwrap(env, self, &context->boundObj);
@@ -400,9 +469,8 @@ napi_value StorageProxy::DeleteSync(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_typeof(env, args[0], &valueType));
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for key");
 
-    char key[MAX_KEY_LENGTH] = { 0 };
-    size_t out = 0;
-    NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], key, MAX_KEY_LENGTH, &out));
+    std::string key;
+    NAPI_ASSERT(env, ParseString(env, args[0], key, MAX_KEY_LENGTH) == E_OK, "ParseString failed");
     StorageProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
     int result = obj->value_->Delete(key);
@@ -416,10 +484,8 @@ napi_value StorageProxy::Delete(napi_env env, napi_callback_info info)
     LOG_DEBUG("Delete start");
     auto context = std::make_shared<StorageAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
         napi_unwrap(env, self, &context->boundObj);
         return OK;
     };
@@ -449,10 +515,9 @@ napi_value StorageProxy::HasKeySync(napi_env env, napi_callback_info info)
     napi_valuetype valueType;
     NAPI_CALL(env, napi_typeof(env, args[0], &valueType));
     NAPI_ASSERT(env, valueType == napi_string, "type mismatch for key");
-
-    char key[MAX_KEY_LENGTH] = { 0 };
-    size_t out = 0;
-    NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], key, MAX_KEY_LENGTH, &out));
+    
+    std::string key;
+    NAPI_ASSERT(env, ParseString(env, args[0], key, MAX_KEY_LENGTH) == E_OK, "ParseString failed");
     StorageProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
     bool result = obj->value_->HasKey(key);
@@ -467,8 +532,7 @@ napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
     LOG_DEBUG("HasKeySync start");
     auto context = std::make_shared<StorageAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         napi_unwrap(env, self, &context->boundObj);
         return OK;
@@ -494,8 +558,8 @@ napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
     LOG_DEBUG("Flush start");
     auto context = std::make_shared<StorageAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
+
         napi_unwrap(env, self, &context->boundObj);
         return OK;
     };
@@ -543,8 +607,8 @@ napi_value StorageProxy::Clear(napi_env env, napi_callback_info info)
     LOG_DEBUG("Flush start");
     auto context = std::make_shared<StorageAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
+
         napi_unwrap(env, self, &context->boundObj);
         return OK;
     };

@@ -73,8 +73,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetPreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseContext(env, argv[0], context));
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
         return OK;
@@ -103,8 +102,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseContext(env, argv[0], context));
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
         return OK;
@@ -133,8 +131,7 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseContext(env, argv[0], context));
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
         return OK;

@@ -22,6 +22,7 @@ namespace PreferencesJsKit {
 constexpr int MAX_INPUT_COUNT = 10;
 constexpr int OK = 0;
 constexpr int ERR = -1;
+constexpr int EXCEED_MAX_LENGTH = -2;
 
 constexpr int E_PARAM_ERROR = 401;
 constexpr int E_PREFERENCES_ERROR = 15500010;
@@ -66,6 +67,15 @@ constexpr int E_PREFERENCES_ERROR = 15500010;
             (theCall);                                   \
             return ERR;                                  \
         }                                                \
+    } while (0)
+
+#define PRE_CHECK_PARAM_NUM_VALID(assertion, errMsg)                                        \
+    do {                                                                                    \
+        if (!(assertion)) {                                                                 \
+            std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>(errMsg); \
+            context->SetError(paramNumError);                                               \
+            return ERR;                                                                     \
+        }                                                                                   \
     } while (0)
 
 #define PRE_NAPI_ASSERT_RETURN_VOID(env, assertion, error) \
