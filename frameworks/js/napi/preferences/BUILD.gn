@@ -23,61 +23,6 @@ if (!is_mingw && !is_mac) {
     module_install_name = ""
   }
 
-  ohos_shared_library("storage") {
-    include_dirs = [
-      "include",
-      "../common/include",
-    ]
-
-    sources = [
-      "../common/src/js_observer.cpp",
-      "../common/src/js_utils.cpp",
-      "../common/src/uv_queue.cpp",
-      "src/entry_point_storage.cpp",
-      "src/napi_preferences_observer.cpp",
-      "src/napi_storage.cpp",
-      "src/napi_storage_helper.cpp",
-    ]
-
-    external_deps = [
-      "hilog_native:libhilog",
-      "napi:ace_napi",
-      "preferences:native_preferences",
-    ]
-
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
-    relative_install_dir = "module/data"
-  }
-
-  ohos_shared_library("storage_napi") {
-    include_dirs = [
-      "include",
-      "../common/include",
-    ]
-
-    sources = [
-      "../common/src/js_ability.cpp",
-      "../common/src/js_utils.cpp",
-      "src/entry_point_system_storage.cpp",
-      "src/napi_system_storage.cpp",
-    ]
-
-    deps = []
-
-    external_deps = [
-      "ability_runtime:abilitykit_native",
-      "ability_runtime:napi_base_context",
-      "hilog_native:libhilog",
-      "napi:ace_napi",
-      "preferences:native_preferences",
-    ]
-
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
-    relative_install_dir = "module"
-  }
-
   ohos_shared_library("preferences") {
     include_dirs = [
       "../common/include",
@@ -85,15 +30,15 @@ if (!is_mingw && !is_mac) {
     ]
 
     sources = [
-      "../common/src/async_call.cpp",
       "../common/src/js_ability.cpp",
       "../common/src/js_observer.cpp",
       "../common/src/js_utils.cpp",
+      "../common/src/napi_async_call.cpp",
+      "../common/src/napi_preferences_observer.cpp",
       "../common/src/uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
-      "src/napi_preferences_observer.cpp",
     ]
 
     deps = []
@@ -102,7 +47,6 @@ if (!is_mingw && !is_mac) {
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
       "hilog_native:libhilog",
-      "hitrace_native:hitrace_meter",
       "napi:ace_napi",
       "preferences:native_preferences",
     ]
@@ -132,14 +76,14 @@ if (!is_mingw && !is_mac) {
     }
     sources = [
       "../common/mock/src/js_ability.cpp",
-      "../common/src/async_call.cpp",
       "../common/src/js_observer.cpp",
       "../common/src/js_utils.cpp",
+      "../common/src/napi_async_call.cpp",
+      "../common/src/napi_preferences_observer.cpp",
       "../common/src/uv_queue.cpp",
       "src/entry_point.cpp",
       "src/napi_preferences.cpp",
       "src/napi_preferences_helper.cpp",
-      "src/napi_preferences_observer.cpp",
     ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",

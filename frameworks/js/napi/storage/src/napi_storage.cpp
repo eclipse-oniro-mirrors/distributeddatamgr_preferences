@@ -18,27 +18,35 @@
 #include <cerrno>
 #include <cmath>
 #include <limits>
-#include <linux/limits.h>
 
 #include "js_logger.h"
 #include "js_utils.h"
-#include "napi_async_proxy.h"
+#include "napi_async_call.h"
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_value.h"
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
+using namespace OHOS::PreferencesJsKit;
 
 namespace OHOS {
-namespace PreferencesJsKit {
+namespace StorageJsKit {
 #define MAX_KEY_LENGTH Preferences::MAX_KEY_LENGTH
 #define MAX_VALUE_LENGTH Preferences::MAX_VALUE_LENGTH
 
-struct StorageAysncContext : NapiAsyncProxy<StorageAysncContext>::AysncContext {
+struct StorageAysncContext : public BaseContext {
     std::string key;
-    PreferencesValue defValue = PreferencesValue((int)0);
+    PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
+    std::map<std::string, PreferencesValue> allElements;
     bool hasKey;
+    std::list<std::string> keysModified;
+    std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
+    
+    StorageAysncContext()
+    {
+    }
+    virtual ~StorageAysncContext(){};
 };
 
 static __thread napi_ref constructor_;
@@ -51,7 +59,7 @@ StorageProxy::StorageProxy(std::shared_ptr<OHOS::NativePreferences::Preferences>
 StorageProxy::~StorageProxy()
 {
     napi_delete_reference(env_, wrapper_);
-    for (auto& observer : dataObserver_) {
+    for (auto &observer : dataObserver_) {
         value_->UnRegisterObserver(observer);
     }
     dataObserver_.clear();
@@ -66,13 +74,20 @@ void StorageProxy::Destructor(napi_env env, void *nativeObject, void *finalize_h
 void StorageProxy::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptors[] = {
-        DECLARE_NAPI_FUNCTION("putSync", SetValueSync),        DECLARE_NAPI_FUNCTION("put", SetValue),
-        DECLARE_NAPI_FUNCTION("getSync", GetValueSync),        DECLARE_NAPI_FUNCTION("get", GetValue),
-        DECLARE_NAPI_FUNCTION("deleteSync", DeleteSync),       DECLARE_NAPI_FUNCTION("delete", Delete),
-        DECLARE_NAPI_FUNCTION("clearSync", ClearSync),         DECLARE_NAPI_FUNCTION("clear", Clear),
-        DECLARE_NAPI_FUNCTION("hasSync", HasKeySync),          DECLARE_NAPI_FUNCTION("has", HasKey),
-        DECLARE_NAPI_FUNCTION("flushSync", FlushSync),         DECLARE_NAPI_FUNCTION("flush", Flush),
-        DECLARE_NAPI_FUNCTION("on", RegisterObserver),         DECLARE_NAPI_FUNCTION("off", UnRegisterObserver),
+        DECLARE_NAPI_FUNCTION("putSync", SetValueSync),
+        DECLARE_NAPI_FUNCTION("put", SetValue),
+        DECLARE_NAPI_FUNCTION("getSync", GetValueSync),
+        DECLARE_NAPI_FUNCTION("get", GetValue),
+        DECLARE_NAPI_FUNCTION("deleteSync", DeleteSync),
+        DECLARE_NAPI_FUNCTION("delete", Delete),
+        DECLARE_NAPI_FUNCTION("clearSync", ClearSync),
+        DECLARE_NAPI_FUNCTION("clear", Clear),
+        DECLARE_NAPI_FUNCTION("hasSync", HasKeySync),
+        DECLARE_NAPI_FUNCTION("has", HasKey),
+        DECLARE_NAPI_FUNCTION("flushSync", FlushSync),
+        DECLARE_NAPI_FUNCTION("flush", Flush),
+        DECLARE_NAPI_FUNCTION("on", RegisterObserver),
+        DECLARE_NAPI_FUNCTION("off", UnRegisterObserver),
     };
     napi_value cons = nullptr;
     napi_define_class(env, "Storage", NAPI_AUTO_LENGTH, New, nullptr,
@@ -148,11 +163,6 @@ template<typename T> bool CheckNumberType(double input)
     return true;
 }
 
-bool IsFloat(double input)
-{
-    return abs(input - floor(input)) >= 0; // DBL_EPSILON;
-}
-
 napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
 {
     napi_value thiz = nullptr;
@@ -201,16 +211,17 @@ napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
     return output;
 }
 
-void ParseKey(const napi_env &env, const napi_value &arg, StorageAysncContext *asyncContext)
+int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<StorageAysncContext> asyncContext)
 {
     // get input key
     char key[MAX_KEY_LENGTH] = { 0 };
     size_t keySize = 0;
     napi_get_value_string_utf8(env, arg, key, MAX_KEY_LENGTH, &keySize);
-    asyncContext->key = key;
+    asyncContext->key = std::string(key);
+    return OK;
 }
 
-void ParseDefValue(const napi_env &env, const napi_value &jsVal, StorageAysncContext *asyncContext)
+int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<StorageAysncContext> asyncContext)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, jsVal, &valueType);
@@ -218,72 +229,78 @@ void ParseDefValue(const napi_env &env, const napi_value &jsVal, StorageAysncCon
         double number = 0.0;
         if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Double error");
-            return;
+            return ERR;
         }
         asyncContext->defValue = number;
     } else if (valueType == napi_string) {
         std::string str;
         if (JSUtils::Convert2String(env, jsVal, str) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2String error");
-            return;
+            return ERR;
         }
         asyncContext->defValue = str;
     } else if (valueType == napi_boolean) {
         bool bValue = false;
         if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Bool error");
-            return;
+            return ERR;
         }
         asyncContext->defValue = bValue;
     } else {
         LOG_ERROR("Wrong second parameter type");
     }
+    return OK;
 }
 
 napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<StorageAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<StorageAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseKey);
-    parsers.push_back(ParseDefValue);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "GetValue",
-        [](StorageAysncContext *asyncContext) {
-            int errCode = OK;
-            StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
-            if (asyncContext->defValue.IsBool()) {
-                bool tmpValue = (bool)obj->value_->GetBool(asyncContext->key, (bool)asyncContext->defValue);
-                asyncContext->defValue = PreferencesValue((bool)tmpValue);
-            } else if (asyncContext->defValue.IsString()) {
-                std::string tmpValue = obj->value_->GetString(asyncContext->key, (std::string)asyncContext->defValue);
-                asyncContext->defValue = PreferencesValue((std::string)tmpValue);
-            } else if (asyncContext->defValue.IsDouble()) {
-                double tmpValue = obj->value_->GetDouble(asyncContext->key, (double)asyncContext->defValue);
-                asyncContext->defValue = PreferencesValue((double)tmpValue);
-            } else {
-                errCode = ERR;
-            }
-
-            return errCode;
-        },
-        [](StorageAysncContext *asyncContext, napi_value &output) {
-            int errCode = OK;
-            if (asyncContext->defValue.IsBool()) {
-                napi_get_boolean(asyncContext->env, (bool)asyncContext->defValue, &output);
-            } else if (asyncContext->defValue.IsString()) {
-                std::string tempStr = (std::string)asyncContext->defValue;
-                napi_create_string_utf8(asyncContext->env, tempStr.c_str(), tempStr.size(), &output);
-            } else if (asyncContext->defValue.IsDouble()) {
-                napi_create_double(asyncContext->env, (double)asyncContext->defValue, &output);
-            } else {
-                errCode = ERR;
-            }
-
-            return errCode;
-        });
+    LOG_DEBUG("GetValue start");
+    auto context = std::make_shared<StorageAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
+        napi_unwrap(env, self, &context->boundObj);
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        int errCode = OK;
+        StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
+        if (context->defValue.IsBool()) {
+            bool tmpValue = (bool)obj->value_->GetBool(context->key, context->defValue);
+            context->defValue = PreferencesValue(tmpValue);
+        } else if (context->defValue.IsString()) {
+            std::string tmpValue = obj->value_->GetString(context->key, context->defValue);
+            context->defValue = PreferencesValue(tmpValue);
+        } else if (context->defValue.IsDouble()) {
+            double tmpValue = obj->value_->GetDouble(context->key, context->defValue);
+            context->defValue = PreferencesValue(tmpValue);
+        } else {
+            errCode = ERR;
+        }
+    
+        return errCode;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        int errCode = OK;
+        if (context->defValue.IsBool()) {
+            napi_get_boolean(context->env_, context->defValue, &result);
+        } else if (context->defValue.IsString()) {
+            std::string tempStr = (std::string)context->defValue;
+            napi_create_string_utf8(context->env_, tempStr.c_str(), tempStr.size(), &result);
+        } else if (context->defValue.IsDouble()) {
+            napi_create_double(context->env_, context->defValue, &result);
+        } else {
+            errCode = ERR;
+        }
+    
+        return errCode;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
@@ -313,7 +330,7 @@ napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
     if (valueType == napi_number) {
         double value = 0.0;
         NAPI_CALL(env, napi_get_value_double(env, args[1], &value));
-        int result = obj->value_->PutDouble(key, (double)value);
+        int result = obj->value_->PutDouble(key, value);
         NAPI_ASSERT(env, result == E_OK, "call PutDouble failed");
     } else if (valueType == napi_string) {
         char *value = new char[MAX_VALUE_LENGTH];
@@ -336,34 +353,39 @@ napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
 
 napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<StorageAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<StorageAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseKey);
-    parsers.push_back(ParseDefValue);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "SetValue",
-        [](StorageAysncContext *asyncContext) {
-            int errCode = OK;
-            StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
-            if (asyncContext->defValue.IsBool()) {
-                errCode = obj->value_->PutBool(asyncContext->key, (bool)asyncContext->defValue);
-            } else if (asyncContext->defValue.IsString()) {
-                errCode = obj->value_->PutString(asyncContext->key, (std::string)asyncContext->defValue);
-            } else if (asyncContext->defValue.IsDouble()) {
-                errCode = obj->value_->PutDouble(asyncContext->key, (double)asyncContext->defValue);
-            } else {
-                errCode = ERR;
-            }
-
-            return errCode;
-        },
-        [](StorageAysncContext *asyncContext, napi_value &output) {
-            napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
-        });
+    LOG_DEBUG("SetValue start");
+    auto context = std::make_shared<StorageAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
+        napi_unwrap(env, self, &context->boundObj);
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        int errCode = OK;
+        StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
+        if (context->defValue.IsBool()) {
+            errCode = obj->value_->PutBool(context->key, context->defValue);
+        } else if (context->defValue.IsString()) {
+            errCode = obj->value_->PutString(context->key, context->defValue);
+        } else if (context->defValue.IsDouble()) {
+            errCode = obj->value_->PutDouble(context->key, context->defValue);
+        } else {
+            errCode = ERR;
+        }
+    
+        return errCode;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(context->env_, &result);
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value StorageProxy::DeleteSync(napi_env env, napi_callback_info info)
@@ -391,24 +413,29 @@ napi_value StorageProxy::DeleteSync(napi_env env, napi_callback_info info)
 
 napi_value StorageProxy::Delete(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<StorageAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<StorageAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseKey);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "Delete",
-        [](StorageAysncContext *asyncContext) {
-            StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
-            int errCode = obj->value_->Delete(asyncContext->key);
-
-            return errCode;
-        },
-        [](StorageAysncContext *asyncContext, napi_value &output) {
-            napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
-        });
+    LOG_DEBUG("Delete start");
+    auto context = std::make_shared<StorageAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
+        napi_unwrap(env, self, &context->boundObj);
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
+        int errCode = obj->value_->Delete(context->key);
+        return errCode;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(context->env_, &result);
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value StorageProxy::HasKeySync(napi_env env, napi_callback_info info)
@@ -437,43 +464,53 @@ napi_value StorageProxy::HasKeySync(napi_env env, napi_callback_info info)
 
 napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<StorageAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<StorageAysncContext>::InputParser> parsers;
-    parsers.push_back(ParseKey);
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "HasKey",
-        [](StorageAysncContext *asyncContext) {
-            StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
-            asyncContext->hasKey = obj->value_->HasKey(asyncContext->key);
-
-            return OK;
-        },
-        [](StorageAysncContext *asyncContext, napi_value &output) {
-            napi_status status = napi_get_boolean(asyncContext->env, asyncContext->hasKey, &output);
-            return (status == napi_ok) ? OK : ERR;
-        });
+    LOG_DEBUG("HasKeySync start");
+    auto context = std::make_shared<StorageAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+        napi_unwrap(env, self, &context->boundObj);
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
+        context->hasKey = obj->value_->HasKey(context->key);
+    
+        return OK;
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_boolean(context->env_, context->hasKey, &result);
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<StorageAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<StorageAysncContext>::InputParser> parsers;
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "Flush",
-        [](StorageAysncContext *asyncContext) {
-            StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
-            return obj->value_->FlushSync();
-        },
-        [](StorageAysncContext *asyncContext, napi_value &output) {
-            napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
-        });
+    LOG_DEBUG("Flush start");
+    auto context = std::make_shared<StorageAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
+        napi_unwrap(env, self, &context->boundObj);
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
+        return obj->value_->FlushSync();
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(context->env_, &result);
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value StorageProxy::FlushSync(napi_env env, napi_callback_info info)
@@ -503,21 +540,26 @@ napi_value StorageProxy::ClearSync(napi_env env, napi_callback_info info)
 
 napi_value StorageProxy::Clear(napi_env env, napi_callback_info info)
 {
-    NapiAsyncProxy<StorageAysncContext> proxy;
-    proxy.Init(env, info);
-    std::vector<NapiAsyncProxy<StorageAysncContext>::InputParser> parsers;
-    proxy.ParseInputs(parsers);
-
-    return proxy.DoAsyncWork(
-        "Clear",
-        [](StorageAysncContext *asyncContext) {
-            StorageProxy *obj = reinterpret_cast<StorageProxy *>(asyncContext->boundObj);
-            return obj->value_->Clear();
-        },
-        [](StorageAysncContext *asyncContext, napi_value &output) {
-            napi_status status = napi_get_undefined(asyncContext->env, &output);
-            return (status == napi_ok) ? OK : ERR;
-        });
+    LOG_DEBUG("Flush start");
+    auto context = std::make_shared<StorageAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
+        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
+        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
+        napi_unwrap(env, self, &context->boundObj);
+        return OK;
+    };
+    auto exec = [context]() -> int {
+        StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
+        return obj->value_->Clear();
+    };
+    auto output = [context](napi_env env, napi_value &result) -> int {
+        napi_status status = napi_get_undefined(context->env_, &result);
+        return (status == napi_ok) ? OK : ERR;
+    };
+    context->SetAction(env, info, input, exec, output);
+    
+    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context);
 }
 
 napi_value StorageProxy::RegisterObserver(napi_env env, napi_callback_info info)
@@ -606,5 +648,5 @@ void StorageProxy::UnRegisterObserver(napi_value callback)
         LOG_INFO("The observer unsubscribed success.");
     }
 }
-} // namespace PreferencesJsKit
+} // namespace StorageJsKit
 } // namespace OHOS
