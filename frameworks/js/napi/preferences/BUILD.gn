@@ -45,7 +45,6 @@ if (!is_mingw && !is_mac) {
 
     external_deps = [
       "ability_runtime:abilitykit_native",
-      "ability_runtime:extensionkit_native",
       "ability_runtime:napi_base_context",
       "hilog_native:libhilog",
       "napi:ace_napi",
