@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+﻿/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,29 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef PREFERENCES_JSKIT_NAPI_STORAGE_HELPER_H
+#define PREFERENCES_JSKIT_NAPI_STORAGE_HELPER_H
 
-#ifndef DISTRIBUTEDDATAMGR_NAPI_PREFERENCES_HITRACE_H
-#define DISTRIBUTEDDATAMGR_NAPI_PREFERENCES_HITRACE_H
-
-#include <string>
-
-#include "hitrace_meter.h"
+#include "napi/native_api.h"
+#include "napi/native_common.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS {
-namespace PreferencesJsKit {
-class HiTrace final {
-public:
-    inline HiTrace(const std::string &value)
-    {
-        StartTrace(HITRACE_TAG_DISTRIBUTEDDATA, "NAPI_" + value);
-    }
-
-    inline ~HiTrace()
-    {
-        FinishTrace(HITRACE_TAG_DISTRIBUTEDDATA);
-    }
-};
-} // namespace PreferencesJsKit
+namespace StorageJsKit {
+napi_value InitPreferenceHelper(napi_env env, napi_value exports);
+}
 } // namespace OHOS
-
-#endif
+#endif // PREFERENCES_JSKIT_NAPI_PREFERENCE_HELPER_H

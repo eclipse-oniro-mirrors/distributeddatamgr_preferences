@@ -1,5 +1,5 @@
-﻿/*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+/*
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,16 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef PREFERENCES_JSKIT_NAPI_STORAGE_HELPER_H
-#define PREFERENCES_JSKIT_NAPI_STORAGE_HELPER_H
+
+#ifndef DISTRIBUTEDDATAMGR_PREFERENCES_NAPI_PREFERENCES_OBSERVER_H
+#define DISTRIBUTEDDATAMGR_PREFERENCES_NAPI_PREFERENCES_OBSERVER_H
 
 #include "napi/native_api.h"
-#include "napi/native_common.h"
-#include "napi/native_node_api.h"
+#include "preferences_observer.h"
+#include "js_observer.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
-napi_value InitPreferenceHelper(napi_env env, napi_value exports);
-}
+class JSPreferencesObserver
+    : public OHOS::NativePreferences::PreferencesObserver
+    , public JSObserver {
+public:
+    JSPreferencesObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback);
+    virtual ~JSPreferencesObserver() = default;
+    void OnChange(const std::string &key) override;
+};
+} // namespace PreferencesJsKit
 } // namespace OHOS
-#endif // PREFERENCES_JSKIT_NAPI_PREFERENCE_HELPER_H
+#endif // DISTRIBUTEDDATAMGR_PREFERENCES_NAPI_PREFERENCES_OBSERVER_H

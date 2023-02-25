@@ -29,7 +29,7 @@
 #include "preferences_helper.h"
 
 namespace OHOS {
-namespace PreferencesJsKit {
+namespace StorageJsKit {
 class StorageProxy {
 public:
     static void Init(napi_env env, napi_value exports);
@@ -64,8 +64,8 @@ private:
     napi_env env_;
     napi_ref wrapper_;
     std::mutex listMutex_ {};
-    std::shared_ptr<UvQueue> uvQueue_;
-    std::list<std::shared_ptr<JSPreferencesObserver>> dataObserver_;
+    std::shared_ptr<PreferencesJsKit::UvQueue> uvQueue_;
+    std::list<std::shared_ptr<PreferencesJsKit::JSPreferencesObserver>> dataObserver_;
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS
