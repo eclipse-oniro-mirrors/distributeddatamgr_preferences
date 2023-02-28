@@ -29,19 +29,60 @@ config("adaptor_config") {
   include_dirs = [ "//commonlibrary/c_utils/base/include" ]
 }
 
+base_sources = [
+  "${preferences_native_path}/src/preferences_helper.cpp",
+  "${preferences_native_path}/src/preferences_impl.cpp",
+  "${preferences_native_path}/src/preferences_observer.cpp",
+  "${preferences_native_path}/src/preferences_value.cpp",
+  "${preferences_native_path}/src/preferences_xml_utils.cpp",
+  "${preferences_native_path}/src/task_executor.cpp",
+]
+
 ohos_shared_library("native_preferences") {
   all_dependent_configs = [ ":native_preferences_public_config" ]
-  sources = [
-    "${preferences_native_path}/src/preferences_helper.cpp",
-    "${preferences_native_path}/src/preferences_impl.cpp",
-    "${preferences_native_path}/src/preferences_observer.cpp",
-    "${preferences_native_path}/src/preferences_value.cpp",
-    "${preferences_native_path}/src/preferences_xml_utils.cpp",
-    "${preferences_native_path}/src/task_pool.cpp",
-    "${preferences_native_path}/src/task_queue.cpp",
-  ]
+  sources = base_sources
 
   innerapi_tags = [ "platformsdk" ]
+
+  configs = [ ":native_preferences_config" ]
+
+  if (is_mingw || is_mac) {
+    configs += [ ":adaptor_config" ]
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+    ]
+    if (is_mac) {
+      buildos = "mac"
+      defines = [ "MAC_PLATFORM" ]
+    } else {
+      buildos = "windows"
+      defines = [ "WINDOWS_PLATFORM" ]
+      ldflags = [ "-lws2_32" ]
+    }
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
+      "//third_party/libxml2:static_libxml2",
+    ]
+  } else {
+    cflags_cc = [ "-fvisibility=hidden" ]
+    deps = [ "//third_party/libxml2:libxml2" ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog_native:libhilog",
+      "hitrace_native:hitrace_meter",
+    ]
+  }
+
+  public_configs = [ ":native_preferences_public_config" ]
+
+  subsystem_name = "distributeddatamgr"
+  part_name = "preferences"
+}
+
+ohos_static_library("native_preferences_static") {
+  all_dependent_configs = [ ":native_preferences_public_config" ]
+  sources = base_sources
 
   configs = [ ":native_preferences_config" ]
 

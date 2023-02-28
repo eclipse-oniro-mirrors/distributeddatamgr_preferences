@@ -29,7 +29,6 @@
 #include "preferences.h"
 #include "preferences_observer.h"
 #include "preferences_value.h"
-#include "task_pool.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -168,7 +167,6 @@ private:
 
         int writeToDiskResult_;
         bool wasWritten_;
-        bool handled_;
     };
 
     std::shared_ptr<MemoryToDiskRequest> commitToMemory();
@@ -203,12 +201,6 @@ private:
     const std::string filePath_;
     const std::string backupPath_;
     const std::string brokenPath_;
-    // Task pool
-    /* max threads of the task pool. */
-    static constexpr int MAX_TP_THREADS = 10;
-    /* min threads of the task pool. */
-    static constexpr int MIN_TP_THREADS = 1;
-    TaskPool taskPool_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
