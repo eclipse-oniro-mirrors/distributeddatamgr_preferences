@@ -386,7 +386,6 @@ int32_t GetArrayValue(std::shared_ptr<PreferencesAysncContext> context, napi_val
             return E_NAPI_GET_ERROR;
         }
     } else if (context->defValue.IsBoolArray()) {
-        std::vector<bool> array = context->defValue;
         if (JSUtils::Convert2JSBoolArr(context->env_, (std::vector<bool>)context->defValue, output) != E_OK) {
             LOG_ERROR("GetArrayValue Convert2JSValue get boolArray failed");
             return E_NAPI_GET_ERROR;
