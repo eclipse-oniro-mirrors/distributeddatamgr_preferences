@@ -39,13 +39,9 @@ struct StorageAysncContext : public BaseContext {
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
     std::map<std::string, PreferencesValue> allElements;
-    bool hasKey;
+    bool hasKey = false;
     std::list<std::string> keysModified;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
-    
-    StorageAysncContext()
-    {
-    }
     virtual ~StorageAysncContext(){};
 };
 
