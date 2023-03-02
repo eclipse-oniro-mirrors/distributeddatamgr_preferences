@@ -303,4 +303,192 @@ describe('storageTest', function () {
             });
         });
     })
+
+    /**
+     * @tc.name test put interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0121
+     * @tc.desc test put interface input parameter is illegal.
+     */
+    it('testPutIllegal001', 0, async function (done) {
+        let illegalKey = false;
+        let legalValue = "test";
+        try {
+            mPref.put(illegalKey, legalValue, (ret) => {
+                done();
+            });
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0122
+     * @tc.desc test put interface input parameter is illegal.
+     */
+    it('testPutIllegal002', 0, async function (done) {
+        let illegalKey = 123;
+        let legalValue = "test";
+        try {
+            mPref.put(illegalKey, legalValue, (ret) => {
+                done();
+            });
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0123
+     * @tc.desc test put interface input parameter value exceed 8192byte.
+     */
+    it('testPutIllegal003', 0, async function (done) {
+        let phoneStr = "1";
+        phoneStr = phoneStr.repeat(8193);
+        try {
+            mPref.put("phoneNum", phoneStr, (ret) => {
+                done();
+            });
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0124
+     * @tc.desc test put interface input parameter value is legal.
+     */
+    it('testPutIllegal004', 0, async function (done) {
+        let phoneStr = "1";
+        phoneStr = phoneStr.repeat(8192);
+        try {
+            mPref.put("phoneNum", phoneStr, (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0125
+     * @tc.desc test put interface input parameter key exceed 80byte.
+     */
+    it('testPutIllegal005', 0, async function (done) {
+        let phoneNum = "1";
+        phoneNum = phoneNum.repeat(81);
+        try {
+            mPref.put(phoneNum, "123456", (ret) => {
+                done();
+            });
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test put interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0126
+     * @tc.desc test put interface input parameter key is legal.
+     */
+    it('testPutIllegal006', 0, async function (done) {
+        let phoneNum = "1";
+        phoneNum = phoneNum.repeat(80);
+        try {
+            mPref.put(phoneNum, "123456", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0127
+     * @tc.desc test get interface input parameter is illegal.
+     */
+    it('testGetIllegal001', 0, async function (done) {
+        let illegalKey = 123;
+        try {
+            mPref.get(illegalKey, "defaultValue", (ret) => {
+                done();
+            });
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0127
+     * @tc.desc test get interface input parameter is illegal.
+     */
+    it('testGetIllegal002', 0, async function (done) {
+        let illegalKey = true;
+        try {
+            mPref.get(illegalKey, "defaultValue", (ret) => {
+                done();
+            });
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0128
+     * @tc.desc test get interface input parameter key exceed 80byte.
+     */
+    it('testGetIllegal003', 0, async function (done) {
+        let illegalKey = "1";
+        illegalKey = illegalKey.repeat(81);
+        try {
+            mPref.get(illegalKey, "defaultValue", (ret) => {
+                done();
+            });
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+            done();
+        }
+    })
+
+    /**
+     * @tc.name test get interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0129
+     * @tc.desc test get interface input parameter key is legal.
+     */
+    it('testGetIllegal004', 0, async function (done) {
+        let legalKey = "1";
+        legalKey = legalKey.repeat(80);
+        try {
+            mPref.get(legalKey, "defaultValue", (ret) => {
+                done();
+            });
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+            done();
+        }
+    })
 })

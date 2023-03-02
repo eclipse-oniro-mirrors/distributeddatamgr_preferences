@@ -31,6 +31,7 @@ class JSUtils final {
 public:
     static constexpr int OK = 0;
     static constexpr int ERR = -1;
+    static constexpr int EXCEED_MAX_LENGTH = -2;
     static constexpr int32_t DEFAULT_BUF_SIZE = 1024;
     static constexpr int32_t BUF_CACHE_MARGIN = 4;
     static constexpr int32_t ASYNC_RST_SIZE = 2;
