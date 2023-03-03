@@ -43,7 +43,7 @@ struct StorageAysncContext : public BaseContext {
     std::list<std::string> keysModified;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
     
-    StorageAysncContext()
+    StorageAysncContext() : hasKey(false)
     {
     }
     virtual ~StorageAysncContext(){};
