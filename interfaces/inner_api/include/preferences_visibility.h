@@ -25,5 +25,3 @@
 #endif
 
 #endif //SYMBOL_PREFERENCES_VISIBILITY_H
-
-
