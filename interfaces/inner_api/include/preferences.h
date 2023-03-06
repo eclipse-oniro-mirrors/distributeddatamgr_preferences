@@ -30,21 +30,21 @@ namespace NativePreferences {
 /**
  * The function class of the preference. Various operations on preferences instances are provided in this class.
  */
-class Preferences {
+class PREF_API_EXPORT Preferences {
 public:
-    virtual ~Preferences()
+    PREF_API_EXPORT virtual ~Preferences()
     {
     }
 
     /**
     * @brief The constant Indicates the maximum length of the key in the preferences.
     */
-    static const unsigned int MAX_KEY_LENGTH = 80;
+    PREF_API_EXPORT static const unsigned int MAX_KEY_LENGTH = 80;
 
     /**
      * @brief The constant Indicates the maximum length of the value in the preferences.
      */
-    static const unsigned int MAX_VALUE_LENGTH = 8 * 1024;
+    PREF_API_EXPORT static const unsigned int MAX_VALUE_LENGTH = 8 * 1024;
 
     /**
      * @brief Obtains the value of a preferences.
@@ -56,7 +56,7 @@ public:
      *
      * @return Returns the value matching the specified key if it is found; returns the default value otherwise.
      */
-    virtual PreferencesValue Get(const std::string &key, const PreferencesValue &defValue) = 0;
+    PREF_API_EXPORT virtual PreferencesValue Get(const std::string &key, const PreferencesValue &defValue) = 0;
 
     /**
      * @brief Sets a value for the key in the preferences.
@@ -68,7 +68,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int Put(const std::string &key, const PreferencesValue &value) = 0;
+    PREF_API_EXPORT virtual int Put(const std::string &key, const PreferencesValue &value) = 0;
 
     /**
      * @brief Obtains the int value of a preferences.
@@ -80,7 +80,7 @@ public:
      *
      * @return Returns a int value matching the specified key if it is found; returns the default value otherwise.
      */
-    virtual int GetInt(const std::string &key, const int &defValue = {}) = 0;
+    PREF_API_EXPORT virtual int GetInt(const std::string &key, const int &defValue = {}) = 0;
 
     /**
      * @brief Obtains the string value of a preferences.
@@ -92,7 +92,7 @@ public:
      *
      * @return Returns a string value matching the specified key if it is found; returns the default value otherwise.
      */
-    virtual std::string GetString(const std::string &key, const std::string &defValue = {}) = 0;
+    PREF_API_EXPORT virtual std::string GetString(const std::string &key, const std::string &defValue = {}) = 0;
 
     /**
      * @brief Obtains the bool value of a preferences.
@@ -104,7 +104,7 @@ public:
      *
      * @return Returns a bool value matching the specified key if it is found; returns the default value otherwise.
      */
-    virtual bool GetBool(const std::string &key, const bool &defValue = {}) = 0;
+    PREF_API_EXPORT virtual bool GetBool(const std::string &key, const bool &defValue = {}) = 0;
 
     /**
      * @brief Obtains the float value of a preferences.
@@ -116,7 +116,7 @@ public:
      *
      * @return Returns a float value matching the specified key if it is found; returns the default value otherwise.
      */
-    virtual float GetFloat(const std::string &key, const float &defValue = {}) = 0;
+    PREF_API_EXPORT virtual float GetFloat(const std::string &key, const float &defValue = {}) = 0;
 
     /**
      * @brief Obtains the double value of a preferences.
@@ -128,7 +128,7 @@ public:
      *
      * @return Returns a double value matching the specified key if it is found; returns the default value otherwise.
      */
-    virtual double GetDouble(const std::string &key, const double &defValue = {}) = 0;
+    PREF_API_EXPORT virtual double GetDouble(const std::string &key, const double &defValue = {}) = 0;
 
     /**
      * @brief Obtains the long value of a preferences.
@@ -140,7 +140,7 @@ public:
      *
      * @return Returns a long value matching the specified key if it is found; returns the default value otherwise.
      */
-    virtual int64_t GetLong(const std::string &key, const int64_t &defValue = {}) = 0;
+    PREF_API_EXPORT virtual int64_t GetLong(const std::string &key, const int64_t &defValue = {}) = 0;
 
     /**
      * @brief Obtains all the keys and values of a preferences.
@@ -149,7 +149,7 @@ public:
      *
      * @return Returns a map, the key is string type and the value is PreferencesValue type.
      */
-    virtual std::map<std::string, PreferencesValue> GetAll() = 0;
+    PREF_API_EXPORT virtual std::map<std::string, PreferencesValue> GetAll() = 0;
 
     /**
      * @brief Checks whether contains a preferences matching a specified key.
@@ -160,7 +160,7 @@ public:
      *
      * @return Returning true means it contains, false means it doesn't.
      */
-    virtual bool HasKey(const std::string &key) = 0;
+    PREF_API_EXPORT virtual bool HasKey(const std::string &key) = 0;
 
     /**
      * @brief Put or update an int value of a preferences.
@@ -172,7 +172,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int PutInt(const std::string &key, int value) = 0;
+    PREF_API_EXPORT virtual int PutInt(const std::string &key, int value) = 0;
 
     /**
      * @brief Put or update an string value for the key.
@@ -184,7 +184,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int PutString(const std::string &key, const std::string &value) = 0;
+    PREF_API_EXPORT virtual int PutString(const std::string &key, const std::string &value) = 0;
 
     /**
      * @brief Put or update bool string value for the key.
@@ -196,7 +196,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int PutBool(const std::string &key, bool value) = 0;
+    PREF_API_EXPORT virtual int PutBool(const std::string &key, bool value) = 0;
 
     /**
      * @brief Put or update an long value for the key.
@@ -208,7 +208,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int PutLong(const std::string &key, int64_t value) = 0;
+    PREF_API_EXPORT virtual int PutLong(const std::string &key, int64_t value) = 0;
 
     /**
      * @brief Put or update an float value for the key.
@@ -220,7 +220,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int PutFloat(const std::string &key, float value) = 0;
+    PREF_API_EXPORT virtual int PutFloat(const std::string &key, float value) = 0;
 
     /**
      * @brief Put or update an double value for the key.
@@ -232,7 +232,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int PutDouble(const std::string &key, double value) = 0;
+    PREF_API_EXPORT virtual int PutDouble(const std::string &key, double value) = 0;
 
     /**
      * @brief Deletes the preferences with a specified key.
@@ -243,7 +243,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int Delete(const std::string &key) = 0;
+    PREF_API_EXPORT virtual int Delete(const std::string &key) = 0;
 
     /**
      * @brief Clears all preferences.
@@ -252,7 +252,7 @@ public:
      *
      * @return Returns 0 for success, others for failure.
      */
-    virtual int Clear() = 0;
+    PREF_API_EXPORT virtual int Clear() = 0;
 
     /**
      * @brief Asynchronously saves the preferences to the file.
@@ -260,7 +260,7 @@ public:
      * This function is used to saves the preferences to the file. Files are written to disk only after
      * this interface or {@link FlushSync}is called.
      */
-    virtual void Flush() = 0;
+    PREF_API_EXPORT virtual void Flush() = 0;
 
     /**
      * @brief Synchronously saves the preferences to the file.
@@ -270,7 +270,7 @@ public:
      *
      * @return The result of write to disk. Returns 0 for success, others for failure.
      */
-    virtual int FlushSync() = 0;
+    PREF_API_EXPORT virtual int FlushSync() = 0;
 
     /**
      * @brief  Registers an observer.
@@ -279,7 +279,7 @@ public:
      *
      * @param preferencesObserver Indicates callback function for data changes.
      */
-    virtual void RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) = 0;
+    PREF_API_EXPORT virtual void RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) = 0;
 
     /**
      * @brief  Unregister an existing observer.
@@ -288,7 +288,7 @@ public:
      *
      * @param preferencesObserver Indicates callback function for data changes.
      */
-    virtual void UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) = 0;
+    PREF_API_EXPORT virtual void UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) = 0;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

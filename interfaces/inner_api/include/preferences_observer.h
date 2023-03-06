@@ -26,7 +26,7 @@ namespace NativePreferences {
  */
 class PreferencesObserver {
 public:
-    virtual ~PreferencesObserver();
+    PREF_API_EXPORT virtual ~PreferencesObserver();
 
     /**
      * @brief  A callback function when the data changes.
@@ -35,7 +35,7 @@ public:
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      */
-    virtual void OnChange(const std::string &key) = 0;
+    PREF_API_EXPORT virtual void OnChange(const std::string &key) = 0;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

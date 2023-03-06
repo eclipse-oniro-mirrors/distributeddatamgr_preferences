@@ -26,21 +26,21 @@ namespace NativePreferences {
 /**
  * The PreferencesValue class of the preference. Various operations on PreferencesValue are provided in this class.
  */
-class PreferencesValue {
+class PREF_API_EXPORT PreferencesValue {
 public:
-    ~PreferencesValue()
+    PREF_API_EXPORT ~PreferencesValue()
     {
     }
 
     /**
      * @brief Move constructor.
      */
-    PreferencesValue(PreferencesValue &&preferencesValue) noexcept;
+    PREF_API_EXPORT PreferencesValue(PreferencesValue &&preferencesValue) noexcept;
 
     /**
      * @brief Copy constructor.
      */
-    PreferencesValue(const PreferencesValue &preferencesValue);
+    PREF_API_EXPORT PreferencesValue(const PreferencesValue &preferencesValue);
 
     /**
      * @brief Constructor.
@@ -49,7 +49,7 @@ public:
      *
      * @param value Indicates an int input parameter.
      */
-    PreferencesValue(int value);
+    PREF_API_EXPORT PreferencesValue(int value);
 
     /**
      * @brief Constructor.
@@ -58,7 +58,7 @@ public:
      *
      * @param value Indicates a int64_t input parameter.
      */
-    PreferencesValue(int64_t value);
+    PREF_API_EXPORT PreferencesValue(int64_t value);
 
     /**
      * @brief Constructor.
@@ -67,7 +67,7 @@ public:
      *
      * @param value Indicates a int64_t input parameter.
      */
-    PreferencesValue(float value);
+    PREF_API_EXPORT PreferencesValue(float value);
 
     /**
      * @brief Constructor.
@@ -76,7 +76,7 @@ public:
      *
      * @param value Indicates a double input parameter.
      */
-    PreferencesValue(double value);
+    PREF_API_EXPORT PreferencesValue(double value);
 
     /**
      * @brief Constructor.
@@ -85,7 +85,7 @@ public:
      *
      * @param value Indicates a bool input parameter.
      */
-    PreferencesValue(bool value);
+    PREF_API_EXPORT PreferencesValue(bool value);
 
     /**
      * @brief Constructor.
@@ -94,7 +94,7 @@ public:
      *
      * @param value Indicates a string input parameter.
      */
-    PreferencesValue(std::string value);
+    PREF_API_EXPORT PreferencesValue(std::string value);
 
     /**
      * @brief Constructor.
@@ -103,7 +103,7 @@ public:
      *
      * @param value Indicates a char input parameter.
      */
-    PreferencesValue(const char *value);
+    PREF_API_EXPORT PreferencesValue(const char *value);
 
     /**
      * @brief Constructor.
@@ -112,7 +112,7 @@ public:
      *
      * @param value Indicates a vector<double> input parameter.
      */
-    PreferencesValue(std::vector<double> value);
+    PREF_API_EXPORT PreferencesValue(std::vector<double> value);
 
     /**
      * @brief Constructor.
@@ -121,7 +121,7 @@ public:
      *
      * @param value Indicates a vector<std::string> input parameter.
      */
-    PreferencesValue(std::vector<std::string> value);
+    PREF_API_EXPORT PreferencesValue(std::vector<std::string> value);
 
     /**
      * @brief Constructor.
@@ -130,12 +130,12 @@ public:
      *
      * @param value Indicates a vector<bool> input parameter.
      */
-    PreferencesValue(std::vector<bool> value);
+    PREF_API_EXPORT PreferencesValue(std::vector<bool> value);
 
     /**
      * @brief Move assignment operator overloaded function.
      */
-    PreferencesValue &operator=(PreferencesValue &&preferencesValue) noexcept;
+    PREF_API_EXPORT PreferencesValue &operator=(PreferencesValue &&preferencesValue) noexcept;
 
     /**
      * @brief Copy assignment operator overloaded function.
@@ -147,126 +147,126 @@ public:
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsInt() const;
+    PREF_API_EXPORT bool IsInt() const;
 
     /**
      * @brief Determines whether the long type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsLong() const;
+    PREF_API_EXPORT bool IsLong() const;
 
     /**
      * @brief Determines whether the float type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsFloat() const;
+    PREF_API_EXPORT bool IsFloat() const;
 
     /**
      * @brief Determines whether the double type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsDouble() const;
+    PREF_API_EXPORT bool IsDouble() const;
 
     /**
      * @brief Determines whether the bool type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsBool() const;
+    PREF_API_EXPORT bool IsBool() const;
 
     /**
      * @brief Determines whether the string type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsString() const;
+    PREF_API_EXPORT bool IsString() const;
 
     /**
      * @brief Determines whether the string array type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsStringArray() const;
+    PREF_API_EXPORT bool IsStringArray() const;
 
     /**
      * @brief Determines whether the bool array type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsBoolArray() const;
+    PREF_API_EXPORT bool IsBoolArray() const;
 
     /**
      * @brief Determines whether the double array type PreferencesValue is currently used.
      *
      * @return Returning true means it is, false means it isn't.
      */
-    bool IsDoubleArray() const;
+    PREF_API_EXPORT bool IsDoubleArray() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return The int type PreferencesValue.
      */
-    operator int() const;
+    PREF_API_EXPORT operator int() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns float type PreferencesValue.
      */
-    operator float() const;
+    PREF_API_EXPORT operator float() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns double type PreferencesValue.
      */
-    operator double() const;
+    PREF_API_EXPORT operator double() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns bool type PreferencesValue.
      */
-    operator bool() const;
+    PREF_API_EXPORT operator bool() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns int64_t type PreferencesValue.
      */
-    operator int64_t() const;
+    PREF_API_EXPORT operator int64_t() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns string type PreferencesValue.
      */
-    operator std::string() const;
+    PREF_API_EXPORT operator std::string() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns vector<double> type PreferencesValue.
      */
-    operator std::vector<double>() const;
+    PREF_API_EXPORT operator std::vector<double>() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns vector<bool> type PreferencesValue.
      */
-    operator std::vector<bool>() const;
+    PREF_API_EXPORT operator std::vector<bool>() const;
 
     /**
      * @brief Type conversion function.
      *
      * @return Returns vector<string> type PreferencesValue.
      */
-    operator std::vector<std::string>() const;
+    PREF_API_EXPORT operator std::vector<std::string>() const;
 
     /**
      * @brief Overloaded operator "==".
@@ -277,7 +277,7 @@ public:
      *
      * @return Returning true means the input value is equal to the current PreferencesValue, false means it isn't.
      */
-    bool operator==(const PreferencesValue &value);
+    PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
 private:
     std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>, std::vector<bool>,

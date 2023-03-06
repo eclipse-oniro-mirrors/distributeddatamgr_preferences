@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/distributeddatamgr/preferences/preferences.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
@@ -32,11 +33,11 @@ ohos_fuzztest("PreferencesFuzzTest") {
 
   configs = [ ":module_private_config" ]
 
+  deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
+
   external_deps = [
     "c_utils:utils",
     "hilog_native:libhilog",
-    "ipc:ipc_core",
-    "preferences:native_preferences",
   ]
 }
 
