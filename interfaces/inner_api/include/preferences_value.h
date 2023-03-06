@@ -20,6 +20,8 @@
 #include <variant>
 #include <vector>
 
+#include "preferences_visibility.h"
+
 namespace OHOS {
 namespace NativePreferences {
 

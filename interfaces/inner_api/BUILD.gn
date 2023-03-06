@@ -79,7 +79,7 @@ ohos_shared_library("native_preferences") {
   part_name = "preferences"
 }
 
-ohos_shared_library("native_preferences_static") {
+ohos_static_library("native_preferences_static") {
   all_dependent_configs = [ ":native_preferences_public_config" ]
   sources = [
     "${preferences_native_path}/src/preferences_helper.cpp",

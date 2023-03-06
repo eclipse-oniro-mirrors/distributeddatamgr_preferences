@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "preferences_visibility.h"
+
 namespace OHOS {
 namespace NativePreferences {
 
@@ -35,7 +37,7 @@ public:
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      */
-    PREF_API_EXPORT virtual void OnChange(const std::string &key) = 0;
+    virtual void OnChange(const std::string &key) = 0;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
