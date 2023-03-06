@@ -29,17 +29,19 @@ config("adaptor_config") {
   include_dirs = [ "//commonlibrary/c_utils/base/include" ]
 }
 
+base_sources = [
+  "${preferences_native_path}/src/preferences_helper.cpp",
+  "${preferences_native_path}/src/preferences_impl.cpp",
+  "${preferences_native_path}/src/preferences_observer.cpp",
+  "${preferences_native_path}/src/preferences_value.cpp",
+  "${preferences_native_path}/src/preferences_xml_utils.cpp",
+  "${preferences_native_path}/src/task_pool.cpp",
+  "${preferences_native_path}/src/task_queue.cpp",
+]
+
 ohos_shared_library("native_preferences") {
   all_dependent_configs = [ ":native_preferences_public_config" ]
-  sources = [
-    "${preferences_native_path}/src/preferences_helper.cpp",
-    "${preferences_native_path}/src/preferences_impl.cpp",
-    "${preferences_native_path}/src/preferences_observer.cpp",
-    "${preferences_native_path}/src/preferences_value.cpp",
-    "${preferences_native_path}/src/preferences_xml_utils.cpp",
-    "${preferences_native_path}/src/task_pool.cpp",
-    "${preferences_native_path}/src/task_queue.cpp",
-  ]
+  sources = base_sources
 
   innerapi_tags = [ "platformsdk" ]
 
@@ -81,15 +83,7 @@ ohos_shared_library("native_preferences") {
 
 ohos_static_library("native_preferences_static") {
   all_dependent_configs = [ ":native_preferences_public_config" ]
-  sources = [
-    "${preferences_native_path}/src/preferences_helper.cpp",
-    "${preferences_native_path}/src/preferences_impl.cpp",
-    "${preferences_native_path}/src/preferences_observer.cpp",
-    "${preferences_native_path}/src/preferences_value.cpp",
-    "${preferences_native_path}/src/preferences_xml_utils.cpp",
-    "${preferences_native_path}/src/task_pool.cpp",
-    "${preferences_native_path}/src/task_queue.cpp",
-  ]
+  sources = base_sources
 
   configs = [ ":native_preferences_config" ]
 
