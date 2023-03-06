@@ -24,7 +24,7 @@ namespace NativePreferences {
 /**
  * The observer class of preferences.
  */
-class PreferencesObserver {
+class PREF_API_EXPORT PreferencesObserver {
 public:
     PREF_API_EXPORT virtual ~PreferencesObserver();
 
