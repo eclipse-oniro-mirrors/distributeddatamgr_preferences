@@ -140,14 +140,46 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
 
 int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<PreferencesAysncContext> context)
 {
+    napi_valuetype keyType = napi_undefined;
+    napi_typeof(env, arg, &keyType);
+    if (keyType != napi_string) {
+        LOG_ERROR("ParseKey: key type must be string.");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "String type.");
+        context->SetError(paramError);
+        return ERR;
+    }
+    size_t keyBufferSize = 0;
+    napi_status status = napi_get_value_string_utf8(env, arg, nullptr, 0, &keyBufferSize);
+    if (status != napi_ok) {
+        LOG_ERROR("ParseKey: get keyBufferSize failed");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        context->SetError(paramError);
+        return ERR;
+    }
+    if (keyBufferSize > MAX_KEY_LENGTH) {
+        LOG_ERROR("the length of the key is over maximum length.");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 80 bytes.");
+        context->SetError(paramError);
+        return ERR;
+    }
     // get input key
-    char key[MAX_KEY_LENGTH] = { 0 };
+    char *key = new (std::nothrow) char[keyBufferSize + 1];
+    if (key == nullptr) {
+        LOG_ERROR("new buffer failed.");
+        return ERR;
+    }
     size_t keySize = 0;
-    napi_status status = napi_get_value_string_utf8(env, arg, key, MAX_KEY_LENGTH, &keySize);
-    std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("key", "a non empty string.");
-    PRE_CHECK_RETURN_CALL_RESULT(status == napi_ok, context->SetError(paramError));
-
-    context->key = key;
+    status = napi_get_value_string_utf8(env, arg, key, keyBufferSize + 1, &keySize);
+    if (status != napi_ok) {
+        LOG_ERROR("ParseKey: get keySize failed");
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        context->SetError(paramError);
+        delete[] key;
+        return ERR;
+    }
+    key[keySize] = 0;
+    context->key = std::string(key);
+    delete[] key;
     return OK;
 }
 
@@ -231,27 +263,38 @@ int32_t ParseDefObject(const napi_env &env, const napi_value &jsVal, std::shared
 int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     napi_valuetype valueType = napi_undefined;
-    std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
     napi_typeof(env, jsVal, &valueType);
     if (valueType == napi_number) {
         double number = 0.0;
         if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Double error");
-            PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
+            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            context->SetError(paramError);
+            return ERR;
         }
         context->defValue = number;
     } else if (valueType == napi_string) {
         std::string str;
-        if (JSUtils::Convert2String(env, jsVal, str) != E_OK) {
+        auto ret = JSUtils::Convert2String(env, jsVal, str);
+        if (ret != E_OK) {
             LOG_ERROR("ParseDefValue Convert2String error");
-            PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
+            if (ret == EXCEED_MAX_LENGTH) {
+                std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 8192 bytes.");
+                context->SetError(paramError);
+                return ERR;
+            }
+            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            context->SetError(paramError);
+            return ERR;
         }
         context->defValue = str;
     } else if (valueType == napi_boolean) {
         bool bValue = false;
         if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2Bool error");
-            PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
+            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            context->SetError(paramError);
+            return ERR;
         }
         context->defValue = bValue;
     } else if (valueType == napi_object) {
@@ -260,7 +303,9 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
         }
     } else {
         LOG_ERROR("ParseDefValue Wrong second parameter type");
-        PRE_CHECK_RETURN_CALL_RESULT(true, context->SetError(paramError));
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        context->SetError(paramError);
+        return ERR;
     }
     return OK;
 }
@@ -353,8 +398,8 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetAll start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
+    
         napi_unwrap(env, self, &context->boundObj);
         return OK;
     };
@@ -386,7 +431,6 @@ int32_t GetArrayValue(std::shared_ptr<PreferencesAysncContext> context, napi_val
             return E_NAPI_GET_ERROR;
         }
     } else if (context->defValue.IsBoolArray()) {
-        std::vector<bool> array = context->defValue;
         if (JSUtils::Convert2JSBoolArr(context->env_, (std::vector<bool>)context->defValue, output) != E_OK) {
             LOG_ERROR("GetArrayValue Convert2JSValue get boolArray failed");
             return E_NAPI_GET_ERROR;
@@ -400,8 +444,7 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
         napi_unwrap(env, self, &context->boundObj);
@@ -452,8 +495,7 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     LOG_DEBUG("SetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("2 or 3");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 2 || argc == 3, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
         napi_unwrap(env, self, &context->boundObj);
@@ -481,8 +523,7 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     LOG_DEBUG("Delete start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         napi_unwrap(env, self, &context->boundObj);
         return OK;
@@ -508,8 +549,7 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     LOG_DEBUG("HasKey start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
         napi_unwrap(env, self, &context->boundObj);
         return OK;
@@ -535,8 +575,7 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     LOG_DEBUG("Flush start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
         napi_unwrap(env, self, &context->boundObj);
         return OK;
     };
@@ -560,8 +599,7 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     LOG_DEBUG("Clear start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("0 or 1");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 0 || argc == 1, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
         napi_unwrap(env, self, &context->boundObj);
         return OK;
     };

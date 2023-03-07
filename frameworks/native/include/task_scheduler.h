@@ -15,6 +15,8 @@
 
 #ifndef OHOS_DISTRIBUTED_DATA_FRAMEWORKS_COMMON_TASK_SCHEDULER_H
 #define OHOS_DISTRIBUTED_DATA_FRAMEWORKS_COMMON_TASK_SCHEDULER_H
+#include <pthread.h>
+
 #include <atomic>
 #include <chrono>
 #include <condition_variable>

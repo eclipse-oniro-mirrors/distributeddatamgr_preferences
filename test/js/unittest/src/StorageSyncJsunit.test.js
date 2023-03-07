@@ -286,4 +286,164 @@ describe('storageTest', function () {
         mPref.off('change', observer);
         mPref.putSync(KEY_TEST_STRING_ELEMENT, "abc");
     })
+
+    /**
+     * @tc.name test putSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0170
+     * @tc.desc test put interface input parameter key exceed 80byte.
+     */
+    it('testputSyncIllegal001', 0, function () {
+        let illegalKey = "1";
+        illegalKey = illegalKey.repeat(81);
+        try {
+            mPref.putSync(illegalKey, "123456");
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+        }
+    })
+
+    /**
+     * @tc.name test putSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0180
+     * @tc.desc test put interface input parameter key is legal.
+     */
+    it('testputSyncIllegal002', 0, function () {
+        let legalKey = "1";
+        legalKey = legalKey.repeat(80);
+        try {
+            mPref.putSync(legalKey, "123456");
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+        }
+    })
+
+    /**
+     * @tc.name test putSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0180
+     * @tc.desc test put interface input parameter value exceed 8192byte.
+     */
+    it('testputSyncIllegal003', 0, function () {
+        let illegalValue = "1";
+        illegalValue = illegalValue.repeat(8193);
+        try {
+            mPref.putSync("test", illegalValue);
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+        }
+    })
+
+    /**
+     * @tc.name test putSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0180
+     * @tc.desc test put interface input parameter value is legal.
+     */
+    it('testputSyncIllegal004', 0, function () {
+        let legalValue = "1";
+        legalValue = legalValue.repeat(8192);
+        try {
+            mPref.putSync("test", legalValue);
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+        }
+    })
+
+    /**
+     * @tc.name test getSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0190
+     * @tc.desc test getSync interface input parameter key exceed 80byte.
+     */
+    it('testgetSyncIllegal001', 0, function () {
+        let illegalkey = "1";
+        illegalkey = illegalkey.repeat(81);
+        try {
+            mPref.getSync(illegalkey, "defaultValue");
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+        }
+    })
+
+    /**
+     * @tc.name test getSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0190
+     * @tc.desc test getSync interface input parameter key is legal.
+     */
+    it('testgetSyncIllegal002', 0, function () {
+        let legalkey = "1";
+        legalkey = legalkey.repeat(80);
+        try {
+            mPref.getSync(legalkey, "defaultValue");
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+        }
+    })
+
+    /**
+     * @tc.name test deleteSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0200
+     * @tc.desc test deleteSync interface input parameter key exceed 80byte.
+     */
+    it('testdeleteSyncIllegal001', 0, function () {
+        let illegalkey = "1";
+        illegalkey = illegalkey.repeat(81);
+        try {
+            mPref.deleteSync(illegalkey);
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+        }
+    })
+
+    /**
+     * @tc.name test deleteSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0200
+     * @tc.desc test deleteSync interface input parameter key is legal.
+     */
+    it('testdeleteSyncIllegal002', 0, function () {
+        let legalkey = "1";
+        legalkey = legalkey.repeat(80);
+        try {
+            mPref.deleteSync(legalkey);
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+        }
+    })
+
+    /**
+     * @tc.name test hasSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0210
+     * @tc.desc test hasSync interface input parameter key exceed 80byte.
+     */
+    it('testhasSyncIllegal001', 0, function () {
+        let illegalkey = "1";
+        illegalkey = illegalkey.repeat(81);
+        try {
+            mPref.hasSync(illegalkey);
+            expect(false).assertTrue();
+        } catch (err) {
+            console.log("try catch err =" + err);
+        }
+    })
+
+    /**
+     * @tc.name test hasSync interface
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0210
+     * @tc.desc test hasSync interface input parameter key is legal.
+     */
+    it('testhasSyncIllegal002', 0, function () {
+        let legalkey = "1";
+        legalkey = legalkey.repeat(80);
+        try {
+            mPref.hasSync(legalkey);
+        } catch (err) {
+            console.log("try catch err =" + err);
+            expect(false).assertTrue();
+        }
+    })
 })

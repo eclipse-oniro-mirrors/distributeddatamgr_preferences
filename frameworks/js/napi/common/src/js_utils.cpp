@@ -25,14 +25,28 @@ namespace OHOS {
 namespace PreferencesJsKit {
 int32_t JSUtils::Convert2String(napi_env env, napi_value jsStr, std::string &output)
 {
-    char *str = new char[MAX_VALUE_LENGTH + 1];
+    size_t strBufferSize = 0;
+    napi_status status = napi_get_value_string_utf8(env, jsStr, nullptr, 0, &strBufferSize);
+    if (status != napi_ok) {
+        LOG_ERROR("JSUtils::Convert2String get strBufferSize failed, status = %{public}d", status);
+        return ERR;
+    }
+    if (strBufferSize > MAX_VALUE_LENGTH) {
+        LOG_ERROR("JSUtils::Convert2String over maximum length.");
+        return EXCEED_MAX_LENGTH;
+    }
+    char *str = new (std::nothrow) char[strBufferSize + 1];
+    if (str == nullptr) {
+        return ERR;
+    }
     size_t valueSize = 0;
-    napi_status status = napi_get_value_string_utf8(env, jsStr, str, MAX_VALUE_LENGTH, &valueSize);
+    status = napi_get_value_string_utf8(env, jsStr, str, strBufferSize + 1, &valueSize);
     if (status != napi_ok) {
         LOG_ERROR("JSUtils::Convert2String get jsVal failed, status = %{public}d", status);
         delete[] str;
         return ERR;
     }
+    str[valueSize] = 0;
     output = std::string(str);
     delete[] str;
     return OK;

@@ -70,8 +70,7 @@ napi_value GetStorage(napi_env env, napi_callback_info info)
     LOG_DEBUG("GetStorage start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseString(env, argv[0], context));
         return OK;
     };
@@ -140,8 +139,7 @@ napi_value DeleteStorage(napi_env env, napi_callback_info info)
     LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseString(env, argv[0], context));
         return OK;
     };
@@ -188,8 +186,7 @@ napi_value RemoveStorageFromCache(napi_env env, napi_callback_info info)
     LOG_DEBUG("RemovePreferencesFromCache start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>("1 or 2");
-        PRE_CHECK_RETURN_CALL_RESULT(argc == 1 || argc == 2, context->SetError(paramNumError));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseString(env, argv[0], context));
         return OK;
     };

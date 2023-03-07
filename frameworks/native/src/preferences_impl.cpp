@@ -85,7 +85,7 @@ void PreferencesImpl::StartLoadFromDisk()
     {
         std::lock_guard<std::mutex> lock(mutex_);
         loaded_ = false;
-    } 
+    }
     TaskScheduler::Task task = std::bind(PreferencesImpl::LoadFromDisk, std::ref(*this));
     TaskExecutor::GetInstance().Execute(std::move(task));
 }
