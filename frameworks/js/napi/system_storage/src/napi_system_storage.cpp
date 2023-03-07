@@ -157,7 +157,11 @@ napi_value Operate(napi_env env, napi_callback_info info, const char *resource, 
     NAPI_CALL(env, napi_typeof(env, argv[0], &valueType));
     NAPI_ASSERT(env, valueType == napi_object, "Wrong argument type, object expected.");
 
-    AsyncContext *context = new AsyncContext();
+    AsyncContext *context = new (std::nothrow) AsyncContext();
+    if (context == nullptr) {
+        LOG_ERROR("Operate new failed, context is nullptr");
+        return nullptr;
+    }
     context->prefName = GetPrefName(env);
 
     ParseString(env, argv[0], "key", parseStrFlag, context->key);
