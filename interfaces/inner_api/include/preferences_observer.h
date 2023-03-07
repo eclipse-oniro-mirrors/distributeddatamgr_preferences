@@ -18,15 +18,17 @@
 
 #include <string>
 
+#include "preferences_visibility.h"
+
 namespace OHOS {
 namespace NativePreferences {
 
 /**
  * The observer class of preferences.
  */
-class PreferencesObserver {
+class PREF_API_EXPORT PreferencesObserver {
 public:
-    virtual ~PreferencesObserver();
+    PREF_API_EXPORT virtual ~PreferencesObserver();
 
     /**
      * @brief  A callback function when the data changes.

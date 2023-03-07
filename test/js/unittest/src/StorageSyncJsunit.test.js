@@ -438,7 +438,7 @@ describe('storageTest', function () {
      */
     it('testhasSyncIllegal002', 0, function () {
         let legalkey = "1";
-        legalkey = illegalkey.repeat(80);
+        legalkey = legalkey.repeat(80);
         try {
             mPref.hasSync(legalkey);
         } catch (err) {

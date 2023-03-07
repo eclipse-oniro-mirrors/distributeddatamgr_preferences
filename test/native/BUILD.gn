@@ -40,7 +40,7 @@ ohos_unittest("NativePreferencesTest") {
   external_deps = [ "hilog_native:libhilog" ]
 
   deps = [
-    "${preferences_innerapi_path}:native_preferences",
+    "${preferences_innerapi_path}:native_preferences_static",
     "//third_party/googletest:gtest_main",
   ]
 }

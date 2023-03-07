@@ -23,6 +23,7 @@
 
 #include "preferences_observer.h"
 #include "preferences_value.h"
+#include "preferences_visibility.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -30,21 +31,21 @@ namespace NativePreferences {
 /**
  * The function class of the preference. Various operations on preferences instances are provided in this class.
  */
-class Preferences {
+class PREF_API_EXPORT Preferences {
 public:
-    virtual ~Preferences()
+    PREF_API_EXPORT virtual ~Preferences()
     {
     }
 
     /**
     * @brief The constant Indicates the maximum length of the key in the preferences.
     */
-    static const unsigned int MAX_KEY_LENGTH = 80;
+    PREF_API_EXPORT static const unsigned int MAX_KEY_LENGTH = 80;
 
     /**
      * @brief The constant Indicates the maximum length of the value in the preferences.
      */
-    static const unsigned int MAX_VALUE_LENGTH = 8 * 1024;
+    PREF_API_EXPORT static const unsigned int MAX_VALUE_LENGTH = 8 * 1024;
 
     /**
      * @brief Obtains the value of a preferences.
