@@ -127,7 +127,11 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
         LOG_WARN("get this failed");
         return nullptr;
     }
-    PreferencesProxy *obj = new PreferencesProxy();
+    PreferencesProxy *obj = new (std::nothrow) PreferencesProxy();
+    if (obj == nullptr) {
+        LOG_ERROR("PreferencesProxy::New new failed, obj is nullptr");
+        return nullptr;
+    }
     obj->env_ = env;
     obj->uvQueue_ = std::make_shared<UvQueue>(env);
     napi_status status = napi_wrap(env, thiz, obj, PreferencesProxy::Destructor, nullptr, nullptr);
