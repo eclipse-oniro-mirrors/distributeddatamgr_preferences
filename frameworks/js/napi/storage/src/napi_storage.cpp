@@ -127,7 +127,11 @@ napi_value StorageProxy::New(napi_env env, napi_callback_info info)
     napi_valuetype valueType = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, args[0], &valueType));
     NAPI_ASSERT(env, valueType == napi_string, "input type not string");
-    char *path = new char[PATH_MAX];
+    char *path = new (std::nothrow) char[PATH_MAX];
+    if (path == nullptr) {
+        LOG_ERROR("StorageProxy::New new failed, path is nullptr");
+        return nullptr;
+    }
     size_t pathLen = 0;
     napi_status status = napi_get_value_string_utf8(env, args[0], path, PATH_MAX, &pathLen);
     if (status != napi_ok) {
@@ -141,7 +145,11 @@ napi_value StorageProxy::New(napi_env env, napi_callback_info info)
         OHOS::NativePreferences::PreferencesHelper::GetPreferences(path, errCode);
     delete[] path;
     NAPI_ASSERT(env, preference != nullptr, "failed to call native");
-    StorageProxy *obj = new StorageProxy(preference);
+    StorageProxy *obj = new (std::nothrow) StorageProxy(preference);
+    if (obj == nullptr) {
+        LOG_ERROR("StorageProxy::New new failed, obj is nullptr");
+        return nullptr;
+    }
     obj->env_ = env;
     obj->value_ = std::move(preference);
     obj->uvQueue_ = std::make_shared<UvQueue>(env);
@@ -188,7 +196,11 @@ napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
         double result = obj->value_->GetDouble(key, value);
         NAPI_CALL(env, napi_create_double(env, result, &output)); // double
     } else if (valueType == napi_string) {
-        char *value = new char[MAX_VALUE_LENGTH];
+        char *value = new (std::nothrow) char[MAX_VALUE_LENGTH];
+        if (value == nullptr) {
+            LOG_ERROR("StorageProxy::GetValueSync new failed, value is nullptr");
+            return nullptr;
+        }
         size_t valueSize = 0;
         napi_get_value_string_utf8(env, args[1], value, MAX_VALUE_LENGTH, &valueSize);
         // get value

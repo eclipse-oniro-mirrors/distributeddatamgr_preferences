@@ -57,7 +57,11 @@ int ParseString(const napi_env &env, const napi_value &value, std::shared_ptr<He
         LOG_WARN("error input");
         return ERR;
     }
-    char *path = new char[PATH_MAX];
+    char *path = new (std::nothrow) char[PATH_MAX];
+    if (path == nullptr) {
+        LOG_ERROR("ParseString new failed, path is nullptr");
+        return ERR;
+    }
     size_t pathLen = 0;
     napi_get_value_string_utf8(env, value, path, PATH_MAX, &pathLen);
     asyncContext->path = path;
@@ -109,7 +113,11 @@ napi_status GetInputPath(napi_env env, napi_callback_info info, std::string &pat
         return napi_invalid_arg;
     }
 
-    char *path = new char[PATH_MAX];
+    char *path = new (std::nothrow) char[PATH_MAX];
+    if (path == nullptr) {
+        LOG_ERROR("GetInputPath new failed, path is nullptr");
+        return napi_arraybuffer_expected;
+    }
     size_t pathLen = 0;
     ret = napi_get_value_string_utf8(env, args[0], path, PATH_MAX, &pathLen);
     pathString = path;
