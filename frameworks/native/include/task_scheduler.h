@@ -33,13 +33,11 @@ class API_LOCAL TaskScheduler {
 public:
     using TaskId = uint64_t;
     using Time = std::chrono::steady_clock::time_point;
-    using Duration = std::chrono::steady_clock::duration;
-    using Clock = std::chrono::steady_clock;
     using Task = std::function<void()>;
     inline static constexpr TaskId INVALID_TASK_ID = static_cast<uint64_t>(0ULL);
-    TaskScheduler(size_t capacity, const std::string &name)
+    TaskScheduler(const std::string &name)
     {
-        capacity_ = capacity;
+        capacity_ = std::numeric_limits<size_t>::max();
         isRunning_ = true;
         taskId_ = INVALID_TASK_ID;
         thread_ = std::make_unique<std::thread>([this, name]() {
@@ -49,14 +47,14 @@ public:
         });
     }
     
-    TaskScheduler(const std::string &name) : TaskScheduler(std::numeric_limits<size_t>::max(), name)
-    {
-    }
-    
     ~TaskScheduler()
     {
         isRunning_ = false;
-        Clean();
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            indexes_.clear();
+            tasks_.clear();
+        }
         At(std::chrono::steady_clock::now(), []() {});
         thread_->join();
     }
@@ -76,79 +74,7 @@ public:
         indexes_[taskId] = it;
         return taskId;
     }
-
-    TaskId Reset(TaskId taskId, const Duration &interval)
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto index = indexes_.find(taskId);
-        if (index == indexes_.end()) {
-            return INVALID_TASK_ID;
-        }
-
-        auto it = tasks_.insert({ std::chrono::steady_clock::now() + interval, std::move(index->second->second) });
-        if (it == tasks_.begin() || index->second == tasks_.begin()) {
-            condition_.notify_one();
-        }
-        tasks_.erase(index->second);
-        indexes_[taskId] = it;
-        return taskId;
-    }
-
-    void Clean()
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        indexes_.clear();
-        tasks_.clear();
-    }
-
-    // execute task periodically with duration
-    void Every(Duration interval, Task task)
-    {
-        std::function<void()> waitFunc = [this, interval, task]() {
-            task();
-            this->Every(interval, task);
-        };
-        At(std::chrono::steady_clock::now() + interval, waitFunc);
-    }
-
-    // remove task in SchedulerTask
-    void Remove(TaskId taskId)
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto index = indexes_.find(taskId);
-        if (index == indexes_.end()) {
-            return;
-        }
-        tasks_.erase(index->second);
-        indexes_.erase(index);
-        condition_.notify_one();
-    }
-
-    // execute task periodically with duration after delay
-    void Every(Duration delay, Duration interval, Task task)
-    {
-        std::function<void()> waitFunc = [this, interval, task]() {
-            task();
-            Every(interval, task);
-        };
-        At(std::chrono::steady_clock::now() + delay, waitFunc);
-    }
-
-    // execute task for some times periodically with duration after delay
-    void Every(int32_t times, Duration delay, Duration interval, Task task)
-    {
-        std::function<void()> waitFunc = [this, times, interval, task]() {
-            task();
-            int count = times;
-            count--;
-            if (times > 1) {
-                Every(count, interval, interval, task);
-            }
-        };
-
-        At(std::chrono::steady_clock::now() + delay, waitFunc);
-    }
-
+    
     TaskId Execute(Task task)
     {
         return At(std::chrono::steady_clock::now(), std::move(task));
@@ -163,11 +89,6 @@ private:
             {
                 std::unique_lock<std::mutex> lock(mutex_);
                 condition_.wait(lock, [this] { return !tasks_.empty(); });
-                if (tasks_.begin()->first > std::chrono::steady_clock::now()) {
-                    auto time = tasks_.begin()->first;
-                    condition_.wait_until(lock, time);
-                    continue;
-                }
                 auto it = tasks_.begin();
                 exec = it->second.first;
                 indexes_.erase(it->second.second);
