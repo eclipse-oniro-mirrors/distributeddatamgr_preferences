@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_DISTRIBUTED_DATA_FRAMEWORKS_COMMON_TASK_SCHEDULER_H
-#define OHOS_DISTRIBUTED_DATA_FRAMEWORKS_COMMON_TASK_SCHEDULER_H
+#ifndef OHOS_PREFERENCES_FRAMEWORKS_COMMON_TASK_SCHEDULER_H
+#define OHOS_PREFERENCES_FRAMEWORKS_COMMON_TASK_SCHEDULER_H
 #include <pthread.h>
 
 #include <atomic>
@@ -36,25 +36,23 @@ public:
     using Duration = std::chrono::steady_clock::duration;
     using Clock = std::chrono::steady_clock;
     using Task = std::function<void()>;
-    inline static constexpr TaskId INVALID_TASK_ID = static_cast<uint64_t>(0l);
+    inline static constexpr TaskId INVALID_TASK_ID = static_cast<uint64_t>(0ULL);
     TaskScheduler(size_t capacity, const std::string &name)
     {
         capacity_ = capacity;
         isRunning_ = true;
         taskId_ = INVALID_TASK_ID;
         thread_ = std::make_unique<std::thread>([this, name]() {
-            auto realName = std::string("scheduler_") + name;
+            auto realName = std::string("task_queue_") + name;
             pthread_setname_np(pthread_self(), realName.c_str());
             Loop();
         });
     }
+    
     TaskScheduler(const std::string &name) : TaskScheduler(std::numeric_limits<size_t>::max(), name)
     {
     }
-    TaskScheduler(size_t capacity = std::numeric_limits<size_t>::max()) : TaskScheduler(capacity, "")
-    {
-    }
-
+    
     ~TaskScheduler()
     {
         isRunning_ = false;
@@ -201,4 +199,4 @@ private:
     std::atomic<uint64_t> taskId_;
 };
 } // namespace OHOS
-#endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_COMMON_TASK_SCHEDULER_H
+#endif // OHOS_PREFERENCES_FRAMEWORKS_COMMON_TASK_SCHEDULER_H

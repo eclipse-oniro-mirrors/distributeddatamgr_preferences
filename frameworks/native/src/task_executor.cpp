@@ -22,13 +22,12 @@ TaskExecutor &TaskExecutor::GetInstance()
     return instance;
 }
 
-bool TaskExecutor::Execute(TaskScheduler::Task &&task, int32_t interval)
+bool TaskExecutor::Execute(TaskScheduler::Task &&task)
 {
     if (pool_ == nullptr) {
         return false;
     }
-    auto time = TaskScheduler::Clock::now() + std::chrono::milliseconds(interval);
-    pool_->At(time, std::move(task));
+    pool_->Execute(std::move(task));
     return true;
 }
 
@@ -40,7 +39,6 @@ TaskExecutor::TaskExecutor()
 TaskExecutor::~TaskExecutor()
 {
     if (pool_ != nullptr) {
-        pool_->Clean();
         pool_ = nullptr;
     }
 }

@@ -12,8 +12,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#ifndef DISTRIBUTED_DATA_TASK_EXECUTOR_H
-#define DISTRIBUTED_DATA_TASK_EXECUTOR_H
+#ifndef PREFERENCES_TASK_EXECUTOR_H
+#define PREFERENCES_TASK_EXECUTOR_H
 #include <map>
 
 #include "task_scheduler.h"
@@ -21,8 +21,8 @@ namespace OHOS {
 namespace NativePreferences {
 class TaskExecutor {
 public:
-    API_EXPORT static TaskExecutor &GetInstance();
-    API_EXPORT bool Execute(TaskScheduler::Task &&task, int32_t interval = 0);
+    API_LOCAL static TaskExecutor &GetInstance();
+    API_LOCAL bool Execute(TaskScheduler::Task &&task);
 
 private:
     TaskExecutor();
@@ -32,4 +32,4 @@ private:
 };
 } // namespace NativePreferences
 } // namespace OHOS
-#endif // DISTRIBUTEDDATAMGR_DATAMGR_EXECUTOR_FACTORY_H
+#endif // PREFERENCES_TASK_EXECUTOR_H

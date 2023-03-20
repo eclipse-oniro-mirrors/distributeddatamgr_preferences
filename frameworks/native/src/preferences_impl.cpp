@@ -76,18 +76,20 @@ PreferencesImpl::~PreferencesImpl()
 
 int PreferencesImpl::Init()
 {
-    StartLoadFromDisk();
+    if (!StartLoadFromDisk()) {
+        return E_ERROR;
+    }
     return E_OK;
 }
 
-void PreferencesImpl::StartLoadFromDisk()
+bool PreferencesImpl::StartLoadFromDisk()
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         loaded_ = false;
     }
     TaskScheduler::Task task = std::bind(PreferencesImpl::LoadFromDisk, std::ref(*this));
-    TaskExecutor::GetInstance().Execute(std::move(task));
+    return TaskExecutor::GetInstance().Execute(std::move(task));
 }
 
 int PreferencesImpl::CheckKey(const std::string &key)
@@ -495,7 +497,7 @@ int PreferencesImpl::FlushSync()
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = true;
     std::unique_lock<std::mutex> lock(request->reqMutex_);
-    PreferencesImpl::WriteToDiskFile(request);
+    WriteToDiskFile(request);
     if (request->wasWritten_) {
         LOG_DEBUG("%{private}s:%{public}" PRId64 " written", filePath_.c_str(), request->memoryStateGeneration_);
     }

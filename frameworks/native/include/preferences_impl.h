@@ -171,7 +171,7 @@ private:
 
     std::shared_ptr<MemoryToDiskRequest> commitToMemory();
     void notifyPreferencesObserver(const MemoryToDiskRequest &request);
-    void StartLoadFromDisk();
+    bool StartLoadFromDisk();
     int CheckKey(const std::string &key);
     int CheckStringValue(const std::string &value);
 
