@@ -35,8 +35,7 @@ base_sources = [
   "${preferences_native_path}/src/preferences_observer.cpp",
   "${preferences_native_path}/src/preferences_value.cpp",
   "${preferences_native_path}/src/preferences_xml_utils.cpp",
-  "${preferences_native_path}/src/task_pool.cpp",
-  "${preferences_native_path}/src/task_queue.cpp",
+  "${preferences_native_path}/src/task_executor.cpp",
 ]
 
 ohos_shared_library("native_preferences") {

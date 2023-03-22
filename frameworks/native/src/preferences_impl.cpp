@@ -20,13 +20,15 @@
 #include <cstdlib>
 #include <functional>
 #include <sstream>
+#include <thread>
 
+#include "adaptor.h"
 #include "logger.h"
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"
-
-#include "adaptor.h"
+#include "task_executor.h"
+#include "task_scheduler.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -48,7 +50,7 @@ static bool IsFileExist(const std::string &inputPath)
 
 PreferencesImpl::PreferencesImpl(const std::string &filePath)
     : loaded_(false), filePath_(filePath), backupPath_(MakeBackupPath(filePath_)),
-      brokenPath_(MakeBrokenPath(filePath_)), taskPool_(TaskPool(MAX_TP_THREADS, MIN_TP_THREADS))
+      brokenPath_(MakeBrokenPath(filePath_))
 {
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
@@ -70,26 +72,24 @@ std::string PreferencesImpl::MakeBrokenPath(const std::string &prefPath)
 
 PreferencesImpl::~PreferencesImpl()
 {
-    taskPool_.Stop();
 }
 
 int PreferencesImpl::Init()
 {
-    int errCode = taskPool_.Start();
-    if (errCode != E_OK) {
-        return errCode;
+    if (!StartLoadFromDisk()) {
+        return E_ERROR;
     }
-    StartLoadFromDisk();
     return E_OK;
 }
 
-void PreferencesImpl::StartLoadFromDisk()
+bool PreferencesImpl::StartLoadFromDisk()
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         loaded_ = false;
     }
-    taskPool_.Schedule(std::string("PreferencesImpl"), std::bind(&PreferencesImpl::LoadFromDisk, std::ref(*this)));
+    TaskScheduler::Task task = std::bind(PreferencesImpl::LoadFromDisk, std::ref(*this));
+    return TaskExecutor::GetInstance().Execute(std::move(task));
 }
 
 int PreferencesImpl::CheckKey(const std::string &key)
@@ -144,12 +144,7 @@ void PreferencesImpl::AwaitLoadFile()
 
 void PreferencesImpl::WriteToDiskFile(std::shared_ptr<MemoryToDiskRequest> mcr)
 {
-    bool fileExists = false;
     if (IsFileExist(filePath_)) {
-        fileExists = true;
-    }
-
-    if (fileExists) {
         bool needWrite = CheckRequestValidForStateGeneration(*mcr);
         if (!needWrite) {
             mcr->SetDiskWriteResult(false, E_OK);
@@ -227,7 +222,7 @@ std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
     return map_;
 }
 
-void ReadXmlArrayElement(Element element, std::map<std::string, PreferencesValue> &prefMap)
+void ReadXmlArrayElement(const Element &element, std::map<std::string, PreferencesValue> &prefMap)
 {
     if (element.tag_.compare("doubleArray") == 0) {
         std::vector<double> values;
@@ -259,7 +254,7 @@ void ReadXmlArrayElement(Element element, std::map<std::string, PreferencesValue
 }
 
 void ReadXmlElement(
-    Element element, std::map<std::string, PreferencesValue> &prefMap, const std::string &prefPath)
+    const Element &element, std::map<std::string, PreferencesValue> &prefMap, const std::string &prefPath)
 {
     if (element.tag_.compare("int") == 0) {
         std::stringstream ss;
@@ -306,15 +301,14 @@ bool PreferencesImpl::ReadSettingXml(
         LOG_ERROR("ReadSettingXml:%{private}s failed!", filePath_.c_str());
         return false;
     }
-
-    for (auto it = settings.begin(); it != settings.end(); it++) {
-        Element element = *it;
+    
+    for (auto &element : settings) {
         ReadXmlElement(element, prefMap, prefPath);
     }
     return true;
 }
 
-void WriteXmlElement(Element &elem, PreferencesValue value, const std::string filePath)
+void WriteXmlElement(Element &elem, const PreferencesValue &value, const std::string &filePath)
 {
     if (value.IsDoubleArray()) {
         elem.tag_ = std::string("doubleArray");
@@ -492,9 +486,9 @@ void PreferencesImpl::Flush()
     DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = false;
-
-    taskPool_.Schedule(
-        std::string("PreferencesImpl"), std::bind(&PreferencesImpl::WriteToDiskFile, std::ref(*this), request));
+    TaskScheduler::Task task = std::bind(&PreferencesImpl::WriteToDiskFile, std::ref(*this), request);
+    TaskExecutor::GetInstance().Execute(std::move(task));
+    
     notifyPreferencesObserver(*request);
 }
 
@@ -502,15 +496,11 @@ int PreferencesImpl::FlushSync()
 {
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = true;
-
-    taskPool_.Schedule(
-        std::string("PreferencesImpl"), std::bind(&PreferencesImpl::WriteToDiskFile, std::ref(*this), request));
     std::unique_lock<std::mutex> lock(request->reqMutex_);
-    request->reqCond_.wait(lock, [request] { return request->handled_; });
+    WriteToDiskFile(request);
     if (request->wasWritten_) {
         LOG_DEBUG("%{private}s:%{public}" PRId64 " written", filePath_.c_str(), request->memoryStateGeneration_);
     }
-
     notifyPreferencesObserver(*request);
     return request->writeToDiskResult_;
 }
@@ -559,7 +549,6 @@ PreferencesImpl::MemoryToDiskRequest::MemoryToDiskRequest(
     preferencesObservers_ = preferencesObservers;
     memoryStateGeneration_ = memStataGeneration;
     isSyncRequest_ = false;
-    handled_ = false;
     wasWritten_ = false;
     writeToDiskResult_ = E_ERROR;
 }
@@ -568,7 +557,6 @@ void PreferencesImpl::MemoryToDiskRequest::SetDiskWriteResult(bool wasWritten, i
 {
     writeToDiskResult_ = result;
     wasWritten_ = wasWritten;
-    handled_ = true;
     reqCond_.notify_one();
 }
 } // End of namespace NativePreferences
