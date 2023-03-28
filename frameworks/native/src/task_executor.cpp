@@ -38,9 +38,6 @@ TaskExecutor::TaskExecutor()
 
 TaskExecutor::~TaskExecutor()
 {
-    if (pool_ != nullptr) {
-        pool_ = nullptr;
-    }
 }
 } // namespace NativePreferences
 } // namespace OHOS

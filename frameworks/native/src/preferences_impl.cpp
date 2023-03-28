@@ -302,7 +302,7 @@ bool PreferencesImpl::ReadSettingXml(
         return false;
     }
     
-    for (auto &element : settings) {
+    for (const auto &element : settings) {
         ReadXmlElement(element, prefMap, prefPath);
     }
     return true;
