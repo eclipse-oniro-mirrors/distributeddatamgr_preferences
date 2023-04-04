@@ -103,7 +103,7 @@ HWTEST_F(PreferencesXmlUtilsTest, UnnormalReadSettingXml_001, TestSize.Level1)
 */
 HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
 {
-    std::string file = "/data/test/test";
+    std::string file = "/data/test/test01";
     std::remove(file.c_str());
 
     std::vector<Element> settings;
@@ -131,7 +131,7 @@ HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
 */
 HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_001, TestSize.Level1)
 {
-    std::string file = "/data/test/test";
+    std::string file = "/data/test/test02";
     std::remove(file.c_str());
     std::vector<Element> settings;
 
@@ -170,7 +170,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_001, TestSize.Level1)
 */
 HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_002, TestSize.Level1)
 {
-    std::string file = "/data/test/test";
+    std::string file = "/data/test/test03";
     std::remove(file.c_str());
     std::vector<Element> settings;
 
@@ -210,7 +210,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_002, TestSize.Level1)
 */
 HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
 {
-    std::string file = "/data/test/test";
+    std::string file = "/data/test/test04";
     std::remove(file.c_str());
     std::vector<Element> settings;
 

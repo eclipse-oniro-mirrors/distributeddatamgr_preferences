@@ -84,7 +84,7 @@ void PreferencesTest::TearDown(void)
     /* clear all data after every case */
     if (pref) {
         pref->Clear();
-        pref->Flush();
+        pref->FlushSync();
     }
 }
 
