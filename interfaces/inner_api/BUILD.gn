@@ -21,7 +21,7 @@ config("native_preferences_config") {
 }
 
 config("native_preferences_public_config") {
-  visibility = [ "//foundation/distributeddatamgr/preferences:*" ]
+  visibility = [ ":*" ]
   include_dirs = [ "include" ]
 }
 
