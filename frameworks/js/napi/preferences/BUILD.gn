@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,9 +13,24 @@
 import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
-import("//foundation/distributeddatamgr/relational_store/relational_store.gni")
 
-if (!is_mingw && !is_mac) {
+base_include = [
+  "${preferences_napi_path}/common/include",
+  "${preferences_napi_path}/preferences/include",
+]
+
+base_sources = [
+  "${preferences_napi_path}/common/src/js_observer.cpp",
+  "${preferences_napi_path}/common/src/js_utils.cpp",
+  "${preferences_napi_path}/common/src/napi_async_call.cpp",
+  "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
+  "${preferences_napi_path}/common/src/uv_queue.cpp",
+  "${preferences_napi_path}/preferences/src/entry_point.cpp",
+  "${preferences_napi_path}/preferences/src/napi_preferences.cpp",
+  "${preferences_napi_path}/preferences/src/napi_preferences_helper.cpp",
+]
+
+if (is_ohos) {
   ohos_copy("preferences_declaration") {
     sources = [ "./api" ]
     outputs = [ target_out_dir + "/$target_name/" ]
@@ -24,68 +39,54 @@ if (!is_mingw && !is_mac) {
   }
 
   ohos_shared_library("preferences") {
-    include_dirs = [
-      "../common/include",
-      "include",
-    ]
+    include_dirs = base_include
+    sources = base_sources
+    sources += [ "${preferences_napi_path}/common/src/js_ability.cpp" ]
 
-    sources = [
-      "../common/src/js_ability.cpp",
-      "../common/src/js_observer.cpp",
-      "../common/src/js_utils.cpp",
-      "../common/src/napi_async_call.cpp",
-      "../common/src/napi_preferences_observer.cpp",
-      "../common/src/uv_queue.cpp",
-      "src/entry_point.cpp",
-      "src/napi_preferences.cpp",
-      "src/napi_preferences_helper.cpp",
-    ]
+    deps = [ "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences" ]
 
-    deps = []
+    defines = [ "MOD_NAME=\"data.preferences\"" ]
 
     external_deps = [
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
-      "common_event_service:cesfwk_innerkits",
       "hilog_native:libhilog",
       "napi:ace_napi",
-      "preferences:native_preferences",
     ]
 
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
     relative_install_dir = "module/data"
   }
-} else {
+} else if (is_mingw || is_mac) {
   ohos_shared_library("preferences") {
     include_dirs = [
       "../common/mock/include",
-      "../common/include",
-      "include",
       "//commonlibrary/c_utils/base/include",
     ]
+    include_dirs += base_include
+
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
     ]
     if (is_mac) {
       buildos = "mac"
-      defines = [ "MAC_PLATFORM" ]
+      defines = [
+        "MAC_PLATFORM",
+        "MOD_NAME=\"data.preferences\"",
+      ]
     } else {
       buildos = "windows"
-      defines = [ "WINDOWS_PLATFORM" ]
+      defines = [
+        "WINDOWS_PLATFORM",
+        "MOD_NAME=\"data.preferences\"",
+      ]
     }
-    sources = [
-      "../common/mock/src/js_ability.cpp",
-      "../common/src/js_observer.cpp",
-      "../common/src/js_utils.cpp",
-      "../common/src/napi_async_call.cpp",
-      "../common/src/napi_preferences_observer.cpp",
-      "../common/src/uv_queue.cpp",
-      "src/entry_point.cpp",
-      "src/napi_preferences.cpp",
-      "src/napi_preferences_helper.cpp",
-    ]
+
+    sources = base_sources
+    sources += [ "${preferences_napi_path}/common/mock/src/js_ability.cpp" ]
+
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
       "//foundation/arkui/napi:ace_napi",
@@ -94,5 +95,79 @@ if (!is_mingw && !is_mac) {
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
     relative_install_dir = "module/data"
+  }
+} else if (is_android) {
+  ohos_copy("preferences_declaration") {
+    sources = [ "./api" ]
+    outputs = [ target_out_dir + "/$target_name/" ]
+    module_source_dir = target_out_dir + "/$target_name"
+    module_install_name = ""
+  }
+
+  ohos_source_set("data_preferences") {
+    configs = [ "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config" ]
+
+    defines = [
+      "ANDROID_PLATFORM",
+      "MOD_NAME=\"data_preferences\"",
+    ]
+
+    include_dirs = [
+      "../common/mock/cross_platform/include",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/napi_base_context/include",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit",
+    ]
+    include_dirs += base_include
+
+    sources = base_sources
+    sources += [
+      "${preferences_napi_path}/common/mock/cross_platform/src/js_ability.cpp",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/napi_base_context/src/napi_base_context.cpp",
+    ]
+
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+      "//foundation/arkui/ace_engine/adapter/android/build:libarkui_android",
+      "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
+      "//plugins/libs/napi:napi_${target_os}",
+    ]
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+  }
+} else if (is_ios) {
+  ohos_copy("preferences_declaration") {
+    sources = [ "./api" ]
+    outputs = [ target_out_dir + "/$target_name/" ]
+    module_source_dir = target_out_dir + "/$target_name"
+    module_install_name = ""
+  }
+
+  ohos_source_set("data_preferences") {
+    configs = [ "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config" ]
+
+    defines = [
+      "IOS_PLATFORM",
+      "MOD_NAME=\"data.preferences\"",
+    ]
+
+    include_dirs = [
+      "../common/mock/cross_platform/include",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/napi_base_context/include",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit",
+    ]
+    include_dirs += base_include
+
+    sources = base_sources
+    sources += [
+      "${preferences_napi_path}/common/mock/cross_platform/src/js_ability.cpp",
+    ]
+
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//foundation/arkui/napi:ace_napi",
+      "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
+    ]
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
   }
 }
