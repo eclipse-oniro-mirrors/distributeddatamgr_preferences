@@ -115,7 +115,7 @@ napi_status PreferencesProxy::NewInstance(
         LOG_ERROR("PreferencesProxy::NewInstance unwarp native preferences is null");
         return napi_generic_failure;
     }
-    proxy->value_ = std::move(value);
+    proxy->value_ = value;
     return napi_ok;
 }
 
@@ -304,6 +304,9 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
     } else if (valueType == napi_object) {
         if (ParseDefObject(env, jsVal, context) != E_OK) {
             LOG_ERROR("ParseDefValue::ParseDefObject failed");
+            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            context->SetError(paramError);
+            return ERR;
         }
     } else {
         LOG_ERROR("ParseDefValue Wrong second parameter type");
