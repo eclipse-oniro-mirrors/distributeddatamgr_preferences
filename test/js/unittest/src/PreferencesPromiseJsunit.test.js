@@ -449,4 +449,21 @@ describe('preferencesTest', function () {
         });
         await promise;
     })
+
+    /**
+     * @tc.name get empty array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0131
+     * @tc.desc get empty array promise interface test
+     */
+    it('testPreferencesGetEmptyArray0161', 0, function (done) {
+        let defaultValue = new Array();
+        let data = mPreferences.get("mytest", defaultValue);
+        data.then((value) => {
+            expect(value).assertEqual(defaultValue);
+            done();
+        }).catch((err)=> {
+            expect(null).assertFail();
+            done();
+        })
+    })
 })

@@ -413,4 +413,21 @@ describe('preferencesTest', function () {
             done()
         })
     })
+
+    /**
+     * @tc.name get empty array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0131
+     * @tc.desc get empty array callback interface test
+     */
+    it('testPreferencesGetEmptyArray0001', 0, function (done) {
+        let defaultValue = new Array();
+        mPreferences.get("mytest", defaultValue, (err, value) => {
+            if (err) {
+                expect(null).assertFail();
+                done();
+            }
+            expect(value).assertEqual(defaultValue);
+            done();
+        });
+    })
 })
