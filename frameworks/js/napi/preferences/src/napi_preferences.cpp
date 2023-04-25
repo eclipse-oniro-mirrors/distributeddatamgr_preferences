@@ -39,6 +39,8 @@ namespace PreferencesJsKit {
 struct PreferencesAysncContext : public BaseContext {
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
+    napi_ref inputValueRef;
+    bool isDefValue = false;
     std::map<std::string, PreferencesValue> allElements;
     bool hasKey = false;
     std::list<std::string> keysModified;
@@ -453,16 +455,27 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
         PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
         PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
+        napi_create_reference(env, argv[1], 1, &context->inputValueRef);
         napi_unwrap(env, self, &context->boundObj);
         return OK;
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
-        context->defValue = obj->value_->Get(context->key, context->defValue);
+        auto outValue = obj->value_->Get(context->key, context->defValue);
+        if (outValue == context->defValue) {
+            context->isDefValue = true;
+        }
+        context->defValue = outValue;
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
+        if (context->isDefValue) {
+            LOG_DEBUG("GetValue get default value.");
+            napi_get_reference_value(env, context->inputValueRef, &result);
+            napi_delete_reference(env, context->inputValueRef);
+            return OK;
+        }
+        napi_delete_reference(env, context->inputValueRef);
         int errCode = OK;
         if (context->defValue.IsBool()) {
             if (JSUtils::Convert2JSValue(context->env_, static_cast<bool>(context->defValue), result) != E_OK) {
