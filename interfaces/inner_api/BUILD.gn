@@ -38,35 +38,15 @@ base_sources = [
   "${preferences_native_path}/src/task_executor.cpp",
 ]
 
-if (is_ohos) {
-  ohos_shared_library("native_preferences") {
-    all_dependent_configs = [ ":native_preferences_public_config" ]
-    sources = base_sources
+ohos_shared_library("native_preferences") {
+  all_dependent_configs = [ ":native_preferences_public_config" ]
+  sources = base_sources
 
-    innerapi_tags = [ "platformsdk" ]
+  innerapi_tags = [ "platformsdk" ]
 
-    configs = [ ":native_preferences_config" ]
+  configs = [ ":native_preferences_config" ]
 
-    cflags_cc = [ "-fvisibility=hidden" ]
-    deps = [ "//third_party/libxml2:libxml2" ]
-    external_deps = [
-      "c_utils:utils",
-      "hilog_native:libhilog",
-      "hitrace_native:hitrace_meter",
-    ]
-    public_configs = [ ":native_preferences_public_config" ]
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
-  }
-} else if (is_mingw || is_mac) {
-  ohos_shared_library("native_preferences") {
-    all_dependent_configs = [ ":native_preferences_public_config" ]
-    sources = base_sources
-
-    innerapi_tags = [ "platformsdk" ]
-
-    configs = [ ":native_preferences_config" ]
-
+  if (is_mingw || is_mac) {
     configs += [ ":adaptor_config" ]
     cflags_cc = [
       "-std=c++17",
@@ -84,34 +64,20 @@ if (is_ohos) {
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
       "//third_party/libxml2:static_libxml2",
     ]
-    public_configs = [ ":native_preferences_public_config" ]
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
-  }
-} else if (is_android || is_ios) {
-  ohos_source_set("native_preferences") {
-    all_dependent_configs = [ ":native_preferences_public_config" ]
-    sources = base_sources
-
-    if (is_android) {
-      defines = [ "ANDROID_PLATFORM" ]
-    } else {
-      defines = [ "IOS_PLATFORM" ]
-    }
-
-    configs = [ ":native_preferences_config" ]
+  } else {
     cflags_cc = [ "-fvisibility=hidden" ]
-    deps = [
-      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-      "//commonlibrary/c_utils/base:utilsbase",
-      "//foundation/arkui/ace_engine/adapter/android/build:libarkui_android",
-      "//third_party/jsoncpp:jsoncpp",
-      "//third_party/libxml2:libxml2",
+    deps = [ "//third_party/libxml2:libxml2" ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog_native:libhilog",
+      "hitrace_native:hitrace_meter",
     ]
-    public_configs = [ ":native_preferences_public_config" ]
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
   }
+
+  public_configs = [ ":native_preferences_public_config" ]
+
+  subsystem_name = "distributeddatamgr"
+  part_name = "preferences"
 }
 
 ohos_static_library("native_preferences_static") {
