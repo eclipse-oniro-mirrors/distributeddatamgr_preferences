@@ -55,6 +55,7 @@ private:
     bool HasRegisteredObserver(napi_value callback);
     void RegisteredObserver(napi_value callback);
     void UnRegisteredObserver(napi_value callback);
+    void UnRegisteredAllObservers();
 
     std::shared_ptr<OHOS::NativePreferences::Preferences> value_;
     napi_env env_;

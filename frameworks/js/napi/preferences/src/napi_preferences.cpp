@@ -39,7 +39,7 @@ namespace PreferencesJsKit {
 struct PreferencesAysncContext : public BaseContext {
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
-    napi_ref inputValueRef;
+    napi_ref inputValueRef = nullptr;
     bool isDefValue = false;
     std::map<std::string, PreferencesValue> allElements;
     bool hasKey = false;
@@ -641,10 +641,12 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
 napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info info)
 {
     napi_value thiz = nullptr;
+    const size_t requireArgc = 2;
     size_t argc = 2;
     napi_value args[2] = { 0 };
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
+    PRE_NAPI_ASSERT(env, argc == requireArgc, std::make_shared<ParamNumError>("2"));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
@@ -666,10 +668,13 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
 napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info info)
 {
     napi_value thiz = nullptr;
+    const size_t requireArgc = 2;
     size_t argc = 2;
     napi_value args[2] = { 0 };
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
+    PRE_NAPI_ASSERT(env, argc > 0 && argc <= requireArgc, std::make_shared<ParamNumError>("1 or 2"));
+
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
@@ -678,12 +683,19 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     int ret = JSUtils::Convert2String(env, args[0], chang);
     PRE_NAPI_ASSERT(env, ret == OK && chang == "change", std::make_shared<ParamTypeError>("type", "string 'change'."));
 
-    NAPI_CALL(env, napi_typeof(env, args[1], &type));
-    PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("callback", "function type."));
+    if (argc == requireArgc) {
+        NAPI_CALL(env, napi_typeof(env, args[1], &type));
+        PRE_NAPI_ASSERT(env, type == napi_function || type == napi_undefined || type == napi_null,
+            std::make_shared<ParamTypeError>("callback", "function type."));
+    }
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
-    obj->UnRegisteredObserver(args[1]);
+    if (argc == requireArgc && type == napi_function) {
+        obj->UnRegisteredObserver(args[1]);
+    } else {
+        obj->UnRegisteredAllObservers();
+    }
 
     return nullptr;
 }
@@ -715,14 +727,25 @@ void PreferencesProxy::UnRegisteredObserver(napi_value callback)
     std::lock_guard<std::mutex> lck(listMutex_);
     auto it = dataObserver_.begin();
     while (it != dataObserver_.end()) {
-        if (!JSUtils::Equals(env_, callback, (*it)->GetCallback())) {
-            ++it;
-            continue; // specified observer and not current iterator
+        if (JSUtils::Equals(env_, callback, (*it)->GetCallback())) {
+            value_->UnRegisterObserver(*it);
+            it = dataObserver_.erase(it);
+            LOG_INFO("The observer unsubscribed success.");
+            break; // specified observer is current iterator
         }
+        ++it;
+    }
+}
+
+void PreferencesProxy::UnRegisteredAllObservers()
+{
+    std::lock_guard<std::mutex> lck(listMutex_);
+    auto it = dataObserver_.begin();
+    while (it != dataObserver_.end()) {
         value_->UnRegisterObserver(*it);
         it = dataObserver_.erase(it);
-        LOG_INFO("The observer unsubscribed success.");
     }
+    LOG_INFO("All observers unsubscribed success.");
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS
