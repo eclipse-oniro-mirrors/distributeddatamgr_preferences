@@ -99,7 +99,7 @@ if (is_ohos) {
     configs = [ ":native_preferences_config" ]
     cflags_cc = [ "-fvisibility=hidden" ]
     deps = [
-      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_android",
       "//commonlibrary/c_utils/base:utilsbase",
       "//third_party/libxml2:libxml2",
     ]
