@@ -126,7 +126,7 @@ if (is_ohos) {
     ]
 
     deps = [
-      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_android",
       "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
       "//plugins/libs/napi:napi_${target_os}",
     ]
