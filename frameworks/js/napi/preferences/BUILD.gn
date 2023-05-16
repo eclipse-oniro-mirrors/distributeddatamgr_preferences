@@ -45,8 +45,6 @@ if (is_ohos) {
 
     deps = [ "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences" ]
 
-    defines = [ "MOD_NAME=\"data.preferences\"" ]
-
     external_deps = [
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
@@ -72,16 +70,10 @@ if (is_ohos) {
     ]
     if (is_mac) {
       buildos = "mac"
-      defines = [
-        "MAC_PLATFORM",
-        "MOD_NAME=\"data.preferences\"",
-      ]
+      defines = [ "MAC_PLATFORM" ]
     } else {
       buildos = "windows"
-      defines = [
-        "WINDOWS_PLATFORM",
-        "MOD_NAME=\"data.preferences\"",
-      ]
+      defines = [ "WINDOWS_PLATFORM" ]
     }
 
     sources = base_sources
@@ -107,10 +99,7 @@ if (is_ohos) {
   ohos_source_set("data_preferences") {
     configs = [ "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config" ]
 
-    defines = [
-      "ANDROID_PLATFORM",
-      "MOD_NAME=\"data_preferences\"",
-    ]
+    defines = [ "ANDROID_PLATFORM" ]
 
     include_dirs = [
       "../common/mock/cross_platform/include",
@@ -144,10 +133,7 @@ if (is_ohos) {
   ohos_source_set("data_preferences") {
     configs = [ "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config" ]
 
-    defines = [
-      "IOS_PLATFORM",
-      "MOD_NAME=\"data.preferences\"",
-    ]
+    defines = [ "IOS_PLATFORM" ]
 
     include_dirs = [
       "../common/mock/cross_platform/include",
