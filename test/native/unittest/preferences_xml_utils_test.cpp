@@ -26,6 +26,7 @@
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;
 
+namespace {
 class PreferencesXmlUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -241,4 +242,5 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
 
     int ret = PreferencesHelper::DeletePreferences(file);
     EXPECT_EQ(ret, E_OK);
+}
 }

@@ -30,6 +30,7 @@
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;
 
+namespace {
 class PreferencesTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -750,4 +751,5 @@ HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
     std::vector<string> valueVectorString(2, "test");
     std::vector<string> retVectorString = PreferencesValue(valueVectorString);
     EXPECT_EQ(valueVectorString, retVectorString);
+}
 }
