@@ -149,8 +149,8 @@ if (is_ohos) {
 
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
-      "//foundation/arkui/napi:ace_napi",
       "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
+      "//plugins/libs/napi:napi_ios",
     ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
