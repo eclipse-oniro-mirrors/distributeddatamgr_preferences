@@ -21,7 +21,7 @@
 #include <cstring>
 
 #include "libxml/parser.h"
-#include "logger.h"
+#include "log_print.h"
 
 #include "adaptor.h"
 

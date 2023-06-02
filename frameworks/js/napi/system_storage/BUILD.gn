@@ -29,6 +29,7 @@ if (!is_mingw && !is_mac) {
     include_dirs = [
       "include",
       "../common/include",
+      "${preferences_base_path}/frameworks/common/include",
     ]
 
     sources = [

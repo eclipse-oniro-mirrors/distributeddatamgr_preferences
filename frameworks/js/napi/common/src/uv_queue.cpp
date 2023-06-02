@@ -16,7 +16,7 @@
 
 #include <memory>
 
-#include "js_logger.h"
+#include "log_print.h"
 
 namespace OHOS::PreferencesJsKit {
 constexpr size_t MAX_CALLBACK_ARG_NUM = 6;

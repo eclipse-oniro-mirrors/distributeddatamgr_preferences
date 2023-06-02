@@ -14,7 +14,7 @@
  */
 #include "napi_preferences_observer.h"
 
-#include "js_logger.h"
+#include "log_print.h"
 #include "js_utils.h"
 
 namespace OHOS {

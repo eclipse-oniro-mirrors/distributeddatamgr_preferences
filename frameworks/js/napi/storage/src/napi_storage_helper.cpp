@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "js_logger.h"
+#include "log_print.h"
 #include "js_utils.h"
 #include "napi_async_call.h"
 #include "napi_storage.h"

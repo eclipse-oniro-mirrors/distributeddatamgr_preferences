@@ -18,7 +18,7 @@
 #include <string>
 #include <thread>
 
-#include "logger.h"
+#include "log_print.h"
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_helper.h"

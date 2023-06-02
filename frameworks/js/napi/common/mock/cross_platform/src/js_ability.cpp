@@ -15,7 +15,7 @@
 
 #include "js_ability.h"
 
-#include "js_logger.h"
+#include "log_print.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
