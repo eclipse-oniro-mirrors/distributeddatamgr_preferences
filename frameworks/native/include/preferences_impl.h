@@ -29,11 +29,10 @@
 #include "preferences.h"
 #include "preferences_observer.h"
 #include "preferences_value.h"
-#include "task_pool.h"
 
 namespace OHOS {
 namespace NativePreferences {
-class PreferencesImpl : public Preferences {
+class PreferencesImpl : public Preferences, public std::enable_shared_from_this<PreferencesImpl> {
 public:
     explicit PreferencesImpl(const std::string &path);
     virtual ~PreferencesImpl();
@@ -168,19 +167,18 @@ private:
 
         int writeToDiskResult_;
         bool wasWritten_;
-        bool handled_;
     };
 
     std::shared_ptr<MemoryToDiskRequest> commitToMemory();
     void notifyPreferencesObserver(const MemoryToDiskRequest &request);
-    void StartLoadFromDisk();
+    bool StartLoadFromDisk();
     int CheckKey(const std::string &key);
     int CheckStringValue(const std::string &value);
 
     /* thread function */
-    static void LoadFromDisk(PreferencesImpl &pref);
+    static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     void AwaitLoadFile();
-    void WriteToDiskFile(std::shared_ptr<MemoryToDiskRequest> mcr);
+    static void WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr);
     bool CheckRequestValidForStateGeneration(const MemoryToDiskRequest &mcr);
 
     bool ReadSettingXml(const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap);
@@ -203,12 +201,6 @@ private:
     const std::string filePath_;
     const std::string backupPath_;
     const std::string brokenPath_;
-    // Task pool
-    /* max threads of the task pool. */
-    static constexpr int MAX_TP_THREADS = 10;
-    /* min threads of the task pool. */
-    static constexpr int MIN_TP_THREADS = 1;
-    TaskPool taskPool_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
