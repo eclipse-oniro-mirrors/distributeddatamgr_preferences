@@ -281,7 +281,6 @@ public:
      */
     PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
-private:
     std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>, std::vector<bool>,
         std::vector<double>>
         value_;
