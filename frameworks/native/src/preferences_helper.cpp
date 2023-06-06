@@ -108,6 +108,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string
     std::shared_ptr<PreferencesImpl> pref = std::make_shared<PreferencesImpl>(filePath);
     errCode = pref->Init();
     if (errCode != E_OK) {
+        LOG_ERROR("Preferences Init failed.");
         return nullptr;
     }
     prefsCache_.insert(make_pair(realPath, pref));
