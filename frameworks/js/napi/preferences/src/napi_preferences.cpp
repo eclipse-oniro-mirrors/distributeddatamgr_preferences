@@ -469,32 +469,31 @@ int32_t GetArrayValue(std::shared_ptr<PreferencesAysncContext> context, napi_val
 }
 
 int GetDefValue(std::shared_ptr<PreferencesAysncContext> context, napi_value &result) {
-    int errCode = OK;
     if (context->defValue.IsBool()) {
         if (JSUtils::Convert2JSValue(context->env_, static_cast<bool>(context->defValue), result) != E_OK) {
             LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue boolVal failed");
-            errCode = ERR;
+            return ERR;
         }
     } else if (context->defValue.IsString()) {
         if (JSUtils::Convert2JSValue(context->env_, static_cast<std::string>(context->defValue), result) != E_OK) {
             LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue stringVal failed");
-            errCode = ERR;
+            return ERR;
         }
     } else if (context->defValue.IsDouble()) {
         if (JSUtils::Convert2JSValue(context->env_, static_cast<double>(context->defValue), result) != E_OK) {
             LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue boolVal failed");
-            errCode = ERR;
+            return ERR;
         }
     } else if (context->defValue.IsDoubleArray() || context->defValue.IsStringArray()
-               || context->defValue.IsBoolArray()) {
+           || context->defValue.IsBoolArray()) {
         if (GetArrayValue(context, result) != E_OK) {
             LOG_ERROR("PreferencesProxy::GetValue GetArrayValue failed");
-            errCode = ERR;
+            return ERR;
         }
     } else {
-        errCode = ERR;
+        return ERR;
     }
-    return errCode;
+    return OK;
 }
 
 napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
