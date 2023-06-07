@@ -38,9 +38,8 @@ namespace PreferencesJsKit {
 
 struct PreferencesAysncContext : public BaseContext {
     std::string key;
-    PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
+    PreferencesValue defValue = 0LL;
     napi_ref inputValueRef = nullptr;
-    bool isDefValue = false;
     std::map<std::string, PreferencesValue> allElements;
     bool hasKey = false;
     std::list<std::string> keysModified;
@@ -77,17 +76,17 @@ void PreferencesProxy::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptors[] = {
         DECLARE_NAPI_FUNCTION("put", SetValue),
-        DECLARE_NAPI_FUNCTION("get", GetValue),
-        DECLARE_NAPI_FUNCTION("getAll", GetAll),
-        DECLARE_NAPI_FUNCTION("delete", Delete),
-        DECLARE_NAPI_FUNCTION("clear", Clear),
-        DECLARE_NAPI_FUNCTION("hasSync", HasKeySync),
         DECLARE_NAPI_FUNCTION("putSync", SetValueSync),
+        DECLARE_NAPI_FUNCTION("get", GetValue),
         DECLARE_NAPI_FUNCTION("getSync", GetValueSync),
+        DECLARE_NAPI_FUNCTION("getAll", GetAll),
         DECLARE_NAPI_FUNCTION("getAllSync", GetAllSync),
+        DECLARE_NAPI_FUNCTION("delete", Delete),
         DECLARE_NAPI_FUNCTION("deleteSync", DeleteSync),
+        DECLARE_NAPI_FUNCTION("clear", Clear),
         DECLARE_NAPI_FUNCTION("clearSync", ClearSync),
         DECLARE_NAPI_FUNCTION("has", HasKey),
+        DECLARE_NAPI_FUNCTION("hasSync", HasKeySync),
         DECLARE_NAPI_FUNCTION("flush", Flush),
         DECLARE_NAPI_FUNCTION("on", RegisterObserver),
         DECLARE_NAPI_FUNCTION("off", UnRegisterObserver),
@@ -447,50 +446,48 @@ napi_value PreferencesProxy::GetAllSync(napi_env env, napi_callback_info info)
     return result;
 }
 
-int32_t GetArrayValue(std::shared_ptr<PreferencesAysncContext> context, napi_value &output)
+int32_t GetArrayValue(napi_env env, const PreferencesValue &defValue, napi_value &output)
 {
-    if (context->defValue.IsDoubleArray()) {
-        if (JSUtils::Convert2JSDoubleArr(context->env_, (std::vector<double>)context->defValue, output) != E_OK) {
-            LOG_ERROR("GetArrayValue Convert2JSValue get doubleArray failed");
+    if (defValue.IsDoubleArray()) {
+        if (JSUtils::Convert2JSDoubleArr(env, (std::vector<double>)defValue, output) != E_OK) {
+            LOG_ERROR("get doubleArray failed");
             return E_NAPI_GET_ERROR;
         }
-    } else if (context->defValue.IsStringArray()) {
-        if (JSUtils::Convert2JSStringArr(context->env_, (std::vector<std::string>)context->defValue, output) != E_OK) {
-            LOG_ERROR("GetArrayValue Convert2JSValue get stringArray failed");
+    } else if (defValue.IsStringArray()) {
+        if (JSUtils::Convert2JSStringArr(env, (std::vector<std::string>)defValue, output) != E_OK) {
+            LOG_ERROR("get stringArray failed");
             return E_NAPI_GET_ERROR;
         }
-    } else if (context->defValue.IsBoolArray()) {
-        if (JSUtils::Convert2JSBoolArr(context->env_, (std::vector<bool>)context->defValue, output) != E_OK) {
-            LOG_ERROR("GetArrayValue Convert2JSValue get boolArray failed");
+    } else if (defValue.IsBoolArray()) {
+        if (JSUtils::Convert2JSBoolArr(env, (std::vector<bool>)defValue, output) != E_OK) {
+            LOG_ERROR("get boolArray failed");
             return E_NAPI_GET_ERROR;
         }
     }
-    return E_OK;
+    LOG_ERROR("GetArrayValue failed with unknown type.");
+    return E_NAPI_GET_ERROR;
 }
 
-int GetDefValue(std::shared_ptr<PreferencesAysncContext> context, napi_value &result) {
-    if (context->defValue.IsBool()) {
-        if (JSUtils::Convert2JSValue(context->env_, static_cast<bool>(context->defValue), result) != E_OK) {
-            LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue boolVal failed");
+int GetDefValue(napi_env env, const PreferencesValue &defValue, napi_value &result) {
+    if (defValue.IsBool()) {
+        if (JSUtils::Convert2JSValue(env, static_cast<bool>(defValue), result) != E_OK) {
+            LOG_ERROR("boolVal failed");
             return ERR;
         }
-    } else if (context->defValue.IsString()) {
-        if (JSUtils::Convert2JSValue(context->env_, static_cast<std::string>(context->defValue), result) != E_OK) {
-            LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue stringVal failed");
+    } else if (defValue.IsString()) {
+        if (JSUtils::Convert2JSValue(env, static_cast<std::string>(defValue), result) != E_OK) {
+            LOG_ERROR("stringVal failed");
             return ERR;
         }
-    } else if (context->defValue.IsDouble()) {
-        if (JSUtils::Convert2JSValue(context->env_, static_cast<double>(context->defValue), result) != E_OK) {
-            LOG_ERROR("PreferencesProxy::GetValue Convert2JSValue boolVal failed");
+    } else if (defValue.IsDouble()) {
+        if (JSUtils::Convert2JSValue(env, static_cast<double>(defValue), result) != E_OK) {
+            LOG_ERROR("doubleVal failed");
             return ERR;
         }
-    } else if (context->defValue.IsDoubleArray() || context->defValue.IsStringArray()
-           || context->defValue.IsBoolArray()) {
-        if (GetArrayValue(context, result) != E_OK) {
-            LOG_ERROR("PreferencesProxy::GetValue GetArrayValue failed");
-            return ERR;
-        }
+    } else if (defValue.IsDoubleArray() || defValue.IsStringArray() || defValue.IsBoolArray()) {
+        return GetArrayValue(env, defValue, result);
     } else {
+        LOG_ERROR("failed with unknown type.");
         return ERR;
     }
     return OK;
@@ -509,23 +506,18 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
-        auto outValue = obj->value_->Get(context->key, context->defValue);
-        if (outValue == context->defValue) {
-            context->isDefValue = true;
-        }
-        context->defValue = outValue;
+        context->defValue = obj->value_->Get(context->key, context->defValue);
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
-        if (context->isDefValue) {
+        if (context->defValue.IsLong()) {
             LOG_DEBUG("GetValue get default value.");
             napi_get_reference_value(env, context->inputValueRef, &result);
             napi_delete_reference(env, context->inputValueRef);
             return OK;
         }
         napi_delete_reference(env, context->inputValueRef);
-        LOG_DEBUG("GetValue end.");
-        return GetDefValue(context, result);
+        return GetDefValue(env, context->defValue, result);
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -545,14 +537,14 @@ napi_value PreferencesProxy::GetValueSync(napi_env env, napi_callback_info info)
 
     auto context = std::make_shared<PreferencesAysncContext>();
     PRE_NAPI_ASSERT(env, ParseKey(env, argv[0], context) == OK, context->error);
-    int errCode = proxy->value_->Get(context->key, context->defValue);
-    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
-    // the return back value never be an int type.
-    if (context->defValue.IsInt()) {
+    context->defValue = proxy->value_->Get(context->key, context->defValue);
+    // the return back value never be an int64_t type.
+    if (context->defValue.IsLong()) {
+        LOG_DEBUG("GetValue get default value.");
         return argv[1];
     }
     napi_value result = nullptr;
-    GetDefValue(context, result);
+    GetDefValue(env, context->defValue, result);
     return result;
 }
 
