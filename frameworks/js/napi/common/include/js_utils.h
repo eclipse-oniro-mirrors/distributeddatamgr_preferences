@@ -59,6 +59,7 @@ int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::variant<Types
 
 napi_value Convert2JSValue(napi_env env, int32_t value);
 napi_value Convert2JSValue(napi_env env, int64_t value);
+napi_value Convert2JSValue(napi_env env, uint32_t value);
 napi_value Convert2JSValue(napi_env env, bool value);
 napi_value Convert2JSValue(napi_env env, float value);
 napi_value Convert2JSValue(napi_env env, double value);

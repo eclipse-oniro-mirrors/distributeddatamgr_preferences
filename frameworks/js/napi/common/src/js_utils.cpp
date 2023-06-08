@@ -28,11 +28,11 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
     size_t strBufferSize = 0;
     napi_status status = napi_get_value_string_utf8(env, jsValue, nullptr, 0, &strBufferSize);
     if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2NativeValue get strBufferSize failed, status = %{public}d", status);
+        LOG_ERROR("get std::string failed, status = %{public}d", status);
         return ERR;
     }
     if (strBufferSize > MAX_VALUE_LENGTH) {
-        LOG_ERROR("JSUtils::Convert2NativeValue over maximum length.");
+        LOG_ERROR("get std::string maximum length.");
         return EXCEED_MAX_LENGTH;
     }
     char *str = new (std::nothrow) char[strBufferSize + 1];
@@ -57,7 +57,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, bool &out
     bool bValue = false;
     napi_status status = napi_get_value_bool(env, jsValue, &bValue);
     if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
+        LOG_ERROR("get bool failed, status = %{public}d", status);
         return ERR;
     }
     output = bValue;
@@ -69,7 +69,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &o
     double number = 0.0;
     napi_status status = napi_get_value_double(env, jsValue, &number);
     if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
+        LOG_ERROR("get double failed, status = %{public}d", status);
         return ERR;
     }
     output = number;
@@ -106,9 +106,9 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::mono
     napi_get_undefined(env, &tempValue);
     napi_strict_equals(env, jsValue, tempValue, &equal);
     if (equal) {
-        return OK;
+        return napi_ok;
     }
-    LOG_DEBUG("Convert2Value jsValue is not null");
+    LOG_DEBUG("std::monostate is not null");
     return napi_invalid_arg;
 }
 
@@ -130,6 +130,17 @@ napi_value JSUtils::Convert2JSValue(napi_env env, int32_t value)
 {
     napi_value jsValue;
     if (napi_create_int32(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert int32_t failed");
+        return nullptr;
+    }
+    return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, uint32_t value)
+{
+    napi_value jsValue;
+    if (napi_create_uint32(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert uint32_t failed");
         return nullptr;
     }
     return jsValue;
@@ -139,6 +150,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, int64_t value)
 {
     napi_value jsValue;
     if (napi_create_int64(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert int64_t failed");
         return nullptr;
     }
     return jsValue;
@@ -148,6 +160,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, bool value)
 {
     napi_value jsValue;
     if (napi_get_boolean(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert bool failed");
         return nullptr;
     }
     return jsValue;
@@ -157,6 +170,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, double value)
 {
     napi_value jsValue;
     if (napi_create_double(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert double failed");
         return nullptr;
     }
     return jsValue;
@@ -166,6 +180,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, float value)
 {
     napi_value jsValue;
     if (napi_create_double(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert float failed");
         return nullptr;
     }
     return jsValue;
@@ -175,6 +190,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, const std::string &value)
 {
     napi_value jsValue;
     if (napi_create_string_utf8(env, value.c_str(), value.size(), &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert std::string failed");
         return nullptr;
     }
     return jsValue;

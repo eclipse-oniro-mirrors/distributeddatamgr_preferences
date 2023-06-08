@@ -28,7 +28,7 @@ const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array'
 var mPreferences;
 var context;
 
-describe('preferencesTest', function () {
+describe('PreferencesPromiseJsunit', function () {
     beforeAll(async function () {
         console.info('beforeAll')
         context = featureAbility.getContext()

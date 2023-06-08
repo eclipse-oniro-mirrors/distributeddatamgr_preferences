@@ -40,12 +40,12 @@ public:
     /**
     * @brief The constant Indicates the maximum length of the key in the preferences.
     */
-    PREF_API_EXPORT static const int32_t MAX_KEY_LENGTH = 80;
+    PREF_API_EXPORT static constexpr uint32_t MAX_KEY_LENGTH = 80;
 
     /**
      * @brief The constant Indicates the maximum length of the value in the preferences.
      */
-    PREF_API_EXPORT static const int32_t MAX_VALUE_LENGTH = 8 * 1024;
+    PREF_API_EXPORT static constexpr uint32_t MAX_VALUE_LENGTH = 8 * 1024;
 
     /**
      * @brief Obtains the value of a preferences.
