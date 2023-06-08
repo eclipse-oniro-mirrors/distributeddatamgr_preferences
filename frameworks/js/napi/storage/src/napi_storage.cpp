@@ -302,8 +302,8 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
     napi_typeof(env, jsVal, &valueType);
     if (valueType == napi_number) {
         double number = 0.0;
-        if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
-            LOG_ERROR("ParseDefValue Convert2Double error");
+        if (JSUtils::Convert2NativeValue(env, jsVal, number) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2NativeValue error");
             std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
             asyncContext->SetError(paramError);
             return ERR;
@@ -311,9 +311,9 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
         asyncContext->defValue = number;
     } else if (valueType == napi_string) {
         std::string str;
-        auto ret = JSUtils::Convert2String(env, jsVal, str);
+        auto ret = JSUtils::Convert2NativeValue(env, jsVal, str);
         if (ret != E_OK) {
-            LOG_ERROR("ParseDefValue Convert2String error");
+            LOG_ERROR("ParseDefValue Convert2NativeValue error");
             if (ret == EXCEED_MAX_LENGTH) {
                 std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 8192 bytes.");
                 asyncContext->SetError(paramError);
@@ -326,8 +326,8 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
         asyncContext->defValue = str;
     } else if (valueType == napi_boolean) {
         bool bValue = false;
-        if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
-            LOG_ERROR("ParseDefValue Convert2Bool error");
+        if (JSUtils::Convert2NativeValue(env, jsVal, bValue) != E_OK) {
+            LOG_ERROR("ParseDefValue Convert2NativeValue error");
             std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
             asyncContext->SetError(paramError);
             return ERR;
@@ -650,7 +650,7 @@ napi_value StorageProxy::RegisterObserver(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, type == napi_string, "type should be 'change'");
 
     std::string change;
-    int ret = JSUtils::Convert2String(env, args[0], change);
+    int ret = JSUtils::Convert2NativeValue(env, args[0], change);
     NAPI_ASSERT(env, ret == OK && change == "change", "type should be 'change'");
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
@@ -675,7 +675,7 @@ napi_value StorageProxy::UnRegisterObserver(napi_env env, napi_callback_info inf
     NAPI_ASSERT(env, type == napi_string, "key not string type");
 
     std::string change;
-    int ret = JSUtils::Convert2String(env, args[0], change);
+    int ret = JSUtils::Convert2NativeValue(env, args[0], change);
     NAPI_ASSERT(env, ret == OK && change == "change", "type should be 'change'");
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));

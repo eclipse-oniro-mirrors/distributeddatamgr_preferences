@@ -30,7 +30,7 @@ var context;
 
 const TAG = '[PREFERENCES_CALLBACK_JSUNIT_TEST]'
 
-describe('preferencesTest', function () {
+describe('PreferencesCallBackJsunit', function () {
     beforeAll(async function () {
         console.info('beforeAll')
         context = featureAbility.getContext()

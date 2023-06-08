@@ -19,7 +19,7 @@ import storage from '@ohos.data.storage'
 const PATH = "/data/storage/el2/database/test_storage";
 var mPref;
 
-describe('storageTest', function () {
+describe('StorageHelperJsunit', function () {
     beforeAll(function () {
         console.info('beforeAll')
         mPref = storage.getStorageSync(PATH);

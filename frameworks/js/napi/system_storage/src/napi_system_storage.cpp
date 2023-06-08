@@ -40,13 +40,13 @@ struct AsyncContext {
     napi_async_work request;
 };
 
-static const unsigned int MAX_KEY_LENGTH = 32;
+static constexpr uint32_t MAX_KEY_LENGTH = 32;
 
-static const unsigned int MAX_VALUE_LENGTH = 128;
+static constexpr uint32_t MAX_VALUE_LENGTH = 128;
 
-static const int32_t FAILCOUNT = 2;
+static constexpr uint32_t FAILCOUNT = 2;
 
-static const int32_t SUCCOUNT = 1;
+static constexpr uint32_t SUCCOUNT = 1;
 
 void ParseString(napi_env env, napi_value &object, const char *name, const bool enable, std::string &output)
 {
@@ -55,7 +55,7 @@ void ParseString(napi_env env, napi_value &object, const char *name, const bool 
     napi_has_named_property(env, object, name, &exist);
     if (exist && (napi_get_named_property(env, object, name, &value) == napi_ok)) {
         std::string key = "";
-        int32_t ret = JSUtils::Convert2String(env, value, key);
+        int32_t ret = JSUtils::Convert2NativeValue(env, value, key);
         NAPI_ASSERT_RETURN_VOID(env, enable || (ret == E_OK && !key.empty()), "StorageOptions is empty.");
         output = std::move(key);
     }
