@@ -21,7 +21,7 @@ group("unittest") {
   deps += [
     "unittest/preferences/src:unittest",
     "unittest/storage/src:unittest",
-    "unittest/system_storage/src:unittest"
+    "unittest/system_storage/src:unittest",
   ]
 }
 ###############################################################################

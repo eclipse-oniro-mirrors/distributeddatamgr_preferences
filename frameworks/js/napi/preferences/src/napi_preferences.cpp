@@ -146,52 +146,31 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
 
 int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysncContext> context)
 {
-    napi_valuetype keyType = napi_undefined;
-    napi_typeof(env, arg, &keyType);
-    if (keyType != napi_string) {
-        LOG_ERROR("ParseKey: key type must be string.");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "String type.");
+    int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
+    if (rc != napi_ok) {
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "string.");
         context->SetError(paramError);
         return ERR;
     }
-    size_t keyBufferSize = 0;
-    napi_status status = napi_get_value_string_utf8(env, arg, nullptr, 0, &keyBufferSize);
-    if (status != napi_ok) {
-        LOG_ERROR("ParseKey: get keyBufferSize failed");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-        context->SetError(paramError);
-        return ERR;
-    }
-    if (keyBufferSize > MAX_KEY_LENGTH) {
+
+    if (context->key.length() > MAX_KEY_LENGTH) {
         LOG_ERROR("the length of the key is over maximum length.");
         std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 80 bytes.");
         context->SetError(paramError);
         return ERR;
     }
-    // get input key
-    char *key = new (std::nothrow) char[keyBufferSize + 1];
-    if (key == nullptr) {
-        LOG_ERROR("new buffer failed.");
-        return ERR;
-    }
-    size_t keySize = 0;
-    status = napi_get_value_string_utf8(env, arg, key, keyBufferSize + 1, &keySize);
-    if (status != napi_ok) {
-        LOG_ERROR("ParseKey: get keySize failed");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-        context->SetError(paramError);
-        delete[] key;
-        return ERR;
-    }
-    key[keySize] = 0;
-    context->key = std::string(key);
-    delete[] key;
     return OK;
 }
 
 int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
-    return JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
+    int32_t rc = JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
+    if (rc != napi_ok) {
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "ValueType.");
+        context->SetError(paramError);
+        return ERR;
+    }
+    return OK;
 }
 
 napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)

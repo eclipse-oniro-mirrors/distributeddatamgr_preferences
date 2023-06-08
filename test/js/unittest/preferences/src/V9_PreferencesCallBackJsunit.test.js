@@ -28,6 +28,12 @@ const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array'
 var mPreference = undefined
 var context
 
+const ILLEGAL_CHAR_10 = '1234567890'
+const ILLEGAL_CHAR_80 = ILLEGAL_CHAR_10.repeat(8);
+const ILLEGAL_CHAR_81 = ILLEGAL_CHAR_80 + '1';
+const ILLEGAL_CHAR_8192 = ILLEGAL_CHAR_80.repeat(102) + '1'.repeat(32);
+const ILLEGAL_CHAR_8193 = ILLEGAL_CHAR_8192 + '1';
+
 describe('V9_PreferencesCallBackJsunit', async function () {
     beforeAll(async function () {
         console.info('beforeAll')
@@ -333,10 +339,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test put interface input parameter key exceed 80bytes.
      */
     it('testPreferencesPutIllegal0003', 0, async function (done) {
-        let illegalKey = '1';
-        illegalKey = illegalKey.repeat(81);
         try {
-            mPreference.put(illegalKey, "123456", (ret) => {
+            mPreference.put(ILLEGAL_CHAR_81, "123456", (ret) => {
                 done();
             });
         } catch (err) {
@@ -351,10 +355,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test put interface input parameter key is legal.
      */
     it('testPreferencesPutIllegal0004', 0, async function (done) {
-        let legalKey = '1';
-        legalKey = legalKey.repeat(80);
         try {
-            mPreference.put(legalKey, "123456", (ret) => {
+            mPreference.put(ILLEGAL_CHAR_80, "123456", (ret) => {
                 done();
             });
         } catch (err) {
@@ -369,10 +371,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test put interface input parameter value exceed 8192bytes.
      */
     it('testPreferencesPutIllegal0005', 0, async function (done) {
-        let illegalValue = '1';
-        illegalValue = illegalValue.repeat(8193);
         try {
-            mPreference.put("test", illegalValue, (ret) => {
+            mPreference.put("test", ILLEGAL_CHAR_8193, (ret) => {
                 done();
             });
         } catch (err) {
@@ -387,10 +387,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test put interface input parameter value is legal.
      */
     it('testPreferencesPutIllegal0006', 0, async function (done) {
-        let legalValue = '1';
-        legalValue = legalValue.repeat(8192);
         try {
-            mPreference.put("test", legalValue, (ret) => {
+            mPreference.put("test", ILLEGAL_CHAR_8192, (ret) => {
                 done();
             });
         } catch (err) {
@@ -439,10 +437,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test get interface input parameter key exceed 80bytes.
      */
     it('testPreferencesGetIllegal0003', 0, async function (done) {
-        let illegalKey = "1";
-        illegalKey = illegalKey.repeat(81);
         try {
-            mPreference.get(illegalKey, "defaultValue", (ret) => {
+            mPreference.get(ILLEGAL_CHAR_81, "defaultValue", (ret) => {
                 done();
             });
         } catch (err) {
@@ -457,10 +453,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test get interface input parameter key is legal.
      */
     it('testPreferencesGetIllegal0004', 0, async function (done) {
-        let legalKey = "1";
-        legalKey = legalKey.repeat(80);
         try {
-            mPreference.get(legalKey, "defaultValue", (ret) => {
+            mPreference.get(ILLEGAL_CHAR_80, "defaultValue", (ret) => {
                 done();
             });
         } catch (err) {
@@ -509,10 +503,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test delete interface input parameter key exceed 80bytes.
      */
     it('testPreferencesDeleteIllegal0003', 0, async function (done) {
-        let illegalKey = '1';
-        illegalKey = illegalKey.repeat(81);
         try {
-            mPreference.delete(illegalKey, (ret) => {
+            mPreference.delete(ILLEGAL_CHAR_81, (ret) => {
                 done();
             });
         } catch (err) {
@@ -527,10 +519,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test delete interface input parameter key is legal.
      */
     it('testPreferencesDeleteIllegal0004', 0, async function (done) {
-        let legalKey = '1';
-        legalKey = legalKey.repeat(80);
         try {
-            mPreference.delete(legalKey, (ret) => {
+            mPreference.delete(ILLEGAL_CHAR_80, (ret) => {
                 done();
             });
         } catch (err) {
@@ -579,10 +569,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test has interface input parameter key exceed 80bytes.
      */
     it('testPreferencesHasIllegal0003', 0, async function (done) {
-        let illegalKey = '1';
-        illegalKey = illegalKey.repeat(81);
         try {
-            mPreference.has(illegalKey, (ret) => {
+            mPreference.has(ILLEGAL_CHAR_81, (ret) => {
                 done();
             });
         } catch (err) {
@@ -597,10 +585,8 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      * @tc.desc test has interface input parameter key is legal.
      */
     it('testPreferencesHasIllegal0004', 0, async function (done) {
-        let legalKey = '1';
-        legalKey = legalKey.repeat(80);
         try {
-            mPreference.has(legalKey, (ret) => {
+            mPreference.has(ILLEGAL_CHAR_80, (ret) => {
                 done();
             });
         } catch (err) {

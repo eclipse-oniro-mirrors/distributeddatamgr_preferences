@@ -29,7 +29,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
     napi_status status = napi_get_value_string_utf8(env, jsValue, nullptr, 0, &strBufferSize);
     if (status != napi_ok) {
         LOG_ERROR("get std::string failed, status = %{public}d", status);
-        return ERR;
+        return napi_invalid_arg;
     }
     if (strBufferSize > MAX_VALUE_LENGTH) {
         LOG_ERROR("get std::string maximum length.");
@@ -37,19 +37,19 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
     }
     char *str = new (std::nothrow) char[strBufferSize + 1];
     if (str == nullptr) {
-        return ERR;
+        return napi_invalid_arg;
     }
     size_t valueSize = 0;
     status = napi_get_value_string_utf8(env, jsValue, str, strBufferSize + 1, &valueSize);
     if (status != napi_ok) {
         LOG_ERROR("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
         delete[] str;
-        return ERR;
+        return napi_invalid_arg;
     }
     str[valueSize] = 0;
     output = std::string(str);
     delete[] str;
-    return OK;
+    return napi_ok;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, bool &output)
@@ -58,10 +58,10 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, bool &out
     napi_status status = napi_get_value_bool(env, jsValue, &bValue);
     if (status != napi_ok) {
         LOG_ERROR("get bool failed, status = %{public}d", status);
-        return ERR;
+        return napi_invalid_arg;
     }
     output = bValue;
-    return OK;
+    return napi_ok;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &output)
@@ -70,10 +70,10 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &o
     napi_status status = napi_get_value_double(env, jsValue, &number);
     if (status != napi_ok) {
         LOG_ERROR("get double failed, status = %{public}d", status);
-        return ERR;
+        return napi_invalid_arg;
     }
     output = number;
-    return OK;
+    return napi_ok;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, float &output)
