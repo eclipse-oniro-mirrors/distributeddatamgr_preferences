@@ -32,9 +32,12 @@
 
 namespace OHOS {
 namespace NativePreferences {
-class PreferencesImpl : public Preferences {
+class PreferencesImpl : public Preferences, public std::enable_shared_from_this<PreferencesImpl> {
 public:
-    explicit PreferencesImpl(const std::string &path);
+    static std::shared_ptr<PreferencesImpl> GetPreferences(const std::string &path)
+    {
+        return std::shared_ptr<PreferencesImpl>(new PreferencesImpl(path));
+    }
     virtual ~PreferencesImpl();
 
     int Init();
@@ -145,8 +148,8 @@ public:
 
     static std::string MakeBackupPath(const std::string &prefPath);
     static std::string MakeBrokenPath(const std::string &prefPath);
-
 private:
+    explicit PreferencesImpl(const std::string &path);
     class MemoryToDiskRequest {
     public:
         MemoryToDiskRequest(const std::map<std::string, PreferencesValue> &writeToDiskMap,
@@ -176,9 +179,9 @@ private:
     int CheckStringValue(const std::string &value);
 
     /* thread function */
-    static void LoadFromDisk(PreferencesImpl &pref);
+    static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     void AwaitLoadFile();
-    void WriteToDiskFile(std::shared_ptr<MemoryToDiskRequest> mcr);
+    static void WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr);
     bool CheckRequestValidForStateGeneration(const MemoryToDiskRequest &mcr);
 
     bool ReadSettingXml(const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap);

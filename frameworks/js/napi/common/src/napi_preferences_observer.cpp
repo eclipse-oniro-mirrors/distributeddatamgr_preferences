@@ -28,10 +28,7 @@ void JSPreferencesObserver::OnChange(const std::string &key)
 {
     AsyncCall([key](napi_env env, int &argc, napi_value *argv) {
         argc = 1;
-        int status = JSUtils::Convert2JSValue(env, key, argv[0]);
-        if (status != JSUtils::OK) {
-            LOG_DEBUG("OnChange CallFunction error.");
-        }
+        argv[0] = JSUtils::Convert2JSValue(env, key);
     });
     LOG_DEBUG("OnChange key end");
 }

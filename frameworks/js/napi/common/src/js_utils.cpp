@@ -23,135 +23,93 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
-int32_t JSUtils::Convert2String(napi_env env, napi_value jsStr, std::string &output)
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output)
 {
     size_t strBufferSize = 0;
-    napi_status status = napi_get_value_string_utf8(env, jsStr, nullptr, 0, &strBufferSize);
+    napi_status status = napi_get_value_string_utf8(env, jsValue, nullptr, 0, &strBufferSize);
     if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2String get strBufferSize failed, status = %{public}d", status);
-        return ERR;
+        LOG_INFO("get std::string failed, status = %{public}d", status);
+        return napi_invalid_arg;
     }
     if (strBufferSize > MAX_VALUE_LENGTH) {
-        LOG_ERROR("JSUtils::Convert2String over maximum length.");
+        LOG_ERROR("get std::string maximum length.");
         return EXCEED_MAX_LENGTH;
     }
     char *str = new (std::nothrow) char[strBufferSize + 1];
     if (str == nullptr) {
-        return ERR;
+        return napi_invalid_arg;
     }
     size_t valueSize = 0;
-    status = napi_get_value_string_utf8(env, jsStr, str, strBufferSize + 1, &valueSize);
+    status = napi_get_value_string_utf8(env, jsValue, str, strBufferSize + 1, &valueSize);
     if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2String get jsVal failed, status = %{public}d", status);
+        LOG_INFO("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
         delete[] str;
-        return ERR;
+        return napi_invalid_arg;
     }
     str[valueSize] = 0;
     output = std::string(str);
     delete[] str;
-    return OK;
+    return napi_ok;
 }
 
-int32_t JSUtils::Convert2Bool(napi_env env, napi_value jsBool, bool &output)
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, bool &output)
 {
     bool bValue = false;
-    napi_status status = napi_get_value_bool(env, jsBool, &bValue);
+    napi_status status = napi_get_value_bool(env, jsValue, &bValue);
     if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2Bool get jsVal failed, status = %{public}d", status);
-        return ERR;
+        LOG_INFO("get bool failed, status = %{public}d", status);
+        return napi_invalid_arg;
     }
     output = bValue;
-    return OK;
+    return napi_ok;
 }
 
-int32_t JSUtils::Convert2Double(napi_env env, napi_value jsNum, double &output)
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &output)
 {
     double number = 0.0;
-    napi_status status = napi_get_value_double(env, jsNum, &number);
+    napi_status status = napi_get_value_double(env, jsValue, &number);
     if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2Double get jsVal failed, status = %{public}d", status);
-        return ERR;
+        LOG_INFO("get double failed, status = %{public}d", status);
+        return napi_invalid_arg;
     }
     output = number;
-    return OK;
+    return napi_ok;
 }
 
-int32_t JSUtils::Convert2StrVector(napi_env env, napi_value value, std::vector<std::string> &output)
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, float &output)
 {
-    uint32_t arrLen = 0;
-    napi_status status = napi_get_array_length(env, value, &arrLen);
-    if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2StrVector get arrLength failed, status = %{public}d", status);
-        output = {};
-        return ERR;
-    }
-    napi_value element = nullptr;
-    for (size_t i = 0; i < arrLen; ++i) {
-        status = napi_get_element(env, value, i, &element);
-        if (status != napi_ok) {
-            LOG_ERROR("JSUtils::Convert2StrVector get element failed, status = %{public}d", status);
-            return ERR;
-        }
-        std::string str;
-        if (Convert2String(env, element, str) != OK) {
-            LOG_ERROR("JSUtils::Convert2StrVector convert element failed");
-            return ERR;
-        }
-        output.push_back(str);
-    }
-    return OK;
+    LOG_INFO("Convert2NativeValue js just support double data not support float");
+    return napi_invalid_arg;
 }
 
-int32_t JSUtils::Convert2BoolVector(napi_env env, napi_value value, std::vector<bool> &output)
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output)
 {
-    uint32_t arrLen = 0;
-    napi_status status = napi_get_array_length(env, value, &arrLen);
-    if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2BoolVector get arrLength failed, status = %{public}d", status);
-        output = {};
-        return ERR;
-    }
-    napi_value element = nullptr;
-    for (size_t i = 0; i < arrLen; ++i) {
-        status = napi_get_element(env, value, i, &element);
-        if (status != napi_ok) {
-            LOG_ERROR("JSUtils::Convert2BoolVector get element failed, status = %{public}d", status);
-            return ERR;
-        }
-        bool bVal = false;
-        if (Convert2Bool(env, element, bVal) != OK) {
-            LOG_ERROR("JSUtils::Convert2BoolVector convert element failed");
-            return ERR;
-        }
-        output.push_back(bVal);
-    }
-    return OK;
+    LOG_INFO("Convert2NativeValue js just support double data not support int32_t");
+    return napi_invalid_arg;
 }
 
-int32_t JSUtils::Convert2DoubleVector(napi_env env, napi_value value, std::vector<double> &output)
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output)
 {
-    uint32_t arrLen = 0;
-    napi_status status = napi_get_array_length(env, value, &arrLen);
-    if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2DoubleVector get arrLength failed, status = %{public}d", status);
-        output = {};
-        return ERR;
+    LOG_INFO("Convert2NativeValue js just support double data not support int64_t");
+    return napi_invalid_arg;
+}
+
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value)
+{
+    napi_value tempValue;
+    napi_get_null(env, &tempValue);
+    bool equal = false;
+    napi_strict_equals(env, jsValue, tempValue, &equal);
+    if (equal) {
+        return napi_ok;
     }
-    napi_value element = nullptr;
-    for (size_t i = 0; i < arrLen; ++i) {
-        status = napi_get_element(env, value, i, &element);
-        if (status != napi_ok) {
-            LOG_ERROR("JSUtils::Convert2DoubleVector get element failed, status = %{public}d", status);
-            return ERR;
-        }
-        double number = 0.0;
-        if (Convert2Double(env, element, number) != OK) {
-            LOG_ERROR("JSUtils::Convert2Double convert element failed");
-            return ERR;
-        }
-        output.push_back(number);
+    napi_get_undefined(env, &tempValue);
+    napi_strict_equals(env, jsValue, tempValue, &equal);
+    if (equal) {
+        return napi_ok;
     }
-    return OK;
+    LOG_DEBUG("std::monostate is not null");
+    return napi_invalid_arg;
 }
 
 bool JSUtils::Equals(napi_env env, napi_value value, napi_ref copy)
@@ -168,110 +126,81 @@ bool JSUtils::Equals(napi_env env, napi_value value, napi_ref copy)
     return isEquals;
 }
 
-int32_t JSUtils::Convert2JSValue(napi_env env, std::string value, napi_value &output)
-{
-    if (napi_create_string_utf8(env, value.c_str(), value.size(), &output) != napi_ok) {
-        LOG_ERROR("Convert2JSValue create JS string failed");
-        return ERR;
-    }
-    return OK;
-}
-
-int32_t JSUtils::Convert2JSValue(napi_env env, bool value, napi_value &output)
-{
-    if (napi_get_boolean(env, value, &output) != napi_ok) {
-        LOG_ERROR("Convert2JSValue create JS bool failed");
-        return ERR;
-    }
-    return OK;
-}
-
-int32_t JSUtils::Convert2JSValue(napi_env env, double value, napi_value &output)
-{
-    if (napi_create_double(env, value, &output) != napi_ok) {
-        LOG_ERROR("Convert2JSValue create JS double failed");
-        return ERR;
-    }
-    return OK;
-}
-
-int32_t JSUtils::Convert2JSDoubleArr(napi_env env, std::vector<double> value, napi_value &output)
-{
-    size_t arrLen = value.size();
-    napi_status status = napi_create_array_with_length(env, arrLen, &output);
-    if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2JSValue get arrLength failed");
-        return ERR;
-    }
-    napi_value val = nullptr;
-    for (size_t i = 0; i < arrLen; i++) {
-        if (Convert2JSValue(env, value[i], val) != OK) {
-            LOG_ERROR("JSUtils::Convert2JSValue creat double failed");
-            return ERR;
-        }
-        status = napi_set_element(env, output, i, val);
-        if (status != napi_ok) {
-            LOG_ERROR("JSUtils::Convert2JSValue set element failed");
-            return ERR;
-        }
-    }
-    return OK;
-}
-
-int32_t JSUtils::Convert2JSBoolArr(napi_env env, std::vector<bool> value, napi_value &output)
-{
-    size_t arrLen = value.size();
-    napi_status status = napi_create_array_with_length(env, arrLen, &output);
-    if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2JSValue get arrLength failed");
-        return ERR;
-    }
-    for (size_t i = 0; i < arrLen; i++) {
-        napi_value val = nullptr;
-        if (Convert2JSValue(env, value[i], val) != OK) {
-            LOG_ERROR("JSUtils::Convert2JSValue creat bool failed");
-            return ERR;
-        }
-        status = napi_set_element(env, output, i, val);
-        if (status != napi_ok) {
-            LOG_ERROR("JSUtils::Convert2JSValue set element failed");
-            return ERR;
-        }
-    }
-    return OK;
-}
-
-int32_t JSUtils::Convert2JSStringArr(napi_env env, std::vector<std::string> value, napi_value &output)
-{
-    size_t arrLen = value.size();
-    napi_status status = napi_create_array_with_length(env, arrLen, &output);
-    if (status != napi_ok) {
-        LOG_ERROR("JSUtils::Convert2JSValue get arrLength failed");
-        return ERR;
-    }
-    for (size_t i = 0; i < arrLen; i++) {
-        napi_value val = nullptr;
-        if (Convert2JSValue(env, value[i], val) != OK) {
-            LOG_ERROR("JSUtils::Convert2JSValue creat string failed");
-            return ERR;
-        }
-        status = napi_set_element(env, output, i, val);
-        if (status != napi_ok) {
-            LOG_ERROR("JSUtils::Convert2JSValue set element failed");
-            return ERR;
-        }
-    }
-    return OK;
-}
-
 napi_value JSUtils::Convert2JSValue(napi_env env, int32_t value)
 {
     napi_value jsValue;
-    napi_status status = napi_create_int32(env, value, &jsValue);
-    if (status != napi_ok) {
+    if (napi_create_int32(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert int32_t failed");
         return nullptr;
     }
     return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, uint32_t value)
+{
+    napi_value jsValue;
+    if (napi_create_uint32(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert uint32_t failed");
+        return nullptr;
+    }
+    return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, int64_t value)
+{
+    napi_value jsValue;
+    if (napi_create_int64(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert int64_t failed");
+        return nullptr;
+    }
+    return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, bool value)
+{
+    napi_value jsValue;
+    if (napi_get_boolean(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert bool failed");
+        return nullptr;
+    }
+    return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, double value)
+{
+    napi_value jsValue;
+    if (napi_create_double(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert double failed");
+        return nullptr;
+    }
+    return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, float value)
+{
+    napi_value jsValue;
+    if (napi_create_double(env, value, &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert float failed");
+        return nullptr;
+    }
+    return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, const std::string &value)
+{
+    napi_value jsValue;
+    if (napi_create_string_utf8(env, value.c_str(), value.size(), &jsValue) != napi_ok) {
+        LOG_DEBUG("Convert std::string failed");
+        return nullptr;
+    }
+    return jsValue;
+}
+
+napi_value JSUtils::Convert2JSValue(napi_env env, const std::monostate &value)
+{
+    napi_value result = nullptr;
+    napi_get_null(env, &result);
+    return result;
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS

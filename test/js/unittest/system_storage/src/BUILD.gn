@@ -13,18 +13,17 @@
 
 import("//build/test.gni")
 
-module_output_path = "preferences/storage"
+module_output_path = "preferences/js"
 
-ohos_js_unittest("StorageJsTest") {
+ohos_js_unittest("SystemStorageJsTest") {
   module_out_path = module_output_path
 
   hap_profile = "./config.json"
 
-  certificate_profile =
-      "//test/testfwk/developer_test/signature/openharmony_sx.p7b"
+  certificate_profile = "./openharmony_sx.p7b"
 }
 
 group("unittest") {
   testonly = true
-  deps = [ ":StorageJsTest" ]
+  deps = [ ":SystemStorageJsTest" ]
 }

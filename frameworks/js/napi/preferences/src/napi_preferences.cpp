@@ -149,260 +149,40 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
     return thiz;
 }
 
-int ParseKey(const napi_env &env, const napi_value &arg, std::shared_ptr<PreferencesAysncContext> context)
+int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysncContext> context)
 {
-    napi_valuetype keyType = napi_undefined;
-    napi_typeof(env, arg, &keyType);
-    if (keyType != napi_string) {
-        LOG_ERROR("ParseKey: key type must be string.");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "String type.");
+    int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
+    if (rc != napi_ok) {
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "string.");
         context->SetError(paramError);
         return ERR;
     }
-    size_t keyBufferSize = 0;
-    napi_status status = napi_get_value_string_utf8(env, arg, nullptr, 0, &keyBufferSize);
-    if (status != napi_ok) {
-        LOG_ERROR("ParseKey: get keyBufferSize failed");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-        context->SetError(paramError);
-        return ERR;
-    }
-    if (keyBufferSize > MAX_KEY_LENGTH) {
+
+    if (context->key.length() > MAX_KEY_LENGTH) {
         LOG_ERROR("the length of the key is over maximum length.");
         std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 80 bytes.");
         context->SetError(paramError);
         return ERR;
     }
-    // get input key
-    char *key = new (std::nothrow) char[keyBufferSize + 1];
-    if (key == nullptr) {
-        LOG_ERROR("new buffer failed.");
-        return ERR;
-    }
-    size_t keySize = 0;
-    status = napi_get_value_string_utf8(env, arg, key, keyBufferSize + 1, &keySize);
-    if (status != napi_ok) {
-        LOG_ERROR("ParseKey: get keySize failed");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-        context->SetError(paramError);
-        delete[] key;
-        return ERR;
-    }
-    key[keySize] = 0;
-    context->key = std::string(key);
-    delete[] key;
     return OK;
-}
-
-int32_t ParseDoubleElement(
-    const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
-{
-    std::vector<double> array;
-    if (JSUtils::Convert2DoubleVector(env, jsVal, array) != E_OK) {
-        LOG_ERROR("ParseDoubleElement Convert2DoubleVector failed");
-        return E_ERROR;
-    }
-    context->defValue = array;
-    return E_OK;
-}
-
-int32_t ParseBoolElement(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
-{
-    std::vector<bool> array;
-    if (JSUtils::Convert2BoolVector(env, jsVal, array) != E_OK) {
-        LOG_ERROR("ParseBoolElement Convert2BoolVector failed");
-        return E_ERROR;
-    }
-    context->defValue = array;
-    return E_OK;
-}
-
-int32_t ParseStringElement(
-    const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
-{
-    std::vector<std::string> array;
-    if (JSUtils::Convert2StrVector(env, jsVal, array) != E_OK) {
-        LOG_ERROR("ParseStringElement Convert2StrVector failed");
-        return E_ERROR;
-    }
-    context->defValue = array;
-    return E_OK;
-}
-
-int32_t ParseObjectElement(napi_valuetype valueType, const napi_env &env, const napi_value &jsVal,
-    std::shared_ptr<PreferencesAysncContext> context)
-{
-    if (valueType == napi_number) {
-        return ParseDoubleElement(env, jsVal, context);
-    } else if (valueType == napi_boolean) {
-        return ParseBoolElement(env, jsVal, context);
-    } else if (valueType == napi_string) {
-        return ParseStringElement(env, jsVal, context);
-    } else {
-        LOG_ERROR("ParseObjectElement unexpected valueType");
-        return E_ERROR;
-    }
-}
-
-int32_t ParseDefObject(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
-{
-    napi_valuetype valueType = napi_undefined;
-    uint32_t arrLen = 0;
-    napi_status status = napi_get_array_length(env, jsVal, &arrLen);
-    if (status != napi_ok) {
-        LOG_ERROR("ParseDefObject get array failed, status = %{public}d", status);
-        return E_ERROR;
-    }
-    napi_value flag = nullptr;
-    status = napi_get_element(env, jsVal, 0, &flag);
-    if (status != napi_ok) {
-        LOG_ERROR("ParseDefObject get array element failed, status = %{public}d", status);
-        return E_ERROR;
-    }
-    status = napi_typeof(env, flag, &valueType);
-    if (status != napi_ok) {
-        LOG_ERROR("ParseDefObject get array element type failed, status = %{public}d", status);
-        return E_ERROR;
-    }
-    if (ParseObjectElement(valueType, env, jsVal, context) != E_OK) {
-        LOG_ERROR("ParseDefObject parse array element failed, status = %{public}d", status);
-        return E_ERROR;
-    }
-    return E_OK;
 }
 
 int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, jsVal, &valueType);
-    if (valueType == napi_number) {
-        double number = 0.0;
-        if (JSUtils::Convert2Double(env, jsVal, number) != E_OK) {
-            LOG_ERROR("ParseDefValue Convert2Double error");
-            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-            context->SetError(paramError);
-            return ERR;
-        }
-        context->defValue = number;
-    } else if (valueType == napi_string) {
-        std::string str;
-        auto ret = JSUtils::Convert2String(env, jsVal, str);
-        if (ret != E_OK) {
-            LOG_ERROR("ParseDefValue Convert2String error");
-            if (ret == EXCEED_MAX_LENGTH) {
-                std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 8192 bytes.");
-                context->SetError(paramError);
-                return ERR;
-            }
-            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-            context->SetError(paramError);
-            return ERR;
-        }
-        context->defValue = str;
-    } else if (valueType == napi_boolean) {
-        bool bValue = false;
-        if (JSUtils::Convert2Bool(env, jsVal, bValue) != E_OK) {
-            LOG_ERROR("ParseDefValue Convert2Bool error");
-            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-            context->SetError(paramError);
-            return ERR;
-        }
-        context->defValue = bValue;
-    } else if (valueType == napi_object) {
-        if (ParseDefObject(env, jsVal, context) != E_OK) {
-            LOG_ERROR("ParseDefValue::ParseDefObject failed");
-            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-            context->SetError(paramError);
-            return ERR;
-        }
-    } else {
-        LOG_ERROR("ParseDefValue Wrong second parameter type");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+    int32_t rc = JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
+    if (rc != napi_ok) {
+        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "ValueType.");
         context->SetError(paramError);
         return ERR;
     }
     return OK;
 }
 
-int32_t GetAllArr(const std::string &key, const PreferencesValue &value,
-    std::shared_ptr<PreferencesAysncContext> context, napi_value &output)
+int GetAllExecute(napi_env env, std::shared_ptr<PreferencesAysncContext> context, napi_value &result)
 {
-    napi_value jsArr = nullptr;
-    if (value.IsDoubleArray()) {
-        if (JSUtils::Convert2JSDoubleArr(context->env_, value, jsArr) != E_OK) {
-            LOG_ERROR("PreferencesProxy::GetAllArr Convert2JSValue failed");
-            return ERR;
-        }
-        if (napi_set_named_property(context->env_, output, key.c_str(), jsArr) != napi_ok) {
-            LOG_ERROR("PreferencesProxy::GetAllArr set property doubleArr failed");
-            return ERR;
-        }
-    } else if (value.IsStringArray()) {
-        if (JSUtils::Convert2JSStringArr(context->env_, value, jsArr) != E_OK) {
-            LOG_ERROR("PreferencesProxy::GetAllArr Convert2JSValue failed");
-            return ERR;
-        }
-        if (napi_set_named_property(context->env_, output, key.c_str(), jsArr) != napi_ok) {
-            LOG_ERROR("PreferencesProxy::GetAll set property stringArr failed");
-            return ERR;
-        }
-    } else if (value.IsBoolArray()) {
-        if (JSUtils::Convert2JSBoolArr(context->env_, value, jsArr) != E_OK) {
-            LOG_ERROR("PreferencesProxy::GetAllArr Convert2JSValue failed");
-            return ERR;
-        }
-
-        napi_status status = napi_set_named_property(context->env_, output, key.c_str(), jsArr);
-        if (status != napi_ok) {
-            LOG_ERROR("PreferencesProxy::GetAll set property boolArr failed, status = %{public}d", status);
-            return ERR;
-        }
-    }
-    return OK;
-}
-
-int32_t GetAllExecute(std::shared_ptr<PreferencesAysncContext> context, napi_value &output)
-{
-    if (napi_create_object(context->env_, &output) != napi_ok) {
-        LOG_ERROR("PreferencesProxy::GetAll creat object failed");
-        return ERR;
-    }
-    napi_value jsVal = nullptr;
+    napi_create_object(env, &result);
     for (const auto &[key, value] : context->allElements) {
-        if (value.IsBool()) {
-            if (JSUtils::Convert2JSValue(context->env_, static_cast<bool>(value), jsVal) != E_OK) {
-                LOG_ERROR("PreferencesProxy::GetAll get property bool failed");
-                return ERR;
-            }
-            if (napi_set_named_property(context->env_, output, key.c_str(), jsVal) != napi_ok) {
-                LOG_ERROR("PreferencesProxy::GetAll set property bool failed");
-                return ERR;
-            }
-        } else if (value.IsDouble()) {
-            if (JSUtils::Convert2JSValue(context->env_, static_cast<double>(value), jsVal) != E_OK) {
-                LOG_ERROR("PreferencesProxy::GetAll get property double failed");
-                return ERR;
-            }
-            if (napi_set_named_property(context->env_, output, key.c_str(), jsVal) != napi_ok) {
-                LOG_ERROR("PreferencesProxy::GetAll set property double failed");
-                return ERR;
-            }
-        } else if (value.IsString()) {
-            if (JSUtils::Convert2JSValue(context->env_, static_cast<std::string>(value), jsVal) != napi_ok) {
-                LOG_ERROR("PreferencesProxy::GetAll get property string failed");
-                return ERR;
-            }
-            if (napi_set_named_property(context->env_, output, key.c_str(), jsVal) != napi_ok) {
-                LOG_ERROR("PreferencesProxy::GetAll set property string failed");
-                return ERR;
-            }
-        } else {
-            int errCode = GetAllArr(key, value, context, output);
-            if (errCode != OK) {
-                LOG_ERROR("PreferencesProxy::GetAll set property array failed");
-                return ERR;
-            }
-        }
+        napi_set_named_property(env, result, key.c_str(), JSUtils::Convert2JSValue(env, value.value_));
     }
     return OK;
 }
@@ -423,8 +203,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
-        LOG_DEBUG("GetAll end.");
-        return GetAllExecute(context, result);
+        return GetAllExecute(env, context, result);
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -442,55 +221,8 @@ napi_value PreferencesProxy::GetAllSync(napi_env env, napi_callback_info info)
     auto context = std::make_shared<PreferencesAysncContext>();
     context->allElements = proxy->value_->GetAll();
     napi_value result = nullptr;
-    GetAllExecute(context, result);
+    GetAllExecute(env, context, result);
     return result;
-}
-
-int32_t GetArrayValue(napi_env env, const PreferencesValue &defValue, napi_value &output)
-{
-    if (defValue.IsDoubleArray()) {
-        if (JSUtils::Convert2JSDoubleArr(env, (std::vector<double>)defValue, output) != E_OK) {
-            LOG_ERROR("get doubleArray failed");
-            return E_NAPI_GET_ERROR;
-        }
-    } else if (defValue.IsStringArray()) {
-        if (JSUtils::Convert2JSStringArr(env, (std::vector<std::string>)defValue, output) != E_OK) {
-            LOG_ERROR("get stringArray failed");
-            return E_NAPI_GET_ERROR;
-        }
-    } else if (defValue.IsBoolArray()) {
-        if (JSUtils::Convert2JSBoolArr(env, (std::vector<bool>)defValue, output) != E_OK) {
-            LOG_ERROR("get boolArray failed");
-            return E_NAPI_GET_ERROR;
-        }
-    }
-    LOG_ERROR("GetArrayValue failed with unknown type.");
-    return E_NAPI_GET_ERROR;
-}
-
-int GetDefValue(napi_env env, const PreferencesValue &defValue, napi_value &result) {
-    if (defValue.IsBool()) {
-        if (JSUtils::Convert2JSValue(env, static_cast<bool>(defValue), result) != E_OK) {
-            LOG_ERROR("boolVal failed");
-            return ERR;
-        }
-    } else if (defValue.IsString()) {
-        if (JSUtils::Convert2JSValue(env, static_cast<std::string>(defValue), result) != E_OK) {
-            LOG_ERROR("stringVal failed");
-            return ERR;
-        }
-    } else if (defValue.IsDouble()) {
-        if (JSUtils::Convert2JSValue(env, static_cast<double>(defValue), result) != E_OK) {
-            LOG_ERROR("doubleVal failed");
-            return ERR;
-        }
-    } else if (defValue.IsDoubleArray() || defValue.IsStringArray() || defValue.IsBoolArray()) {
-        return GetArrayValue(env, defValue, result);
-    } else {
-        LOG_ERROR("failed with unknown type.");
-        return ERR;
-    }
-    return OK;
 }
 
 napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
@@ -513,11 +245,11 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
         if (context->defValue.IsLong()) {
             LOG_DEBUG("GetValue get default value.");
             napi_get_reference_value(env, context->inputValueRef, &result);
-            napi_delete_reference(env, context->inputValueRef);
-            return OK;
+        } else {
+            result = JSUtils::Convert2JSValue(env, context->defValue.value_);
         }
         napi_delete_reference(env, context->inputValueRef);
-        return GetDefValue(env, context->defValue, result);
+        return OK;
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -543,9 +275,7 @@ napi_value PreferencesProxy::GetValueSync(napi_env env, napi_callback_info info)
         LOG_DEBUG("GetValue get default value.");
         return argv[1];
     }
-    napi_value result = nullptr;
-    GetDefValue(env, context->defValue, result);
-    return result;
+    return JSUtils::Convert2JSValue(env, context->defValue.value_);
 }
 
 napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
@@ -753,7 +483,7 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
 
     std::string chang;
-    int ret = JSUtils::Convert2String(env, args[0], chang);
+    int ret = JSUtils::Convert2NativeValue(env, args[0], chang);
     PRE_NAPI_ASSERT(env, ret == OK && chang == "change", std::make_shared<ParamTypeError>("type", "string 'change'."));
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
@@ -781,7 +511,7 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
 
     std::string chang;
-    int ret = JSUtils::Convert2String(env, args[0], chang);
+    int ret = JSUtils::Convert2NativeValue(env, args[0], chang);
     PRE_NAPI_ASSERT(env, ret == OK && chang == "change", std::make_shared<ParamTypeError>("type", "string 'change'."));
 
     if (argc == requireArgc) {

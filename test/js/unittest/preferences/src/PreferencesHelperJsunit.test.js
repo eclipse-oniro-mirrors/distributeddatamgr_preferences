@@ -21,7 +21,7 @@ const NAME = 'test_preferences';
 const KEY_TEST_STRING_ELEMENT = 'key_test_string';
 var mPreferences;
 var context;
-describe('preferencesTest', function () {
+describe('PreferencesHelperJsunit', function () {
     beforeAll(async function () {
         console.info('beforeAll')
         context = featureAbility.getContext()

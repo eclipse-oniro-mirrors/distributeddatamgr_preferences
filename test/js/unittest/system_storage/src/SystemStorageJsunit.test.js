@@ -16,7 +16,7 @@ import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from '
 import storage from '@system.storage';
 
 const TAG = '[SYSTEM_STORAGE_JSKITS_TEST]'
-describe('systemStorageTest', function () {
+describe('SystemStorageJsunit', function () {
     beforeAll(function () {
         console.info(TAG + 'beforeAll')
     })
