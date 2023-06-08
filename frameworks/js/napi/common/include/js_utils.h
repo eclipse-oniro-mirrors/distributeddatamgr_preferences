@@ -43,7 +43,10 @@ constexpr int32_t SYNC_RESULT_ELEMNT_NUM = 2;
 bool Equals(napi_env env, napi_value value, napi_ref copy);
 
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, bool &output);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, float &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, double &output);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value);
 

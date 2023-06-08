@@ -76,6 +76,24 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &o
     return OK;
 }
 
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, float &output)
+{
+    LOG_INFO("Convert2NativeValue js just support double data not support float");
+    return napi_invalid_arg;
+}
+
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output)
+{
+    LOG_INFO("Convert2NativeValue js just support double data not support int32_t");
+    return napi_invalid_arg;
+}
+
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output)
+{
+    LOG_INFO("Convert2NativeValue js just support double data not support int64_t");
+    return napi_invalid_arg;
+}
+
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value)
 {
     napi_value tempValue;
@@ -111,8 +129,7 @@ bool JSUtils::Equals(napi_env env, napi_value value, napi_ref copy)
 napi_value JSUtils::Convert2JSValue(napi_env env, int32_t value)
 {
     napi_value jsValue;
-    napi_status status = napi_create_int32(env, value, &jsValue);
-    if (status != napi_ok) {
+    if (napi_create_int32(env, value, &jsValue) != napi_ok) {
         return nullptr;
     }
     return jsValue;
@@ -121,8 +138,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, int32_t value)
 napi_value JSUtils::Convert2JSValue(napi_env env, int64_t value)
 {
     napi_value jsValue;
-    napi_status status = napi_create_int64(env, value, &jsValue);
-    if (status != napi_ok) {
+    if (napi_create_int64(env, value, &jsValue) != napi_ok) {
         return nullptr;
     }
     return jsValue;
@@ -131,8 +147,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, int64_t value)
 napi_value JSUtils::Convert2JSValue(napi_env env, bool value)
 {
     napi_value jsValue;
-    napi_status status = napi_get_boolean(env, value, &jsValue);
-    if (status != napi_ok) {
+    if (napi_get_boolean(env, value, &jsValue) != napi_ok) {
         return nullptr;
     }
     return jsValue;
@@ -141,8 +156,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, bool value)
 napi_value JSUtils::Convert2JSValue(napi_env env, double value)
 {
     napi_value jsValue;
-    napi_status status = napi_create_double(env, value, &jsValue);
-    if (status != napi_ok) {
+    if (napi_create_double(env, value, &jsValue) != napi_ok) {
         return nullptr;
     }
     return jsValue;
@@ -151,8 +165,7 @@ napi_value JSUtils::Convert2JSValue(napi_env env, double value)
 napi_value JSUtils::Convert2JSValue(napi_env env, float value)
 {
     napi_value jsValue;
-    napi_status status = napi_create_double(env, value, &jsValue);
-    if (status != napi_ok) {
+    if (napi_create_double(env, value, &jsValue) != napi_ok) {
         return nullptr;
     }
     return jsValue;
