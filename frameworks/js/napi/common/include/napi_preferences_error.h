@@ -25,7 +25,11 @@ constexpr int ERR = -1;
 constexpr int EXCEED_MAX_LENGTH = -2;
 
 constexpr int E_PARAM_ERROR = 401;
+constexpr int E_INNER_ERROR = 15500000;
 constexpr int E_PREFERENCES_ERROR = 15500010;
+
+const static std::map<int, std::string> ERROR_MAPS = {
+};
 
 #define PRE_NAPI_ASSERT_BASE(env, assertion, error, retVal)                        \
     do {                                                                           \
@@ -103,6 +107,34 @@ public:
 private:
     std::string name;
     std::string wantType;
+};
+
+class InnerError : public Error {
+public:
+    InnerError(int code)
+    {
+        auto iter = ERROR_MAPS.find(code);
+        if (iter != ERROR_MAPS.end()) {
+            code_ = code;
+            msg_ = iter->second;
+        } else {
+            code_ = E_INNER_ERROR;
+            msg_ = "Inner error. Error code " + std::to_string(code);
+        }
+    }
+
+    std::string GetMessage() override
+    {
+        return msg_;
+    }
+
+    int GetCode() override
+    {
+        return code_;
+    }
+private:
+    int code_;
+    std::string msg_;
 };
 
 class ParamNumError : public Error {

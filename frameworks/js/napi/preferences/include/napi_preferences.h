@@ -51,6 +51,13 @@ private:
     static napi_value RegisterObserver(napi_env env, napi_callback_info info);
     static napi_value UnRegisterObserver(napi_env env, napi_callback_info info);
     static napi_value GetAll(napi_env env, napi_callback_info info);
+    static napi_value GetValueSync(napi_env env, napi_callback_info info);
+    static napi_value SetValueSync(napi_env env, napi_callback_info info);
+    static napi_value HasKeySync(napi_env env, napi_callback_info info);
+    static napi_value DeleteSync(napi_env env, napi_callback_info info);
+    static napi_value FlushSync(napi_env env, napi_callback_info info);
+    static napi_value ClearSync(napi_env env, napi_callback_info info);
+    static napi_value GetAllSync(napi_env env, napi_callback_info info);
 
     bool HasRegisteredObserver(napi_value callback);
     void RegisteredObserver(napi_value callback);

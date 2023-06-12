@@ -38,9 +38,8 @@ namespace PreferencesJsKit {
 
 struct PreferencesAysncContext : public BaseContext {
     std::string key;
-    PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
+    PreferencesValue defValue = 0LL;
     napi_ref inputValueRef = nullptr;
-    bool isDefValue = false;
     std::map<std::string, PreferencesValue> allElements;
     bool hasKey = false;
     std::list<std::string> keysModified;
@@ -77,11 +76,17 @@ void PreferencesProxy::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptors[] = {
         DECLARE_NAPI_FUNCTION("put", SetValue),
+        DECLARE_NAPI_FUNCTION("putSync", SetValueSync),
         DECLARE_NAPI_FUNCTION("get", GetValue),
+        DECLARE_NAPI_FUNCTION("getSync", GetValueSync),
         DECLARE_NAPI_FUNCTION("getAll", GetAll),
+        DECLARE_NAPI_FUNCTION("getAllSync", GetAllSync),
         DECLARE_NAPI_FUNCTION("delete", Delete),
+        DECLARE_NAPI_FUNCTION("deleteSync", DeleteSync),
         DECLARE_NAPI_FUNCTION("clear", Clear),
+        DECLARE_NAPI_FUNCTION("clearSync", ClearSync),
         DECLARE_NAPI_FUNCTION("has", HasKey),
+        DECLARE_NAPI_FUNCTION("hasSync", HasKeySync),
         DECLARE_NAPI_FUNCTION("flush", Flush),
         DECLARE_NAPI_FUNCTION("on", RegisterObserver),
         DECLARE_NAPI_FUNCTION("off", UnRegisterObserver),
@@ -173,6 +178,15 @@ int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<
     return OK;
 }
 
+int GetAllExecute(napi_env env, std::shared_ptr<PreferencesAysncContext> context, napi_value &result)
+{
+    napi_create_object(env, &result);
+    for (const auto &[key, value] : context->allElements) {
+        napi_set_named_property(env, result, key.c_str(), JSUtils::Convert2JSValue(env, value.value_));
+    }
+    return OK;
+}
+
 napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("GetAll start");
@@ -189,29 +203,26 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
-        LOG_DEBUG("GetAll end.");
-        if (napi_create_object(env, &result) != napi_ok) {
-            LOG_ERROR("creat object failed");
-            std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-            context->SetError(paramError);
-            return ERR;
-        }
-        for (const auto &[key, value] : context->allElements) {
-            napi_value val = JSUtils::Convert2JSValue(env, value.value_);
-            if (val == nullptr) {
-                LOG_ERROR("val == nullptr");
-                std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
-                context->SetError(paramError);
-                return ERR;
-            }
-            napi_set_named_property(env, result, key.c_str(), val);
-        }
-        return OK;
+        return GetAllExecute(env, context, result);
     };
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
+}
+
+napi_value PreferencesProxy::GetAllSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &self, nullptr);
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    auto context = std::make_shared<PreferencesAysncContext>();
+    context->allElements = proxy->value_->GetAll();
+    napi_value result = nullptr;
+    GetAllExecute(env, context, result);
+    return result;
 }
 
 napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
@@ -227,15 +238,11 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
-        auto outValue = obj->value_->Get(context->key, context->defValue);
-        if (outValue == context->defValue) {
-            context->isDefValue = true;
-        }
-        context->defValue = outValue;
+        context->defValue = obj->value_->Get(context->key, context->defValue);
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
-        if (context->isDefValue) {
+        if (context->defValue.IsLong()) {
             LOG_DEBUG("GetValue get default value.");
             napi_get_reference_value(env, context->inputValueRef, &result);
         } else {
@@ -248,6 +255,27 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     
     PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
+}
+
+napi_value PreferencesProxy::GetValueSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 2;
+    napi_value argv[2] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    auto context = std::make_shared<PreferencesAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseKey(env, argv[0], context) == OK, context->error);
+    context->defValue = proxy->value_->Get(context->key, context->defValue);
+    // the return back value never be an int64_t type.
+    if (context->defValue.IsLong()) {
+        LOG_DEBUG("GetValue get default value.");
+        return argv[1];
+    }
+    return JSUtils::Convert2JSValue(env, context->defValue.value_);
 }
 
 napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
@@ -278,6 +306,24 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context);
 }
 
+napi_value PreferencesProxy::SetValueSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 2;
+    napi_value argv[2] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    auto context = std::make_shared<PreferencesAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseKey(env, argv[0], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseDefValue(env, argv[1], context) == OK, context->error);
+    int errCode = proxy->value_->Put(context->key, context->defValue);
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
+}
+
 napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("Delete start");
@@ -304,6 +350,23 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context);
 }
 
+napi_value PreferencesProxy::DeleteSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 1;
+    napi_value argv[1] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 1, std::make_shared<ParamNumError>("1"));
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    auto context = std::make_shared<PreferencesAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseKey(env, argv[0], context) == OK, context->error);
+    int errCode = proxy->value_->Delete(context->key);
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
+}
+
 napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("HasKey start");
@@ -328,6 +391,22 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     
     PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
+}
+
+napi_value PreferencesProxy::HasKeySync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 1;
+    napi_value argv[1] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 1, std::make_shared<ParamNumError>("1"));
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    auto context = std::make_shared<PreferencesAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseKey(env, argv[0], context) == OK, context->error);
+    bool result = proxy->value_->HasKey(context->key);
+    return JSUtils::Convert2JSValue(env, result);
 }
 
 napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
@@ -376,6 +455,18 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     
     PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
+}
+
+napi_value PreferencesProxy::ClearSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &self, nullptr);
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    int errCode = proxy->value_->Clear();
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
 }
 
 napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info info)
