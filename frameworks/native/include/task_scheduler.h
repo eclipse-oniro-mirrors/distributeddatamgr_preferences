@@ -42,11 +42,15 @@ public:
         taskId_ = INVALID_TASK_ID;
         thread_ = std::make_unique<std::thread>([this, name]() {
             auto realName = std::string("task_queue_") + name;
+#if defined(MAC_PLATFORM) || defined(IOS_PLATFORM)
+            pthread_setname_np(realName.c_str());
+#else
             pthread_setname_np(pthread_self(), realName.c_str());
+#endif
             Loop();
         });
     }
-    
+
     ~TaskScheduler()
     {
         isRunning_ = false;
