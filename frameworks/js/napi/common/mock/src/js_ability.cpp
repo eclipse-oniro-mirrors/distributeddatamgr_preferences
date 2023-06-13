@@ -17,7 +17,7 @@
 
 #include <cstdlib>
 
-#include "js_logger.h"
+#include "log_print.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {

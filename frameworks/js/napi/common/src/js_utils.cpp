@@ -15,7 +15,7 @@
 
 #include "js_utils.h"
 
-#include "js_logger.h"
+#include "log_print.h"
 
 #ifndef MAC_PLATFORM
 #include "securec.h"

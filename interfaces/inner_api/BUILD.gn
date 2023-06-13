@@ -17,6 +17,7 @@ config("native_preferences_config") {
   include_dirs = [
     "include",
     "${preferences_native_path}/include",
+    "${preferences_base_path}/frameworks/common/include",
   ]
 }
 

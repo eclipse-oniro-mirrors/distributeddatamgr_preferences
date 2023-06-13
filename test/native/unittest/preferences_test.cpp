@@ -21,7 +21,7 @@
 #include <iostream>
 #include <string>
 
-#include "logger.h"
+#include "log_print.h"
 #include "preferences_errno.h"
 #include "preferences_helper.h"
 #include "preferences_observer.h"
