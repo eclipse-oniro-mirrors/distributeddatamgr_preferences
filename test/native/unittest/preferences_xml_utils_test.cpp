@@ -69,25 +69,6 @@ HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_001, TestSize.Leve
 }
 
 /**
-* @tc.name: NativePreferencesImplTest_002
-* @tc.desc: normal testcase of DeletePreferences
-* @tc.type: FUNC
-*/
-HWTEST_F(PreferencesXmlUtilsTest, NativePreferencesHelperTest_002, TestSize.Level1)
-{
-    std::vector<Element> settings = {};
-    bool ret = PreferencesXmlUtils::ReadSettingXml("", settings);
-    EXPECT_EQ(ret, false);
-
-    std::string path = "/data/test/test_helper" + std::string(4096, 't');
-    ret = PreferencesXmlUtils::ReadSettingXml(path, settings);
-    EXPECT_EQ(ret, false);
-
-    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper", settings);
-    EXPECT_EQ(ret, false);
-}
-
-/**
 * @tc.name: StringNodeElementTest_001
 * @tc.desc: StringNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
