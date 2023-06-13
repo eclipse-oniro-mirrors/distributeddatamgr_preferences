@@ -38,7 +38,7 @@ namespace PreferencesJsKit {
 
 struct PreferencesAysncContext : public BaseContext {
     std::string key;
-    PreferencesValue defValue = 0LL;
+    PreferencesValue defValue = PreferencesValue(static_cast<int64_t>(0));
     napi_ref inputValueRef = nullptr;
     std::map<std::string, PreferencesValue> allElements;
     bool hasKey = false;
