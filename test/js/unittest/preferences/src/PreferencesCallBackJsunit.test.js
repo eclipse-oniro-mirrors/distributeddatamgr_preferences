@@ -430,4 +430,51 @@ describe('PreferencesCallBackJsunit', function () {
             done();
         });
     })
+
+    /**
+     * @tc.name get empty array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0141
+     * @tc.desc flush empty array callback interface test
+     */
+    it('testPreferencesFlushEmptyArray0001', 0, async function (done) {
+        await mPreferences.clear();
+        let value = new Array();
+        await mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, value, async function(err, ret) {
+            if (err) {
+                expect(null).assertFail();
+                done();
+            }
+            let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
+            expect(pre instanceof Array).assertEqual(true);
+            expect(pre.length).assertEqual(0);
+            await mPreferences.flush();
+            let pre2 = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
+            expect(pre2 instanceof Array).assertEqual(true);
+            expect(pre2.length).assertEqual(0);
+            done();
+        });
+    })
+
+    /**
+     * @tc.name get empty array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0151
+     * @tc.desc flush empty array callback interface test
+     */
+    it('testPreferencesFlushEmptyArray0002', 0, async function (done) {
+        await mPreferences.clear();
+        await mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, [], async function(err, ret) {
+            if (err) {
+                expect(null).assertFail();
+                done();
+            }
+            let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
+            expect(pre instanceof Array).assertEqual(true);
+            expect(pre.length).assertEqual(0);
+            await mPreferences.flush();
+            let pre2 = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
+            expect(pre2 instanceof Array).assertEqual(true);
+            expect(pre2.length).assertEqual(0);
+            done();
+        });
+    })
 })
