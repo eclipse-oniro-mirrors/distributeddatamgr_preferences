@@ -243,4 +243,100 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
     int ret = PreferencesHelper::DeletePreferences(file);
     EXPECT_EQ(ret, E_OK);
 }
+
+/**
+* @tc.name: ArrayNodeElementTest_004
+* @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_004, TestSize.Level1)
+{
+    std::string file = "/data/test/test05";
+    std::remove(file.c_str());
+    std::vector<Element> settings;
+
+    Element elem;
+    elem.key_ = "boolArrayKey";
+    elem.tag_ = std::string("boolArray");
+    elem.value_ = std::to_string(false);
+    
+    settings.push_back(elem);
+    PreferencesXmlUtils::WriteSettingXml(file, settings);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    auto retBoolArray = pref->Get("boolArrayKey", false);
+    EXPECT_EQ(retBoolArray.IsBoolArray(), true);
+    auto array = static_cast<std::vector<bool>>(retBoolArray);
+    EXPECT_EQ(array.empty(), true);
+
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+* @tc.name: ArrayNodeElementTest_005
+* @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_005, TestSize.Level1)
+{
+    std::string file = "/data/test/test06";
+    std::remove(file.c_str());
+    std::vector<Element> settings;
+
+    Element elem;
+    elem.key_ = "stringArrayKey";
+    elem.tag_ = std::string("stringArray");
+    elem.value_ = std::to_string(false);
+
+    settings.push_back(elem);
+    PreferencesXmlUtils::WriteSettingXml(file, settings);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    auto retStringArray = pref->Get("stringArrayKey", false);
+    EXPECT_EQ(retStringArray.IsStringArray(), true);
+    auto array = static_cast<std::vector<std::string>>(retStringArray);
+    EXPECT_EQ(array.empty(), true);
+
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+* @tc.name: ArrayNodeElementTest_006
+* @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_006, TestSize.Level1)
+{
+    std::string file = "/data/test/test07";
+    std::remove(file.c_str());
+    std::vector<Element> settings;
+
+    Element elem;
+    elem.key_ = "doubleArrayKey";
+    elem.tag_ = std::string("doubleArray");
+    elem.value_ = std::to_string(1);
+    
+    settings.push_back(elem);
+    PreferencesXmlUtils::WriteSettingXml(file, settings);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    auto retDoubleArray = pref->Get("doubleArrayKey", 0);
+    EXPECT_EQ(retDoubleArray.IsDoubleArray(), true);
+    auto array = static_cast<std::vector<double>>(retDoubleArray);
+    EXPECT_EQ(array.empty(), true);
+
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
 }

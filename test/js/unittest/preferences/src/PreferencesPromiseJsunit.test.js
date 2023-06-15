@@ -455,7 +455,7 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0131
      * @tc.desc get empty array promise interface test
      */
-    it('testPreferencesGetEmptyArray0161', 0, function (done) {
+    it('testPreferencesGetEmptyArray0171', 0, function (done) {
         let defaultValue = new Array();
         let data = mPreferences.get("mytest", defaultValue);
         data.then((value) => {
@@ -466,4 +466,53 @@ describe('PreferencesPromiseJsunit', function () {
             done();
         })
     })
+
+    /**
+     * @tc.name get empty array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0132
+     * @tc.desc get empty array promise interface test
+     */
+    it('testPreferencesFlushEmptyArray0181', 0, async function (done) {
+        await mPreferences.clear();
+        let value = new Array();
+        const promise = mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, value);
+        promise.then(async (ret) => {
+            let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue");
+            expect(pre instanceof Array).assertEqual(true);
+            expect(pre.length).assertEqual(0);
+            await mPreferences.flush();
+            let pre2 = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
+            expect(pre2 instanceof Array).assertEqual(true);
+            expect(pre2.length).assertEqual(0);
+            done();
+        }).catch((err) => {
+            expect(null).assertFail();
+            done();
+        });
+        await promise;
+    })
+
+    /**
+     * @tc.name get empty array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0132
+     * @tc.desc get empty array promise interface test
+     */
+        it('testPreferencesGetEmptyArray0191', 0, async function (done) {
+            await mPreferences.clear();
+            const promise = mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, []);
+            promise.then(async (ret) => {
+                let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue");
+                expect(pre instanceof Array).assertEqual(true);
+                expect(pre.length).assertEqual(0);
+                await mPreferences.flush();
+                let pre2 = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
+                expect(pre2 instanceof Array).assertEqual(true);
+                expect(pre2.length).assertEqual(0);
+                done();
+            }).catch((err) => {
+                expect(null).assertFail();
+                done();
+            });
+            await promise;
+        })
 })
