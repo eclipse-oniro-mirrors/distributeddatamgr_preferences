@@ -15,7 +15,7 @@
 #ifndef PRE_JS_NAPI_ERROR_H
 #define PRE_JS_NAPI_ERROR_H
 
-#include "js_logger.h"
+#include "log_print.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {

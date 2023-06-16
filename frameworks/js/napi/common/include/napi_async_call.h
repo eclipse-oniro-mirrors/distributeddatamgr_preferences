@@ -18,7 +18,7 @@
 #include <functional>
 #include <memory>
 
-#include "js_logger.h"
+#include "log_print.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"

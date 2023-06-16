@@ -23,7 +23,7 @@
 #include <thread>
 
 #include "adaptor.h"
-#include "logger.h"
+#include "log_print.h"
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"

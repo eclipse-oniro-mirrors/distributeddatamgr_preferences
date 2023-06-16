@@ -21,7 +21,7 @@
 #include <list>
 
 #include "napi_async_call.h"
-#include "js_logger.h"
+#include "log_print.h"
 #include "js_utils.h"
 #include "napi_preferences_error.h"
 #include "preferences.h"
@@ -153,7 +153,7 @@ int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysn
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
     PRE_CHECK_RETURN(rc == napi_ok, context->SetError(std::make_shared<ParamTypeError>("value", "string.")));
-    PRE_CHECK_RETURN(context->key.length() > MAX_KEY_LENGTH,
+    PRE_CHECK_RETURN(context->key.length() <= MAX_KEY_LENGTH,
         context->SetError(std::make_shared<ParamTypeError>("value", "less than 80 bytes.")));
     return OK;
 }

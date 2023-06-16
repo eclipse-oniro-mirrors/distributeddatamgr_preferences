@@ -21,7 +21,7 @@
 #include <cstring>
 
 #include "libxml/parser.h"
-#include "logger.h"
+#include "log_print.h"
 
 #include "adaptor.h"
 
@@ -336,6 +336,9 @@ xmlNode *CreateArrayNode(Element &element)
     const char *key = element.key_.c_str();
     xmlNewProp(node, BAD_CAST "key", BAD_CAST key);
 
+    if (element.children_.empty()) {
+        return node;
+    }
     Element flag = element.children_[0];
     if ((flag.tag_.compare("bool") == 0) || (flag.tag_.compare("double") == 0)) {
         for (Element &child : element.children_) {

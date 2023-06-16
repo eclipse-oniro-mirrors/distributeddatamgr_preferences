@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "adaptor.h"
-#include "logger.h"
+#include "log_print.h"
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_impl.h"

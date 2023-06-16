@@ -17,6 +17,7 @@ import("//foundation/distributeddatamgr/preferences/preferences.gni")
 base_include = [
   "${preferences_napi_path}/common/include",
   "${preferences_napi_path}/preferences/include",
+  "${preferences_base_path}/frameworks/common/include",
 ]
 
 base_sources = [

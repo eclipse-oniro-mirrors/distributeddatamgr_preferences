@@ -14,7 +14,7 @@
  */
 
 #include "napi_async_call.h"
-#include "js_logger.h"
+#include "log_print.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
