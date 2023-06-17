@@ -28,7 +28,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
     size_t strBufferSize = 0;
     napi_status status = napi_get_value_string_utf8(env, jsValue, nullptr, 0, &strBufferSize);
     if (status != napi_ok) {
-        LOG_INFO("get std::string failed, status = %{public}d", status);
+        LOG_DEBUG("get std::string failed, status = %{public}d", status);
         return napi_invalid_arg;
     }
     if (strBufferSize > MAX_VALUE_LENGTH) {
@@ -42,7 +42,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
     size_t valueSize = 0;
     status = napi_get_value_string_utf8(env, jsValue, str, strBufferSize + 1, &valueSize);
     if (status != napi_ok) {
-        LOG_INFO("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
+        LOG_DEBUG("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
         delete[] str;
         return napi_invalid_arg;
     }
@@ -57,7 +57,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, bool &out
     bool bValue = false;
     napi_status status = napi_get_value_bool(env, jsValue, &bValue);
     if (status != napi_ok) {
-        LOG_INFO("get bool failed, status = %{public}d", status);
+        LOG_DEBUG("get bool failed, status = %{public}d", status);
         return napi_invalid_arg;
     }
     output = bValue;
@@ -69,7 +69,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &o
     double number = 0.0;
     napi_status status = napi_get_value_double(env, jsValue, &number);
     if (status != napi_ok) {
-        LOG_INFO("get double failed, status = %{public}d", status);
+        LOG_DEBUG("get double failed, status = %{public}d", status);
         return napi_invalid_arg;
     }
     output = number;
@@ -78,19 +78,19 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &o
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, float &output)
 {
-    LOG_INFO("Convert2NativeValue js just support double data not support float");
+    LOG_DEBUG("Convert2NativeValue js just support double data not support float");
     return napi_invalid_arg;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output)
 {
-    LOG_INFO("Convert2NativeValue js just support double data not support int32_t");
+    LOG_DEBUG("Convert2NativeValue js just support double data not support int32_t");
     return napi_invalid_arg;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output)
 {
-    LOG_INFO("Convert2NativeValue js just support double data not support int64_t");
+    LOG_DEBUG("Convert2NativeValue js just support double data not support int64_t");
     return napi_invalid_arg;
 }
 

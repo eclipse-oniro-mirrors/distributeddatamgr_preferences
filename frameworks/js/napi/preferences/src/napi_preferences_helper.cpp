@@ -152,12 +152,32 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context);
 }
 
+napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 2;
+    napi_value argv[2] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    auto context = std::make_shared<HelperAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseName(env, argv[1], context) == OK, context->error);
+    int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
+
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
+}
+
 napi_value InitPreferencesHelper(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getPreferences", GetPreferences),
         DECLARE_NAPI_FUNCTION("deletePreferences", DeletePreferences),
         DECLARE_NAPI_FUNCTION("removePreferencesFromCache", RemovePreferencesFromCache),
+        DECLARE_NAPI_FUNCTION("removePreferencesFromCacheSync", RemovePreferencesFromCacheSync),
         DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_KEY_LENGTH)),
         DECLARE_NAPI_PROPERTY("MAX_VALUE_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_VALUE_LENGTH)),
     };

@@ -35,9 +35,9 @@ const static std::map<int, std::string> ERROR_MAPS = {
     do {                                                                           \
         if (!(assertion)) {                                                        \
             LOG_ERROR("throw error: code = %{public}d , message = %{public}s",     \
-                      (error)->GetCode(), (error)->GetMessage().c_str());          \
+                      (error)->GetCode(), (error)->GetMsg().c_str());          \
             napi_throw_error((env), std::to_string((error)->GetCode()).c_str(),    \
-                             (error)->GetMessage().c_str());                       \
+                             (error)->GetMsg().c_str());                       \
             return retVal;                                                         \
         }                                                                          \
     } while (0)
@@ -88,14 +88,14 @@ const static std::map<int, std::string> ERROR_MAPS = {
 class Error {
 public:
     virtual ~Error(){};
-    virtual std::string GetMessage() = 0;
+    virtual std::string GetMsg() = 0;
     virtual int GetCode() = 0;
 };
 
 class ParamTypeError : public Error {
 public:
     ParamTypeError(const std::string &name, const std::string &wantType) : name(name), wantType(wantType){};
-    std::string GetMessage() override
+    std::string GetMsg() override
     {
         return "Parameter error. The type of '" + name + "' must be " + wantType;
     };
@@ -123,7 +123,7 @@ public:
         }
     }
 
-    std::string GetMessage() override
+    std::string GetMsg() override
     {
         return msg_;
     }
@@ -140,7 +140,7 @@ private:
 class ParamNumError : public Error {
 public:
     ParamNumError(const std::string &wantNum) : wantNum(wantNum){};
-    std::string GetMessage() override
+    std::string GetMsg() override
     {
         return "Parameter error. Need " + wantNum + " parameters!";
     };
@@ -157,7 +157,7 @@ private:
 class DeleteError : public Error {
 public:
     DeleteError() = default;
-    std::string GetMessage() override
+    std::string GetMsg() override
     {
         return "Failed to delete preferences file.";
     };
