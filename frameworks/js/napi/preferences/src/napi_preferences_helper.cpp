@@ -32,7 +32,7 @@ namespace OHOS {
 namespace PreferencesJsKit {
 struct HelperAysncContext : public BaseContext {
     std::string path;
-    std::shared_ptr<OHOS::PreferencesJsKit::Context> abilitycontext;
+    std::shared_ptr<OHOS::PreferencesJsKit::Context> abilityContext;
     std::shared_ptr<Preferences> proxy;
     
     HelperAysncContext()
@@ -44,10 +44,10 @@ struct HelperAysncContext : public BaseContext {
 int ParseContext(const napi_env &env, const napi_value &object, std::shared_ptr<HelperAysncContext> context)
 {
     LOG_DEBUG("ParseContext begin");
-    auto abilitycontext = JSAbility::GetContext(env, object);
-    std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("context", "a Context.");
-    PRE_CHECK_RETURN_CALL_RESULT(abilitycontext != nullptr, context->SetError(paramError));
-    context->abilitycontext = abilitycontext;
+    auto abilityContext = JSAbility::GetContext(env, object);
+    PRE_CHECK_RETURN(abilityContext != nullptr,
+        context->SetError(std::make_shared<ParamTypeError>("context", "a Context.")));
+    context->abilityContext = abilityContext;
     LOG_DEBUG("ParseContext end");
     return OK;
 }
@@ -57,13 +57,14 @@ int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<Help
     LOG_DEBUG("ParseName start");
     std::string name;
     int status = JSUtils::Convert2NativeValue(env, value, name);
-    std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("name", "a without path non empty string.");
-    PRE_CHECK_RETURN_CALL_RESULT(status == OK || !name.empty(), context->SetError(paramError));
+    PRE_CHECK_RETURN(status == OK || !name.empty(),
+        context->SetError(std::make_shared<ParamTypeError>("name", "a without path non empty string.")));
 
     size_t pos = name.find_first_of('/');
-    PRE_CHECK_RETURN_CALL_RESULT(pos == std::string::npos, context->SetError(paramError));
+    PRE_CHECK_RETURN(pos == std::string::npos,
+        context->SetError(std::make_shared<ParamTypeError>("name", "a name string only without path.")));
 
-    std::string preferencesDir = context->abilitycontext->GetPreferencesDir();
+    std::string preferencesDir = context->abilityContext->GetPreferencesDir();
     context->path = preferencesDir.append("/").append(name);
     return OK;
 }
@@ -110,8 +111,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         int errCode = PreferencesHelper::DeletePreferences(context->path);
         LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
-        std::shared_ptr<Error> deleteError = std::make_shared<DeleteError>();
-        PRE_CHECK_RETURN_CALL_RESULT(errCode == E_OK, context->SetError(deleteError));
+        PRE_CHECK_RETURN(errCode == E_OK, context->SetError(std::make_shared<DeleteError>()));
 
         return (errCode == E_OK) ? OK : ERR;
     };
@@ -147,9 +147,28 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
         return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
+}
+
+napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 2;
+    napi_value argv[2] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PreferencesProxy *proxy = nullptr;
+    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
+
+    auto context = std::make_shared<HelperAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseName(env, argv[1], context) == OK, context->error);
+    int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
+
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
 }
 
 napi_value InitPreferencesHelper(napi_env env, napi_value exports)
@@ -158,6 +177,7 @@ napi_value InitPreferencesHelper(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getPreferences", GetPreferences),
         DECLARE_NAPI_FUNCTION("deletePreferences", DeletePreferences),
         DECLARE_NAPI_FUNCTION("removePreferencesFromCache", RemovePreferencesFromCache),
+        DECLARE_NAPI_FUNCTION("removePreferencesFromCacheSync", RemovePreferencesFromCacheSync),
         DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_KEY_LENGTH)),
         DECLARE_NAPI_PROPERTY("MAX_VALUE_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_VALUE_LENGTH)),
     };

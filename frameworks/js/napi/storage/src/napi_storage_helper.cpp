@@ -155,7 +155,7 @@ napi_value DeleteStorage(napi_env env, napi_callback_info info)
         int errCode = PreferencesHelper::DeletePreferences(context->path);
         LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
         std::shared_ptr<Error> deleteError = std::make_shared<DeleteError>();
-        PRE_CHECK_RETURN_CALL_RESULT(errCode == E_OK, context->SetError(deleteError));
+        PRE_CHECK_RETURN(errCode == E_OK, context->SetError(deleteError));
         
         return (errCode == E_OK) ? OK : ERR;
     };
