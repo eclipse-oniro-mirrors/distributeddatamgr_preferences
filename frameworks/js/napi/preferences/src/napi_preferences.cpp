@@ -152,29 +152,16 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
 int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
-    if (rc != napi_ok) {
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "string.");
-        context->SetError(paramError);
-        return ERR;
-    }
-
-    if (context->key.length() > MAX_KEY_LENGTH) {
-        LOG_ERROR("the length of the key is over maximum length.");
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "less than 80 bytes.");
-        context->SetError(paramError);
-        return ERR;
-    }
+    PRE_CHECK_RETURN(rc == napi_ok, context->SetError(std::make_shared<ParamTypeError>("value", "string.")));
+    PRE_CHECK_RETURN(context->key.length() <= MAX_KEY_LENGTH,
+        context->SetError(std::make_shared<ParamTypeError>("value", "less than 80 bytes.")));
     return OK;
 }
 
 int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
-    if (rc != napi_ok) {
-        std::shared_ptr<Error> paramError = std::make_shared<ParamTypeError>("value", "ValueType.");
-        context->SetError(paramError);
-        return ERR;
-    }
+    PRE_CHECK_RETURN(rc == napi_ok, context->SetError(std::make_shared<ParamTypeError>("value", "ValueType.")));
     return OK;
 }
 

@@ -65,7 +65,7 @@ const static std::map<int, std::string> ERROR_MAPS = {
         }                                            \
     } while (0)
 
-#define PRE_CHECK_RETURN_CALL_RESULT(assertion, theCall) \
+#define PRE_CHECK_RETURN(assertion, theCall) \
     do {                                                 \
         if (!(assertion)) {                              \
             (theCall);                                   \
