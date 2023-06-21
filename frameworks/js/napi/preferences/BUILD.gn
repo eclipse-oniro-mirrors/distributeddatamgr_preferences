@@ -44,7 +44,8 @@ if (is_ohos) {
     sources = base_sources
     sources += [ "${preferences_napi_path}/common/src/js_ability.cpp" ]
 
-    deps = [ "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences" ]
+    deps =
+        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
 
     external_deps = [
       "ability_runtime:abilitykit_native",

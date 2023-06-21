@@ -43,10 +43,12 @@ if (!is_mingw && !is_mac) {
       "src/napi_storage_helper.cpp",
     ]
 
+    deps =
+        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
+
     external_deps = [
       "hilog_native:libhilog",
       "napi:ace_napi",
-      "preferences:native_preferences",
     ]
 
     subsystem_name = "distributeddatamgr"
