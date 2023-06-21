@@ -57,7 +57,7 @@ describe("PreferencesOperationSyncJsPref", async function () {
             mPreference.putSync(KEY_TEST_STRING_KEY, KEY_TEST_STRING_VAL);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}putSync_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -71,7 +71,7 @@ describe("PreferencesOperationSyncJsPref", async function () {
             mPreference.get(KEY_TEST_STRING_KEY, KEY_TEST_STRING_VAL);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}getSync_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -85,7 +85,7 @@ describe("PreferencesOperationSyncJsPref", async function () {
             mPreference.hasSync(KEY_TEST_STRING_KEY);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}hasSync_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
 
@@ -100,7 +100,7 @@ describe("PreferencesOperationSyncJsPref", async function () {
             mPreference.getAllSync();
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}getAllSync_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })

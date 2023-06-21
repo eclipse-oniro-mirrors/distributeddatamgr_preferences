@@ -79,7 +79,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceGetPreferenceCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}GetPreferences_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -101,7 +101,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceGetPreferenceCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}GetPreferences_0002 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -124,7 +124,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceFlushCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}Flush_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -147,7 +147,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceFlushCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}Flush_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -169,7 +169,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceRemovePreferencesFromCacheCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}removePreferencesFromCache_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -195,7 +195,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceRemovePreferencesFromCacheCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}removePreferencesFromCache_0002 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -217,7 +217,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceDeletePreferenceCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}DeletePreferences_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -240,7 +240,7 @@ describe("PreferencesInstanceCallBackJsPref", async function () {
                     preferenceDeletePreferenceCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}DeletePreferences_0002 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();

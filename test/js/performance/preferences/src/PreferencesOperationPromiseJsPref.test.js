@@ -57,7 +57,7 @@ describe("PreferencesOperationPromiseJsPref", async function () {
             await mPreference.put(KEY_TEST_STRING_KEY, KEY_TEST_STRING_VAL);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}put_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -71,7 +71,7 @@ describe("PreferencesOperationPromiseJsPref", async function () {
             await mPreference.get(KEY_TEST_STRING_KEY, KEY_TEST_STRING_VAL);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}get_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -85,7 +85,7 @@ describe("PreferencesOperationPromiseJsPref", async function () {
             await mPreference.has(KEY_TEST_STRING_KEY);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}has_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -99,7 +99,7 @@ describe("PreferencesOperationPromiseJsPref", async function () {
             await mPreference.getAll();
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}getAll_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })

@@ -75,7 +75,7 @@ describe("PreferencesInstancePromiseJsPref", async function () {
             await dataPreferences.getPreferences(context, NAME);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}GetPreferences_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -89,7 +89,7 @@ describe("PreferencesInstancePromiseJsPref", async function () {
             await dataPreferences.getPreferences(context, `${NAME}${index}`);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}GetPreferences_0002 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -104,7 +104,7 @@ describe("PreferencesInstancePromiseJsPref", async function () {
             await pref.flush();
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}Flush_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -118,7 +118,7 @@ describe("PreferencesInstancePromiseJsPref", async function () {
             await dataPreferences.removePreferencesFromCache(context, NAME);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}removePreferencesFromCache_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -136,7 +136,7 @@ describe("PreferencesInstancePromiseJsPref", async function () {
             await dataPreferences.removePreferencesFromCache(context, `${NAME}${index}`);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}removePreferencesFromCache_0002 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -150,7 +150,7 @@ describe("PreferencesInstancePromiseJsPref", async function () {
             await dataPreferences.deletePreferences(context, NAME);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}DeletePreferences_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -165,7 +165,7 @@ describe("PreferencesInstancePromiseJsPref", async function () {
             await dataPreferences.deletePreferences(context, `${NAME}${index}`);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}DeletePreferences_0002 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })

@@ -24,4 +24,12 @@ group("unittest") {
     "unittest/system_storage/src:unittest",
   ]
 }
+
+#################################performance#########################################
+group("performancetest") {
+  testonly = true
+  deps = []
+
+  deps += [ "performance/preferences/src:performancetest" ]
+}
 ###############################################################################

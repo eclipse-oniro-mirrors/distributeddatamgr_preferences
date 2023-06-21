@@ -52,7 +52,7 @@ describe("PreferencesInstanceSyncJsPref", async function () {
             await dataPreferences.removePreferencesFromCacheSync(context, NAME);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}removePreferencesFromCacheSync_0001 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
@@ -69,7 +69,7 @@ describe("PreferencesInstanceSyncJsPref", async function () {
             await dataPreferences.removePreferencesFromCacheSync(context, `${NAME}${index}`);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}removePreferencesFromCacheSync_0002 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })

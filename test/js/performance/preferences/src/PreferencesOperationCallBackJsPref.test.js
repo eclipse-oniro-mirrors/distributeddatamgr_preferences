@@ -61,7 +61,7 @@ describe("PreferencesOperationCallbackJsPref", async function () {
                     preferencePutCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}put_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -83,7 +83,7 @@ describe("PreferencesOperationCallbackJsPref", async function () {
                     preferenceGetCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}get_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -105,7 +105,7 @@ describe("PreferencesOperationCallbackJsPref", async function () {
                     preferenceHasCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}has_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
@@ -127,7 +127,7 @@ describe("PreferencesOperationCallbackJsPref", async function () {
                     preferenceGetAllCallbackPerfTest(index + 1);
                 } else {
                     let endTime = new Date().getTime();
-                    let averageTime = ((endTime - startTime) * BASE_COUNT) / 1000;
+                    let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
                     console.info(`${TAG}getAll_0001 averageTime: ${averageTime} us`);
                     done();
                     expect(averageTime < BASELINE).assertTrue();
