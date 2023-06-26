@@ -33,7 +33,7 @@
 #define ACCESS(filePath) (_access(filePath, FILE_EXIST))
 #define DISTRIBUTED_DATA_HITRACE(trace) DO_NOTHING
 
-#elif MAC_PLATFORM
+#elif defined(MAC_PLATFORM)
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -42,7 +42,7 @@
 #define ACCESS(filePath) (access(filePath, FILE_EXIST))
 #define DISTRIBUTED_DATA_HITRACE(trace) DO_NOTHING
 
-#elif ANDROID_PLATFORM || IOS_PLATFORM
+#elif defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <unistd.h>
