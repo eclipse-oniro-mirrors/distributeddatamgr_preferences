@@ -60,7 +60,7 @@
 #define REALPATH(filePath, realPath, ...) (realpath(filePath, realPath))
 #define MKDIR(filePath) (mkdir(filePath, FILE_MODE))
 #define ACCESS(filePath) (access(filePath, FILE_EXIST))
-#define DISTRIBUTED_DATA_HITRACE(trace) HiTrace hitrace(trace)
+#define DISTRIBUTED_DATA_HITRACE(trace) DO_NOTHING // HiTrace hitrace(trace)
 
 #endif
 

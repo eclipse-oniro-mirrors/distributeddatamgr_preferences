@@ -68,7 +68,7 @@ describe("PreferencesOperationSyncJsPref", async function () {
     it("getSync_0001", 0, async function () {
         let startTime = new Date().getTime(); // time unit is mm
         for (let index = 0; index < BASE_COUNT; index++) {
-            mPreference.get(KEY_TEST_STRING_KEY, KEY_TEST_STRING_VAL);
+            mPreference.getSync(KEY_TEST_STRING_KEY, KEY_TEST_STRING_VAL);
         }
         let endTime = new Date().getTime();
         let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
