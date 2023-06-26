@@ -49,7 +49,7 @@ describe("PreferencesInstanceSyncJsPref", async function () {
     it("removePreferencesFromCacheSync_0001", 0, async function () {
         let startTime = new Date().getTime(); // time unit is mm
         for (let index = 0; index < BASE_COUNT; index++) {
-            await dataPreferences.removePreferencesFromCacheSync(context, NAME);
+            dataPreferences.removePreferencesFromCacheSync(context, NAME);
         }
         let endTime = new Date().getTime();
         let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
@@ -62,7 +62,7 @@ describe("PreferencesInstanceSyncJsPref", async function () {
      */
     it("removePreferencesFromCacheSync_0002", 0, async function () {
         for (let index = 0; index < BASE_COUNT; index++) {
-            await dataPreferences.getPreferences(context, `${NAME}${index}`); // put prefs into cache
+            dataPreferences.getPreferences(context, `${NAME}${index}`); // put prefs into cache
         }
         let startTime = new Date().getTime(); // time unit is mm
         for (let index = 0; index < BASE_COUNT; index++) {

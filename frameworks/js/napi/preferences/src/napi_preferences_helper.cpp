@@ -43,18 +43,15 @@ struct HelperAysncContext : public BaseContext {
 
 int ParseContext(const napi_env &env, const napi_value &object, std::shared_ptr<HelperAysncContext> context)
 {
-    LOG_DEBUG("ParseContext begin");
     auto abilityContext = JSAbility::GetContext(env, object);
     PRE_CHECK_RETURN(abilityContext != nullptr,
         context->SetError(std::make_shared<ParamTypeError>("context", "a Context.")));
     context->abilityContext = abilityContext;
-    LOG_DEBUG("ParseContext end");
     return OK;
 }
 
 int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<HelperAysncContext> context)
 {
-    LOG_DEBUG("ParseName start");
     std::string name;
     int status = JSUtils::Convert2NativeValue(env, value, name);
     PRE_CHECK_RETURN(status == OK || !name.empty(),
@@ -71,7 +68,6 @@ int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<Help
 
 napi_value GetPreferences(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("GetPreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
         PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
@@ -81,13 +77,11 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         int errCode = E_OK;
-        context->proxy = OHOS::NativePreferences::PreferencesHelper::GetPreferences(context->path, errCode);
+        context->proxy = PreferencesHelper::GetPreferences(context->path, errCode);
         LOG_DEBUG("GetPreferences return %{public}d", errCode);
         return errCode;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
-        napi_value path = nullptr;
-        napi_create_string_utf8(env, context->path.c_str(), NAPI_AUTO_LENGTH, &path);
         auto ret = PreferencesProxy::NewInstance(env, context->proxy, &result);
         LOG_DEBUG("GetPreferences end.");
         return (ret == napi_ok) ? OK : ERR;
@@ -98,9 +92,30 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context);
 }
 
+napi_value GetPreferencesSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 2;
+    napi_value argv[2] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+
+    auto context = std::make_shared<HelperAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseName(env, argv[1], context) == OK, context->error);
+    int errCode = ERR;
+    auto proxy = PreferencesHelper::GetPreferences(context->path, errCode);
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+
+    napi_value result;
+    errCode = PreferencesProxy::NewInstance(env, proxy, &result);
+
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+    return result;
+}
+
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
         PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
@@ -126,9 +141,25 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context);
 }
 
+napi_value DeletePreferencesSync(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    size_t argc = 2;
+    napi_value argv[2] = { 0 };
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+
+    auto context = std::make_shared<HelperAysncContext>();
+    PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseName(env, argv[1], context) == OK, context->error);
+    int errCode = PreferencesHelper::DeletePreferences(context->path);
+
+    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
+}
+
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("DeletePreferences start");
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
         PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
@@ -159,8 +190,6 @@ napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
     PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
-    PreferencesProxy *proxy = nullptr;
-    napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
 
     auto context = std::make_shared<HelperAysncContext>();
     PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
@@ -175,7 +204,9 @@ napi_value InitPreferencesHelper(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getPreferences", GetPreferences),
+        DECLARE_NAPI_FUNCTION("getPreferencesSync", GetPreferencesSync),
         DECLARE_NAPI_FUNCTION("deletePreferences", DeletePreferences),
+        DECLARE_NAPI_FUNCTION("deletePreferencesSync", DeletePreferencesSync),
         DECLARE_NAPI_FUNCTION("removePreferencesFromCache", RemovePreferencesFromCache),
         DECLARE_NAPI_FUNCTION("removePreferencesFromCacheSync", RemovePreferencesFromCacheSync),
         DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_KEY_LENGTH)),
