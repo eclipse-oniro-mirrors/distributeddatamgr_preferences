@@ -38,7 +38,8 @@
         "name": "preferences",
         "subsystem": "distributeddatamgr",
         "syscap": [
-            "SystemCapability.DistributedDataManager.Preferences.Core"
+            "SystemCapability.DistributedDataManager.Preferences.Core",
+            "SystemCapability.DistributedDataManager.Preferences.Core.Lite"
         ],
         "features": [],
         "adapted_system_type": [
