@@ -50,11 +50,11 @@
             "components": [
                 "ability_runtime",
                 "napi",
-                "hilog_native",
+                "hilog",
                 "c_utils",
                 "ability_base",
                 "common_event_service",
-                "hitrace_native"
+                "hitrace"
             ],
             "third_party": [
                 "libxml2",

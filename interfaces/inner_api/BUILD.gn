@@ -52,8 +52,8 @@ if (is_ohos) {
     deps = [ "//third_party/libxml2:libxml2" ]
     external_deps = [
       "c_utils:utils",
-      "hilog_native:libhilog",
-      "hitrace_native:hitrace_meter",
+      "hilog:libhilog",
+      "hitrace:hitrace_meter",
     ]
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
@@ -156,8 +156,8 @@ ohos_static_library("native_preferences_static") {
     deps = [ "//third_party/libxml2:libxml2" ]
     external_deps = [
       "c_utils:utils",
-      "hilog_native:libhilog",
-      "hitrace_native:hitrace_meter",
+      "hilog:libhilog",
+      "hitrace:hitrace_meter",
     ]
   }
 
