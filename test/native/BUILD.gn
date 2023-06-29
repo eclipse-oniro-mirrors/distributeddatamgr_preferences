@@ -38,7 +38,7 @@ ohos_unittest("NativePreferencesTest") {
 
   configs = [ ":module_private_config" ]
 
-  external_deps = [ "hilog_native:libhilog" ]
+  external_deps = [ "hilog:libhilog" ]
 
   deps = [
     "${preferences_innerapi_path}:native_preferences_static",

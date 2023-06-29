@@ -47,7 +47,7 @@ if (!is_mingw && !is_mac) {
         [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
 
     external_deps = [
-      "hilog_native:libhilog",
+      "hilog:libhilog",
       "napi:ace_napi",
     ]
 
