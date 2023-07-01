@@ -73,12 +73,6 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
 #endif
-    char canonicalPath[PATH_MAX + 1] = { 0 };
-    if (REALPATH(filePath.c_str(), canonicalPath, PATH_MAX) == nullptr) {
-        LOG_ERROR("Failed to obtain real path, errno:%{public}d", errno);
-        errorCode = E_INVALID_FILE_PATH;
-        return "";
-    }
     std::string fileName = path.substr(pos + 1, path.length());
     if (fileName.empty()) {
         LOG_ERROR("file name can not be empty.");
@@ -86,8 +80,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
     errorCode = E_OK;
-    std::string realFilePath(canonicalPath);
-    return realFilePath.append("/").append(fileName);
+    return path;
 }
 
 std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string &path, int &errCode)
