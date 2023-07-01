@@ -69,7 +69,6 @@ BaseContext::~BaseContext()
 
 void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<Error> error)
 {
-    LOG_DEBUG("SetBusinessError enter");
     napi_value code = nullptr;
     napi_value msg = nullptr;
     napi_create_object(env, businessError);

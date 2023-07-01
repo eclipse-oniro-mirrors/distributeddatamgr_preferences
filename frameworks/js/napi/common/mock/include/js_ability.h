@@ -36,7 +36,6 @@ private:
 
 class JSAbility final {
 public:
-    static bool CheckContext(napi_env env, napi_callback_info info);
     static std::shared_ptr<Context> GetContext(napi_env env, napi_value object);
 };
 } // namespace PreferencesJsKit

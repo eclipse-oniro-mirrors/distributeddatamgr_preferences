@@ -78,12 +78,10 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         int errCode = E_OK;
         context->proxy = PreferencesHelper::GetPreferences(context->path, errCode);
-        LOG_DEBUG("GetPreferences return %{public}d", errCode);
         return errCode;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
         auto ret = PreferencesProxy::NewInstance(env, context->proxy, &result);
-        LOG_DEBUG("GetPreferences end.");
         return (ret == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
@@ -125,14 +123,12 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         int errCode = PreferencesHelper::DeletePreferences(context->path);
-        LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
         PRE_CHECK_RETURN(errCode == E_OK, context->SetError(std::make_shared<DeleteError>()));
 
         return (errCode == E_OK) ? OK : ERR;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
         napi_status status = napi_get_undefined(env, &result);
-        LOG_DEBUG("DeletePreferences end.");
         return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
@@ -168,13 +164,10 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
         return OK;
     };
     auto exec = [context]() -> int {
-        int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
-        LOG_DEBUG("RemovePreferencesFromCache return %{public}d", errCode);
-        return (errCode == E_OK) ? OK : ERR;
+        return (PreferencesHelper::RemovePreferencesFromCache(context->path) == E_OK) ? OK : ERR;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
         napi_status status = napi_get_undefined(env, &result);
-        LOG_DEBUG("RemovePreferencesFromCache end.");
         return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
