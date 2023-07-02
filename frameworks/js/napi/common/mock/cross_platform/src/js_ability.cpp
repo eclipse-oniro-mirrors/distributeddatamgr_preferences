@@ -29,11 +29,6 @@ std::string Context::GetPreferencesDir()
     return preferencesDir_;
 }
 
-bool JSAbility::CheckContext(napi_env env, napi_callback_info info)
-{
-    return true;
-}
-
 std::shared_ptr<Context> JSAbility::GetContext(napi_env env, napi_value value)
 {
     auto stageContext = AbilityRuntime::Platform::GetStageModeContext(env, value);

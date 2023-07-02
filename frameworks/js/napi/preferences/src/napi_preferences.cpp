@@ -116,13 +116,21 @@ napi_status PreferencesProxy::NewInstance(
     if (status != napi_ok) {
         return status;
     }
-    PreferencesProxy *proxy = nullptr;
-    status = napi_unwrap(env, *instance, reinterpret_cast<void **>(&proxy));
-    if (proxy == nullptr || status != napi_ok) {
-        LOG_ERROR("PreferencesProxy::NewInstance unwarp native preferences is null");
-        return napi_generic_failure;
+
+    PreferencesProxy *obj = new (std::nothrow) PreferencesProxy();
+    if (obj == nullptr) {
+        LOG_ERROR("PreferencesProxy::New new failed, obj is nullptr");
+        return napi_invalid_arg;
     }
-    proxy->value_ = value;
+    obj->value_ = value;
+    obj->env_ = env;
+    obj->uvQueue_ = std::make_shared<UvQueue>(env);
+    status = napi_wrap(env, *instance, obj, PreferencesProxy::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete obj;
+        return status;
+    }
+
     return napi_ok;
 }
 
@@ -132,18 +140,6 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thiz, nullptr));
     if (thiz == nullptr) {
         LOG_WARN("get this failed");
-        return nullptr;
-    }
-    PreferencesProxy *obj = new (std::nothrow) PreferencesProxy();
-    if (obj == nullptr) {
-        LOG_ERROR("PreferencesProxy::New new failed, obj is nullptr");
-        return nullptr;
-    }
-    obj->env_ = env;
-    obj->uvQueue_ = std::make_shared<UvQueue>(env);
-    napi_status status = napi_wrap(env, thiz, obj, PreferencesProxy::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete obj;
         return nullptr;
     }
     return thiz;
