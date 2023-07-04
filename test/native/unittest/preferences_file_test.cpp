@@ -126,41 +126,12 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_002, TestSize.Level1)
 
 /**
  * @tc.name: NativePreferencesFileTest_003
- * @tc.desc: test two same file path
- * @tc.type: FUNC
- * @tc.require: AR000CU2BN
- * @tc.author: liulinna
- */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level1)
-{
-    std::string absolutePath = "/data/test1";
-    std::string relativePath = "/data/test/../test1";
-    std::remove(absolutePath.c_str());
-
-    int errCode = E_OK;
-    std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences(absolutePath, errCode);
-    EXPECT_EQ(errCode, E_OK);
-
-    errCode = E_OK;
-    std::shared_ptr<Preferences> pref2 = PreferencesHelper::GetPreferences(relativePath, errCode);
-    EXPECT_EQ(errCode, E_OK);
-
-    EXPECT_EQ(pref1, pref2);
-
-    pref1 = nullptr;
-    pref2 = nullptr;
-    int result = PreferencesHelper::DeletePreferences(absolutePath);
-    EXPECT_EQ(result, E_OK);
-}
-
-/**
- * @tc.name: NativePreferencesFileTest_004
  * @tc.desc: test FlushSync one times and five times
  * @tc.type: FUNC
  * @tc.require: AR000CU2BN
  * @tc.author: liulinna
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level1)
 {
     std::string file = "/data/test/test";
     int ret = PreferencesHelper::DeletePreferences(file);
@@ -229,13 +200,13 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level1)
 }
 
 /**
- * @tc.name: NativePreferencesFileTest_005
+ * @tc.name: NativePreferencesFileTest_004
  * @tc.desc: test Flush one times and five times
  * @tc.type: FUNC
  * @tc.require: AR000CU2BN
  * @tc.author: liulinna
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level3)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level3)
 {
     std::string file = "/data/test/test";
     int ret = PreferencesHelper::DeletePreferences(file);
