@@ -34,9 +34,9 @@ describe('PreferencesHelperJsunit', function () {
     })
 
     /**
-     * @tc.name getPreferencesSync interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0010
-     * @tc.desc getPreferencesSync interface test
+     * @tc.name getPreferences interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_001
+     * @tc.desc getPreferences interface test
      */
     it('testGetPreferencesHelper001', 0, async function () {
         mPreferences = await data_preferences.getPreferences(context, NAME);
@@ -48,7 +48,7 @@ describe('PreferencesHelperJsunit', function () {
 
     /**
      * @tc.name getPreferences interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0020
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_002
      * @tc.desc getPreferences interface test
      */
     it('testGetPreferencesHelper002', 0, async function (done) {
@@ -66,8 +66,37 @@ describe('PreferencesHelperJsunit', function () {
     })
 
     /**
+     * @tc.name getPreferences interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_003
+     * @tc.desc getPreferences interface test
+     */
+    it('testGetPreferencesHelper003', 0, async function (done) {
+        try {
+            mPreferences = await data_preferences.getPreferences(context, { name: NAME });
+            done();
+            expect(mPreferences != null).assertTrue();
+        } catch(err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name getPreferencesSync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_004
+     * @tc.desc getPreferencesSync interface test
+     */
+    it('testGetPreferencesHelper004', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: NAME, dataGroupId: "123456" });
+        } catch(err) {
+            done();
+            expect('14801001').assertEqual(err.code);
+        }
+    })
+
+    /**
      * @tc.name removePreferencesFromCache interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0030
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_removePreferencesFromCache_001
      * @tc.desc removePreferencesFromCache interface test
      */
     it('testRemovePreferencesFromCache001', 0, async function (done) {
@@ -83,11 +112,41 @@ describe('PreferencesHelperJsunit', function () {
     })
 
     /**
+     * @tc.name removePreferencesFromCache interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_removePreferencesFromCache_002
+     * @tc.desc removePreferencesFromCache interface test
+     */
+    it('testRemovePreferencesFromCache002', 0, async function (done) {
+        let perf = await data_preferences.getPreferences(context, { name: NAME });
+        perf = null;
+        try {
+            await data_preferences.removePreferencesFromCache(context, { name: NAME });
+            done();
+        } catch(err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name removePreferencesFromCache interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_removePreferencesFromCache_003
+     * @tc.desc removePreferencesFromCache interface test
+     */
+    it('testRemovePreferencesFromCache003', 0, async function (done) {
+        try {
+            await data_preferences.removePreferencesFromCache(context, { name: NAME, dataGroupId: "123456" });
+        } catch(err) {
+            done();
+            expect('14801001').assertEqual(err.code);
+        }
+    })
+
+    /**
      * @tc.name deletePreferences interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0060
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_deletePreferences_001
      * @tc.desc deletePreferences interface test
      */
-    it('testDeletePreferencesHelper002', 0, async function (done) {
+    it('testDeletePreferencesHelper001', 0, async function (done) {
         let perf = await data_preferences.getPreferences(context, NAME);
         perf = null;
         const promise = data_preferences.deletePreferences(context, NAME);
@@ -100,26 +159,40 @@ describe('PreferencesHelperJsunit', function () {
     })
 
     /**
-     * @tc.name put interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_0140
-     * @tc.desc put interface test
+     * @tc.name deletePreferences interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_deletePreferences_002
+     * @tc.desc deletePreferences interface test
      */
-    it('testPreferencesRegisterObserver001', 0, async function () {
-        await mPreferences.clear();
-        var observer = function (key) {
-            console.info('testPreferencesRegisterObserver001 key' + key);
-            expect('abcd').assertEqual(key);
-        };
-        await mPreferences.on('change', observer);
-        await mPreferences.put(KEY_TEST_STRING_ELEMENT, "abcd");
+    it('testDeletePreferencesHelper002', 0, async function (done) {
+        let perf = await data_preferences.getPreferences(context, { name: NAME });
+        try {
+            await data_preferences.deletePreferences(context, { name: NAME });
+            done();
+        } catch(err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name deletePreferences interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_deletePreferences_003
+     * @tc.desc removePreferencesFromCache interface test
+     */
+    it('testDeletePreferencesHelper003', 0, async function (done) {
+        try {
+            await data_preferences.deletePreferences(context, { name: NAME, dataGroupId: "123456" });
+        } catch(err) {
+            done();
+            expect('14801001').assertEqual(err.code);
+        }
     })
 
     /**
      * @tc.name repeat on interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_0150
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_on_001
      * @tc.desc repeat on interface test
      */
-    it('testPreferencesRegisterObserver002', 0, async function () {
+    it('testPreferencesOn001', 0, async function () {
         await mPreferences.clear();
         var observer = function (key) {
             console.info('testPreferencesRegisterObserver002 key' + key);
@@ -132,10 +205,10 @@ describe('PreferencesHelperJsunit', function () {
 
     /**
      * @tc.name off interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_0160
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_off_001
      * @tc.desc off interface test
      */
-    it('testPreferencesUnRegisterObserver001', 0, async function () {
+    it('testPreferencesOff001', 0, async function () {
         var observer = function (key) {
             console.info('testPreferencesUnRegisterObserver001 key' + key);
             expect('').assertEqual(key);

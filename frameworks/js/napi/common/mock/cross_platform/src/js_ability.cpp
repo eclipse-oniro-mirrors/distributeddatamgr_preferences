@@ -16,27 +16,22 @@
 #include "js_ability.h"
 
 #include "log_print.h"
+#include "napi_preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
-Context::Context(std::shared_ptr<AbilityRuntime::Platform::Context> stageContext)
+int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
 {
-    preferencesDir_ = stageContext->GetPreferencesDir();
-}
-
-std::string Context::GetPreferencesDir()
-{
-    return preferencesDir_;
-}
-
-std::shared_ptr<Context> JSAbility::GetContext(napi_env env, napi_value value)
-{
+    if (!dataGroupId.empty()) {
+        return NativePreferences::E_NOT_SUPPORTED;
+    }
     auto stageContext = AbilityRuntime::Platform::GetStageModeContext(env, value);
     if (stageContext == nullptr) {
         LOG_ERROR("GetStageModeContext failed.");
-        return nullptr;
+        return E_INVALID_PARAM;
     }
-    return std::make_shared<Context>(stageContext);
+    contextInfo.preferencesDir = stageContext->GetPreferencesDir();
+    return OK;
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS

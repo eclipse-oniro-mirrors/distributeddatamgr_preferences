@@ -127,6 +127,16 @@ constexpr int E_DEFAULT_EXCEED_LENGTH_LIMIT = (E_BASE - 18);
 */
 constexpr int E_NAPI_GET_ERROR = (E_BASE - 19);
 
+/**
+* @brief The error code for capability not supported error.
+*/
+constexpr int E_NOT_SUPPORTED = 801;
+
+/**
+* @brief The error code for capability not supported error.
+*/
+constexpr int E_EACCES = 13;
+
 } // namespace NativePreferences
 } // namespace OHOS
 #endif // PREFERENCES_ERRNO_H

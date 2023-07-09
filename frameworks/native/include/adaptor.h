@@ -26,6 +26,7 @@
 #define DO_NOTHING
 
 #ifdef WINDOWS_PLATFORM
+#include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
 #define REALPATH(filePath, realPath, ...) (_fullpath(realPath, filePath, ##__VA_ARGS__))

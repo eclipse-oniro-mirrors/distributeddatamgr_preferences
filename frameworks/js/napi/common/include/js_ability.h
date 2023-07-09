@@ -26,20 +26,13 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
-class Context {
-public:
-    explicit Context(std::shared_ptr<AbilityRuntime::Context> stageContext);
-    explicit Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext);
-
-    std::string GetPreferencesDir();
-
-private:
-    std::string preferencesDir_;
+struct ContextInfo {
+    std::string bundleName;
+    std::string preferencesDir;
 };
-
 class JSAbility final {
 public:
-    static std::shared_ptr<Context> GetContext(napi_env env, napi_value object);
+    static int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo);
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS
