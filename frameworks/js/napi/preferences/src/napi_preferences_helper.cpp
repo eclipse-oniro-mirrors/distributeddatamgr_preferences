@@ -16,63 +16,88 @@
 
 #include <string>
 
-#include "napi_async_call.h"
 #include "js_ability.h"
-#include "log_print.h"
 #include "js_utils.h"
-#include "napi_preferences.h"
+#include "log_print.h"
+#include "napi_async_call.h"
 #include "napi_preferences_error.h"
-#include "preferences.h"
+#include "napi_preferences.h"
 #include "preferences_errno.h"
+#include "preferences.h"
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
 
 namespace OHOS {
 namespace PreferencesJsKit {
+constexpr const char* DATA_GROUP_ID = "dataGroupId";
+constexpr const char* NAME = "name";
+
 struct HelperAysncContext : public BaseContext {
     std::string path;
-    std::shared_ptr<OHOS::PreferencesJsKit::Context> abilityContext;
-    std::shared_ptr<Preferences> proxy;
-    
+    std::string name;
+    std::string bundleName;
+    std::string dataGroupId;
+    std::shared_ptr<NativePreferences::Preferences> proxy;
+
     HelperAysncContext()
     {
     }
     virtual ~HelperAysncContext(){};
 };
 
-int ParseContext(const napi_env &env, const napi_value &object, std::shared_ptr<HelperAysncContext> context)
+int ParseName(const napi_env env, const napi_value name, std::shared_ptr<HelperAysncContext> context)
 {
-    auto abilityContext = JSAbility::GetContext(env, object);
-    PRE_CHECK_RETURN(abilityContext != nullptr,
-        context->SetError(std::make_shared<ParamTypeError>("context", "a Context.")));
-    context->abilityContext = abilityContext;
+    int status = JSUtils::Convert2NativeValue(env, name, context->name);
+    PRE_CHECK_RETURN(status == OK && !context->name.empty(),
+        context->SetError(std::make_shared<ParamTypeError>(NAME, "a without path non empty string.")));
+    size_t pos = context->name.find_first_of('/');
+    PRE_CHECK_RETURN(pos == std::string::npos,
+        context->SetError(std::make_shared<ParamTypeError>(NAME, "a name string only without path.")));
     return OK;
 }
 
-int ParseName(const napi_env &env, const napi_value &value, std::shared_ptr<HelperAysncContext> context)
+int ParseGroupId(const napi_env env, const napi_value dataGroupId, std::shared_ptr<HelperAysncContext> context)
 {
-    std::string name;
-    int status = JSUtils::Convert2NativeValue(env, value, name);
-    PRE_CHECK_RETURN(status == OK || !name.empty(),
-        context->SetError(std::make_shared<ParamTypeError>("name", "a without path non empty string.")));
-
-    size_t pos = name.find_first_of('/');
-    PRE_CHECK_RETURN(pos == std::string::npos,
-        context->SetError(std::make_shared<ParamTypeError>("name", "a name string only without path.")));
-
-    std::string preferencesDir = context->abilityContext->GetPreferencesDir();
-    context->path = preferencesDir.append("/").append(name);
+    int res = JSUtils::Convert2NativeValue(env, dataGroupId, context->dataGroupId);
+    PRE_CHECK_RETURN(res == OK && !context->dataGroupId.empty(),
+        context->SetError(std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a non empty string.")));
     return OK;
+}
+
+int ParseParameters(const napi_env env, napi_value* argv, std::shared_ptr<HelperAysncContext> context)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[1], &valueType);
+    if (valueType == napi_string) {
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
+    } else {
+        napi_value nameValue = nullptr;
+        napi_get_named_property(env, argv[1], NAME, &nameValue);
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, nameValue, context));
+        bool hasDataGroupId = false;
+        napi_has_named_property(env, argv[1], DATA_GROUP_ID, &hasDataGroupId);
+        if (hasDataGroupId) {
+            napi_value dataGroupIdValue = nullptr;
+            napi_get_named_property(env, argv[1], DATA_GROUP_ID, &dataGroupIdValue);
+            PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseGroupId(env, dataGroupIdValue, context));
+        }
+    }
+    ContextInfo contextInfo;
+    int errCode = JSAbility::GetContextInfo(env, argv[0], context->dataGroupId, contextInfo);
+    PRE_CHECK_RETURN(errCode == OK, context->SetError(std::make_shared<InnerError>(errCode)));
+
+    context->bundleName = contextInfo.bundleName;
+    context->path = contextInfo.preferencesDir.append("/").append(context->name);
+    return errCode;
 }
 
 napi_value GetPreferences(napi_env env, napi_callback_info info)
 {
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseContext(env, argv[0], context));
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2, "2 or 3");
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseParameters(env, argv, context));
         return OK;
     };
     auto exec = [context]() -> int {
@@ -85,7 +110,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
         return (ret == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
@@ -99,8 +124,8 @@ napi_value GetPreferencesSync(napi_env env, napi_callback_info info)
     PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
-    PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
-    PRE_NAPI_ASSERT(env, ParseName(env, argv[1], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
+
     int errCode = ERR;
     auto proxy = PreferencesHelper::GetPreferences(context->path, errCode);
     PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
@@ -116,9 +141,8 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
 {
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseContext(env, argv[0], context));
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2, "2 or 3");
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseParameters(env, argv, context));
         return OK;
     };
     auto exec = [context]() -> int {
@@ -132,7 +156,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
         return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
@@ -146,8 +170,7 @@ napi_value DeletePreferencesSync(napi_env env, napi_callback_info info)
     PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
-    PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
-    PRE_NAPI_ASSERT(env, ParseName(env, argv[1], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
     int errCode = PreferencesHelper::DeletePreferences(context->path);
 
     PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
@@ -158,9 +181,8 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
 {
     auto context = std::make_shared<HelperAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseContext(env, argv[0], context));
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseName(env, argv[1], context));
+        PRE_CHECK_PARAM_NUM_VALID(argc == 2, "2 or 3");
+        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseParameters(env, argv, context));
         return OK;
     };
     auto exec = [context]() -> int {
@@ -185,8 +207,7 @@ napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
     PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
-    PRE_NAPI_ASSERT(env, ParseContext(env, argv[0], context) == OK, context->error);
-    PRE_NAPI_ASSERT(env, ParseName(env, argv[1], context) == OK, context->error);
+    PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
     int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
 
     PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));

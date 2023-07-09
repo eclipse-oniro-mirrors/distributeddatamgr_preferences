@@ -15,7 +15,10 @@
 #ifndef PRE_JS_NAPI_ERROR_H
 #define PRE_JS_NAPI_ERROR_H
 
+#include <map>
+
 #include "log_print.h"
+#include "preferences_errno.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -24,11 +27,16 @@ constexpr int OK = 0;
 constexpr int ERR = -1;
 constexpr int EXCEED_MAX_LENGTH = -2;
 
-constexpr int E_PARAM_ERROR = 401;
+constexpr int E_INVALID_PARAM = 401;
 constexpr int E_INNER_ERROR = 15500000;
-constexpr int E_PREFERENCES_ERROR = 15500010;
+constexpr int E_PREFERENCES = 15500010;
+constexpr int E_UNSUPPORTED_MODE = 14801001;
+constexpr int E_INVALID_DATA_GROUP_ID = 14801002;
 
 const static std::map<int, std::string> ERROR_MAPS = {
+    {E_UNSUPPORTED_MODE, "Only supportted in Stage mode"},
+    {E_INVALID_DATA_GROUP_ID, "The dataGroupId not valid"},
+    {NativePreferences::E_NOT_SUPPORTED, "Capability not supported"}
 };
 
 #define PRE_NAPI_ASSERT_BASE(env, assertion, error, retVal)                        \
@@ -101,7 +109,7 @@ public:
     };
     int GetCode() override
     {
-        return E_PARAM_ERROR;
+        return E_INVALID_PARAM;
     };
 
 private:
@@ -146,7 +154,7 @@ public:
     };
     int GetCode() override
     {
-        return E_PARAM_ERROR;
+        return E_INVALID_PARAM;
     };
 
 private:
@@ -163,7 +171,7 @@ public:
     };
     int GetCode() override
     {
-        return E_PREFERENCES_ERROR;
+        return E_PREFERENCES;
     };
 
 private:

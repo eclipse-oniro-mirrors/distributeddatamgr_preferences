@@ -23,6 +23,7 @@
 #include <thread>
 
 #include "adaptor.h"
+#include "filelock.h"
 #include "log_print.h"
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
@@ -40,34 +41,23 @@ static bool IsFileExist(const std::string &inputPath)
         return false;
     }
     const char *pathString = path;
-    FILE *file = std::fopen(pathString, "r");
-    if (file != nullptr) {
-        std::fclose(file);
-        return true;
-    }
-    return false;
+    struct stat buffer;
+    return (stat(pathString, &buffer) == 0);
 }
 
 PreferencesImpl::PreferencesImpl(const std::string &filePath)
-    : loaded_(false), filePath_(filePath), backupPath_(MakeBackupPath(filePath_)),
-      brokenPath_(MakeBrokenPath(filePath_))
+    : loaded_(false), filePath_(filePath), backupPath_(MakeFilePath(filePath_, STR_BACKUP)),
+      brokenPath_(MakeFilePath(filePath_, STR_BROKEN))
 {
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
 }
 
-std::string PreferencesImpl::MakeBackupPath(const std::string &prefPath)
+std::string PreferencesImpl::MakeFilePath(const std::string &prefPath, const std::string &suffix)
 {
-    std::string backupPath = prefPath;
-    backupPath += ".bak";
-    return backupPath;
-}
-
-std::string PreferencesImpl::MakeBrokenPath(const std::string &prefPath)
-{
-    std::string brokenPath = prefPath;
-    brokenPath += ".bak";
-    return brokenPath;
+    std::string filePath = prefPath;
+    filePath += suffix;
+    return filePath;
 }
 
 PreferencesImpl::~PreferencesImpl()
@@ -113,6 +103,11 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         return;
     }
 
+    FileLock fileLock;
+    if (fileLock.TryLock(MakeFilePath(pref->filePath_, STR_LOCK)) == E_ERROR) {
+        return;
+    }
+
     if (IsFileExist(pref->backupPath_)) {
         if (std::remove(pref->filePath_.c_str())) {
             LOG_ERROR("Couldn't delete file %{private}s when LoadFromDisk and backup exist.", pref->filePath_.c_str());
@@ -129,7 +124,7 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     if (IsFileExist(pref->filePath_)) {
         pref->ReadSettingXml(pref->filePath_, pref->map_);
     }
-
+    fileLock.UnLock();
     pref->loaded_ = true;
     pref->cond_.notify_all();
 }
@@ -144,13 +139,17 @@ void PreferencesImpl::AwaitLoadFile()
 
 void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr)
 {
+    FileLock fileLock;
+    if (fileLock.TryLock(MakeFilePath(pref->filePath_, STR_LOCK)) == E_ERROR) {
+        return;
+    }
     if (IsFileExist(pref->filePath_)) {
         bool needWrite = pref->CheckRequestValidForStateGeneration(*mcr);
         if (!needWrite) {
             mcr->SetDiskWriteResult(false, E_OK);
+            fileLock.UnLock();
             return;
         }
-
         if (IsFileExist(pref->backupPath_)) {
             if (std::remove(pref->filePath_.c_str())) {
                 LOG_ERROR("Couldn't delete file %{private}s when writeToFile and backup exist.",
@@ -161,13 +160,13 @@ void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std
                 LOG_ERROR("Couldn't rename file %{private}s to backup file %{private}s", pref->filePath_.c_str(),
                     pref->backupPath_.c_str());
                 mcr->SetDiskWriteResult(false, E_ERROR);
+                fileLock.UnLock();
                 return;
             } else {
                 PreferencesXmlUtils::LimitXmlPermission(pref->backupPath_);
             }
         }
     }
-
     if (pref->WriteSettingXml(pref->filePath_, mcr->writeToDiskMap_)) {
         if (IsFileExist(pref->backupPath_) && std::remove(pref->backupPath_.c_str())) {
             LOG_ERROR("Couldn't delete backup file %{private}s when writeToFile finish.", pref->backupPath_.c_str());
@@ -175,14 +174,19 @@ void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std
         pref->diskStateGeneration_ = mcr->memoryStateGeneration_;
         mcr->SetDiskWriteResult(true, E_OK);
     } else {
-        /* Clean up an unsuccessfully written file */
+        // restore backup if write fails
         if (IsFileExist(pref->filePath_)) {
             if (std::remove(pref->filePath_.c_str())) {
                 LOG_ERROR("Couldn't clean up partially-written file %{private}s", pref->filePath_.c_str());
             }
         }
+        if (std::rename(pref->backupPath_.c_str(), pref->filePath_.c_str())) {
+            LOG_ERROR("Couldn't rename backup file %{private}s to file %{private}s", pref->backupPath_.c_str(),
+                pref->filePath_.c_str());
+        }
         mcr->SetDiskWriteResult(false, E_ERROR);
     }
+    fileLock.UnLock();
 }
 
 bool PreferencesImpl::CheckRequestValidForStateGeneration(const MemoryToDiskRequest &mcr)
@@ -489,7 +493,7 @@ void PreferencesImpl::Flush()
     request->isSyncRequest_ = false;
     TaskScheduler::Task task = std::bind(PreferencesImpl::WriteToDiskFile, shared_from_this(), request);
     TaskExecutor::GetInstance().Execute(std::move(task));
-    
+
     notifyPreferencesObserver(*request);
 }
 

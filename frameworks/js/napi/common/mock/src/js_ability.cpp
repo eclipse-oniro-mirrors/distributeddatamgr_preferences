@@ -18,36 +18,31 @@
 #include <cstdlib>
 
 #include "log_print.h"
+#include "napi_preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
-Context::Context()
+
+int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
 {
+    if (!dataGroupId.empty()) {
+        return NativePreferences::E_NOT_SUPPORTED;
+    }
     std::string baseDir = "";
 #ifdef WINDOWS_PLATFORM
     baseDir = getenv("TEMP");
     if (!baseDir.empty()) {
-        preferencesDir_ = baseDir + "\\HuaweiDevEcoStudioPreferences";
+        contextInfo.preferencesDir = baseDir + "\\HuaweiDevEcoStudioPreferences";
     }
 #endif
 
 #ifdef MAC_PLATFORM
     baseDir = getenv("LOGNAME");
-    baseDir = "/Users/" + baseDir + "/Library/Caches";
     if (!baseDir.empty()) {
-        preferencesDir_ = baseDir + "/HuaweiDevEcoStudioPreferences";
+        baseDir = "/Users/" + baseDir + "/Library/Caches";
+        contextInfo.preferencesDir = baseDir + "/HuaweiDevEcoStudioPreferences";
     }
 #endif
-}
-
-std::string Context::GetPreferencesDir()
-{
-    return preferencesDir_;
-}
-
-std::shared_ptr<Context> JSAbility::GetContext(napi_env env, napi_value value)
-{
-    return std::make_shared<Context>();
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS
