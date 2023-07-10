@@ -43,6 +43,7 @@ int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string 
         contextInfo.preferencesDir = baseDir + "/HuaweiDevEcoStudioPreferences";
     }
 #endif
+    return OK;
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS
