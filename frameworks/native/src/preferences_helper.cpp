@@ -80,10 +80,10 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     return path;
 }
 
-std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string &path, int &errCode)
+std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &options, int &errCode)
 {
     DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
-    std::string realPath = GetRealPath(path, errCode);
+    std::string realPath = GetRealPath(options.filePath, errCode);
     if (realPath == "" || errCode != E_OK) {
         LOG_ERROR("fails to get real path, errCode %{public}d", errCode);
         return nullptr;
@@ -95,8 +95,8 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string
         return it->second;
     }
 
-    std::string filePath = realPath.c_str();
-    std::shared_ptr<PreferencesImpl> pref = PreferencesImpl::GetPreferences(filePath);
+    const_cast<Options &>(options).filePath = realPath;
+    std::shared_ptr<PreferencesImpl> pref = PreferencesImpl::GetPreferences(options);
     errCode = pref->Init();
     if (errCode != E_OK) {
         LOG_ERROR("Preferences Init failed.");

@@ -22,12 +22,13 @@
 
 namespace OHOS {
 namespace NativePreferences {
-
 /**
  * The observer class of preferences.
  */
+
 class PREF_API_EXPORT PreferencesObserver {
 public:
+    enum RegisterMode { LOCAL_CHANGE = 0, MULTI_PRECESS_CHANGE };
     PREF_API_EXPORT virtual ~PreferencesObserver();
 
     /**

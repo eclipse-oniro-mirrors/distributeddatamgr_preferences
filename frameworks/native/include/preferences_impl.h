@@ -30,16 +30,31 @@
 #include "preferences_observer.h"
 #include "preferences_value.h"
 
+#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM) || defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
+#include "data_preferences_observer_stub.h"
+#else
+namespace OHOS {
+template<typename T> class sptr;
+class Uri;
+} // namespace OHOS
+#endif
+
 namespace OHOS {
 namespace NativePreferences {
+
+class DataPreferencesObserverStub;
+
 static const char *STR_BROKEN = ".broken";
 static const char *STR_BACKUP = ".bak";
 static const char *STR_LOCK = ".lock";
+static const char *STR_QUERY = "?";
+static const char *STR_SLASH = "/";
+static const char *STR_SCHEME = "sharepreferences://";
 class PreferencesImpl : public Preferences, public std::enable_shared_from_this<PreferencesImpl> {
 public:
-    static std::shared_ptr<PreferencesImpl> GetPreferences(const std::string &path)
+    static std::shared_ptr<PreferencesImpl> GetPreferences(const Options &options)
     {
-        return std::shared_ptr<PreferencesImpl>(new PreferencesImpl(path));
+        return std::shared_ptr<PreferencesImpl>(new PreferencesImpl(options));
     }
     virtual ~PreferencesImpl();
 
@@ -145,13 +160,13 @@ public:
 
     int FlushSync() override;
 
-    void RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) override;
+    int RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
 
-    void UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) override;
+    int UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
 
     static std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
 private:
-    explicit PreferencesImpl(const std::string &path);
+    explicit PreferencesImpl(const Options &options);
     class MemoryToDiskRequest {
     public:
         MemoryToDiskRequest(const std::map<std::string, PreferencesValue> &writeToDiskMap,
@@ -168,7 +183,7 @@ private:
         std::mutex reqMutex_;
         std::condition_variable reqCond_;
         std::list<std::string> keysModified_;
-        std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers_;
+        std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
 
         int writeToDiskResult_;
         bool wasWritten_;
@@ -179,6 +194,7 @@ private:
     bool StartLoadFromDisk();
     int CheckKey(const std::string &key);
     int CheckStringValue(const std::string &value);
+    Uri MakeUri(const std::string &key = "");
 
     /* thread function */
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
@@ -199,13 +215,12 @@ private:
     std::mutex mutex_;
     std::condition_variable cond_;
 
-    std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers_;
+    std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
+    std::vector<sptr<DataPreferencesObserverStub>> multiProcessObservers_;
     std::map<std::string, PreferencesValue> map_;
     std::list<std::string> modifiedKeys_;
 
-    const std::string filePath_;
-    const std::string backupPath_;
-    const std::string brokenPath_;
+    const Options options_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

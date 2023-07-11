@@ -20,9 +20,8 @@
 #include <cmath>
 #include <list>
 
-#include "napi_async_call.h"
 #include "log_print.h"
-#include "js_utils.h"
+#include "napi_async_call.h"
 #include "napi_preferences_error.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -60,10 +59,7 @@ PreferencesProxy::PreferencesProxy()
 
 PreferencesProxy::~PreferencesProxy()
 {
-    for (auto &observer : dataObserver_) {
-        value_->UnRegisterObserver(observer);
-    }
-    dataObserver_.clear();
+    UnRegisteredAllObservers();
 }
 
 void PreferencesProxy::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
@@ -463,18 +459,20 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     PRE_NAPI_ASSERT(env, argc == requireArgc, std::make_shared<ParamNumError>("2"));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
-    PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
-
-    std::string chang;
-    int ret = JSUtils::Convert2NativeValue(env, args[0], chang);
-    PRE_NAPI_ASSERT(env, ret == OK && chang == "change", std::make_shared<ParamTypeError>("type", "string 'change'."));
+    PRE_NAPI_ASSERT(env, type == napi_string,
+        std::make_shared<ParamTypeError>("registerMode", "string 'change or multiProcessChange'."));
+    std::string registerMode;
+    JSUtils::Convert2NativeValue(env, args[0], registerMode);
+    PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE,
+        std::make_shared<ParamTypeError>("registerMode", "string 'change or multiProcessChange'."));
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
     PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("callback", "function type."));
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
-    obj->RegisteredObserver(args[1]);
+    int errCode = obj->RegisteredObserver(args[1], ConvertToRegisterMode(registerMode));
+    PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
 
     return nullptr;
 }
@@ -491,11 +489,13 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
 
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
-    PRE_NAPI_ASSERT(env, type == napi_string, std::make_shared<ParamTypeError>("type", "string 'change'."));
+    PRE_NAPI_ASSERT(env, type == napi_string,
+        std::make_shared<ParamTypeError>("registerMode", "string change or multiProcessChange."));
 
-    std::string chang;
-    int ret = JSUtils::Convert2NativeValue(env, args[0], chang);
-    PRE_NAPI_ASSERT(env, ret == OK && chang == "change", std::make_shared<ParamTypeError>("type", "string 'change'."));
+    std::string registerMode;
+    JSUtils::Convert2NativeValue(env, args[0], registerMode);
+    PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE,
+        std::make_shared<ParamTypeError>("registerMode", "string change or multiProcessChange."));
 
     if (argc == requireArgc) {
         NAPI_CALL(env, napi_typeof(env, args[1], &type));
@@ -506,7 +506,8 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
     if (argc == requireArgc && type == napi_function) {
-        obj->UnRegisteredObserver(args[1]);
+        int errCode = obj->UnRegisteredObserver(args[1], ConvertToRegisterMode(registerMode));
+        PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
     } else {
         obj->UnRegisteredAllObservers();
     }
@@ -514,10 +515,10 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     return nullptr;
 }
 
-bool PreferencesProxy::HasRegisteredObserver(napi_value callback)
+bool PreferencesProxy::HasRegisteredObserver(napi_value callback, RegisterMode mode)
 {
-    std::lock_guard<std::mutex> lck(listMutex_);
-    for (auto &it : dataObserver_) {
+    auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
+    for (auto &it : observers) {
         if (JSUtils::Equals(env_, callback, it->GetCallback())) {
             LOG_INFO("The observer has already subscribed.");
             return true;
@@ -526,39 +527,58 @@ bool PreferencesProxy::HasRegisteredObserver(napi_value callback)
     return false;
 }
 
-void PreferencesProxy::RegisteredObserver(napi_value callback)
+RegisterMode PreferencesProxy::ConvertToRegisterMode(const std::string &mode)
 {
-    if (!HasRegisteredObserver(callback)) {
-        auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
-        value_->RegisterObserver(observer);
-        dataObserver_.push_back(observer);
-        LOG_INFO("The observer subscribed success.");
-    }
+    return (mode == STR_CHANGE) ? RegisterMode::LOCAL_CHANGE : RegisterMode::MULTI_PRECESS_CHANGE;
 }
 
-void PreferencesProxy::UnRegisteredObserver(napi_value callback)
+int PreferencesProxy::RegisteredObserver(napi_value callback, RegisterMode mode)
 {
     std::lock_guard<std::mutex> lck(listMutex_);
-    auto it = dataObserver_.begin();
-    while (it != dataObserver_.end()) {
+    auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
+    if (!HasRegisteredObserver(callback, mode)) {
+        auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
+        int errCode = value_->RegisterObserver(observer, mode);
+        if (errCode != E_OK) {
+            return errCode;
+        }
+        observers.push_back(observer);
+    }
+    LOG_INFO("The observer subscribed success.");
+    return E_OK;
+}
+
+int PreferencesProxy::UnRegisteredObserver(napi_value callback, RegisterMode mode)
+{
+    std::lock_guard<std::mutex> lck(listMutex_);
+    auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
+    auto it = observers.begin();
+    while (it != observers.end()) {
         if (JSUtils::Equals(env_, callback, (*it)->GetCallback())) {
-            value_->UnRegisterObserver(*it);
-            it = dataObserver_.erase(it);
+            int errCode = value_->UnRegisterObserver(*it, mode);
+            if (errCode != E_OK) {
+                return errCode;
+            }
+            it = observers.erase(it);
             LOG_INFO("The observer unsubscribed success.");
             break; // specified observer is current iterator
         }
         ++it;
     }
+    return E_OK;
 }
 
 void PreferencesProxy::UnRegisteredAllObservers()
 {
     std::lock_guard<std::mutex> lck(listMutex_);
-    auto it = dataObserver_.begin();
-    while (it != dataObserver_.end()) {
-        value_->UnRegisterObserver(*it);
-        it = dataObserver_.erase(it);
+    for (auto &observer : localObservers_) {
+        value_->UnRegisterObserver(observer, RegisterMode::LOCAL_CHANGE);
     }
+    localObservers_.clear();
+    for (auto &observer : multiProcessObservers_) {
+        value_->UnRegisterObserver(observer, RegisterMode::MULTI_PRECESS_CHANGE);
+    }
+    multiProcessObservers_.clear();
     LOG_INFO("All observers unsubscribed success.");
 }
 } // namespace PreferencesJsKit

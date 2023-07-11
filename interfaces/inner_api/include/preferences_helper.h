@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace NativePreferences {
-
 /**
  * The observer class of preferences. This class is used to obtain and delete preferences instances.
  */
@@ -39,12 +38,12 @@ public:
      * preferences instance is being used in another thread, it will be cached until it will no longer be used to and
      * performed {@link RemovePreferencesFromCache}.
      *
-     * @param path Indicates the preferences file name
+     * @param options Indicates the preferences configuration
      * @param errCode Indicates the error code. Returns 0 for success, others for failure.
      *
      * @return Returns a Preferences instance matching the specified preferences file name.
      */
-    PREF_API_EXPORT static std::shared_ptr<Preferences> GetPreferences(const std::string &path, int &errCode);
+    PREF_API_EXPORT static std::shared_ptr<Preferences> GetPreferences(const Options &options, int &errCode);
 
     /**
      * @brief Deletes a preferences instance matching a specified preferences file name.

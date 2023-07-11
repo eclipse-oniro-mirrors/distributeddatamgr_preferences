@@ -55,7 +55,8 @@
                 "c_utils",
                 "ability_base",
                 "common_event_service",
-                "hitrace"
+                "hitrace",
+                "ipc"
             ],
             "third_party": [
                 "libxml2",
