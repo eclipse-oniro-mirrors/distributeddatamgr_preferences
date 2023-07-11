@@ -16,9 +16,14 @@ config("native_preferences_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "${preferences_native_path}/include",
     "${preferences_base_path}/frameworks/common/include",
+    "${preferences_native_path}/include",
   ]
+  if (is_ohos) {
+    include_dirs += [ "${preferences_native_path}/common/include" ]
+  } else {
+    include_dirs += [ "${preferences_native_path}/common/mock/include" ]
+  }
 }
 
 config("native_preferences_public_config") {
@@ -43,7 +48,10 @@ if (is_ohos) {
   ohos_shared_library("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
+    sources += [
+      "${preferences_native_path}/common/src/data_preferences_observer_stub.cpp",
+      "${preferences_native_path}/src/filelock.cpp",
+    ]
 
     innerapi_tags = [ "platformsdk" ]
 
@@ -52,9 +60,12 @@ if (is_ohos) {
     cflags_cc = [ "-fvisibility=hidden" ]
     deps = [ "//third_party/libxml2:libxml2" ]
     external_deps = [
+      "ability_base:zuri",
+      "ability_runtime:dataobs_manager",
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
+      "ipc:ipc_core",
     ]
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
@@ -64,7 +75,7 @@ if (is_ohos) {
   ohos_shared_library("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-
+    sources += [ "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp" ]
     innerapi_tags = [ "platformsdk" ]
 
     configs = [ ":native_preferences_config" ]
@@ -79,7 +90,7 @@ if (is_ohos) {
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
     } else {
-      sources += [ "${preferences_native_path}/mock/src/filelock.cpp" ]
+      sources += [ "${preferences_native_path}/common/mock/src/filelock.cpp" ]
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
@@ -97,7 +108,10 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
+    sources += [
+      "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp",
+      "${preferences_native_path}/src/filelock.cpp",
+    ]
 
     defines = [ "ANDROID_PLATFORM" ]
 
@@ -116,7 +130,10 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
+    sources += [
+      "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp",
+      "${preferences_native_path}/src/filelock.cpp",
+    ]
 
     defines = [ "IOS_PLATFORM" ]
 
@@ -137,18 +154,19 @@ ohos_static_library("native_preferences_static") {
   all_dependent_configs = [ ":native_preferences_public_config" ]
   sources = base_sources
   configs = [ ":native_preferences_config" ]
-
   if (is_mingw || is_mac) {
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
+    sources += [ "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp" ]
     configs += [ ":adaptor_config" ]
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
     ]
     if (is_mac) {
+      sources += [ "${preferences_native_path}/src/filelock.cpp" ]
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
     } else {
+      sources += [ "${preferences_native_path}/common/mock/src/filelock.cpp" ]
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
@@ -158,12 +176,18 @@ ohos_static_library("native_preferences_static") {
       "//third_party/libxml2:static_libxml2",
     ]
   } else {
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
+    sources += [
+      "${preferences_native_path}/common/src/data_preferences_observer_stub.cpp",
+      "${preferences_native_path}/src/filelock.cpp",
+    ]
     deps = [ "//third_party/libxml2:libxml2" ]
     external_deps = [
+      "ability_base:zuri",
+      "ability_runtime:dataobs_manager",
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
+      "ipc:ipc_core",
     ]
   }
 

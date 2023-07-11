@@ -137,6 +137,11 @@ constexpr int E_NOT_SUPPORTED = 801;
 */
 constexpr int E_EACCES = 13;
 
+/**
+* @brief The error code for capability not supported error.
+*/
+constexpr int E_UNABLE_SUBSCRIOION_SERVICE = 14800050;
+
 } // namespace NativePreferences
 } // namespace OHOS
 #endif // PREFERENCES_ERRNO_H

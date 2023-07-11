@@ -21,6 +21,7 @@
 #include <list>
 
 #include "js_observer.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
@@ -30,6 +31,7 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
+using RegisterMode = NativePreferences::PreferencesObserver::RegisterMode;
 class PreferencesProxy {
 public:
     static void Init(napi_env env, napi_value exports);
@@ -39,6 +41,8 @@ public:
     static void Destructor(napi_env env, void *nativeObject, void *finalize_hint);
 
 private:
+    static constexpr char STR_CHANGE[] = "change";
+    static constexpr char STR_MULTI_PRECESS_CHANGE[] = "multiProcessChange";
     explicit PreferencesProxy();
     ~PreferencesProxy();
 
@@ -59,16 +63,17 @@ private:
     static napi_value ClearSync(napi_env env, napi_callback_info info);
     static napi_value GetAllSync(napi_env env, napi_callback_info info);
 
-    bool HasRegisteredObserver(napi_value callback);
-    void RegisteredObserver(napi_value callback);
-    void UnRegisteredObserver(napi_value callback);
+    static RegisterMode ConvertToRegisterMode(const std::string &mode);
+    bool HasRegisteredObserver(napi_value callback, RegisterMode mode);
+    int RegisteredObserver(napi_value callback, RegisterMode mode);
+    int UnRegisteredObserver(napi_value callback, RegisterMode mode);
     void UnRegisteredAllObservers();
-
     std::shared_ptr<OHOS::NativePreferences::Preferences> value_;
     napi_env env_;
 
     std::mutex listMutex_ {};
-    std::list<std::shared_ptr<JSPreferencesObserver>> dataObserver_;
+    std::list<std::shared_ptr<JSPreferencesObserver>> localObservers_;
+    std::list<std::shared_ptr<JSPreferencesObserver>> multiProcessObservers_;
     std::shared_ptr<UvQueue> uvQueue_;
 };
 } // namespace PreferencesJsKit

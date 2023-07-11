@@ -36,7 +36,8 @@ constexpr int E_INVALID_DATA_GROUP_ID = 14801002;
 const static std::map<int, std::string> ERROR_MAPS = {
     {E_UNSUPPORTED_MODE, "Only supportted in Stage mode"},
     {E_INVALID_DATA_GROUP_ID, "The dataGroupId not valid"},
-    {NativePreferences::E_NOT_SUPPORTED, "Capability not supported"}
+    {NativePreferences::E_NOT_SUPPORTED, "Capability not supported"},
+    {NativePreferences::E_UNABLE_SUBSCRIOION_SERVICE, "Failed to obtain subscription service."}
 };
 
 #define PRE_NAPI_ASSERT_BASE(env, assertion, error, retVal)                        \

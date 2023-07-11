@@ -102,7 +102,8 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         int errCode = E_OK;
-        context->proxy = PreferencesHelper::GetPreferences(context->path, errCode);
+        Options options(context->path, context->bundleName, context->dataGroupId);
+        context->proxy = PreferencesHelper::GetPreferences(options, errCode);
         return errCode;
     };
     auto output = [context](napi_env env, napi_value &result) -> int {
@@ -127,7 +128,8 @@ napi_value GetPreferencesSync(napi_env env, napi_callback_info info)
     PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
 
     int errCode = ERR;
-    auto proxy = PreferencesHelper::GetPreferences(context->path, errCode);
+    Options options(context->path, context->bundleName, context->dataGroupId);
+    auto proxy = PreferencesHelper::GetPreferences(options, errCode);
     PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
 
     napi_value result;

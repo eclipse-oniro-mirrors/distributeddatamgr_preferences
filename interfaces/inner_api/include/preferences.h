@@ -27,7 +27,27 @@
 
 namespace OHOS {
 namespace NativePreferences {
+using RegisterMode = PreferencesObserver::RegisterMode;
+struct Options {
+public:
+    Options(const std::string inputFilePath) : filePath(inputFilePath)
+    {
+    }
 
+    Options(const char *inputFilePath) : filePath(inputFilePath)
+    {
+    }
+
+    Options(const std::string &inputFilePath, const std::string &inputbundleName, const std::string &inputdataGroupId)
+        : filePath(inputFilePath), bundleName(inputbundleName), dataGroupId(inputdataGroupId)
+    {
+    }
+
+public:
+    std::string filePath{ "" };
+    std::string bundleName{ "" };
+    std::string dataGroupId{ "" };
+};
 /**
  * The function class of the preference. Various operations on preferences instances are provided in this class.
  */
@@ -280,7 +300,8 @@ public:
      *
      * @param preferencesObserver Indicates callback function for data changes.
      */
-    virtual void RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) = 0;
+    virtual int RegisterObserver(
+        std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode = RegisterMode::LOCAL_CHANGE) = 0;
 
     /**
      * @brief  Unregister an existing observer.
@@ -289,7 +310,8 @@ public:
      *
      * @param preferencesObserver Indicates callback function for data changes.
      */
-    virtual void UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) = 0;
+    virtual int UnRegisterObserver(
+        std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode = RegisterMode::LOCAL_CHANGE) = 0;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

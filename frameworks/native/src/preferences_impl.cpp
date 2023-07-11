@@ -23,6 +23,7 @@
 #include <thread>
 
 #include "adaptor.h"
+#include "data_preferences_observer_stub.h"
 #include "filelock.h"
 #include "log_print.h"
 #include "preferences_errno.h"
@@ -33,6 +34,7 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
 static bool IsFileExist(const std::string &inputPath)
 {
     char path[PATH_MAX + 1] = { 0x00 };
@@ -45,9 +47,7 @@ static bool IsFileExist(const std::string &inputPath)
     return (stat(pathString, &buffer) == 0);
 }
 
-PreferencesImpl::PreferencesImpl(const std::string &filePath)
-    : loaded_(false), filePath_(filePath), backupPath_(MakeFilePath(filePath_, STR_BACKUP)),
-      brokenPath_(MakeFilePath(filePath_, STR_BROKEN))
+PreferencesImpl::PreferencesImpl(const Options &options) : loaded_(false), options_(options)
 {
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
@@ -104,25 +104,25 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     }
 
     FileLock fileLock;
-    if (fileLock.TryLock(MakeFilePath(pref->filePath_, STR_LOCK)) == E_ERROR) {
+    if (fileLock.TryLock(MakeFilePath(pref->options_.filePath, STR_LOCK)) == E_ERROR) {
         return;
     }
-
-    if (IsFileExist(pref->backupPath_)) {
-        if (std::remove(pref->filePath_.c_str())) {
-            LOG_ERROR("Couldn't delete file %{private}s when LoadFromDisk and backup exist.", pref->filePath_.c_str());
+    std::string backupPath = MakeFilePath(pref->options_.filePath, STR_BACKUP);
+    if (IsFileExist(backupPath)) {
+        if (std::remove(pref->options_.filePath.c_str())) {
+            LOG_ERROR("Couldn't delete file %{private}s when LoadFromDisk and backup exist.",
+                pref->options_.filePath.c_str());
         }
-        if (std::rename(pref->backupPath_.c_str(), pref->filePath_.c_str())) {
+        if (std::rename(backupPath.c_str(), pref->options_.filePath.c_str())) {
             LOG_ERROR("Couldn't rename backup file %{private}s to file %{private}s,when LoadFromDisk and backup "
-                      "exist.",
-                pref->backupPath_.c_str(), pref->filePath_.c_str());
+                      "exist.", backupPath.c_str(), pref->options_.filePath.c_str());
         } else {
-            PreferencesXmlUtils::LimitXmlPermission(pref->filePath_);
+            PreferencesXmlUtils::LimitXmlPermission(pref->options_.filePath);
         }
     }
 
-    if (IsFileExist(pref->filePath_)) {
-        pref->ReadSettingXml(pref->filePath_, pref->map_);
+    if (IsFileExist(pref->options_.filePath)) {
+        pref->ReadSettingXml(pref->options_.filePath, pref->map_);
     }
     fileLock.UnLock();
     pref->loaded_ = true;
@@ -140,49 +140,50 @@ void PreferencesImpl::AwaitLoadFile()
 void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr)
 {
     FileLock fileLock;
-    if (fileLock.TryLock(MakeFilePath(pref->filePath_, STR_LOCK)) == E_ERROR) {
+    if (fileLock.TryLock(MakeFilePath(pref->options_.filePath, STR_LOCK)) == E_ERROR) {
         return;
     }
-    if (IsFileExist(pref->filePath_)) {
+    std::string backupPath = MakeFilePath(pref->options_.filePath, STR_BACKUP);
+    if (IsFileExist(pref->options_.filePath)) {
         bool needWrite = pref->CheckRequestValidForStateGeneration(*mcr);
         if (!needWrite) {
             mcr->SetDiskWriteResult(false, E_OK);
             fileLock.UnLock();
             return;
         }
-        if (IsFileExist(pref->backupPath_)) {
-            if (std::remove(pref->filePath_.c_str())) {
+        if (IsFileExist(backupPath)) {
+            if (std::remove(pref->options_.filePath.c_str())) {
                 LOG_ERROR("Couldn't delete file %{private}s when writeToFile and backup exist.",
-                          pref->filePath_.c_str());
+                    pref->options_.filePath.c_str());
             }
         } else {
-            if (std::rename(pref->filePath_.c_str(), pref->backupPath_.c_str())) {
-                LOG_ERROR("Couldn't rename file %{private}s to backup file %{private}s", pref->filePath_.c_str(),
-                    pref->backupPath_.c_str());
+            if (std::rename(pref->options_.filePath.c_str(), backupPath.c_str())) {
+                LOG_ERROR("Couldn't rename file %{private}s to backup file %{private}s",
+                    pref->options_.filePath.c_str(), backupPath.c_str());
                 mcr->SetDiskWriteResult(false, E_ERROR);
                 fileLock.UnLock();
                 return;
             } else {
-                PreferencesXmlUtils::LimitXmlPermission(pref->backupPath_);
+                PreferencesXmlUtils::LimitXmlPermission(backupPath);
             }
         }
     }
-    if (pref->WriteSettingXml(pref->filePath_, mcr->writeToDiskMap_)) {
-        if (IsFileExist(pref->backupPath_) && std::remove(pref->backupPath_.c_str())) {
-            LOG_ERROR("Couldn't delete backup file %{private}s when writeToFile finish.", pref->backupPath_.c_str());
+    if (pref->WriteSettingXml(pref->options_.filePath, mcr->writeToDiskMap_)) {
+        if (IsFileExist(backupPath) && std::remove(backupPath.c_str())) {
+            LOG_ERROR("Couldn't delete backup file %{private}s when writeToFile finish.", backupPath.c_str());
         }
         pref->diskStateGeneration_ = mcr->memoryStateGeneration_;
         mcr->SetDiskWriteResult(true, E_OK);
     } else {
         // restore backup if write fails
-        if (IsFileExist(pref->filePath_)) {
-            if (std::remove(pref->filePath_.c_str())) {
-                LOG_ERROR("Couldn't clean up partially-written file %{private}s", pref->filePath_.c_str());
+        if (IsFileExist(pref->options_.filePath)) {
+            if (std::remove(pref->options_.filePath.c_str())) {
+                LOG_ERROR("Couldn't clean up partially-written file %{private}s", pref->options_.filePath.c_str());
             }
         }
-        if (std::rename(pref->backupPath_.c_str(), pref->filePath_.c_str())) {
-            LOG_ERROR("Couldn't rename backup file %{private}s to file %{private}s", pref->backupPath_.c_str(),
-                pref->filePath_.c_str());
+        if (std::rename(backupPath.c_str(), pref->options_.filePath.c_str())) {
+            LOG_ERROR("Couldn't rename backup file %{private}s to file %{private}s", backupPath.c_str(),
+                pref->options_.filePath.c_str());
         }
         mcr->SetDiskWriteResult(false, E_ERROR);
     }
@@ -303,7 +304,7 @@ bool PreferencesImpl::ReadSettingXml(
 {
     std::vector<Element> settings;
     if (!PreferencesXmlUtils::ReadSettingXml(prefPath, settings)) {
-        LOG_ERROR("ReadSettingXml:%{private}s failed!", filePath_.c_str());
+        LOG_ERROR("ReadSettingXml:%{private}s failed!", options_.filePath.c_str());
         return false;
     }
     
@@ -376,7 +377,7 @@ bool PreferencesImpl::WriteSettingXml(
         elem.key_ = it->first;
         PreferencesValue value = it->second;
 
-        WriteXmlElement(elem, value, filePath_);
+        WriteXmlElement(elem, value, options_.filePath);
         settings.push_back(elem);
     }
 
@@ -395,24 +396,59 @@ bool PreferencesImpl::HasKey(const std::string &key)
     return (map_.find(key) != map_.end());
 }
 
-void PreferencesImpl::RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver)
+int PreferencesImpl::RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
-    preferencesObservers_.push_back(weakPreferencesObserver);
+    if (mode == RegisterMode::LOCAL_CHANGE) {
+        std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
+        localObservers_.push_back(weakPreferencesObserver);
+    } else {
+        auto dataObsMgrClient = DataObsMgrClient::GetInstance();
+        if (dataObsMgrClient == nullptr) {
+            return E_UNABLE_SUBSCRIOION_SERVICE;
+        }
+        sptr<DataPreferencesObserverStub> observer(new (std::nothrow) DataPreferencesObserverStub(preferencesObserver));
+        int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
+        if (errcode != 0) {
+            LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
+            return errcode;
+        }
+        multiProcessObservers_.push_back(observer);
+    }
+    return E_OK;
 }
 
-void PreferencesImpl::UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver)
+int PreferencesImpl::UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (auto it = preferencesObservers_.begin(); it != preferencesObservers_.end(); ++it) {
-        std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
-        std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock();
-        if (!sharedPreferencesObserver || sharedPreferencesObserver == preferencesObserver) {
-            preferencesObservers_.erase(it);
+    if (mode == RegisterMode::LOCAL_CHANGE) {
+        for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
+            std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
+            std::shared_ptr<PreferencesObserver> sharedObserver = weakPreferencesObserver.lock();
+            if (!sharedObserver || sharedObserver == preferencesObserver) {
+                localObservers_.erase(it);
+                break;
+            }
+        }
+        return E_OK;
+    }
+    for (auto it = multiProcessObservers_.begin(); it != multiProcessObservers_.end(); ++it) {
+        std::shared_ptr<PreferencesObserver> sharedObserver = (*it)->preferencesObserver_.lock();
+        if (!sharedObserver || sharedObserver == preferencesObserver) {
+            auto dataObsMgrClient = DataObsMgrClient::GetInstance();
+            if (dataObsMgrClient == nullptr) {
+                return E_UNABLE_SUBSCRIOION_SERVICE;
+            }
+            int errcode = dataObsMgrClient->UnregisterObserver(MakeUri(), *it);
+            if (errcode != 0) {
+                LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
+                return errcode;
+            }
+            multiProcessObservers_.erase(it);
             break;
         }
     }
+    return E_OK;
 }
 
 int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
@@ -453,6 +489,21 @@ int PreferencesImpl::CheckStringValue(const std::string &value)
         return E_VALUE_EXCEED_MAX_LENGTH;
     }
     return E_OK;
+}
+
+Uri PreferencesImpl::MakeUri(const std::string &key)
+{
+    std::string uriStr;
+    if (options_.dataGroupId.empty()) {
+        uriStr = STR_SCHEME + options_.bundleName + STR_SLASH + options_.filePath;
+    } else {
+        uriStr = STR_SCHEME + options_.dataGroupId + STR_SLASH + options_.filePath;
+    }
+
+    if (!key.empty()) {
+        uriStr = uriStr + STR_QUERY + key;
+    }
+    return Uri(uriStr);
 }
 
 int PreferencesImpl::Delete(const std::string &key)
@@ -504,7 +555,8 @@ int PreferencesImpl::FlushSync()
     std::unique_lock<std::mutex> lock(request->reqMutex_);
     PreferencesImpl::WriteToDiskFile(shared_from_this(), request);
     if (request->wasWritten_) {
-        LOG_DEBUG("%{private}s:%{public}" PRId64 " written", filePath_.c_str(), request->memoryStateGeneration_);
+        LOG_DEBUG("%{private}s:%{public}" PRId64 " written", options_.filePath.c_str(),
+            request->memoryStateGeneration_);
     }
     notifyPreferencesObserver(*request);
     return request->writeToDiskResult_;
@@ -518,30 +570,36 @@ std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> PreferencesImpl::commitToM
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
     std::map<std::string, PreferencesValue> writeToDiskMap;
     writeToDiskMap = map_;
-
     if (!modifiedKeys_.empty()) {
         currentMemoryStateGeneration_++;
         keysModified = modifiedKeys_;
         modifiedKeys_.clear();
     }
     memoryStateGeneration = currentMemoryStateGeneration_;
-    preferencesObservers = preferencesObservers_;
+    preferencesObservers = localObservers_;
     return std::make_shared<MemoryToDiskRequest>(
         writeToDiskMap, keysModified, preferencesObservers, memoryStateGeneration);
 }
 
 void PreferencesImpl::notifyPreferencesObserver(const PreferencesImpl::MemoryToDiskRequest &request)
 {
-    if ((request.preferencesObservers_.empty()) || (request.keysModified_.empty())) {
+    if (request.keysModified_.empty()) {
         return;
     }
+
+    auto dataObsMgrClient = DataObsMgrClient::GetInstance();
     for (auto key = request.keysModified_.begin(); key != request.keysModified_.end(); ++key) {
-        for (auto it = request.preferencesObservers_.begin(); it != request.preferencesObservers_.end(); ++it) {
+        for (auto it = request.localObservers_.begin(); it != request.localObservers_.end(); ++it) {
             std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
             if (std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock()) {
                 sharedPreferencesObserver->OnChange(*key);
             }
         }
+        
+        if (dataObsMgrClient == nullptr) {
+            continue;
+        }
+        dataObsMgrClient->NotifyChange(MakeUri(*key));
     }
 }
 
@@ -551,7 +609,7 @@ PreferencesImpl::MemoryToDiskRequest::MemoryToDiskRequest(
 {
     writeToDiskMap_ = writeToDiskMap;
     keysModified_ = keysModified;
-    preferencesObservers_ = preferencesObservers;
+    localObservers_ = preferencesObservers;
     memoryStateGeneration_ = memStataGeneration;
     isSyncRequest_ = false;
     wasWritten_ = false;
