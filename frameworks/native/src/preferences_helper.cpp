@@ -22,7 +22,6 @@
 #include <utility>
 
 #include "adaptor.h"
-#include "filelock.h"
 #include "log_print.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -35,8 +34,12 @@ std::map<std::string, std::shared_ptr<Preferences>> PreferencesHelper::prefsCach
 std::mutex PreferencesHelper::prefsCacheMutex_;
 static bool IsFileExist(const std::string &path)
 {
-    struct stat buffer;
-    return (stat(path.c_str(), &buffer) == 0);
+    FILE *file = std::fopen(path.c_str(), "r");
+    if (file != nullptr) {
+        std::fclose(file);
+        return true;
+    }
+    return false;
 }
 
 std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCode)
@@ -85,7 +88,6 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const std::string
     DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     std::string realPath = GetRealPath(path, errCode);
     if (realPath == "" || errCode != E_OK) {
-        LOG_ERROR("fails to get real path, errCode %{public}d", errCode);
         return nullptr;
     }
 
@@ -122,23 +124,16 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     }
 
     std::string filePath = realPath.c_str();
-    std::string backupPath = PreferencesImpl::MakeFilePath(filePath, STR_BACKUP);
-    std::string brokenPath = PreferencesImpl::MakeFilePath(filePath, STR_BROKEN);
-    std::string lockFilePath = PreferencesImpl::MakeFilePath(filePath, STR_LOCK);
-    FileLock fileLock;
-    if (fileLock.TryLock(lockFilePath) == E_ERROR) {
-        return E_ERROR;
-    }
+    std::string backupPath = PreferencesImpl::MakeBackupPath(filePath);
+    std::string brokenPath = PreferencesImpl::MakeBrokenPath(filePath);
 
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());
 
     if (IsFileExist(filePath) || IsFileExist(backupPath) || IsFileExist(brokenPath)) {
-        fileLock.UnLock();
         return E_DELETE_FILE_FAIL;
     }
-    fileLock.UnLock();
     return E_OK;
 }
 

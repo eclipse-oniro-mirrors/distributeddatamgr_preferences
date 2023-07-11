@@ -43,7 +43,6 @@ if (is_ohos) {
   ohos_shared_library("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
 
     innerapi_tags = [ "platformsdk" ]
 
@@ -75,11 +74,9 @@ if (is_ohos) {
       "-stdlib=libc++",
     ]
     if (is_mac) {
-      sources += [ "${preferences_native_path}/src/filelock.cpp" ]
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
     } else {
-      sources += [ "${preferences_native_path}/mock/src/filelock.cpp" ]
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
@@ -97,7 +94,6 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
 
     defines = [ "ANDROID_PLATFORM" ]
 
@@ -116,7 +112,6 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
 
     defines = [ "IOS_PLATFORM" ]
 
@@ -136,10 +131,10 @@ if (is_ohos) {
 ohos_static_library("native_preferences_static") {
   all_dependent_configs = [ ":native_preferences_public_config" ]
   sources = base_sources
+
   configs = [ ":native_preferences_config" ]
 
   if (is_mingw || is_mac) {
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
     configs += [ ":adaptor_config" ]
     cflags_cc = [
       "-std=c++17",
@@ -158,7 +153,6 @@ ohos_static_library("native_preferences_static") {
       "//third_party/libxml2:static_libxml2",
     ]
   } else {
-    sources += [ "${preferences_native_path}/src/filelock.cpp" ]
     deps = [ "//third_party/libxml2:libxml2" ]
     external_deps = [
       "c_utils:utils",

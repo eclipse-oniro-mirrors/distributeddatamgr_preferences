@@ -12,50 +12,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "js_ability.h"
 
 #include "extension_context.h"
 #include "log_print.h"
-#include "napi_preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
-int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
+Context::Context(std::shared_ptr<AbilityRuntime::Context> stageContext)
 {
-    bool isStage = false;
-    AbilityRuntime::IsStageContext(env, value, isStage);
-    if (isStage) {
+    preferencesDir_ = stageContext->GetPreferencesDir();
+}
+
+Context::Context(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
+{
+    preferencesDir_ = abilityContext->GetPreferencesDir();
+}
+
+std::string Context::GetPreferencesDir()
+{
+    return preferencesDir_;
+}
+
+std::shared_ptr<Context> JSAbility::GetContext(napi_env env, napi_value value)
+{
+    bool mode = false;
+    AbilityRuntime::IsStageContext(env, value, mode);
+    if (mode) {
         auto stageContext = AbilityRuntime::GetStageModeContext(env, value);
         if (stageContext == nullptr) {
             LOG_ERROR("GetStageModeContext failed.");
-            return E_INVALID_PARAM;
+            return nullptr;
         }
-
-        int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, contextInfo.preferencesDir);
-        if (errcode != 0) {
-            return E_INVALID_DATA_GROUP_ID;
-        }
-        contextInfo.bundleName = stageContext->GetBundleName();
-        return OK;
-    }
-
-    if (!dataGroupId.empty()) {
-        return E_UNSUPPORTED_MODE;
+        return std::make_shared<Context>(stageContext);
     }
 
     auto ability = AbilityRuntime::GetCurrentAbility(env);
     if (ability == nullptr) {
         LOG_ERROR("GetCurrentAbility failed.");
-        return E_INVALID_PARAM;
+        return nullptr;
     }
-
     auto abilityContext = ability->GetAbilityContext();
-    if (ability == nullptr) {
+    if (abilityContext == nullptr) {
         LOG_ERROR("GetAbilityContext failed.");
-        return E_INVALID_PARAM;
+        return nullptr;
     }
-    contextInfo.preferencesDir = abilityContext->GetPreferencesDir();
-    return OK;
+    return std::make_shared<Context>(abilityContext);
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS

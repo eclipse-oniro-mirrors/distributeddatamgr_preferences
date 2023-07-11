@@ -19,7 +19,6 @@ import featureAbility from '@ohos.ability.featureAbility';
 
 const NAME = 'test_preferences';
 const BASE_COUNT = 2000;
-const DELETE_BASE_COUNT = 1500;
 const BASELINE = 25000;
 const KEY_TEST_FLOAT_ELEMENT = 'key_test_float';
 const KEY_TEST_BOOLEAN_ELEMENT = 'key_test_boolean';
@@ -162,11 +161,11 @@ describe("PreferencesInstancePromiseJsPref", async function () {
      */
     it("DeletePreferences_0002", 0, async function () {
         let startTime = new Date().getTime(); // time unit is mm
-        for (let index = 0; index < DELETE_BASE_COUNT; index++) {
+        for (let index = 0; index < BASE_COUNT; index++) {
             await dataPreferences.deletePreferences(context, `${NAME}${index}`);
         }
         let endTime = new Date().getTime();
-        let averageTime = ((endTime - startTime) * 1000) / DELETE_BASE_COUNT;
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
         console.info(`${TAG}DeletePreferences_0002 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })

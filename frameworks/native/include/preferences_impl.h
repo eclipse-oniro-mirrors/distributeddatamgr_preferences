@@ -32,9 +32,6 @@
 
 namespace OHOS {
 namespace NativePreferences {
-static const char *STR_BROKEN = ".broken";
-static const char *STR_BACKUP = ".bak";
-static const char *STR_LOCK = ".lock";
 class PreferencesImpl : public Preferences, public std::enable_shared_from_this<PreferencesImpl> {
 public:
     static std::shared_ptr<PreferencesImpl> GetPreferences(const std::string &path)
@@ -149,7 +146,8 @@ public:
 
     void UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver) override;
 
-    static std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
+    static std::string MakeBackupPath(const std::string &prefPath);
+    static std::string MakeBrokenPath(const std::string &prefPath);
 private:
     explicit PreferencesImpl(const std::string &path);
     class MemoryToDiskRequest {
