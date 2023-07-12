@@ -24,7 +24,6 @@
 
 #include "adaptor.h"
 #include "data_preferences_observer_stub.h"
-#include "filelock.h"
 #include "log_print.h"
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
@@ -103,10 +102,6 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         return;
     }
 
-    FileLock fileLock;
-    if (fileLock.TryLock(MakeFilePath(pref->options_.filePath, STR_LOCK)) == E_ERROR) {
-        return;
-    }
     std::string backupPath = MakeFilePath(pref->options_.filePath, STR_BACKUP);
     if (IsFileExist(backupPath)) {
         if (std::remove(pref->options_.filePath.c_str())) {
@@ -124,7 +119,6 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     if (IsFileExist(pref->options_.filePath)) {
         pref->ReadSettingXml(pref->options_.filePath, pref->map_);
     }
-    fileLock.UnLock();
     pref->loaded_ = true;
     pref->cond_.notify_all();
 }
@@ -139,16 +133,11 @@ void PreferencesImpl::AwaitLoadFile()
 
 void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr)
 {
-    FileLock fileLock;
-    if (fileLock.TryLock(MakeFilePath(pref->options_.filePath, STR_LOCK)) == E_ERROR) {
-        return;
-    }
     std::string backupPath = MakeFilePath(pref->options_.filePath, STR_BACKUP);
     if (IsFileExist(pref->options_.filePath)) {
         bool needWrite = pref->CheckRequestValidForStateGeneration(*mcr);
         if (!needWrite) {
             mcr->SetDiskWriteResult(false, E_OK);
-            fileLock.UnLock();
             return;
         }
         if (IsFileExist(backupPath)) {
@@ -161,7 +150,6 @@ void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std
                 LOG_ERROR("Couldn't rename file %{private}s to backup file %{private}s",
                     pref->options_.filePath.c_str(), backupPath.c_str());
                 mcr->SetDiskWriteResult(false, E_ERROR);
-                fileLock.UnLock();
                 return;
             } else {
                 PreferencesXmlUtils::LimitXmlPermission(backupPath);
@@ -187,7 +175,6 @@ void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std
         }
         mcr->SetDiskWriteResult(false, E_ERROR);
     }
-    fileLock.UnLock();
 }
 
 bool PreferencesImpl::CheckRequestValidForStateGeneration(const MemoryToDiskRequest &mcr)
