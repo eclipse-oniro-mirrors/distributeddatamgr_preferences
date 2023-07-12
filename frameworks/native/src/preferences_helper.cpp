@@ -22,7 +22,6 @@
 #include <utility>
 
 #include "adaptor.h"
-#include "filelock.h"
 #include "log_print.h"
 #include "preferences.h"
 #include "preferences_errno.h"
@@ -125,20 +124,14 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string backupPath = PreferencesImpl::MakeFilePath(filePath, STR_BACKUP);
     std::string brokenPath = PreferencesImpl::MakeFilePath(filePath, STR_BROKEN);
     std::string lockFilePath = PreferencesImpl::MakeFilePath(filePath, STR_LOCK);
-    FileLock fileLock;
-    if (fileLock.TryLock(lockFilePath) == E_ERROR) {
-        return E_ERROR;
-    }
 
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());
 
     if (IsFileExist(filePath) || IsFileExist(backupPath) || IsFileExist(brokenPath)) {
-        fileLock.UnLock();
         return E_DELETE_FILE_FAIL;
     }
-    fileLock.UnLock();
     return E_OK;
 }
 
