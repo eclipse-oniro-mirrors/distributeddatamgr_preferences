@@ -31,7 +31,7 @@ int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string 
             return E_INVALID_PARAM;
         }
 
-        int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, contextInfo.preferencesDir);
+        int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
         if (errcode != 0) {
             return E_INVALID_DATA_GROUP_ID;
         }
@@ -54,7 +54,7 @@ int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string 
         LOG_ERROR("GetAbilityContext failed.");
         return E_INVALID_PARAM;
     }
-    contextInfo.preferencesDir = abilityContext->GetPreferencesDir();
+    abilityContext->GetSystemPreferencesDir("", false, contextInfo.preferencesDir);
     return OK;
 }
 } // namespace PreferencesJsKit
