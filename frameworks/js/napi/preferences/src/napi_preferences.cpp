@@ -59,7 +59,8 @@ PreferencesProxy::PreferencesProxy()
 
 PreferencesProxy::~PreferencesProxy()
 {
-    UnRegisteredAllObservers();
+    UnRegisteredAllObservers(RegisterMode::LOCAL_CHANGE);
+    UnRegisteredAllObservers(RegisterMode::MULTI_PRECESS_CHANGE);
 }
 
 void PreferencesProxy::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
@@ -505,13 +506,13 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
-    if (argc == requireArgc && type == napi_function) {
-        int errCode = obj->UnRegisteredObserver(args[1], ConvertToRegisterMode(registerMode));
-        PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
+    int errCode;
+    if (type == napi_function) {
+        errCode = obj->UnRegisteredObserver(args[1], ConvertToRegisterMode(registerMode));
     } else {
-        obj->UnRegisteredAllObservers();
+        errCode = obj->UnRegisteredAllObservers(ConvertToRegisterMode(registerMode));
     }
-
+    PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
     return nullptr;
 }
 
@@ -568,17 +569,21 @@ int PreferencesProxy::UnRegisteredObserver(napi_value callback, RegisterMode mod
     return E_OK;
 }
 
-void PreferencesProxy::UnRegisteredAllObservers()
+int PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
 {
     std::lock_guard<std::mutex> lck(listMutex_);
-    for (auto &observer : localObservers_) {
-        value_->UnRegisterObserver(observer, RegisterMode::LOCAL_CHANGE);
+    auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
+    bool hasFailed = false;
+    int errCode = E_OK;
+    for (auto &observer : observers) {
+        errCode = value_->UnRegisterObserver(observer, mode);
+        if (errCode != E_OK) {
+            hasFailed = true;
+            LOG_ERROR("The observer unsubscribed has failed, errCode %{public}d.", errCode);
+        }
     }
-    localObservers_.clear();
-    for (auto &observer : multiProcessObservers_) {
-        value_->UnRegisterObserver(observer, RegisterMode::MULTI_PRECESS_CHANGE);
-    }
-    multiProcessObservers_.clear();
+    observers.clear();
+    return hasFailed ? E_ERROR : E_OK;
     LOG_INFO("All observers unsubscribed success.");
 }
 } // namespace PreferencesJsKit
