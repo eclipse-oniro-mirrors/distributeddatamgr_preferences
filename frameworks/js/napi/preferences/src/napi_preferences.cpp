@@ -145,16 +145,16 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
 int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
-    PRE_CHECK_RETURN(rc == napi_ok, context->SetError(std::make_shared<ParamTypeError>("value", "string.")));
-    PRE_CHECK_RETURN(context->key.length() <= MAX_KEY_LENGTH,
-        context->SetError(std::make_shared<ParamTypeError>("value", "less than 80 bytes.")));
+    PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("value", "string."));
+    PRE_CHECK_RETURN_ERR_SET(context->key.length() <= MAX_KEY_LENGTH,
+        std::make_shared<ParamTypeError>("value", "less than 80 bytes."));
     return OK;
 }
 
-int ParseDefValue(const napi_env &env, const napi_value &jsVal, std::shared_ptr<PreferencesAysncContext> context)
+int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
-    PRE_CHECK_RETURN(rc == napi_ok, context->SetError(std::make_shared<ParamTypeError>("value", "ValueType.")));
+    PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("value", "ValueType."));
     return OK;
 }
 
@@ -171,23 +171,21 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("GetAll start");
     auto context = std::make_shared<PreferencesAysncContext>();
-    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
-    
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
-        return OK;
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
         context->allElements = obj->value_->GetAll();
         return OK;
     };
-    auto output = [context](napi_env env, napi_value &result) -> int {
-        return GetAllExecute(env, context, result);
+    auto output = [context](napi_env env, napi_value &result) {
+        GetAllExecute(env, context, result);
     };
     context->SetAction(env, info, input, exec, output);
     
-    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
 
@@ -209,19 +207,18 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("GetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
-    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
+        PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_create_reference(env, argv[1], 1, &context->inputValueRef);
         napi_unwrap(env, self, &context->boundObj);
-        return OK;
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
         context->defValue = obj->value_->Get(context->key, context->defValue);
         return OK;
     };
-    auto output = [context](napi_env env, napi_value &result) -> int {
+    auto output = [context](napi_env env, napi_value &result) {
         if (context->defValue.IsLong()) {
             LOG_DEBUG("GetValue get default value.");
             napi_get_reference_value(env, context->inputValueRef, &result);
@@ -229,11 +226,11 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
             result = JSUtils::Convert2JSValue(env, context->defValue.value_);
         }
         napi_delete_reference(env, context->inputValueRef);
-        return OK;
+        PRE_CHECK_RETURN_VOID_SET(result != nullptr, std::make_shared<InnerError>(E_ERROR));
     };
     context->SetAction(env, info, input, exec, output);
     
-    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
 
@@ -262,27 +259,24 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("SetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
-    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 2 || argc == 3, "2 or 3");
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseDefValue(env, argv[1], context));
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
+        PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
+        PRE_CHECK_RETURN_VOID(ParseDefValue(env, argv[1], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
-        return OK;
     };
     auto exec = [context]() -> int {
-        int errCode;
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
-        errCode = obj->value_->Put(context->key, context->defValue);
-        return errCode;
+        return obj->value_->Put(context->key, context->defValue);
     };
-    auto output = [context](napi_env env, napi_value &result) -> int {
+    auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
         LOG_DEBUG("SetValue end.");
-        return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
     
-    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
 
@@ -308,25 +302,23 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("Delete start");
     auto context = std::make_shared<PreferencesAysncContext>();
-    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
+        PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
-        return OK;
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
-        int errCode = obj->value_->Delete(context->key);
-        return (errCode == OK) ? OK : ERR;
+        return obj->value_->Delete(context->key);
     };
-    auto output = [context](napi_env env, napi_value &result) -> int {
+    auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
         LOG_DEBUG("Delete end.");
-        return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
     
-    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
 
@@ -351,25 +343,24 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("HasKey start");
     auto context = std::make_shared<PreferencesAysncContext>();
-    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 1 || argc == 2, "1 or 2");
-        PRE_ASYNC_PARAM_CHECK_FUNCTION(ParseKey(env, argv[0], context));
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
+        PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
-        return OK;
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
         context->hasKey = obj->value_->HasKey(context->key);
         return OK;
     };
-    auto output = [context](napi_env env, napi_value &result) -> int {
+    auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_boolean(env, context->hasKey, &result);
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
         LOG_DEBUG("HasKey end.");
-        return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
     
-    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
 
@@ -393,23 +384,22 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("Flush start");
     auto context = std::make_shared<PreferencesAysncContext>();
-    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
-        return OK;
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
         return obj->value_->FlushSync();
     };
-    auto output = [context](napi_env env, napi_value &result) -> int {
+    auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
         LOG_DEBUG("Flush end.");
-        return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
     
-    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
 
@@ -417,23 +407,22 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("Clear start");
     auto context = std::make_shared<PreferencesAysncContext>();
-    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> int {
-        PRE_CHECK_PARAM_NUM_VALID(argc == 0 || argc == 1, "0 or 1");
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
-        return OK;
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
         return obj->value_->Clear();
     };
-    auto output = [context](napi_env env, napi_value &result) -> int {
+    auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
         LOG_DEBUG("Clear end.");
-        return (status == napi_ok) ? OK : ERR;
     };
     context->SetAction(env, info, input, exec, output);
     
-    PRE_CHECK_RETURN_NULLPTR(context, context->error == nullptr || context->error->GetCode() == OK);
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
 }
 

@@ -29,16 +29,18 @@ constexpr int EXCEED_MAX_LENGTH = -2;
 
 constexpr int E_INVALID_PARAM = 401;
 constexpr int E_INNER_ERROR = 15500000;
-constexpr int E_PREFERENCES = 15500010;
-constexpr int E_UNSUPPORTED_MODE = 14801001;
-constexpr int E_INVALID_DATA_GROUP_ID = 14801002;
+constexpr int E_NOT_STAGE_MODE = 15501001;
+constexpr int E_DATA_GROUP_ID_INVALID = 15501002;
 
 const static std::map<int, std::string> ERROR_MAPS = {
-    {E_UNSUPPORTED_MODE, "Only supportted in Stage mode"},
-    {E_INVALID_DATA_GROUP_ID, "The dataGroupId not valid"},
-    {NativePreferences::E_NOT_SUPPORTED, "Capability not supported"},
-    {NativePreferences::E_UNABLE_SUBSCRIOION_SERVICE, "Failed to obtain subscription service."}
+    { E_NOT_STAGE_MODE, "Only supported in stage mode" },
+    { E_DATA_GROUP_ID_INVALID, "The data group id is not valid" },
+    { NativePreferences::E_NOT_SUPPORTED, "Capability not supported" },
+    { NativePreferences::E_GET_DATAOBSMGRCLIENT_FAIL, "Failed to obtain subscription service." },
+    { NativePreferences::E_DELETE_FILE_FAIL, "Failed to delete preferences file." }
 };
+
+#define PRE_REVT_NOTHING
 
 #define PRE_NAPI_ASSERT_BASE(env, assertion, error, retVal)                        \
     do {                                                                           \
@@ -56,52 +58,38 @@ const static std::map<int, std::string> ERROR_MAPS = {
 #define PRE_NAPI_ASSERT_RETURN_VOID(env, assertion, error) \
     PRE_NAPI_ASSERT_BASE(env, assertion, error, NAPI_RETVAL_NOTHING)
 
-#define PRE_ASYNC_PARAM_CHECK_FUNCTION(theCall) \
-    do {                                        \
-        int err = (theCall);                    \
-        if (err != OK) {                        \
-            return err;                         \
-        }                                       \
-    } while (0)
-
-#define PRE_CHECK_RETURN_NULLPTR(context, assertion) \
-    do {                                             \
-        if (!(assertion)) {                          \
-            /* avoid cyclic dependence */            \
-            (context)->exec_ = nullptr;              \
-            (context)->output_ = nullptr;            \
-            return nullptr;                          \
-        }                                            \
-    } while (0)
-
-#define PRE_CHECK_RETURN(assertion, theCall) \
+#define PRE_CHECK_RETURN_CORE(assertion, theCall, revt)  \
     do {                                                 \
         if (!(assertion)) {                              \
-            (theCall);                                   \
-            return ERR;                                  \
+            theCall;                                     \
+            return revt;                                 \
         }                                                \
     } while (0)
 
-#define PRE_CHECK_PARAM_NUM_VALID(assertion, errMsg)                                        \
-    do {                                                                                    \
-        if (!(assertion)) {                                                                 \
-            std::shared_ptr<Error> paramNumError = std::make_shared<ParamNumError>(errMsg); \
-            context->SetError(paramNumError);                                               \
-            return ERR;                                                                     \
-        }                                                                                   \
-    } while (0)
+#define PRE_CHECK_RETURN_VOID_SET(assertion, error) \
+    PRE_CHECK_RETURN_CORE(assertion, context->SetError(error), PRE_REVT_NOTHING)
 
-#define PRE_NAPI_ASSERT_RETURN_VOID(env, assertion, error) \
-    PRE_NAPI_ASSERT_BASE(env, assertion, error, NAPI_RETVAL_NOTHING)
+#define PRE_CHECK_RETURN_ERR_SET(assertion, error) \
+    PRE_CHECK_RETURN_CORE(assertion, context->SetError(error), ERR)
 
-class Error {
+#define PRE_CHECK_RETURN_NULL(assertion) \
+    PRE_CHECK_RETURN_CORE(assertion, PRE_REVT_NOTHING, nullptr)
+
+#define PRE_CHECK_RETURN_VOID(assertion) \
+    PRE_CHECK_RETURN_CORE(assertion, PRE_REVT_NOTHING, PRE_REVT_NOTHING)
+
+#define PRE_CHECK_RETURN_ERR(assertion) \
+    PRE_CHECK_RETURN_CORE(assertion, PRE_REVT_NOTHING, ERR)
+
+
+class JSError {
 public:
-    virtual ~Error(){};
+    virtual ~JSError(){};
     virtual std::string GetMsg() = 0;
     virtual int GetCode() = 0;
 };
 
-class ParamTypeError : public Error {
+class ParamTypeError : public JSError {
 public:
     ParamTypeError(const std::string &name, const std::string &wantType) : name(name), wantType(wantType){};
     std::string GetMsg() override
@@ -118,7 +106,7 @@ private:
     std::string wantType;
 };
 
-class InnerError : public Error {
+class InnerError : public JSError {
 public:
     InnerError(int code)
     {
@@ -146,7 +134,7 @@ private:
     std::string msg_;
 };
 
-class ParamNumError : public Error {
+class ParamNumError : public JSError {
 public:
     ParamNumError(const std::string &wantNum) : wantNum(wantNum){};
     std::string GetMsg() override
@@ -161,22 +149,6 @@ public:
 private:
     std::string apiname;
     std::string wantNum;
-};
-
-class DeleteError : public Error {
-public:
-    DeleteError() = default;
-    std::string GetMsg() override
-    {
-        return "Failed to delete preferences file.";
-    };
-    int GetCode() override
-    {
-        return E_PREFERENCES;
-    };
-
-private:
-    std::string apiname;
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS

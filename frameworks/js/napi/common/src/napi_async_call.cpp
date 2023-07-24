@@ -25,29 +25,33 @@ void BaseContext::SetAction(
     size_t argc = MAX_INPUT_COUNT;
     napi_value self = nullptr;
     napi_value argv[MAX_INPUT_COUNT] = { nullptr };
-    NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
     napi_valuetype valueType = napi_undefined;
-    if (argc > 0) {
+    if (status == napi_ok && argc > 0) {
         napi_typeof(env, argv[argc - 1], &valueType);
         if (valueType == napi_function) {
-            NAPI_CALL_RETURN_VOID(env, napi_create_reference(env, argv[argc - 1], 1, &callback_));
+            status = napi_create_reference(env, argv[argc - 1], 1, &callback_);
             argc = argc - 1;
         }
     }
+
     // int -->input_(env, argc, argv, self)
-    int status = input(env, argc, argv, self);
-    
+    if (status == napi_ok) {
+        input(env, argc, argv, self);
+    } else {
+        error = std::make_shared<InnerError>(NativePreferences::E_ERROR);
+    }
+
     // if input return is not ok, then napi_throw_error context error
-    PRE_NAPI_ASSERT_RETURN_VOID(env, status == OK, error);
-    
+    PRE_NAPI_ASSERT_RETURN_VOID(env, error == nullptr, error);
+
     output_ = std::move(output);
     exec_ = std::move(exec);
     
     napi_create_reference(env, self, 1, &self_);
 }
 
-void BaseContext::SetError(std::shared_ptr<Error> err)
+void BaseContext::SetError(std::shared_ptr<JSError> err)
 {
     error = err;
 }
@@ -67,7 +71,7 @@ BaseContext::~BaseContext()
     env_ = nullptr;
 }
 
-void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<Error> error)
+void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<JSError> error)
 {
     napi_value code = nullptr;
     napi_value msg = nullptr;
@@ -84,6 +88,7 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
 napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context)
 {
     napi_value promise = nullptr;
+
     if (context->callback_ == nullptr) {
         napi_create_promise(env, &context->defer_, &promise);
     } else {
@@ -104,22 +109,26 @@ void AsyncCall::OnExecute(napi_env env, void *data)
 {
     BaseContext *context = reinterpret_cast<BaseContext *>(data);
     if (context->exec_) {
-        context->execStatus = context->exec_();
+        context->execCode_ = context->exec_();
     }
+    context->exec_ = nullptr;
 }
 
 void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
 {
     BaseContext *context = reinterpret_cast<BaseContext *>(data);
-    napi_value output = nullptr;
-    int outStatus = ERR;
-    // if async execute status is not napi_ok then un-execute out function
-    if ((context->execStatus == OK) && context->output_) {
-        outStatus = context->output_(env, output);
+    if (context->execCode_ != NativePreferences::E_OK) {
+        context->SetError(std::make_shared<InnerError>(context->execCode_));
     }
+    napi_value output = nullptr;
+    // if async execute status is not napi_ok then un-execute out function
+    if ((context->error == nullptr) && context->output_) {
+        context->output_(env, output);
+    }
+    context->output_ = nullptr;
     napi_value result[ARG_BUTT] = { 0 };
     // if out function status is ok then async renturn output data, else return error.
-    if (outStatus == OK) {
+    if (context->error == nullptr) {
         napi_get_undefined(env, &result[ARG_ERROR]);
         if (output != nullptr) {
             result[ARG_DATA] = output;
@@ -127,14 +136,12 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {
-        napi_value businessError = nullptr;
-        SetBusinessError(env, &businessError, context->error);
-        result[ARG_ERROR] = businessError;
+        SetBusinessError(env, &result[ARG_ERROR], context->error);
         napi_get_undefined(env, &result[ARG_DATA]);
     }
     if (context->defer_ != nullptr) {
         // promise
-        if (status == napi_ok && outStatus == OK) {
+        if (status == napi_ok && (context->error == nullptr)) {
             napi_resolve_deferred(env, context->defer_, result[ARG_DATA]);
         } else {
             napi_reject_deferred(env, context->defer_, result[ARG_ERROR]);
@@ -146,8 +153,6 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
         napi_value returnValue;
         napi_call_function(env, nullptr, callback, ARG_BUTT, result, &returnValue);
     }
-    context->exec_ = nullptr;
-    context->output_ = nullptr;
     context->keep_.reset();
 }
 } // namespace PreferencesJsKit

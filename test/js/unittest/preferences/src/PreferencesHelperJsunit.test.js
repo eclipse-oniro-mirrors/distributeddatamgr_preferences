@@ -90,7 +90,84 @@ describe('PreferencesHelperJsunit', function () {
             await data_preferences.getPreferences(context, { name: NAME, dataGroupId: "123456" });
         } catch(err) {
             done();
-            expect('14801001').assertEqual(err.code);
+            expect('15501001').assertEqual(err.code);
+        }
+    })
+
+    /**
+     * @tc.name getPreferencesSync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_005
+     * @tc.desc getPreferencesSync interface test
+     */
+    it('testGetPreferencesHelper005', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(undefined, { name: NAME });
+        } catch(err) {
+            done();
+            expect('401').assertEqual(err.code);
+        }
+    })
+
+    /**
+     * @tc.name getPreferencesSync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_006
+     * @tc.desc getPreferencesSync interface test
+     */
+    it('testGetPreferencesHelper006', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(null, { name: NAME });
+        } catch(err) {
+            done();
+            expect('401').assertEqual(err.code);
+        }
+    })
+
+    /**
+     * @tc.name getPreferencesSync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_007
+     * @tc.desc getPreferencesSync interface test
+     */
+    it('testGetPreferencesHelper007', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences({}, { name: NAME });
+        } catch(err) {
+            done();
+            expect('401').assertEqual(err.code);
+        }
+    })
+
+    /**
+     * @tc.name getPreferencesSync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_008
+     * @tc.desc getPreferencesSync interface test
+     */
+    it('testGetPreferencesHelper008', 0, async function (done) {
+        try {
+            let myContext = {
+                stageMode: true,
+            }
+            await data_preferences.getPreferences(myContext, { name: NAME });
+        } catch(err) {
+            done();
+            expect('15500000').assertEqual(err.code);
+        }
+    })
+
+    /**
+     * @tc.name getPreferencesSync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_009
+     * @tc.desc getPreferencesSync interface test
+     */
+    it('testGetPreferencesHelper009', 0, async function (done) {
+        try {
+            let myContext = {
+                stageMode: false,
+            }
+            mPreferences = await data_preferences.getPreferences(myContext, { name: NAME });
+            done();
+            expect(mPreferences != null).assertTrue();
+        } catch(err) {
+            expect(err).assertFail();
         }
     })
 
@@ -137,7 +214,7 @@ describe('PreferencesHelperJsunit', function () {
             await data_preferences.removePreferencesFromCache(context, { name: NAME, dataGroupId: "123456" });
         } catch(err) {
             done();
-            expect('14801001').assertEqual(err.code);
+            expect('15501001').assertEqual(err.code);
         }
     })
 
@@ -183,7 +260,7 @@ describe('PreferencesHelperJsunit', function () {
             await data_preferences.deletePreferences(context, { name: NAME, dataGroupId: "123456" });
         } catch(err) {
             done();
-            expect('14801001').assertEqual(err.code);
+            expect('15501001').assertEqual(err.code);
         }
     })
 
