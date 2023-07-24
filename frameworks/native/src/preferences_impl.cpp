@@ -28,11 +28,11 @@
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"
-#include "task_executor.h"
-#include "task_scheduler.h"
 
 namespace OHOS {
 namespace NativePreferences {
+
+ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
 
 static bool IsFileExist(const std::string &inputPath)
 {
@@ -77,8 +77,9 @@ bool PreferencesImpl::StartLoadFromDisk()
         std::lock_guard<std::mutex> lock(mutex_);
         loaded_ = false;
     }
-    TaskScheduler::Task task = std::bind(PreferencesImpl::LoadFromDisk, shared_from_this());
-    return TaskExecutor::GetInstance().Execute(std::move(task));
+
+    ExecutorPool::Task task = std::bind(PreferencesImpl::LoadFromDisk, shared_from_this());
+    return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
 }
 
 int PreferencesImpl::CheckKey(const std::string &key)
@@ -529,8 +530,8 @@ void PreferencesImpl::Flush()
     DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = false;
-    TaskScheduler::Task task = std::bind(PreferencesImpl::WriteToDiskFile, shared_from_this(), request);
-    TaskExecutor::GetInstance().Execute(std::move(task));
+    ExecutorPool::Task task = std::bind(PreferencesImpl::WriteToDiskFile, shared_from_this(), request);
+    executorPool_.Execute(std::move(task));
 
     notifyPreferencesObserver(*request);
 }
