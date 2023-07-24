@@ -44,7 +44,7 @@ int FileLock::TryLock(const std::string &fileName)
     int fd = open(fileName.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     if (fd == -1) {
         LOG_ERROR("Couldn't open file %{public}s errno %{public}d.", fileName.c_str(), errno);
-        return (errno == EACCES) ? E_EACCES : E_ERROR;
+        return (errno == EACCES) ? PERMISSION_DENIED : E_ERROR;
     }
     struct flock fileLockInfo = { 0 };
     fileLockInfo.l_type = F_WRLCK;
