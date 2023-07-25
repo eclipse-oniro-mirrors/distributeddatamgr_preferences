@@ -48,7 +48,15 @@ static constexpr uint32_t FAILCOUNT = 2;
 
 static constexpr uint32_t SUCCOUNT = 1;
 
-void ParseString(napi_env env, napi_value &object, const char *name, const bool enable, std::string &output)
+static constexpr int E_KEY_EMPTY_STSTEM_STORAGE = -1006;
+
+static constexpr int E_KEY_EXCEED_LENGTH_LIMIT_STSTEM_STORAGE = -1016;
+
+static constexpr int E_VALUE_EXCEED_LENGTH_LIMIT_STSTEM_STORAGE = -1017;
+
+static constexpr int E_DEFAULT_EXCEED_LENGTH_LIMIT_STSTEM_STORAGE = -1018;
+
+void ParseString(napi_env env, napi_value object, const char *name, const bool enable, std::string &output)
 {
     napi_value value = nullptr;
     bool exist = false;
@@ -61,7 +69,7 @@ void ParseString(napi_env env, napi_value &object, const char *name, const bool 
     }
 }
 
-void ParseFunction(napi_env env, napi_value &object, const char *name, napi_ref &output)
+void ParseFunction(napi_env env, napi_value object, const char *name, napi_ref &output)
 {
     napi_value value = nullptr;
     bool exist = false;
@@ -75,7 +83,7 @@ void ParseFunction(napi_env env, napi_value &object, const char *name, napi_ref 
     }
 }
 
-const std::string GetMessageInfo(int errCode)
+const std::string GetMessageInfo(const int &errCode)
 {
     switch (errCode) {
         case E_KEY_EMPTY:
@@ -88,6 +96,22 @@ const std::string GetMessageInfo(int errCode)
             return "The default string length should shorter than 128.";
         default:
             return "unknown err";
+    }
+}
+
+int32_t ConversionToSysStorageErrorCode(const int &errCode)
+{
+    switch (errCode) {
+        case E_KEY_EMPTY:
+            return E_KEY_EMPTY_STSTEM_STORAGE;
+        case E_KEY_EXCEED_LENGTH_LIMIT:
+            return E_KEY_EXCEED_LENGTH_LIMIT_STSTEM_STORAGE;
+        case E_VALUE_EXCEED_LENGTH_LIMIT:
+            return E_VALUE_EXCEED_LENGTH_LIMIT_STSTEM_STORAGE;
+        case E_DEFAULT_EXCEED_LENGTH_LIMIT:
+            return E_DEFAULT_EXCEED_LENGTH_LIMIT_STSTEM_STORAGE;
+        default:
+            return errCode;
     }
 }
 
@@ -117,7 +141,7 @@ void Complete(napi_env env, napi_status status, void *data)
         std::string message = GetMessageInfo(ctx->output);
         len = message.size();
         NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, message.c_str(), len, &failRes[0]));
-        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ctx->output, &failRes[1]));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, ConversionToSysStorageErrorCode(ctx->output), &failRes[1]));
         napi_value failCallbackResult = nullptr;
         NAPI_CALL_RETURN_VOID(
             env, napi_call_function(env, nullptr, failCallBack, FAILCOUNT, failRes, &failCallbackResult));
@@ -143,7 +167,7 @@ void Complete(napi_env env, napi_status status, void *data)
 std::string GetPrefName(napi_env env)
 {
     ContextInfo contextInfo;
-    JSAbility::GetContextInfo(env, nullptr, "", contextInfo);
+    JSAbility::GetContextInfo(env, nullptr, "", false, contextInfo);
     return contextInfo.preferencesDir + "/default.xml";
 }
 

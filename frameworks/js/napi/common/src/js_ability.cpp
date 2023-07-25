@@ -20,39 +20,44 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
-int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
+napi_status JSAbility::IsStageContext(napi_env env, napi_value value, bool &isStageMode)
 {
-    bool isStage = false;
-    AbilityRuntime::IsStageContext(env, value, isStage);
-    if (isStage) {
+    napi_status status = AbilityRuntime::IsStageContext(env, value, isStageMode);
+    return status;
+}
+
+int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, const bool &isStageMode,
+    ContextInfo &contextInfo)
+{
+    if (isStageMode) {
         auto stageContext = AbilityRuntime::GetStageModeContext(env, value);
         if (stageContext == nullptr) {
-            LOG_ERROR("GetStageModeContext failed.");
-            return E_INVALID_PARAM;
+            LOG_ERROR("failed to get stage mode context.");
+            return E_INNER_ERROR;
         }
 
         int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
         if (errcode != 0) {
-            return E_INVALID_DATA_GROUP_ID;
+            return E_DATA_GROUP_ID_INVALID;
         }
         contextInfo.bundleName = stageContext->GetBundleName();
         return OK;
     }
 
     if (!dataGroupId.empty()) {
-        return E_UNSUPPORTED_MODE;
+        return E_NOT_STAGE_MODE;
     }
 
     auto ability = AbilityRuntime::GetCurrentAbility(env);
     if (ability == nullptr) {
-        LOG_ERROR("GetCurrentAbility failed.");
-        return E_INVALID_PARAM;
+        LOG_ERROR("failed to get current ability.");
+        return E_INNER_ERROR;
     }
 
     auto abilityContext = ability->GetAbilityContext();
     if (ability == nullptr) {
-        LOG_ERROR("GetAbilityContext failed.");
-        return E_INVALID_PARAM;
+        LOG_ERROR("failed to get ability context.");
+        return E_INNER_ERROR;
     }
     abilityContext->GetSystemPreferencesDir("", false, contextInfo.preferencesDir);
     return OK;

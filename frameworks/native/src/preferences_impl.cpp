@@ -393,7 +393,7 @@ int PreferencesImpl::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
     } else {
         auto dataObsMgrClient = DataObsMgrClient::GetInstance();
         if (dataObsMgrClient == nullptr) {
-            return E_UNABLE_SUBSCRIOION_SERVICE;
+            return E_GET_DATAOBSMGRCLIENT_FAIL;
         }
         sptr<DataPreferencesObserverStub> observer(new (std::nothrow) DataPreferencesObserverStub(preferencesObserver));
         int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
@@ -425,7 +425,7 @@ int PreferencesImpl::UnRegisterObserver(std::shared_ptr<PreferencesObserver> pre
         if (!sharedObserver || sharedObserver == preferencesObserver) {
             auto dataObsMgrClient = DataObsMgrClient::GetInstance();
             if (dataObsMgrClient == nullptr) {
-                return E_UNABLE_SUBSCRIOION_SERVICE;
+                return E_GET_DATAOBSMGRCLIENT_FAIL;
             }
             int errcode = dataObsMgrClient->UnregisterObserver(MakeUri(), *it);
             if (errcode != 0) {

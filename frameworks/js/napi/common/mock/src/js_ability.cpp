@@ -22,8 +22,14 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
+napi_status JSAbility::IsStageContext(napi_env env, napi_value value, bool &isStageMode)
+{
+    isStageMode = true;
+    return napi_ok;
+}
 
-int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
+int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, const bool &isStageMode,
+    ContextInfo &contextInfo)
 {
     if (!dataGroupId.empty()) {
         return NativePreferences::E_NOT_SUPPORTED;
