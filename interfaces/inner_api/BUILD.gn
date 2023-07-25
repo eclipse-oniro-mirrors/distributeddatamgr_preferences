@@ -41,7 +41,6 @@ base_sources = [
   "${preferences_native_path}/src/preferences_observer.cpp",
   "${preferences_native_path}/src/preferences_value.cpp",
   "${preferences_native_path}/src/preferences_xml_utils.cpp",
-  "${preferences_native_path}/src/task_executor.cpp",
 ]
 
 if (is_ohos) {

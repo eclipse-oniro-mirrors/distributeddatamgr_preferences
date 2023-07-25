@@ -29,6 +29,7 @@
 #include "preferences.h"
 #include "preferences_observer.h"
 #include "preferences_value.h"
+#include "executor_pool.h"
 
 #if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM) || defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
 #include "data_preferences_observer_stub.h"
@@ -219,6 +220,7 @@ private:
     std::vector<sptr<DataPreferencesObserverStub>> multiProcessObservers_;
     std::map<std::string, PreferencesValue> map_;
     std::list<std::string> modifiedKeys_;
+    static ExecutorPool executorPool_;
 
     const Options options_;
 };
