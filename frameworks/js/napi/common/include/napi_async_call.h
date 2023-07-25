@@ -28,20 +28,20 @@
 namespace OHOS {
 namespace PreferencesJsKit {
 
-using InputAction = std::function<int(napi_env, size_t, napi_value *, napi_value)>;
-using OutputAction = std::function<int(napi_env, napi_value &)>;
+using InputAction = std::function<void(napi_env, size_t, napi_value *, napi_value)>;
+using OutputAction = std::function<void(napi_env, napi_value &)>;
 using ExecuteAction = std::function<int()>;
 
 class BaseContext {
 public:
     void SetAction(napi_env env, napi_callback_info info, InputAction input, ExecuteAction exec, OutputAction output);
-    void SetError(std::shared_ptr<Error> error);
+    void SetError(std::shared_ptr<JSError> error);
     virtual ~BaseContext();
     
     napi_env env_ = nullptr;
     void *boundObj = nullptr;
-    int execStatus = ERR;
-    std::shared_ptr<Error> error;
+    int execCode_ = ERR;
+    std::shared_ptr<JSError> error;
     
     napi_ref self_ = nullptr;
     napi_ref callback_ = nullptr;
@@ -61,7 +61,7 @@ private:
     enum { ARG_ERROR, ARG_DATA, ARG_BUTT };
     static void OnExecute(napi_env env, void *data);
     static void OnComplete(napi_env env, napi_status status, void *data);
-    static void SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<Error> error);
+    static void SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<JSError> error);
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS

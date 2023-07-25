@@ -30,7 +30,9 @@ struct ContextInfo {
 };
 class JSAbility final {
 public:
-    static int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo);
+    static int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, const bool &isStageMode,
+        ContextInfo &contextInfo);
+    static napi_status IsStageContext(napi_env env, napi_value value, bool &isStageMode);
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS
