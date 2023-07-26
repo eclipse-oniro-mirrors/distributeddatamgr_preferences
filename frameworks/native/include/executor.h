@@ -15,12 +15,12 @@
 
 #ifndef PREFERENCES_FRAMEWORKS_EXECUTOR_H
 #define PREFERENCES_FRAMEWORKS_EXECUTOR_H
-#include <pthread.h>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 #include <thread>
 
+#include "preferences_thread.h"
 #include "priority_queue.h"
 namespace OHOS {
 namespace NativePreferences {
@@ -55,13 +55,10 @@ public:
         }
     };
 
-    Executor(const std::string &name): thread_([this, name] {
-            auto realName = std::string("task_queue_") + name;
-#if defined(MAC_PLATFORM) || defined(IOS_PLATFORM)
-            pthread_setname_np(realName.c_str());
-#else
-            pthread_setname_np(pthread_self(), realName.c_str());
-#endif
+    Executor(const std::string &name)
+        : thread_([this, name] {
+              auto realName = std::string("task_queue_") + name;
+              PthreadSetNameNp(realName);
               Run();
               self_ = nullptr;
           })
@@ -71,7 +68,7 @@ public:
 
     Executor()
         : thread_([this] {
-              pthread_setname_np(pthread_self(), "Executor");
+              PthreadSetNameNp("Executor");
               Run();
               self_ = nullptr;
           })
