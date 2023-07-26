@@ -47,7 +47,10 @@ if (is_ohos) {
   ohos_shared_library("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/common/src/data_preferences_observer_stub.cpp" ]
+    sources += [
+      "${preferences_native_path}/common/src/data_preferences_observer_stub.cpp",
+      "${preferences_native_path}/src/preferences_thread.cpp",
+    ]
 
     innerapi_tags = [ "platformsdk" ]
 
@@ -82,9 +85,13 @@ if (is_ohos) {
       "-stdlib=libc++",
     ]
     if (is_mac) {
+      sources += [
+        "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
+      ]
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
     } else {
+      sources += [ "${preferences_native_path}/src/preferences_thread.cpp" ]
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
@@ -102,7 +109,10 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp" ]
+    sources += [
+      "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp",
+      "${preferences_native_path}/src/preferences_thread.cpp",
+    ]
 
     defines = [ "ANDROID_PLATFORM" ]
 
@@ -121,8 +131,10 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp" ]
-
+    sources += [
+      "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp",
+      "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
+    ]
     defines = [ "IOS_PLATFORM" ]
 
     configs = [ ":native_preferences_config" ]
@@ -150,9 +162,13 @@ ohos_static_library("native_preferences_static") {
       "-stdlib=libc++",
     ]
     if (is_mac) {
+      sources += [
+        "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
+      ]
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
     } else {
+      sources += [ "${preferences_native_path}/src/preferences_thread.cpp" ]
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
@@ -162,6 +178,13 @@ ohos_static_library("native_preferences_static") {
       "//third_party/libxml2:static_libxml2",
     ]
   } else {
+    if (is_ios) {
+      sources += [
+        "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
+      ]
+    } else {
+      sources += [ "${preferences_native_path}/src/preferences_thread.cpp" ]
+    }
     sources += [ "${preferences_native_path}/common/src/data_preferences_observer_stub.cpp" ]
     deps = [ "//third_party/libxml2:libxml2" ]
     external_deps = [
