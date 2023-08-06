@@ -29,7 +29,6 @@
 #include "preferences.h"
 #include "preferences_observer.h"
 #include "preferences_value.h"
-#include "executor_pool.h"
 
 #if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM) || defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
 #include "data_preferences_observer_stub.h"
@@ -44,7 +43,7 @@ namespace OHOS {
 namespace NativePreferences {
 
 class DataPreferencesObserverStub;
-
+class ExecutorPool;
 static const char *STR_BROKEN = ".broken";
 static const char *STR_BACKUP = ".bak";
 static const char *STR_LOCK = ".lock";
@@ -201,7 +200,7 @@ private:
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     void AwaitLoadFile();
     static void WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr);
-    bool CheckRequestValidForStateGeneration(const MemoryToDiskRequest &mcr);
+    bool CheckRequestValidForStateGeneration(std::shared_ptr<MemoryToDiskRequest> mcr);
 
     bool ReadSettingXml(const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap);
     bool WriteSettingXml(const std::string &prefPath, const std::map<std::string, PreferencesValue> &prefMap);

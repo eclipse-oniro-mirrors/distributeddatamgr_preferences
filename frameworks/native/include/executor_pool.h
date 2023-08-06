@@ -22,9 +22,9 @@
 #include <thread>
 
 #include "executor.h"
+#include "log_print.h"
 #include "pool.h"
 #include "priority_queue.h"
-
 
 namespace OHOS {
 namespace NativePreferences {
@@ -77,6 +77,7 @@ public:
     TaskId Execute(Task task)
     {
         if (poolStatus != Status::RUNNING) {
+            LOG_ERROR("execute task failed.");
             return INVALID_TASK_ID;
         }
 
