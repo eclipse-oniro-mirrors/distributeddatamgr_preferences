@@ -29,7 +29,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
-#define REALPATH(filePath, realPath, ...) (_fullpath(realPath, filePath, ##__VA_ARGS__))
 #define MKDIR(filePath) (mkdir(filePath))
 #define ACCESS(filePath) (_access(filePath, FILE_EXIST))
 #define DISTRIBUTED_DATA_HITRACE(trace) DO_NOTHING
@@ -38,7 +37,6 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#define REALPATH(filePath, realPath, ...) (realpath(filePath, realPath))
 #define MKDIR(filePath) (mkdir(filePath, FILE_MODE))
 #define ACCESS(filePath) (access(filePath, FILE_EXIST))
 #define DISTRIBUTED_DATA_HITRACE(trace) DO_NOTHING
@@ -47,7 +45,6 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#define REALPATH(filePath, realPath, ...) (realpath(filePath, realPath))
 #define MKDIR(filePath) (mkdir(filePath, FILE_MODE))
 #define ACCESS(filePath) (access(filePath, FILE_EXIST))
 #define DISTRIBUTED_DATA_HITRACE(trace) DO_NOTHING
@@ -58,7 +55,6 @@
 #include <unistd.h>
 #include <cstdlib>
 #include "hitrace.h"
-#define REALPATH(filePath, realPath, ...) (realpath(filePath, realPath))
 #define MKDIR(filePath) (mkdir(filePath, FILE_MODE))
 #define ACCESS(filePath) (access(filePath, FILE_EXIST))
 #define DISTRIBUTED_DATA_HITRACE(trace) DO_NOTHING // HiTrace hitrace(trace)

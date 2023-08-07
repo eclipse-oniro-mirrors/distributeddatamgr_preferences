@@ -24,6 +24,7 @@
 
 #include "adaptor.h"
 #include "data_preferences_observer_stub.h"
+#include "executor_pool.h"
 #include "log_print.h"
 #include "preferences_errno.h"
 #include "preferences_xml_utils.h"
@@ -31,20 +32,7 @@
 
 namespace OHOS {
 namespace NativePreferences {
-
 ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
-
-static bool IsFileExist(const std::string &inputPath)
-{
-    char path[PATH_MAX + 1] = { 0x00 };
-
-    if (strlen(inputPath.c_str()) > PATH_MAX || REALPATH(inputPath.c_str(), path, PATH_MAX)  == nullptr) {
-        return false;
-    }
-    const char *pathString = path;
-    struct stat buffer;
-    return (stat(pathString, &buffer) == 0);
-}
 
 PreferencesImpl::PreferencesImpl(const Options &options) : loaded_(false), options_(options)
 {
@@ -102,24 +90,7 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     if (pref->loaded_) {
         return;
     }
-
-    std::string backupPath = MakeFilePath(pref->options_.filePath, STR_BACKUP);
-    if (IsFileExist(backupPath)) {
-        if (std::remove(pref->options_.filePath.c_str())) {
-            LOG_ERROR("Couldn't delete file %{private}s when LoadFromDisk and backup exist.",
-                pref->options_.filePath.c_str());
-        }
-        if (std::rename(backupPath.c_str(), pref->options_.filePath.c_str())) {
-            LOG_ERROR("Couldn't rename backup file %{private}s to file %{private}s,when LoadFromDisk and backup "
-                      "exist.", backupPath.c_str(), pref->options_.filePath.c_str());
-        } else {
-            PreferencesXmlUtils::LimitXmlPermission(pref->options_.filePath);
-        }
-    }
-
-    if (IsFileExist(pref->options_.filePath)) {
-        pref->ReadSettingXml(pref->options_.filePath, pref->map_);
-    }
+    pref->ReadSettingXml(pref->options_.filePath, pref->map_);
     pref->loaded_ = true;
     pref->cond_.notify_all();
 }
@@ -134,64 +105,30 @@ void PreferencesImpl::AwaitLoadFile()
 
 void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr)
 {
-    std::string backupPath = MakeFilePath(pref->options_.filePath, STR_BACKUP);
-    if (IsFileExist(pref->options_.filePath)) {
-        bool needWrite = pref->CheckRequestValidForStateGeneration(*mcr);
-        if (!needWrite) {
-            mcr->SetDiskWriteResult(false, E_OK);
-            return;
-        }
-        if (IsFileExist(backupPath)) {
-            if (std::remove(pref->options_.filePath.c_str())) {
-                LOG_ERROR("Couldn't delete file %{private}s when writeToFile and backup exist.",
-                    pref->options_.filePath.c_str());
-            }
-        } else {
-            if (std::rename(pref->options_.filePath.c_str(), backupPath.c_str())) {
-                LOG_ERROR("Couldn't rename file %{private}s to backup file %{private}s",
-                    pref->options_.filePath.c_str(), backupPath.c_str());
-                mcr->SetDiskWriteResult(false, E_ERROR);
-                return;
-            } else {
-                PreferencesXmlUtils::LimitXmlPermission(backupPath);
-            }
-        }
+    if (!pref->CheckRequestValidForStateGeneration(mcr)) {
+        mcr->SetDiskWriteResult(true, E_OK);
+        return;
     }
+
     if (pref->WriteSettingXml(pref->options_.filePath, mcr->writeToDiskMap_)) {
-        if (IsFileExist(backupPath) && std::remove(backupPath.c_str())) {
-            LOG_ERROR("Couldn't delete backup file %{private}s when writeToFile finish.", backupPath.c_str());
-        }
         pref->diskStateGeneration_ = mcr->memoryStateGeneration_;
         mcr->SetDiskWriteResult(true, E_OK);
     } else {
-        // restore backup if write fails
-        if (IsFileExist(pref->options_.filePath)) {
-            if (std::remove(pref->options_.filePath.c_str())) {
-                LOG_ERROR("Couldn't clean up partially-written file %{private}s", pref->options_.filePath.c_str());
-            }
-        }
-        if (std::rename(backupPath.c_str(), pref->options_.filePath.c_str())) {
-            LOG_ERROR("Couldn't rename backup file %{private}s to file %{private}s", backupPath.c_str(),
-                pref->options_.filePath.c_str());
-        }
         mcr->SetDiskWriteResult(false, E_ERROR);
     }
 }
 
-bool PreferencesImpl::CheckRequestValidForStateGeneration(const MemoryToDiskRequest &mcr)
+bool PreferencesImpl::CheckRequestValidForStateGeneration(std::shared_ptr<MemoryToDiskRequest> mcr)
 {
-    bool valid = false;
-
-    if (diskStateGeneration_ < mcr.memoryStateGeneration_) {
-        if (mcr.isSyncRequest_) {
-            valid = true;
-        } else {
-            if (currentMemoryStateGeneration_ == mcr.memoryStateGeneration_) {
-                valid = true;
-            }
-        }
+    if (diskStateGeneration_ >= mcr->memoryStateGeneration_) {
+        LOG_INFO("DiskStateGeneration should be less than memoryStateGeneration.");
+        return false;
     }
-    return valid;
+
+    if (mcr->isSyncRequest_ || currentMemoryStateGeneration_ == mcr->memoryStateGeneration_) {
+        return true;
+    }
+    return false;
 }
 
 PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesValue &defValue)
@@ -212,7 +149,6 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
 std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
 {
     AwaitLoadFile();
-
     return map_;
 }
 
@@ -287,15 +223,13 @@ void ReadXmlElement(
     }
 }
 
-bool PreferencesImpl::ReadSettingXml(
-    const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap)
+bool PreferencesImpl::ReadSettingXml(const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap)
 {
     std::vector<Element> settings;
     if (!PreferencesXmlUtils::ReadSettingXml(prefPath, settings)) {
-        LOG_ERROR("ReadSettingXml:%{private}s failed!", options_.filePath.c_str());
         return false;
     }
-    
+
     for (const auto &element : settings) {
         ReadXmlElement(element, prefMap, prefPath);
     }
@@ -365,7 +299,7 @@ bool PreferencesImpl::WriteSettingXml(
         elem.key_ = it->first;
         PreferencesValue value = it->second;
 
-        WriteXmlElement(elem, value, options_.filePath);
+        WriteXmlElement(elem, value, prefPath);
         settings.push_back(elem);
     }
 
