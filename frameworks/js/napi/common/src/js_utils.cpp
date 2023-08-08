@@ -35,13 +35,13 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
         LOG_ERROR("get std::string maximum length.");
         return EXCEED_MAX_LENGTH;
     }
-    output.reserve(bufferSize + 1);
-    output.resize(bufferSize);
-    status = napi_get_value_string_utf8(env, jsValue, const_cast<char *>(output.data()), bufferSize + 1, &bufferSize);
+    char buffer[MAX_VALUE_LENGTH + 1] = { 0 };
+    status = napi_get_value_string_utf8(env, jsValue, buffer, MAX_VALUE_LENGTH + 1, &bufferSize);
     if (status != napi_ok) {
         LOG_DEBUG("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
         return napi_invalid_arg;
     }
+    output = buffer;
     return napi_ok;
 }
 

@@ -45,6 +45,14 @@ static bool IsFileExist(const std::string &inputPath)
     return (stat(inputPath.c_str(), &buffer) == 0);
 }
 
+static void RemoveBackupFile(const std::string &fileName)
+{
+    std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
+    if (IsFileExist(backupFileName) && std::remove(backupFileName.c_str())) {
+        LOG_WARN("failed to delete backup file %{public}d.", errno);
+    }
+}
+
 static bool RenameFromBackupFile(const std::string &fileName)
 {
     std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
@@ -59,18 +67,24 @@ static bool RenameFromBackupFile(const std::string &fileName)
     return true;
 }
 
-static bool Rename(const std::string &fileName, const std::string &fileType)
+static bool RenameFile(const std::string &fileName, const std::string &fileType)
 {
     std::string name = PreferencesImpl::MakeFilePath(fileName, fileType);
-    if (IsFileExist(name) && std::remove(name.c_str())) {
-        LOG_ERROR("failed to delete %{public}s file %{public}d.", fileType.c_str(), errno);
-        return false;
-    }
     if (std::rename(fileName.c_str(), name.c_str())) {
         LOG_ERROR("failed to rename file to %{public}s file %{public}d.", fileType.c_str(), errno);
         return false;
     }
     return true;
+}
+
+static bool RenameToBackupFile(const std::string &fileName)
+{
+    return RenameFile(fileName, STR_BACKUP);
+}
+
+static bool RenameToBrokenFile(const std::string &fileName)
+{
+    return RenameFile(fileName, STR_BROKEN);
 }
 
 static xmlDoc *ReadFile(const std::string &fileName)
@@ -86,7 +100,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName)
         if (doc != nullptr) {
             return doc;
         }
-        if (Rename(fileName, STR_BROKEN)) {
+        if (RenameToBrokenFile(fileName)) {
             return doc;
         }
     }
@@ -99,7 +113,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName)
 /* static */
 bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, std::vector<Element> &settings)
 {
-    LOG_DEBUG("Read setting xml %{private}s start.", fileName.c_str());
+    LOG_RECORD_FILE_NAME("Read setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
@@ -130,7 +144,7 @@ bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, std::vecto
     }
 
     /* free the document */
-    LOG_DEBUG("Read setting xml %{private}s end.", fileName.c_str());
+    LOG_RECORD_FILE_NAME("Read setting xml end.");
     return success;
 }
 
@@ -267,23 +281,20 @@ static bool SaveFormatFileEnc(const std::string fileName, xmlDoc *doc)
 
 bool XmlSaveFormatFileEnc(const std::string fileName, xmlDoc *doc)
 {
-    if (IsFileExist(fileName) && !Rename(fileName, STR_BACKUP)) {
+    if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
 
     if (!SaveFormatFileEnc(fileName, doc)) {
         LOG_ERROR("Failed to save XML format file, attempting to restore backup");
         if (IsFileExist(fileName)) {
-            Rename(fileName, STR_BROKEN);
+            RenameToBrokenFile(fileName);
         }
         RenameFromBackupFile(fileName);
         return false;
     }
 
-    std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
-    if (IsFileExist(backupFileName) && std::remove(backupFileName.c_str())) {
-        LOG_WARN("failed to delete backup file %{public}d.", errno);
-    }
+    RemoveBackupFile(fileName);
     PreferencesXmlUtils::LimitXmlPermission(fileName);
     LOG_DEBUG("successfully saved the XML format file");
     return true;
@@ -292,7 +303,7 @@ bool XmlSaveFormatFileEnc(const std::string fileName, xmlDoc *doc)
 /* static */
 bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, std::vector<Element> &settings)
 {
-    LOG_DEBUG("Write setting xml %{private}s start.", fileName.c_str());
+    LOG_RECORD_FILE_NAME("Write setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
@@ -331,7 +342,7 @@ bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, std::vect
 
     /* 1: formatting spaces are added. */
     bool result = XmlSaveFormatFileEnc(fileName.c_str(), doc.get());
-    LOG_DEBUG("Write setting xml %{private}s end.", fileName.c_str());
+    LOG_RECORD_FILE_NAME("Write setting xml end.");
     return result;
 }
 

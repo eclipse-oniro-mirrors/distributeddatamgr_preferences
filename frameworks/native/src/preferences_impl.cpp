@@ -32,6 +32,57 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+template<typename T> std::string GetTypeName()
+{
+    return "unknown";
+}
+
+template<> std::string GetTypeName<int>()
+{
+    return "int";
+}
+
+template<> std::string GetTypeName<bool>()
+{
+    return "bool";
+}
+
+template<> std::string GetTypeName<int64_t>()
+{
+    return "long";
+}
+
+template<> std::string GetTypeName<float>()
+{
+    return "float";
+}
+
+template<> std::string GetTypeName<double>()
+{
+    return "double";
+}
+
+template<> std::string GetTypeName<std::string>()
+{
+    return "string";
+}
+
+template<> std::string GetTypeName<std::vector<std::string>>()
+{
+    return "stringArray";
+}
+
+template<> std::string GetTypeName<std::vector<double>>()
+{
+    return "doubleArray";
+}
+
+template<> std::string GetTypeName<std::vector<bool>>()
+{
+    return "boolArray";
+}
+
 ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
 
 PreferencesImpl::PreferencesImpl(const Options &options) : loaded_(false), options_(options)
@@ -152,74 +203,56 @@ std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
     return map_;
 }
 
-void ReadXmlArrayElement(const Element &element, std::map<std::string, PreferencesValue> &prefMap)
+template<typename T> static void Convert2PrefValue(const Element &element, T &value)
 {
-    if (element.tag_.compare("doubleArray") == 0) {
-        std::vector<double> values;
-        for (auto &child : element.children_) {
-            std::stringstream ss;
-            ss << child.value_;
-            double value = 0.0;
-            ss >> value;
-            values.push_back(value);
-        }
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(values)));
-    } else if (element.tag_.compare("stringArray") == 0) {
-        std::vector<std::string> values;
-        for (auto &child : element.children_) {
-            values.push_back(child.value_);
-        }
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(values)));
-    } else if (element.tag_.compare("boolArray") == 0) {
-        std::vector<bool> values;
-        for (auto &child : element.children_) {
-            std::stringstream ss;
-            ss << child.value_;
-            int32_t value = 0;
-            ss >> value;
-            values.push_back(value);
-        }
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(values)));
+    if constexpr (std::is_same<T, bool>::value) {
+        value = (element.value_.compare("true") == 0) ? true : false;
+    } else {
+        std::stringstream ss;
+        ss << element.value_;
+        ss >> value;
     }
 }
 
-void ReadXmlElement(
-    const Element &element, std::map<std::string, PreferencesValue> &prefMap, const std::string &prefPath)
+template<typename T> static void Convert2PrefValue(const Element &element, std::vector<T> &values)
 {
-    if (element.tag_.compare("int") == 0) {
-        std::stringstream ss;
-        ss << element.value_;
-        int value = 0;
-        ss >> value;
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(value)));
-    } else if (element.tag_.compare("bool") == 0) {
-        bool value = (element.value_.compare("true") == 0) ? true : false;
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(value)));
-    } else if (element.tag_.compare("long") == 0) {
-        std::stringstream ss;
-        ss << element.value_;
-        int64_t value = 0;
-        ss >> value;
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(value)));
-    } else if (element.tag_.compare("float") == 0) {
-        std::stringstream ss;
-        ss << element.value_;
-        float value = 0.0;
-        ss >> value;
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(value)));
-    } else if (element.tag_.compare("double") == 0) {
-        std::stringstream ss;
-        ss << element.value_;
-        double value = 0.0;
-        ss >> value;
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(value)));
-    } else if (element.tag_.compare("string") == 0) {
-        prefMap.insert(std::make_pair(element.key_, PreferencesValue(element.value_)));
-    } else if (element.tag_.compare("doubleArray") == 0 || element.tag_.compare("stringArray") == 0
-               || element.tag_.compare("boolArray") == 0) {
-        ReadXmlArrayElement(element, prefMap);
-    } else {
-        LOG_WARN("ReadSettingXml:%{private}s, unknown element tag:%{public}s.", prefPath.c_str(), element.tag_.c_str());
+    for (auto &child : element.children_) {
+        T value;
+        Convert2PrefValue(child, value);
+        values.push_back(value);
+    }
+}
+
+template<typename T> bool GetPrefValue(const Element &element, T &value)
+{
+    LOG_WARN("unknown element type. the key is %{public}s", element.key_.c_str());
+    return false;
+}
+
+template<typename T, typename First, typename... Types>
+bool GetPrefValue(const Element &element, T &value)
+{
+    if (element.tag_ == GetTypeName<First>()) {
+        First val;
+        Convert2PrefValue(element, val);
+        value = val;
+        return true;
+    }
+    return GetPrefValue<T, Types...>(element, value);
+}
+
+template<typename... Types>
+bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
+{
+    return GetPrefValue<decltype(value), Types...>(element, value);
+}
+
+void ReadXmlElement(
+    const Element &element, std::map<std::string, PreferencesValue> &prefMap)
+{
+    PreferencesValue value(static_cast<int64_t>(0));
+    if (Convert2PrefValue(element, value.value_)) {
+        prefMap.insert(std::make_pair(element.key_, value));
     }
 }
 
@@ -231,63 +264,57 @@ bool PreferencesImpl::ReadSettingXml(const std::string &prefPath, std::map<std::
     }
 
     for (const auto &element : settings) {
-        ReadXmlElement(element, prefMap, prefPath);
+        ReadXmlElement(element, prefMap);
     }
     return true;
 }
 
-void WriteXmlElement(Element &elem, const PreferencesValue &value, const std::string &filePath)
+template<typename T> void Convert2Element(Element &elem, const T &value)
 {
-    if (value.IsDoubleArray()) {
-        elem.tag_ = std::string("doubleArray");
-        auto values = (std::vector<double>)value;
-        for (double val : values) {
-            Element element;
-            element.tag_ = std::string("double");
-            element.value_ = std::to_string((double)val);
-            elem.children_.push_back(element);
-        }
-    } else if (value.IsBoolArray()) {
-        elem.tag_ = std::string("boolArray");
-        auto values = (std::vector<bool>)value;
-        for (bool val : values) {
-            Element element;
-            element.tag_ = std::string("bool");
-            std::string tmpVal = std::to_string((bool)val);
-            element.value_ = tmpVal == "1" ? "true" : "false";
-            elem.children_.push_back(element);
-        }
-    } else if (value.IsStringArray()) {
-        elem.tag_ = std::string("stringArray");
-        auto values = (std::vector<std::string>)value;
-        for (std::string &val : values) {
-            Element element;
-            element.tag_ = std::string("string");
-            element.value_ = val;
-            elem.children_.push_back(element);
-        }
-    } else if (value.IsInt()) {
-        elem.tag_ = std::string("int");
-        elem.value_ = std::to_string((int)value);
-    } else if (value.IsBool()) {
-        elem.tag_ = std::string("bool");
-        std::string tmpVal = std::to_string((bool)value);
-        elem.value_ = tmpVal == "1" ? "true" : "false";
-    } else if (value.IsLong()) {
-        elem.tag_ = std::string("long");
-        elem.value_ = std::to_string((int64_t)value);
-    } else if (value.IsFloat()) {
-        elem.tag_ = std::string("float");
-        elem.value_ = std::to_string((float)value);
-    } else if (value.IsDouble()) {
-        elem.tag_ = std::string("double");
-        elem.value_ = std::to_string((double)value);
-    } else if (value.IsString()) {
-        elem.tag_ = std::string("string");
-        elem.value_ = std::string(value);
+    elem.tag_ = GetTypeName<T>();
+    if constexpr (std::is_same<T, bool>::value) {
+        elem.value_ = ((bool)value) ? "true" : "false";
     } else {
-        LOG_WARN("WriteSettingXml:%{private}s, unknown element type.", filePath.c_str());
+        std::stringstream ss;
+        ss << value;
+        elem.value_ = ss.str();
     }
+}
+
+template<typename T> void Convert2Element(Element &elem, const std::vector<T> &value)
+{
+    elem.tag_ = GetTypeName<T>();
+    for (auto val : value) {
+        Element element;
+        Convert2Element(element, val);
+        elem.children_.push_back(element);
+    }
+}
+
+template<typename T> void GetElement(Element &elem, const T &value)
+{
+    LOG_WARN("unknown element type. the key is %{public}s", elem.key_.c_str());
+}
+
+template<typename T, typename First, typename... Types>
+void GetElement(Element &elem, const T &value)
+{
+    auto *val = std::get_if<First>(&value);
+    if (val != nullptr) {
+        return Convert2Element(elem, *val);
+    }
+    return GetElement<T, Types...>(elem, value);
+}
+
+template<typename... Types>
+void Convert2Element(Element &elem, const std::variant<Types...> &value)
+{
+    return GetElement<decltype(value), Types...>(elem, value);
+}
+
+void WriteXmlElement(Element &elem, const PreferencesValue &value)
+{
+    Convert2Element(elem, value.value_);
 }
 
 bool PreferencesImpl::WriteSettingXml(
@@ -299,7 +326,7 @@ bool PreferencesImpl::WriteSettingXml(
         elem.key_ = it->first;
         PreferencesValue value = it->second;
 
-        WriteXmlElement(elem, value, prefPath);
+        WriteXmlElement(elem, value);
         settings.push_back(elem);
     }
 
@@ -477,7 +504,7 @@ int PreferencesImpl::FlushSync()
     std::unique_lock<std::mutex> lock(request->reqMutex_);
     PreferencesImpl::WriteToDiskFile(shared_from_this(), request);
     if (request->wasWritten_) {
-        LOG_DEBUG("%{private}s:%{public}" PRId64 " written", options_.filePath.c_str(),
+        LOG_DEBUG("Successfully written to disk file, memory state generation is %{public}" PRId64 "",
             request->memoryStateGeneration_);
     }
     notifyPreferencesObserver(*request);
@@ -517,7 +544,7 @@ void PreferencesImpl::notifyPreferencesObserver(const PreferencesImpl::MemoryToD
                 sharedPreferencesObserver->OnChange(*key);
             }
         }
-        
+
         if (dataObsMgrClient == nullptr) {
             continue;
         }
