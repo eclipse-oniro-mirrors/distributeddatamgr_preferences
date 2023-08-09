@@ -274,12 +274,12 @@ bool ParseArrayNodeElement(const xmlNode *node, Element &element)
     return success;
 }
 
-static bool SaveFormatFileEnc(const std::string fileName, xmlDoc *doc)
+static bool SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
 {
     return xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0;
 }
 
-bool XmlSaveFormatFileEnc(const std::string fileName, xmlDoc *doc)
+bool XmlSaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
 {
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
