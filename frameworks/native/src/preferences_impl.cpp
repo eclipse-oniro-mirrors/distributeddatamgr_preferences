@@ -274,10 +274,10 @@ template<typename T> void Convert2Element(Element &elem, const T &value)
     elem.tag_ = GetTypeName<T>();
     if constexpr (std::is_same<T, bool>::value) {
         elem.value_ = ((bool)value) ? "true" : "false";
+    } else if constexpr (std::is_same<T, std::string>::value) {
+        elem.value_ = value;
     } else {
-        std::stringstream ss;
-        ss << value;
-        elem.value_ = ss.str();
+        elem.value_ = std::to_string(value);
     }
 }
 

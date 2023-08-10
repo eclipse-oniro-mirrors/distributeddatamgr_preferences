@@ -605,10 +605,14 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_019, TestSize.Level1)
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_020, TestSize.Level1)
 {
-    pref->PutDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT, (std::numeric_limits<double>::max)());
-    pref->Flush();
-
-    double ret = pref->GetDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT);
+    int errCode;
+    std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    pref1->PutDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT, (std::numeric_limits<double>::max)());
+    pref1->Flush();
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    double ret = pref1->GetDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT);
     EXPECT_EQ(ret, (std::numeric_limits<double>::max)());
 }
 
