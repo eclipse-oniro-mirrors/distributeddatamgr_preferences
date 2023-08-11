@@ -207,6 +207,8 @@ template<typename T> static void Convert2PrefValue(const Element &element, T &va
 {
     if constexpr (std::is_same<T, bool>::value) {
         value = (element.value_.compare("true") == 0) ? true : false;
+    } else if constexpr (std::is_same<T, std::string>::value) {
+        value = element.value_;
     } else {
         std::stringstream ss;
         ss << element.value_;
