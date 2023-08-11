@@ -216,7 +216,7 @@ template<typename T> static void Convert2PrefValue(const Element &element, T &va
 
 template<typename T> static void Convert2PrefValue(const Element &element, std::vector<T> &values)
 {
-    for (auto &child : element.children_) {
+    for (const auto &child : element.children_) {
         T value;
         Convert2PrefValue(child, value);
         values.push_back(value);
