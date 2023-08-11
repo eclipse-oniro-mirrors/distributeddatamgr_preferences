@@ -12,12 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "preferences_thread.h"
+
+#ifndef UTILS_NATIVE_INCLUDE_URI_H_
+#define UTILS_NATIVE_INCLUDE_URI_H_
+
+#include <string>
+
 namespace OHOS {
-namespace NativePreferences {
-int PthreadSetNameNp(const std::string name)
-{
-    return pthread_setname_np(name.c_str());
-}
-} // End of namespace NativePreferences
-} // End of namespace OHOS
+class Uri {
+public:
+    explicit Uri(const std::string& uriString);
+    ~Uri();
+};
+} // namespace OHOS
+#endif // UTILS_NATIVE_INCLUDE_URI_H_

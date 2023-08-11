@@ -13,27 +13,36 @@
  * limitations under the License.
  */
 
-#include "filelock.h"
+#include "dataobs_mgr_client.h"
+
 namespace OHOS {
-namespace NativePreferences {
-
-FileLock::FileLock()
-{
-    fd_ = -1;
-}
-
-FileLock::~FileLock()
+namespace AAFwk {
+DataObsMgrClient::DataObsMgrClient()
 {
 }
 
-int FileLock::TryLock(const std::string &fileName)
+DataObsMgrClient::~DataObsMgrClient()
 {
-    return E_OK;
 }
 
-int FileLock::UnLock()
+std::shared_ptr<DataObsMgrClient> DataObsMgrClient::GetInstance()
 {
-    return E_OK;
+    return nullptr;
 }
-} // End of namespace NativePreferences
-} // End of namespace OHOS
+
+int DataObsMgrClient::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+{
+    return -1;
+}
+
+int DataObsMgrClient::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+{
+    return -1;
+}
+
+int DataObsMgrClient::NotifyChange(const Uri &uri)
+{
+    return -1;
+}
+} // namespace AAFwk
+} // namespace OHOS

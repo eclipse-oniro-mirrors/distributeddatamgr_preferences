@@ -13,23 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef PREFERENCES_FILE_LOCK_H
-#define PREFERENCES_FILE_LOCK_H
+#ifndef OHOS_ABILITY_RUNTIME_DATAOBS_MGR_CLIENT_H
+#define OHOS_ABILITY_RUNTIME_DATAOBS_MGR_CLIENT_H
 
-#include <chrono>
-#include <string>
-#include "preferences_errno.h"
+#include "data_ability_observer_interface.h"
+#include "refbase.h"
+#include "uri.h"
+
 namespace OHOS {
-namespace NativePreferences {
-class FileLock final {
+namespace AAFwk {
+class DataObsMgrClient {
 public:
-    FileLock();
-    ~FileLock();
-    int TryLock(const std::string &fileName);
-    int UnLock();
-private:
-    int fd_{ -1 };
+    DataObsMgrClient();
+    virtual ~DataObsMgrClient();
+    static std::shared_ptr<DataObsMgrClient> GetInstance();
+
+    int RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
+
+    int UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
+
+    int NotifyChange(const Uri &uri);
 };
-} // namespace NativePreferences
+} // namespace AAFwk
 } // namespace OHOS
-#endif
+#endif // OHOS_ABILITY_RUNTIME_DATAOBS_MGR_CLIENT_H

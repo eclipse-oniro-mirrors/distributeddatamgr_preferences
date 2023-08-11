@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,12 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "preferences_thread.h"
+#ifndef OHOS_ABILITY_RUNTIME_DATA_ABILITY_OBSERVER_STUB_H
+#define OHOS_ABILITY_RUNTIME_DATA_ABILITY_OBSERVER_STUB_H
+
+#include <string>
+
+#include "data_ability_observer_interface.h"
 namespace OHOS {
-namespace NativePreferences {
-int PthreadSetNameNp(const std::string name)
-{
-    return pthread_setname_np(pthread_self(), name.c_str());
-}
-} // End of namespace NativePreferences
-} // End of namespace OHOS
+namespace AAFwk {
+class DataAbilityObserverStub : public IDataAbilityObserver {
+public:
+    DataAbilityObserverStub();
+    virtual ~DataAbilityObserverStub();
+};
+} // namespace AAFwk
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_DATA_ABILITY_OBSERVER_STUB_H

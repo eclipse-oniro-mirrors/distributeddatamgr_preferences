@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,19 +29,10 @@
 #include "preferences.h"
 #include "preferences_observer.h"
 #include "preferences_value.h"
-
-#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM) || defined(ANDROID_PLATFORM) || defined(IOS_PLATFORM)
-#include "data_preferences_observer_stub.h"
-#else
 namespace OHOS {
-template<typename T> class sptr;
+template <typename T> class sptr;
 class Uri;
-} // namespace OHOS
-#endif
-
-namespace OHOS {
 namespace NativePreferences {
-
 class DataPreferencesObserverStub;
 class ExecutorPool;
 static const char *STR_BROKEN = ".broken";
@@ -165,6 +156,7 @@ public:
     int UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
 
     static std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
+
 private:
     explicit PreferencesImpl(const Options &options);
     class MemoryToDiskRequest {
@@ -172,9 +164,7 @@ private:
         MemoryToDiskRequest(const std::map<std::string, PreferencesValue> &writeToDiskMap,
             const std::list<std::string> &keysModified,
             const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration);
-        ~MemoryToDiskRequest()
-        {
-        }
+        ~MemoryToDiskRequest() {}
         void SetDiskWriteResult(bool wasWritten, int result);
 
         bool isSyncRequest_;

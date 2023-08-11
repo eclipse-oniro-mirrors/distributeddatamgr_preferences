@@ -20,7 +20,6 @@
 #include <cerrno>
 #include <cstring>
 
-#include "adaptor.h"
 #include "libxml/parser.h"
 #include "log_print.h"
 #include "preferences_impl.h"

@@ -18,12 +18,16 @@ config("native_preferences_config") {
     "include",
     "${preferences_base_path}/frameworks/common/include",
     "${preferences_native_path}/include",
+    "${preferences_native_path}/platform/include/",
   ]
-  if (is_ohos) {
-    include_dirs += [ "${preferences_native_path}/common/include" ]
-  } else {
-    include_dirs += [ "${preferences_native_path}/common/mock/include" ]
-  }
+}
+
+config("mock_config") {
+  include_dirs = [
+    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
+    "${preferences_native_path}/mock/ability_base/zuri/include",
+    "${preferences_native_path}/mock/c_utils/utils/base/include",
+  ]
 }
 
 config("native_preferences_public_config") {
@@ -36,6 +40,8 @@ config("adaptor_config") {
 }
 
 base_sources = [
+  "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
+  "${preferences_native_path}/platform/src/preferences_thread.cpp",
   "${preferences_native_path}/src/preferences_helper.cpp",
   "${preferences_native_path}/src/preferences_impl.cpp",
   "${preferences_native_path}/src/preferences_observer.cpp",
@@ -43,14 +49,19 @@ base_sources = [
   "${preferences_native_path}/src/preferences_xml_utils.cpp",
 ]
 
+if (!is_ohos) {
+  mock_sources = [
+    "${preferences_native_path}/mock/ability_base/zuri/src/uri.cpp",
+    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/data_ability_observer_stub.cpp",
+    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/dataobs_mgr_client.cpp",
+    "${preferences_native_path}/mock/c_utils/utils/base/src/refbase.cpp",
+  ]
+}
+
 if (is_ohos) {
   ohos_shared_library("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [
-      "${preferences_native_path}/common/src/data_preferences_observer_stub.cpp",
-      "${preferences_native_path}/src/preferences_thread.cpp",
-    ]
 
     innerapi_tags = [ "platformsdk" ]
 
@@ -74,24 +85,22 @@ if (is_ohos) {
   ohos_shared_library("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [ "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp" ]
+    sources += mock_sources
     innerapi_tags = [ "platformsdk" ]
 
     configs = [ ":native_preferences_config" ]
 
+    configs += [ ":mock_config" ]
     configs += [ ":adaptor_config" ]
+
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
     ]
     if (is_mac) {
-      sources += [
-        "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
-      ]
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
     } else {
-      sources += [ "${preferences_native_path}/src/preferences_thread.cpp" ]
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
@@ -109,14 +118,12 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [
-      "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp",
-      "${preferences_native_path}/src/preferences_thread.cpp",
-    ]
+    sources += mock_sources
 
     defines = [ "ANDROID_PLATFORM" ]
 
     configs = [ ":native_preferences_config" ]
+    configs += [ ":mock_config" ]
     cflags_cc = [ "-fvisibility=hidden" ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_android",
@@ -131,13 +138,11 @@ if (is_ohos) {
   ohos_source_set("native_preferences") {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
-    sources += [
-      "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp",
-      "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
-    ]
+    sources += mock_sources
     defines = [ "IOS_PLATFORM" ]
 
     configs = [ ":native_preferences_config" ]
+    configs += [ ":mock_config" ]
     cflags_cc = [ "-fvisibility=hidden" ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
@@ -154,21 +159,20 @@ ohos_static_library("native_preferences_static") {
   all_dependent_configs = [ ":native_preferences_public_config" ]
   sources = base_sources
   configs = [ ":native_preferences_config" ]
+
   if (is_mingw || is_mac) {
-    sources += [ "${preferences_native_path}/common/mock/src/data_preferences_observer_stub.cpp" ]
+    configs += [ ":mock_config" ]
     configs += [ ":adaptor_config" ]
+
+    sources += mock_sources
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
     ]
     if (is_mac) {
-      sources += [
-        "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
-      ]
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
     } else {
-      sources += [ "${preferences_native_path}/src/preferences_thread.cpp" ]
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
       ldflags = [ "-lws2_32" ]
@@ -178,14 +182,6 @@ ohos_static_library("native_preferences_static") {
       "//third_party/libxml2:static_libxml2",
     ]
   } else {
-    if (is_ios) {
-      sources += [
-        "${preferences_native_path}/common/mock/src/preferences_thread.cpp",
-      ]
-    } else {
-      sources += [ "${preferences_native_path}/src/preferences_thread.cpp" ]
-    }
-    sources += [ "${preferences_native_path}/common/src/data_preferences_observer_stub.cpp" ]
     deps = [ "//third_party/libxml2:libxml2" ]
     external_deps = [
       "ability_base:zuri",
