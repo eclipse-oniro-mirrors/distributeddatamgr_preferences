@@ -44,33 +44,61 @@ describe("PreferencesInstanceSyncJsPref", async function () {
     })
 
     /**
-     * @tc.desc PreferencesInstanceSyncJsPref_RemovePreferencesFromCacheSync with repeating one pref
+     * @tc.desc PreferencesInstanceSyncJsPref_ GetPreferencesSync to obtain the same preferences instance
      */
-    it("removePreferencesFromCacheSync_0001", 0, async function () {
-        let startTime = new Date().getTime(); // time unit is mm
+    it("getPreferencesSync_0001", 0, function () {
+        let startTime = new Date().getTime(); // time unit is ms
         for (let index = 0; index < BASE_COUNT; index++) {
-            dataPreferences.removePreferencesFromCacheSync(context, NAME);
+            dataPreferences.getPreferencesSync(context, { name: NAME });
         }
         let endTime = new Date().getTime();
         let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
-        console.info(`${TAG}removePreferencesFromCacheSync_0001 averageTime: ${averageTime} us`);
+        console.info(`${TAG}getPreferencesSync_0001 averageTime: ${averageTime} us`);
+        expect(averageTime < BASELINE).assertTrue();
+    })
+
+    /**
+     * @tc.desc PreferencesInstanceSyncJsPref_ GetPreferencesSync to obtain different instances of preferences
+     */
+    it("getPreferencesSync_0002", 0, function () {
+        let startTime = new Date().getTime(); // time unit is ms
+        for (let index = 0; index < BASE_COUNT; index++) {
+            dataPreferences.getPreferencesSync(context, { name: `${NAME}${index}` });
+        }
+        let endTime = new Date().getTime();
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
+        console.info(`${TAG}getPreferencesSync_0002 averageTime: ${averageTime} us`);
+        expect(averageTime < BASELINE).assertTrue();
+    })
+
+    /**
+     * @tc.desc PreferencesInstanceSyncJsPref_RemovePreferencesFromCacheSync with repeating one pref
+     */
+    it("removePreferencesFromCacheSync_0003", 0, function () {
+        let startTime = new Date().getTime(); // time unit is ms
+        for (let index = 0; index < BASE_COUNT; index++) {
+            dataPreferences.removePreferencesFromCacheSync(context, { name: NAME });
+        }
+        let endTime = new Date().getTime();
+        let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
+        console.info(`${TAG}removePreferencesFromCacheSync_0003 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
 
     /**
      * @tc.desc PreferencesInstanceSyncJsPref_RemovePreferencesFromCacheSync with diff pref
      */
-    it("removePreferencesFromCacheSync_0002", 0, async function () {
+    it("removePreferencesFromCacheSync_0004", 0, function () {
         for (let index = 0; index < BASE_COUNT; index++) {
-            dataPreferences.getPreferences(context, `${NAME}${index}`); // put prefs into cache
+            dataPreferences.getPreferencesSync(context, { name: `${NAME}${index}` }); // put prefs into cache
         }
-        let startTime = new Date().getTime(); // time unit is mm
+        let startTime = new Date().getTime(); // time unit is ms
         for (let index = 0; index < BASE_COUNT; index++) {
-            await dataPreferences.removePreferencesFromCacheSync(context, `${NAME}${index}`);
+            dataPreferences.removePreferencesFromCacheSync(context, { name: `${NAME}${index}` });
         }
         let endTime = new Date().getTime();
         let averageTime = ((endTime - startTime) * 1000) / BASE_COUNT;
-        console.info(`${TAG}removePreferencesFromCacheSync_0002 averageTime: ${averageTime} us`);
+        console.info(`${TAG}removePreferencesFromCacheSync_0004 averageTime: ${averageTime} us`);
         expect(averageTime < BASELINE).assertTrue();
     })
 })

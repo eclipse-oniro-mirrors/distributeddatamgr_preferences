@@ -31,12 +31,25 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
+     * @tc.name GetPreferencesSync
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_GetPreferencesSync_001
+     * @tc.desc test GetPreferencesSync if success
+     */
+    it('testPreferencesGetPreferencesSync001', 0, function () {
+        let preferences = data_preferences.getPreferencesSync(context, { name: NAME });
+        preferences.putSync(KEY_TEST_STRING_ELEMENT, "132");
+        expect(preferences.hasSync(KEY_TEST_STRING_ELEMENT)).assertTrue();
+        let val = preferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
+        expect("132").assertEqual(val);
+    })
+
+    /**
      * @tc.name RemovePreferencesFromCacheSync
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_RemovePreferencesFromCacheSync_001
      * @tc.desc test RemovePreferencesFromCacheSync if success
      */
-    it('testPreferencesRemovePreferencesFromCacheSync0001', 0, async function (done) {
-        let preferences = await data_preferences.getPreferences(context, NAME);
+    it('testPreferencesRemovePreferencesFromCacheSync001', 0, function () {
+        let preferences = data_preferences.getPreferencesSync(context, NAME);
         preferences.putSync(KEY_TEST_STRING_ELEMENT, "132");
         expect(preferences.hasSync(KEY_TEST_STRING_ELEMENT)).assertTrue();
         let val = preferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
@@ -45,8 +58,26 @@ describe('preferencesSyncTest', function () {
 
         data_preferences.removePreferencesFromCacheSync(context, NAME);
 
-        let preferences1 = await data_preferences.getPreferences(context, NAME);
+        let preferences1 = data_preferences.getPreferencesSync(context, NAME);
         expect(preferences1.hasSync(KEY_TEST_STRING_ELEMENT)).assertFalse();
-        done();
+    })
+
+    /**
+     * @tc.name RemovePreferencesFromCacheSync
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_RemovePreferencesFromCacheSync_002
+     * @tc.desc test RemovePreferencesFromCacheSync if success
+     */
+    it('testPreferencesRemovePreferencesFromCacheSync002', 0, function () {
+        let preferences = data_preferences.getPreferencesSync(context, { name: NAME });
+        preferences.putSync(KEY_TEST_STRING_ELEMENT, "132");
+        expect(preferences.hasSync(KEY_TEST_STRING_ELEMENT)).assertTrue();
+        let val = preferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
+        expect("132").assertEqual(val);
+        preferences = null;
+
+        data_preferences.removePreferencesFromCacheSync(context, { name: NAME });
+
+        let preferences1 = data_preferences.getPreferencesSync(context, { name: NAME });
+        expect(preferences1.hasSync(KEY_TEST_STRING_ELEMENT)).assertFalse();
     })
 })
