@@ -15,16 +15,15 @@
 
 #include "preferences_helper.h"
 
+#include <cerrno>
 #include <climits>
 #include <cstdlib>
-
-#include <cerrno>
 #include <utility>
 
-#include "adaptor.h"
 #include "log_print.h"
 #include "preferences.h"
 #include "preferences_errno.h"
+#include "preferences_file_operation.h"
 #include "preferences_impl.h"
 #include "securec.h"
 
@@ -63,7 +62,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     }
     std::string filePath = path.substr(0, pos);
 #if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
-    if (ACCESS(filePath.c_str()) != 0 && MKDIR(filePath.c_str())) {
+    if (Access(filePath) != 0 && Mkdir(filePath)) {
         LOG_ERROR("Failed to create path");
         errorCode = E_INVALID_FILE_PATH;
         return "";
@@ -81,10 +80,8 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 
 std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &options, int &errCode)
 {
-    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     std::string realPath = GetRealPath(options.filePath, errCode);
     if (realPath == "" || errCode != E_OK) {
-        LOG_ERROR("fails to get real path, errCode %{public}d", errCode);
         return nullptr;
     }
 
@@ -98,7 +95,6 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     std::shared_ptr<PreferencesImpl> pref = PreferencesImpl::GetPreferences(options);
     errCode = pref->Init();
     if (errCode != E_OK) {
-        LOG_ERROR("Preferences Init failed.");
         return nullptr;
     }
     prefsCache_.insert(make_pair(realPath, pref));
@@ -107,7 +103,6 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
 
 int PreferencesHelper::DeletePreferences(const std::string &path)
 {
-    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     int errCode = E_OK;
     std::string realPath = GetRealPath(path, errCode);
     if (realPath == "" || errCode != E_OK) {
@@ -137,7 +132,6 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
 
 int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
 {
-    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     int errCode = E_OK;
     std::string realPath = GetRealPath(path, errCode);
     if (realPath == "" || errCode != E_OK) {

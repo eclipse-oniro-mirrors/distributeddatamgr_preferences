@@ -49,8 +49,6 @@ int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value);
 
-template<typename T> int32_t Convert2NativeValue(napi_env env, napi_value jsValue, T &output);
-
 template<typename T> int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<T> &value);
 
 template<typename... Types>

@@ -224,10 +224,10 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
     elemChild.key_ = "boolKey";
     elemChild.tag_ = std::string("bool");
 
-    elemChild.value_ = std::to_string(false);
+    elemChild.value_ = "false";
     elem.children_.push_back(elemChild);
 
-    elemChild.value_ = std::to_string(true);
+    elemChild.value_ = "true";
     elem.children_.push_back(elemChild);
     settings.push_back(elem);
     std::vector<bool> inputBoolArray = { false, true };

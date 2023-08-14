@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,29 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "data_preferences_observer_stub.h"
-
+#include "preferences_thread.h"
 namespace OHOS {
 namespace NativePreferences {
-DataPreferencesObserverStub::DataPreferencesObserverStub(
-    const std::shared_ptr<PreferencesObserver> preferencesObserver) : preferencesObserver_(preferencesObserver)
+int PthreadSetNameNp(const std::string name)
 {
-}
-
-DataPreferencesObserverStub::~DataPreferencesObserverStub()
-{
-}
-
-void DataPreferencesObserverStub::OnChange()
-{
-}
-
-void DataPreferencesObserverStub::OnChangePreferences(const std::string &key)
-{
-    std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = preferencesObserver_.lock();
-    if (sharedPreferencesObserver != nullptr) {
-        sharedPreferencesObserver->OnChange(key);
-    }
+    return pthread_setname_np(
+#if !(defined(MAC_PLATFORM) || defined(IOS_PLATFORM))
+        pthread_self(),
+#endif
+        name.c_str());
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

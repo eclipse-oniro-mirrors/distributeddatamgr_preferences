@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,17 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_PREFERENCES_FRAMEWORKS_COMMON_VISIBILITY_H
-#define OHOS_PREFERENCES_FRAMEWORKS_COMMON_VISIBILITY_H
+#include "uri.h"
 
-#ifndef API_EXPORT
-#define API_EXPORT __attribute__((visibility("default")))
-#endif
-#ifndef API_LOCAL
-#define API_LOCAL __attribute__((visibility("hidden")))
-#endif
-#ifndef UNUSED_FUNCTION
-#define UNUSED_FUNCTION __attribute__((unused))
-#endif
-
-#endif // OHOS_PREFERENCES_FRAMEWORKS_COMMON_VISIBILITY_H
+namespace OHOS {
+Uri::Uri(const std::string &uriString) {}
+Uri::~Uri() {}
+} // namespace OHOS

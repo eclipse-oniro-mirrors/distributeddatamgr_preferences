@@ -605,10 +605,14 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_019, TestSize.Level1)
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_020, TestSize.Level1)
 {
-    pref->PutDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT, (std::numeric_limits<double>::max)());
-    pref->Flush();
-
-    double ret = pref->GetDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT);
+    int errCode;
+    std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    pref1->PutDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT, (std::numeric_limits<double>::max)());
+    pref1->Flush();
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    double ret = pref1->GetDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT);
     EXPECT_EQ(ret, (std::numeric_limits<double>::max)());
 }
 
@@ -621,14 +625,20 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_020, TestSize.Level1)
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_021, TestSize.Level1)
 {
-    pref->PutString(PreferencesTest::LONG_KEY, "test");
-    pref->PutString(PreferencesTest::KEY_TEST_STRING_ELEMENT, "test");
-    pref->Flush();
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    pref1->PutString(PreferencesTest::LONG_KEY, "test");
+    pref1->PutString(PreferencesTest::KEY_TEST_STRING_ELEMENT, "test1 test2");
+    pref1->Flush();
 
-    std::string ret = pref->GetString(PreferencesTest::LONG_KEY);
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+
+    std::string ret = pref1->GetString(PreferencesTest::LONG_KEY);
     EXPECT_EQ(ret, "test");
-    ret = pref->GetString(PreferencesTest::KEY_TEST_STRING_ELEMENT);
-    EXPECT_EQ(ret, "test");
+    ret = pref1->GetString(PreferencesTest::KEY_TEST_STRING_ELEMENT);
+    EXPECT_EQ(ret, "test1 test2");
 }
 
 /**

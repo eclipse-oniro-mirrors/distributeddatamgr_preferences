@@ -22,8 +22,7 @@
 
 #include "libxml/parser.h"
 #include "log_print.h"
-
-#include "adaptor.h"
+#include "preferences_impl.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -35,29 +34,96 @@ static xmlNode *CreateElementNode(Element &element);
 static xmlNode *CreatePrimitiveNode(Element &element);
 static xmlNode *CreateStringNode(Element &element);
 static xmlNode *CreateArrayNode(Element &element);
+
+static bool IsFileExist(const std::string &inputPath)
+{
+    if (inputPath.length() > PATH_MAX) {
+        return false;
+    }
+    struct stat buffer;
+    return (stat(inputPath.c_str(), &buffer) == 0);
+}
+
+static void RemoveBackupFile(const std::string &fileName)
+{
+    std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
+    if (IsFileExist(backupFileName) && std::remove(backupFileName.c_str())) {
+        LOG_WARN("failed to delete backup file %{public}d.", errno);
+    }
+}
+
+static bool RenameFromBackupFile(const std::string &fileName)
+{
+    std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
+    if (!IsFileExist(backupFileName)) {
+        LOG_INFO("the backup file does not exist.");
+        return false;
+    }
+    if (std::rename(backupFileName.c_str(), fileName.c_str())) {
+        LOG_ERROR("failed to restore backup errno %{public}d.", errno);
+        return false;
+    }
+    return true;
+}
+
+static bool RenameFile(const std::string &fileName, const std::string &fileType)
+{
+    std::string name = PreferencesImpl::MakeFilePath(fileName, fileType);
+    if (std::rename(fileName.c_str(), name.c_str())) {
+        LOG_ERROR("failed to rename file to %{public}s file %{public}d.", fileType.c_str(), errno);
+        return false;
+    }
+    return true;
+}
+
+static bool RenameToBackupFile(const std::string &fileName)
+{
+    return RenameFile(fileName, STR_BACKUP);
+}
+
+static bool RenameToBrokenFile(const std::string &fileName)
+{
+    return RenameFile(fileName, STR_BROKEN);
+}
+
+static xmlDoc *ReadFile(const std::string &fileName)
+{
+    return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS);
+}
+
+static xmlDoc *XmlReadFile(const std::string &fileName)
+{
+    xmlDoc *doc = nullptr;
+    if (IsFileExist(fileName)) {
+        doc = ReadFile(fileName);
+        if (doc != nullptr) {
+            return doc;
+        }
+        if (RenameToBrokenFile(fileName)) {
+            return doc;
+        }
+    }
+    if (RenameFromBackupFile(fileName)) {
+        return ReadFile(fileName);
+    }
+    return nullptr;
+}
+
 /* static */
 bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, std::vector<Element> &settings)
 {
-    LOG_DEBUG("Read setting xml %{private}s start.", fileName.c_str());
+    LOG_RECORD_FILE_NAME("Read setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
     }
-    char path[PATH_MAX + 1] = { 0x00 };
-    if (strlen(fileName.c_str()) > PATH_MAX || REALPATH(fileName.c_str(), path, PATH_MAX) == nullptr) {
-        LOG_ERROR("The file name is incorrect.");
-        return false;
-    }
-    const char *pathString = path;
-    xmlDoc *doc = xmlReadFile(pathString, "UTF-8", XML_PARSE_NOBLANKS);
+    auto doc = std::shared_ptr<xmlDoc>(XmlReadFile(fileName), [](xmlDoc *doc) { xmlFreeDoc(doc); });
     if (doc == nullptr) {
-        LOG_ERROR("The file name is incorrect.");
         return false;
     }
 
-    xmlNode *root = xmlDocGetRootElement(doc);
+    xmlNode *root = xmlDocGetRootElement(doc.get());
     if (!root || xmlStrcmp(root->name, reinterpret_cast<const xmlChar *>("preferences"))) {
-        xmlFreeDoc(doc);
         LOG_ERROR("Failed to obtain the XML root element.");
         return false;
     }
@@ -77,8 +143,7 @@ bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, std::vecto
     }
 
     /* free the document */
-    xmlFreeDoc(doc);
-    LOG_DEBUG("Read setting xml %{private}s end.", fileName.c_str());
+    LOG_RECORD_FILE_NAME("Read setting xml end.");
     return success;
 }
 
@@ -208,60 +273,76 @@ bool ParseArrayNodeElement(const xmlNode *node, Element &element)
     return success;
 }
 
+static bool SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
+{
+    return xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0;
+}
+
+bool XmlSaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
+{
+    if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
+        return false;
+    }
+
+    if (!SaveFormatFileEnc(fileName, doc)) {
+        LOG_ERROR("Failed to save XML format file, attempting to restore backup");
+        if (IsFileExist(fileName)) {
+            RenameToBrokenFile(fileName);
+        }
+        RenameFromBackupFile(fileName);
+        return false;
+    }
+
+    RemoveBackupFile(fileName);
+    PreferencesXmlUtils::LimitXmlPermission(fileName);
+    LOG_DEBUG("successfully saved the XML format file");
+    return true;
+}
+
 /* static */
 bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, std::vector<Element> &settings)
 {
-    LOG_DEBUG("Write setting xml %{private}s start.", fileName.c_str());
+    LOG_RECORD_FILE_NAME("Write setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
     }
 
     // define doc and root Node
-    xmlDoc *doc = xmlNewDoc(BAD_CAST "1.0");
+    auto doc = std::shared_ptr<xmlDoc>(xmlNewDoc(BAD_CAST "1.0"), [](xmlDoc *doc) { xmlFreeDoc(doc); });
     if (doc == nullptr) {
         LOG_ERROR("Failed to initialize the xmlDoc.");
         return false;
     }
-    xmlNode *root_node = xmlNewNode(NULL, BAD_CAST "preferences");
-    if (root_node == nullptr) {
+    xmlNode *rootNode = xmlNewNode(NULL, BAD_CAST "preferences");
+    if (rootNode == nullptr) {
         LOG_ERROR("The xmlDoc failed to initialize the root node.");
-        xmlFreeDoc(doc);
         return false;
     }
-    xmlNewProp(root_node, BAD_CAST "version", BAD_CAST "1.0");
+    xmlNewProp(rootNode, BAD_CAST "version", BAD_CAST "1.0");
 
     // set root node
-    xmlDocSetRootElement(doc, root_node);
+    xmlDocSetRootElement(doc.get(), rootNode);
 
     // set children node
     for (Element element : settings) {
         xmlNode *node = CreateElementNode(element);
         if (node == nullptr) {
             LOG_ERROR("The xmlDoc failed to initialize the element node.");
-            xmlFreeDoc(doc);
             return false;
         }
-        if (root_node == nullptr || xmlAddChild(root_node, node) == nullptr) {
+        if (xmlAddChild(rootNode, node) == nullptr) {
             /* free node in case of error */
             LOG_ERROR("The xmlDoc failed to add the child node.");
             xmlFreeNode(node);
-            xmlFreeDoc(doc);
             return false;
         }
     }
 
     /* 1: formatting spaces are added. */
-    int result = xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1);
-
-    xmlFreeDoc(doc);
-
-    if (result > 0) {
-        LimitXmlPermission(fileName);
-    }
-
-    LOG_DEBUG("Write setting xml %{private}s end.", fileName.c_str());
-    return (result > 0) ? true : false;
+    bool result = XmlSaveFormatFileEnc(fileName.c_str(), doc.get());
+    LOG_RECORD_FILE_NAME("Write setting xml end.");
+    return result;
 }
 
 /* static */

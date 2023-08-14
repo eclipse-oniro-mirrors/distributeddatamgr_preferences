@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,13 +25,21 @@ namespace NativePreferences {
 using DataObsMgrClient = AAFwk::DataObsMgrClient;
 class DataPreferencesObserverStub : public AAFwk::DataAbilityObserverStub {
 public:
-    DataPreferencesObserverStub(const std::shared_ptr<PreferencesObserver> preferencesObserver);
+    DataPreferencesObserverStub(const std::shared_ptr<PreferencesObserver> preferencesObserver)
+        : preferencesObserver_(preferencesObserver)
+    {}
 
-    virtual ~DataPreferencesObserverStub();
+    virtual ~DataPreferencesObserverStub() {}
 
-    void OnChange() override;
+    void OnChange() override {}
 
-    void OnChangePreferences(const std::string &key) override;
+    void OnChangePreferences(const std::string &key) override
+    {
+        std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = preferencesObserver_.lock();
+        if (sharedPreferencesObserver != nullptr) {
+            sharedPreferencesObserver->OnChange(key);
+        }
+    }
 
 public:
     std::weak_ptr<PreferencesObserver> preferencesObserver_;
