@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "filelock.h"
+#include "preferences_file_lock.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -26,20 +26,23 @@
 #include "log_print.h"
 namespace OHOS {
 namespace NativePreferences {
+
+#if !defined(WINDOWS_PLATFORM)
 static const std::chrono::microseconds WAIT_CONNECT_TIMEOUT(20);
 static const int ATTEMPTS = 5;
-FileLock::FileLock()
+
+PreferencesFileLock::PreferencesFileLock()
 {
 }
 
-FileLock::~FileLock()
+PreferencesFileLock::~PreferencesFileLock()
 {
     if (fd_ > 0) {
         close(fd_);
     }
 }
 
-int FileLock::TryLock(const std::string &fileName)
+int PreferencesFileLock::TryLock(const std::string &fileName)
 {
     int fd = open(fileName.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     if (fd == -1) {
@@ -63,7 +66,7 @@ int FileLock::TryLock(const std::string &fileName)
     return E_ERROR;
 }
 
-int FileLock::UnLock()
+int PreferencesFileLock::UnLock()
 {
     int errCode = E_OK;
     if (fd_ > 0) {
@@ -82,5 +85,26 @@ int FileLock::UnLock()
     return errCode;
 }
 
+#else
+
+PreferencesFileLock::PreferencesFileLock()
+{
+    fd_ = -1;
+}
+
+PreferencesFileLock::~PreferencesFileLock()
+{
+}
+
+int PreferencesFileLock::TryLock(const std::string &fileName)
+{
+    return E_OK;
+}
+
+int PreferencesFileLock::UnLock()
+{
+    return E_OK;
+}
+#endif
 } // End of namespace NativePreferences
 } // End of namespace OHOS

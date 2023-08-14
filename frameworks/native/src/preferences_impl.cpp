@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,17 +22,15 @@
 #include <sstream>
 #include <thread>
 
-#include "adaptor.h"
-#include "data_preferences_observer_stub.h"
 #include "executor_pool.h"
 #include "log_print.h"
 #include "preferences_errno.h"
+#include "preferences_observer_stub.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"
 
 namespace OHOS {
 namespace NativePreferences {
-
 template<typename T> std::string GetTypeName()
 {
     return "unknown";
@@ -231,8 +229,7 @@ template<typename T> bool GetPrefValue(const Element &element, T &value)
     return false;
 }
 
-template<typename T, typename First, typename... Types>
-bool GetPrefValue(const Element &element, T &value)
+template<typename T, typename First, typename... Types> bool GetPrefValue(const Element &element, T &value)
 {
     if (element.tag_ == GetTypeName<First>()) {
         First val;
@@ -243,14 +240,12 @@ bool GetPrefValue(const Element &element, T &value)
     return GetPrefValue<T, Types...>(element, value);
 }
 
-template<typename... Types>
-bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
+template<typename... Types> bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
 {
     return GetPrefValue<decltype(value), Types...>(element, value);
 }
 
-void ReadXmlElement(
-    const Element &element, std::map<std::string, PreferencesValue> &prefMap)
+void ReadXmlElement(const Element &element, std::map<std::string, PreferencesValue> &prefMap)
 {
     PreferencesValue value(static_cast<int64_t>(0));
     if (Convert2PrefValue(element, value.value_)) {
@@ -298,8 +293,7 @@ template<typename T> void GetElement(Element &elem, const T &value)
     LOG_WARN("unknown element type. the key is %{public}s", elem.key_.c_str());
 }
 
-template<typename T, typename First, typename... Types>
-void GetElement(Element &elem, const T &value)
+template<typename T, typename First, typename... Types> void GetElement(Element &elem, const T &value)
 {
     auto *val = std::get_if<First>(&value);
     if (val != nullptr) {
@@ -308,8 +302,7 @@ void GetElement(Element &elem, const T &value)
     return GetElement<T, Types...>(elem, value);
 }
 
-template<typename... Types>
-void Convert2Element(Element &elem, const std::variant<Types...> &value)
+template<typename... Types> void Convert2Element(Element &elem, const std::variant<Types...> &value)
 {
     return GetElement<decltype(value), Types...>(elem, value);
 }
@@ -490,7 +483,6 @@ int PreferencesImpl::Clear()
 
 void PreferencesImpl::Flush()
 {
-    DISTRIBUTED_DATA_HITRACE(std::string(__FUNCTION__));
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = false;
     ExecutorPool::Task task = std::bind(PreferencesImpl::WriteToDiskFile, shared_from_this(), request);
