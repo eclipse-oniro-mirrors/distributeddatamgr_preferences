@@ -15,7 +15,7 @@
 #include "preferences_thread.h"
 namespace OHOS {
 namespace NativePreferences {
-int PthreadSetNameNp(const std::string name)
+int PthreadSetNameNp(const std::string &name)
 {
     return pthread_setname_np(
 #if !(defined(MAC_PLATFORM) || defined(IOS_PLATFORM))

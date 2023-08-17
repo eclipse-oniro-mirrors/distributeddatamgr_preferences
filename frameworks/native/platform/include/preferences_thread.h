@@ -21,7 +21,7 @@
 #include <string>
 namespace OHOS {
 namespace NativePreferences {
-int PthreadSetNameNp(const std::string name);
+int PthreadSetNameNp(const std::string &name);
 } // End of namespace NativePreferences
 } // End of namespace OHOS
 #endif // End of #ifndef PREFERENCES_THREAD_H
