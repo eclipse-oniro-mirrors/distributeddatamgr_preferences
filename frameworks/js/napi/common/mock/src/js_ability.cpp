@@ -22,14 +22,13 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
-napi_status JSAbility::IsStageContext(napi_env env, napi_value value, bool &isStageMode)
+namespace JSAbility {
+CONTEXT_MODE GetContextMode(napi_env env, napi_value value)
 {
-    isStageMode = true;
-    return napi_ok;
+    return STAGE;
 }
 
-int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, const bool &isStageMode,
-    ContextInfo &contextInfo)
+int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
 {
     if (!dataGroupId.empty()) {
         return NativePreferences::E_NOT_SUPPORTED;
@@ -51,5 +50,6 @@ int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string 
 #endif
     return OK;
 }
+} // namespace JSAbility
 } // namespace PreferencesJsKit
 } // namespace OHOS

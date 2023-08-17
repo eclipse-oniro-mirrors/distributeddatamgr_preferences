@@ -20,31 +20,37 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
-napi_status JSAbility::IsStageContext(napi_env env, napi_value value, bool &isStageMode)
+namespace JSAbility {
+CONTEXT_MODE GetContextMode(napi_env env, napi_value value)
 {
-    napi_status status = AbilityRuntime::IsStageContext(env, value, isStageMode);
-    return status;
+    if (gContextNode == INIT) {
+        bool isStageMode;
+        napi_status status = AbilityRuntime::IsStageContext(env, value, isStageMode);
+        gContextNode = (status == napi_ok && isStageMode) ? STAGE : FA;
+        LOG_INFO("set gContextNode = %{public}d", gContextNode);
+    }
+    return gContextNode;
 }
 
-int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, const bool &isStageMode,
-    ContextInfo &contextInfo)
+int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
 {
-    if (isStageMode) {
-        auto stageContext = AbilityRuntime::GetStageModeContext(env, value);
-        if (stageContext == nullptr) {
+    if (GetContextMode(env, value) == STAGE) {
+        if (auto stageContext = AbilityRuntime::GetStageModeContext(env, value)) {
+            int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
+            if (errcode != 0) {
+                LOG_ERROR("GetSystemPreferencesDir fails, rc = %{public}d", errcode);
+                return E_DATA_GROUP_ID_INVALID;
+            }
+            contextInfo.bundleName = stageContext->GetBundleName();
+            return OK;
+        } else {
             LOG_ERROR("failed to get stage mode context.");
             return E_INNER_ERROR;
         }
-
-        int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
-        if (errcode != 0) {
-            return E_DATA_GROUP_ID_INVALID;
-        }
-        contextInfo.bundleName = stageContext->GetBundleName();
-        return OK;
     }
 
     if (!dataGroupId.empty()) {
+        LOG_ERROR("dataGroupId should be empty in fa mode");
         return E_NOT_STAGE_MODE;
     }
 
@@ -62,5 +68,6 @@ int JSAbility::GetContextInfo(napi_env env, napi_value value, const std::string 
     abilityContext->GetSystemPreferencesDir("", false, contextInfo.preferencesDir);
     return OK;
 }
+} // namespace JSAbility
 } // namespace PreferencesJsKit
 } // namespace OHOS

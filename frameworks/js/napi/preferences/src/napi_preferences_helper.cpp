@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,49 +46,23 @@ struct HelperAysncContext : public BaseContext {
     virtual ~HelperAysncContext(){};
 };
 
-int ParseName(const napi_env env, const napi_value name, std::shared_ptr<HelperAysncContext> context)
+int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<HelperAysncContext> context)
 {
-    int status = JSUtils::Convert2NativeValue(env, name, context->name);
-    PRE_CHECK_RETURN_ERR_SET(status == OK && !context->name.empty(),
-        std::make_shared<ParamTypeError>(NAME, "a without path non empty string."));
-    size_t pos = context->name.find_first_of('/');
-    PRE_CHECK_RETURN_ERR_SET(pos == std::string::npos,
-        std::make_shared<ParamTypeError>(NAME, "a name string only without path."));
-    return OK;
-}
+    if (JSUtils::Convert2NativeValue(env, argv[1], context->name) != napi_ok) {
+        napi_value temp = nullptr;
+        napi_get_named_property(env, argv[1], NAME, &temp);
+        PRE_CHECK_RETURN_ERR_SET(temp && JSUtils::Convert2NativeValue(env, temp, context->name) == napi_ok,
+            std::make_shared<ParamTypeError>(NAME, "a string."));
 
-int ParseGroupId(const napi_env env, const napi_value dataGroupId, std::shared_ptr<HelperAysncContext> context)
-{
-    int res = JSUtils::Convert2NativeValue(env, dataGroupId, context->dataGroupId);
-    PRE_CHECK_RETURN_ERR_SET(res == OK && !context->dataGroupId.empty(),
-        std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a non empty string."));
-    return OK;
-}
-
-int ParseParameters(const napi_env env, napi_value* argv, std::shared_ptr<HelperAysncContext> context)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[1], &valueType);
-    if (valueType == napi_string) {
-        PRE_CHECK_RETURN_ERR(ParseName(env, argv[1], context) == OK);
-    } else {
-        napi_value nameValue = nullptr;
-        napi_get_named_property(env, argv[1], NAME, &nameValue);
-        PRE_CHECK_RETURN_ERR(ParseName(env, nameValue, context) == OK);
-        bool hasDataGroupId = false;
-        napi_has_named_property(env, argv[1], DATA_GROUP_ID, &hasDataGroupId);
-        if (hasDataGroupId) {
-            napi_value dataGroupIdValue = nullptr;
-            napi_get_named_property(env, argv[1], DATA_GROUP_ID, &dataGroupIdValue);
-            PRE_CHECK_RETURN_ERR(ParseGroupId(env, dataGroupIdValue, context) == OK);
+        temp = nullptr;
+        napi_get_named_property(env, argv[1], DATA_GROUP_ID, &temp);
+        if (temp != nullptr) {
+            PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
+                std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a string."));
         }
     }
-    bool isStageMode = false;
-    napi_status status = JSAbility::IsStageContext(env, argv[0], isStageMode);
-    PRE_CHECK_RETURN_ERR_SET(status == napi_ok, std::make_shared<ParamTypeError>("context", "a Context."));
-
-    ContextInfo contextInfo;
-    int errCode = JSAbility::GetContextInfo(env, argv[0], context->dataGroupId, isStageMode, contextInfo);
+    JSAbility::ContextInfo contextInfo;
+    int errCode = JSAbility::GetContextInfo(env, argv[0], context->dataGroupId, contextInfo);
     PRE_CHECK_RETURN_ERR_SET(errCode == OK, std::make_shared<InnerError>(errCode));
 
     context->bundleName = contextInfo.bundleName;
