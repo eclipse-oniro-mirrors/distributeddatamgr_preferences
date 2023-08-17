@@ -48,6 +48,9 @@ public:
     static const std::string KEY_TEST_DOUBLE_ELEMENT;
     static const std::string KEY_TEST_BOOL_ELEMENT;
     static const std::string KEY_TEST_STRING_ELEMENT;
+    static const std::string KEY_TEST_STRING_ARRAY_ELEMENT;
+    static const std::string KEY_TEST_BOOL_ARRAY_ELEMENT;
+    static const std::string KEY_TEST_DOUBLE_ARRAY_ELEMENT;
 };
 
 std::shared_ptr<Preferences> PreferencesTest::pref = nullptr;
@@ -61,6 +64,9 @@ const std::string PreferencesTest::KEY_TEST_FLOAT_ELEMENT = "key_test_float";
 const std::string PreferencesTest::KEY_TEST_DOUBLE_ELEMENT = "key_test_double";
 const std::string PreferencesTest::KEY_TEST_BOOL_ELEMENT = "key_test_bool";
 const std::string PreferencesTest::KEY_TEST_STRING_ELEMENT = "key_test_string";
+const std::string PreferencesTest::KEY_TEST_STRING_ARRAY_ELEMENT = "key_test_string_array";
+const std::string PreferencesTest::KEY_TEST_BOOL_ARRAY_ELEMENT = "key_test_bool_array";
+const std::string PreferencesTest::KEY_TEST_DOUBLE_ARRAY_ELEMENT = "key_test_double_array";
 
 void PreferencesTest::SetUpTestCase(void)
 {
@@ -614,6 +620,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_020, TestSize.Level1)
     pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
     double ret = pref1->GetDouble(PreferencesTest::KEY_TEST_DOUBLE_ELEMENT);
     EXPECT_EQ(ret, (std::numeric_limits<double>::max)());
+    PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 
 /**
@@ -639,6 +646,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_021, TestSize.Level1)
     EXPECT_EQ(ret, "test");
     ret = pref1->GetString(PreferencesTest::KEY_TEST_STRING_ELEMENT);
     EXPECT_EQ(ret, "test1 test2");
+    PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 
 /**
@@ -650,14 +658,21 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_021, TestSize.Level1)
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_022, TestSize.Level1)
 {
-    pref->PutLong(PreferencesTest::LONG_KEY, 3L);
-    pref->PutLong(PreferencesTest::KEY_TEST_LONG_ELEMENT, 3L);
-    pref->Flush();
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    pref1->PutLong(PreferencesTest::LONG_KEY, 3L);
+    pref1->PutLong(PreferencesTest::KEY_TEST_LONG_ELEMENT, 3L);
+    pref1->Flush();
 
-    int64_t ret = pref->GetLong(PreferencesTest::LONG_KEY);
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+
+    int64_t ret = pref1->GetLong(PreferencesTest::LONG_KEY);
     EXPECT_EQ(ret, 3L);
-    ret = pref->GetLong(PreferencesTest::KEY_TEST_LONG_ELEMENT);
+    ret = pref1->GetLong(PreferencesTest::KEY_TEST_LONG_ELEMENT);
     EXPECT_EQ(ret, 3L);
+    PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 
 /**
@@ -669,14 +684,21 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_022, TestSize.Level1)
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_023, TestSize.Level1)
 {
-    pref->PutInt(PreferencesTest::LONG_KEY, 3);
-    pref->PutInt(PreferencesTest::KEY_TEST_INT_ELEMENT, 3);
-    pref->Flush();
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    pref1->PutInt(PreferencesTest::LONG_KEY, 3);
+    pref1->PutInt(PreferencesTest::KEY_TEST_INT_ELEMENT, 3);
+    pref1->Flush();
 
-    int32_t ret = pref->GetInt(PreferencesTest::LONG_KEY);
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+
+    int32_t ret = pref1->GetInt(PreferencesTest::LONG_KEY);
     EXPECT_EQ(ret, 3);
-    ret = pref->GetInt(PreferencesTest::KEY_TEST_INT_ELEMENT);
+    ret = pref1->GetInt(PreferencesTest::KEY_TEST_INT_ELEMENT);
     EXPECT_EQ(ret, 3);
+    PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 
 /**
@@ -688,14 +710,21 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_023, TestSize.Level1)
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_024, TestSize.Level1)
 {
-    pref->PutFloat(PreferencesTest::LONG_KEY, 3.0f);
-    pref->PutFloat(PreferencesTest::KEY_TEST_FLOAT_ELEMENT, 3.0f);
-    pref->Flush();
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    pref1->PutFloat(PreferencesTest::LONG_KEY, 3.0f);
+    pref1->PutFloat(PreferencesTest::KEY_TEST_FLOAT_ELEMENT, 3.0f);
+    pref1->Flush();
 
-    float ret = pref->GetFloat(PreferencesTest::LONG_KEY);
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+
+    float ret = pref1->GetFloat(PreferencesTest::LONG_KEY);
     EXPECT_EQ(ret, 3.0f);
-    ret = pref->GetFloat(PreferencesTest::KEY_TEST_FLOAT_ELEMENT);
+    ret = pref1->GetFloat(PreferencesTest::KEY_TEST_FLOAT_ELEMENT);
     EXPECT_EQ(ret, 3.0f);
+    PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 
 /**
@@ -707,14 +736,59 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_024, TestSize.Level1)
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_025, TestSize.Level1)
 {
-    pref->PutBool(PreferencesTest::LONG_KEY, true);
-    pref->PutBool(PreferencesTest::KEY_TEST_BOOL_ELEMENT, true);
-    pref->Flush();
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    pref1->PutBool(PreferencesTest::LONG_KEY, true);
+    pref1->PutBool(PreferencesTest::KEY_TEST_BOOL_ELEMENT, true);
+    pref1->Flush();
 
-    bool ret = pref->GetBool(PreferencesTest::LONG_KEY);
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+
+    bool ret = pref1->GetBool(PreferencesTest::LONG_KEY);
     EXPECT_EQ(ret, true);
-    ret = pref->GetBool(PreferencesTest::KEY_TEST_BOOL_ELEMENT);
+    ret = pref1->GetBool(PreferencesTest::KEY_TEST_BOOL_ELEMENT);
     EXPECT_EQ(ret, true);
+    PreferencesHelper::DeletePreferences("/data/test/test1");
+}
+
+/**
+ * @tc.name: NativePreferencesTest_026
+ * @tc.desc: normal testcase of GetArray
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author: lijuntao
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_026, TestSize.Level1)
+{
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    std::vector<std::string> stringArray = { "str1", "str2" };
+    std::vector<bool> boolArray = { false, true };
+    std::vector<double> doubleArray = { 0.1, 0.2 };
+    pref1->Put(PreferencesTest::KEY_TEST_STRING_ARRAY_ELEMENT, stringArray);
+    pref1->Put(PreferencesTest::KEY_TEST_BOOL_ARRAY_ELEMENT, boolArray);
+    pref1->Put(PreferencesTest::KEY_TEST_DOUBLE_ARRAY_ELEMENT, doubleArray);
+    pref1->FlushSync();
+
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+
+    PreferencesValue defValue(static_cast<int64_t>(0));
+    PreferencesValue stringArrayRes = pref1->Get(PreferencesTest::KEY_TEST_STRING_ARRAY_ELEMENT, defValue);
+    EXPECT_EQ(stringArrayRes.IsStringArray(), true);
+    EXPECT_EQ(static_cast<std::vector<std::string>>(stringArrayRes), stringArray);
+
+    PreferencesValue boolArrayRes = pref1->Get(PreferencesTest::KEY_TEST_BOOL_ARRAY_ELEMENT, defValue);
+    EXPECT_EQ(boolArrayRes.IsBoolArray(), true);
+    EXPECT_EQ(static_cast<std::vector<bool>>(boolArrayRes), boolArray);
+
+    PreferencesValue doubleArrayRes = pref1->Get(PreferencesTest::KEY_TEST_DOUBLE_ARRAY_ELEMENT, defValue);
+    EXPECT_EQ(doubleArrayRes.IsDoubleArray(), true);
+    EXPECT_EQ(static_cast<std::vector<double>>(doubleArrayRes), doubleArray);
+    PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 
 /**

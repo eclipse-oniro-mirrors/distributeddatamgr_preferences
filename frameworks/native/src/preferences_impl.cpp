@@ -280,8 +280,8 @@ template<typename T> void Convert2Element(Element &elem, const T &value)
 
 template<typename T> void Convert2Element(Element &elem, const std::vector<T> &value)
 {
-    elem.tag_ = GetTypeName<T>();
-    for (auto val : value) {
+    elem.tag_ = GetTypeName<std::vector<T>>();
+    for (const T &val : value) {
         Element element;
         Convert2Element(element, val);
         elem.children_.push_back(element);
@@ -320,7 +320,6 @@ bool PreferencesImpl::WriteSettingXml(
         Element elem;
         elem.key_ = it->first;
         PreferencesValue value = it->second;
-
         WriteXmlElement(elem, value);
         settings.push_back(elem);
     }
