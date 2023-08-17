@@ -24,16 +24,16 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
+namespace JSAbility {
+enum CONTEXT_MODE { INIT = -1, FA = 0, STAGE = 1 };
 struct ContextInfo {
     std::string bundleName;
     std::string preferencesDir;
 };
-class JSAbility final {
-public:
-    static int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, const bool &isStageMode,
-        ContextInfo &contextInfo);
-    static napi_status IsStageContext(napi_env env, napi_value value, bool &isStageMode);
-};
+static CONTEXT_MODE gContextNode = INIT;
+CONTEXT_MODE GetContextMode(napi_env env, napi_value value);
+int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo);
+} // namespace JSAbility
 } // namespace PreferencesJsKit
 } // namespace OHOS
 

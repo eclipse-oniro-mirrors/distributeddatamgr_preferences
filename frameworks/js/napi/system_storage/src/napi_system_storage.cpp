@@ -166,8 +166,8 @@ void Complete(napi_env env, napi_status status, void *data)
 
 std::string GetPrefName(napi_env env)
 {
-    ContextInfo contextInfo;
-    JSAbility::GetContextInfo(env, nullptr, "", false, contextInfo);
+    JSAbility::ContextInfo contextInfo;
+    JSAbility::GetContextInfo(env, nullptr, "", contextInfo);
     return contextInfo.preferencesDir + "/default.xml";
 }
 
