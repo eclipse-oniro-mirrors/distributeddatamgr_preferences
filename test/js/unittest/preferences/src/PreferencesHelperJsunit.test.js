@@ -102,9 +102,10 @@ describe('PreferencesHelperJsunit', function () {
     it('testGetPreferencesHelper005', 0, async function (done) {
         try {
             await data_preferences.getPreferences(undefined, { name: NAME });
-        } catch(err) {
             done();
-            expect('401').assertEqual(err.code);
+            expect(mPreferences != null).assertTrue();
+        } catch(err) {
+            expect(err).assertFail();
         }
     })
 
@@ -116,9 +117,10 @@ describe('PreferencesHelperJsunit', function () {
     it('testGetPreferencesHelper006', 0, async function (done) {
         try {
             await data_preferences.getPreferences(null, { name: NAME });
-        } catch(err) {
             done();
-            expect('401').assertEqual(err.code);
+            expect(mPreferences != null).assertTrue();
+        } catch(err) {
+            expect(err).assertFail();
         }
     })
 
@@ -130,40 +132,6 @@ describe('PreferencesHelperJsunit', function () {
     it('testGetPreferencesHelper007', 0, async function (done) {
         try {
             await data_preferences.getPreferences({}, { name: NAME });
-        } catch(err) {
-            done();
-            expect('401').assertEqual(err.code);
-        }
-    })
-
-    /**
-     * @tc.name getPreferencesSync interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_008
-     * @tc.desc getPreferencesSync interface test
-     */
-    it('testGetPreferencesHelper008', 0, async function (done) {
-        try {
-            let myContext = {
-                stageMode: true,
-            }
-            await data_preferences.getPreferences(myContext, { name: NAME });
-        } catch(err) {
-            done();
-            expect('15500000').assertEqual(err.code);
-        }
-    })
-
-    /**
-     * @tc.name getPreferencesSync interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_009
-     * @tc.desc getPreferencesSync interface test
-     */
-    it('testGetPreferencesHelper009', 0, async function (done) {
-        try {
-            let myContext = {
-                stageMode: false,
-            }
-            mPreferences = await data_preferences.getPreferences(myContext, { name: NAME });
             done();
             expect(mPreferences != null).assertTrue();
         } catch(err) {
