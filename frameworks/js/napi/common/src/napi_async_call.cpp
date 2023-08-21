@@ -25,7 +25,8 @@ void BaseContext::SetAction(
     size_t argc = MAX_INPUT_COUNT;
     napi_value self = nullptr;
     napi_value argv[MAX_INPUT_COUNT] = { nullptr };
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    void *data = nullptr;
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, &self, &data);
     napi_valuetype valueType = napi_undefined;
     if (status == napi_ok && argc > 0) {
         napi_typeof(env, argv[argc - 1], &valueType);
@@ -33,6 +34,9 @@ void BaseContext::SetAction(
             status = napi_create_reference(env, argv[argc - 1], 1, &callback_);
             argc = argc - 1;
         }
+    }
+    if (data) {
+        isAsync_ = *reinterpret_cast<bool *>(data);
     }
 
     // int -->input_(env, argc, argv, self)
@@ -85,7 +89,11 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
     }
 }
 
-napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context)
+napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context){
+    return context->isAsync_ ? Async(env, context) : Sync(env, context);
+}
+
+napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context)
 {
     napi_value promise = nullptr;
 
@@ -105,6 +113,13 @@ napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context)
     return promise;
 }
 
+napi_value AsyncCall::Sync(napi_env env, std::shared_ptr<BaseContext> context)
+{
+    OnExecute(env, reinterpret_cast<void *>(context.get()));
+    OnComplete(env, reinterpret_cast<void *>(context.get()));
+    return context->result_;
+}
+
 void AsyncCall::OnExecute(napi_env env, void *data)
 {
     BaseContext *context = reinterpret_cast<BaseContext *>(data);
@@ -114,24 +129,34 @@ void AsyncCall::OnExecute(napi_env env, void *data)
     context->exec_ = nullptr;
 }
 
-void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
+void AsyncCall::OnComplete(napi_env env, void *data)
 {
     BaseContext *context = reinterpret_cast<BaseContext *>(data);
     if (context->execCode_ != NativePreferences::E_OK) {
         context->SetError(std::make_shared<InnerError>(context->execCode_));
     }
-    napi_value output = nullptr;
     // if async execute status is not napi_ok then un-execute out function
     if ((context->error == nullptr) && context->output_) {
-        context->output_(env, output);
+        context->output_(env, context->result_);
     }
     context->output_ = nullptr;
+}
+
+void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
+{
+    OnComplete(env, data);
+    OnReturn(env, status, data);
+}
+
+void AsyncCall::OnReturn(napi_env env, napi_status status, void *data)
+{
+    BaseContext *context = reinterpret_cast<BaseContext *>(data);
     napi_value result[ARG_BUTT] = { 0 };
     // if out function status is ok then async renturn output data, else return error.
     if (context->error == nullptr) {
         napi_get_undefined(env, &result[ARG_ERROR]);
-        if (output != nullptr) {
-            result[ARG_DATA] = output;
+        if (context->result_ != nullptr) {
+            result[ARG_DATA] = context->result_;
         } else {
             napi_get_undefined(env, &result[ARG_DATA]);
         }
