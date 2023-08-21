@@ -95,29 +95,6 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context);
 }
 
-napi_value GetPreferencesSync(napi_env env, napi_callback_info info)
-{
-    napi_value self = nullptr;
-    size_t argc = 2;
-    napi_value argv[2] = { 0 };
-    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
-
-    auto context = std::make_shared<HelperAysncContext>();
-    PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
-
-    int errCode = ERR;
-    Options options(context->path, context->bundleName, context->dataGroupId);
-    auto proxy = PreferencesHelper::GetPreferences(options, errCode);
-    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
-
-    napi_value result;
-    errCode = PreferencesProxy::NewInstance(env, proxy, &result);
-
-    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
-    return result;
-}
-
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
 {
     auto context = std::make_shared<HelperAysncContext>();
@@ -136,22 +113,6 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
     return AsyncCall::Call(env, context);
-}
-
-napi_value DeletePreferencesSync(napi_env env, napi_callback_info info)
-{
-    napi_value self = nullptr;
-    size_t argc = 2;
-    napi_value argv[2] = { 0 };
-    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
-
-    auto context = std::make_shared<HelperAysncContext>();
-    PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
-    int errCode = PreferencesHelper::DeletePreferences(context->path);
-
-    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
-    return nullptr;
 }
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
@@ -174,31 +135,15 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context);
 }
 
-napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
-{
-    napi_value self = nullptr;
-    size_t argc = 2;
-    napi_value argv[2] = { 0 };
-    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
-
-    auto context = std::make_shared<HelperAysncContext>();
-    PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
-    int errCode = PreferencesHelper::RemovePreferencesFromCache(context->path);
-
-    PRE_NAPI_ASSERT(env, errCode == E_OK, std::make_shared<InnerError>(errCode));
-    return nullptr;
-}
-
 napi_value InitPreferencesHelper(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("getPreferences", GetPreferences),
-        DECLARE_NAPI_FUNCTION("getPreferencesSync", GetPreferencesSync),
-        DECLARE_NAPI_FUNCTION("deletePreferences", DeletePreferences),
-        DECLARE_NAPI_FUNCTION("deletePreferencesSync", DeletePreferencesSync),
-        DECLARE_NAPI_FUNCTION("removePreferencesFromCache", RemovePreferencesFromCache),
-        DECLARE_NAPI_FUNCTION("removePreferencesFromCacheSync", RemovePreferencesFromCacheSync),
+        DECLARE_NAPI_FUNCTION_WITH_DATA("getPreferences", GetPreferences, ASYNC),
+        DECLARE_NAPI_FUNCTION_WITH_DATA("getPreferencesSync", GetPreferences, SYNC),
+        DECLARE_NAPI_FUNCTION_WITH_DATA("deletePreferences", DeletePreferences, ASYNC),
+        DECLARE_NAPI_FUNCTION_WITH_DATA("deletePreferencesSync", DeletePreferences, SYNC),
+        DECLARE_NAPI_FUNCTION_WITH_DATA("removePreferencesFromCache", RemovePreferencesFromCache, ASYNC),
+        DECLARE_NAPI_FUNCTION_WITH_DATA("removePreferencesFromCacheSync", RemovePreferencesFromCache, SYNC),
         DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_KEY_LENGTH)),
         DECLARE_NAPI_PROPERTY("MAX_VALUE_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_VALUE_LENGTH)),
     };
