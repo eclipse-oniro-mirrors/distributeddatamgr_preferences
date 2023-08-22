@@ -17,11 +17,13 @@
 
 #include <gtest/gtest.h>
 
+#include <fstream>
 #include <string>
 
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_helper.h"
+#include "preferences_impl.h"
 
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;
@@ -337,6 +339,58 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_006, TestSize.Level1)
     EXPECT_EQ(array.empty(), true);
 
     int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+* @tc.name: RenameToBrokenFileTest_001
+* @tc.desc: RenameToBrokenFile testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level1)
+{
+    std::string fileName = "/data/test/test01";
+    // construct an unreadable file
+    std::ofstream oss(fileName);
+    oss << "corrupted";
+
+    std::vector<Element> settings;
+    Element elem;
+    elem.key_ = "intKey";
+    elem.tag_ = "int";
+    elem.value_ = "2";
+
+    settings.push_back(elem);
+    PreferencesXmlUtils::WriteSettingXml(PreferencesImpl::MakeFilePath(fileName, STR_BACKUP), settings);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(fileName, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    int value = pref->Get("intKey", 0);
+    EXPECT_EQ(value, 2);
+
+    int ret = PreferencesHelper::DeletePreferences(fileName);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+* @tc.name: ReadSettingXml_001
+* @tc.desc: ReadSettingXml testcase of PreferencesXmlUtils, reading a corrupt file
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXml_001, TestSize.Level1)
+{
+    std::string fileName = "/data/test/test01";
+
+    std::ofstream oss(fileName);
+    oss << "corrupted";
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(fileName, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    int ret = PreferencesHelper::DeletePreferences(fileName);
     EXPECT_EQ(ret, E_OK);
 }
 }
