@@ -99,7 +99,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName)
         if (doc != nullptr) {
             return doc;
         }
-        if (RenameToBrokenFile(fileName)) {
+        if (!RenameToBrokenFile(fileName)) {
             return doc;
         }
     }
@@ -176,10 +176,6 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
 /* static */
 bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element)
 {
-    if (node == nullptr) {
-        return false;
-    }
-
     xmlChar *key = xmlGetProp(node, reinterpret_cast<const xmlChar *>("key"));
     xmlChar *value = xmlGetProp(node, reinterpret_cast<const xmlChar *>("value"));
 
@@ -207,10 +203,6 @@ bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element)
 /* static */
 bool ParseStringNodeElement(const xmlNode *node, Element &element)
 {
-    if (node == nullptr) {
-        return false;
-    }
-
     xmlChar *key = xmlGetProp(node, (const xmlChar *)"key");
     xmlChar *text = xmlNodeGetContent(node);
 
@@ -238,10 +230,6 @@ bool ParseStringNodeElement(const xmlNode *node, Element &element)
 /* static */
 bool ParseArrayNodeElement(const xmlNode *node, Element &element)
 {
-    if (node == nullptr) {
-        return false;
-    }
-
     xmlChar *key = xmlGetProp(node, (const xmlChar *)"key");
     const xmlNode *children = node->children;
 
@@ -459,18 +447,6 @@ void PreferencesXmlUtils::LimitXmlPermission(const std::string &fileName)
             LOG_ERROR("Failed to chmod file, errno:%{public}d.", errno);
         }
     }
-}
-
-void PreferencesXmlUtils::XmlInitParser()
-{
-    xmlInitParser();
-    LOG_DEBUG("Xml parser get ready.");
-}
-
-void PreferencesXmlUtils::XmlCleanupParser()
-{
-    xmlCleanupParser();
-    LOG_DEBUG("Xml parser clean up.");
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

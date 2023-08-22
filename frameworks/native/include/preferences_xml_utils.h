@@ -18,7 +18,6 @@
 
 #include <string>
 #include <vector>
-
 namespace OHOS {
 namespace NativePreferences {
 class Element {
@@ -35,8 +34,6 @@ public:
     static bool ReadSettingXml(const std::string &fileName, std::vector<Element> &settings);
     static bool WriteSettingXml(const std::string &fileName, std::vector<Element> &settings);
     static void LimitXmlPermission(const std::string &fileName);
-    static void XmlInitParser();
-    static void XmlCleanupParser();
 
 private:
     PreferencesXmlUtils()
