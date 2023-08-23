@@ -18,6 +18,8 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
+bool async = true;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
+bool sync = !async;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
 void BaseContext::SetAction(
     napi_env env, napi_callback_info info, InputAction input, ExecuteAction exec, OutputAction output)
 {
