@@ -91,7 +91,8 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
     }
 }
 
-napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context){
+napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context)
+{
     return context->isAsync_ ? Async(env, context) : Sync(env, context);
 }
 
