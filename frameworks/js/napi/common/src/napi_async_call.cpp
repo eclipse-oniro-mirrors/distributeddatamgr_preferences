@@ -18,6 +18,8 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
+bool async = true;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
+bool sync = !async;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
 void BaseContext::SetAction(
     napi_env env, napi_callback_info info, InputAction input, ExecuteAction exec, OutputAction output)
 {
@@ -89,7 +91,8 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
     }
 }
 
-napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context){
+napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context)
+{
     return context->isAsync_ ? Async(env, context) : Sync(env, context);
 }
 
