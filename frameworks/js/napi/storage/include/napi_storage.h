@@ -62,7 +62,6 @@ private:
 
     std::shared_ptr<OHOS::NativePreferences::Preferences> value_;
     napi_env env_;
-    napi_ref wrapper_;
     std::mutex listMutex_ {};
     std::shared_ptr<PreferencesJsKit::UvQueue> uvQueue_;
     std::list<std::shared_ptr<PreferencesJsKit::JSPreferencesObserver>> dataObserver_;

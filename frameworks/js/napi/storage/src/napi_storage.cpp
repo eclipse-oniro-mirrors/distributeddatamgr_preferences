@@ -52,13 +52,12 @@ struct StorageAysncContext : public BaseContext {
 static __thread napi_ref constructor_;
 
 StorageProxy::StorageProxy(std::shared_ptr<OHOS::NativePreferences::Preferences> &value)
-    : value_(value), env_(nullptr), wrapper_(nullptr), uvQueue_(nullptr)
+    : value_(value), env_(nullptr), uvQueue_(nullptr)
 {
 }
 
 StorageProxy::~StorageProxy()
 {
-    napi_delete_reference(env_, wrapper_);
     for (auto &observer : dataObserver_) {
         value_->UnRegisterObserver(observer);
     }
@@ -157,9 +156,7 @@ napi_value StorageProxy::New(napi_env env, napi_callback_info info)
     obj->env_ = env;
     obj->value_ = std::move(preference);
     obj->uvQueue_ = std::make_shared<UvQueue>(env);
-    NAPI_CALL(env, napi_wrap(env, thiz, obj, StorageProxy::Destructor,
-                       nullptr, // finalize_hint
-                       &obj->wrapper_));
+    NAPI_CALL(env, napi_wrap(env, thiz, obj, StorageProxy::Destructor, nullptr, nullptr));
     return thiz;
 }
 
