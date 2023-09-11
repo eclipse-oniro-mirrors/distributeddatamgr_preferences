@@ -139,7 +139,7 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     if (pref->loaded_) {
         return;
     }
-    pref->ReadSettingXml(pref->options_.filePath, pref->map_);
+    pref->ReadSettingXml(pref);
     pref->loaded_ = true;
     pref->cond_.notify_all();
 }
@@ -159,7 +159,7 @@ void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std
         return;
     }
 
-    if (pref->WriteSettingXml(pref->options_.filePath, mcr->writeToDiskMap_)) {
+    if (pref->WriteSettingXml(pref, mcr->writeToDiskMap_)) {
         pref->diskStateGeneration_ = mcr->memoryStateGeneration_;
         mcr->SetDiskWriteResult(true, E_OK);
     } else {
@@ -253,15 +253,15 @@ void ReadXmlElement(const Element &element, std::map<std::string, PreferencesVal
     }
 }
 
-bool PreferencesImpl::ReadSettingXml(const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap)
+bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
 {
     std::vector<Element> settings;
-    if (!PreferencesXmlUtils::ReadSettingXml(prefPath, settings)) {
+    if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.dataGroupId, settings)) {
         return false;
     }
 
     for (const auto &element : settings) {
-        ReadXmlElement(element, prefMap);
+        ReadXmlElement(element, pref->map_);
     }
     return true;
 }
@@ -313,7 +313,7 @@ void WriteXmlElement(Element &elem, const PreferencesValue &value)
 }
 
 bool PreferencesImpl::WriteSettingXml(
-    const std::string &prefPath, const std::map<std::string, PreferencesValue> &prefMap)
+    std::shared_ptr<PreferencesImpl> pref, const std::map<std::string, PreferencesValue> &prefMap)
 {
     std::vector<Element> settings;
     for (auto it = prefMap.begin(); it != prefMap.end(); it++) {
@@ -324,7 +324,7 @@ bool PreferencesImpl::WriteSettingXml(
         settings.push_back(elem);
     }
 
-    return PreferencesXmlUtils::WriteSettingXml(prefPath, settings);
+    return PreferencesXmlUtils::WriteSettingXml(pref->options_.filePath, pref->options_.dataGroupId, settings);
 }
 
 bool PreferencesImpl::HasKey(const std::string &key)

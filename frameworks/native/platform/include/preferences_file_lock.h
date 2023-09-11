@@ -18,15 +18,15 @@
 
 #include <chrono>
 #include <string>
+
 #include "preferences_errno.h"
 namespace OHOS {
 namespace NativePreferences {
 class PreferencesFileLock final {
 public:
-    PreferencesFileLock();
+    PreferencesFileLock(const std::string &path, const std::string &dataGroupId);
     ~PreferencesFileLock();
-    int TryLock(const std::string &fileName);
-    int UnLock();
+
 private:
     int fd_{ -1 };
 };

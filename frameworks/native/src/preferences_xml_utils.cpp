@@ -22,8 +22,9 @@
 
 #include "libxml/parser.h"
 #include "log_print.h"
+#include "preferences_file_lock.h"
+#include "preferences_file_operation.h"
 #include "preferences_impl.h"
-
 namespace OHOS {
 namespace NativePreferences {
 static bool ParseNodeElement(const xmlNode *node, Element &element);
@@ -91,14 +92,17 @@ static xmlDoc *ReadFile(const std::string &fileName)
     return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS);
 }
 
-static xmlDoc *XmlReadFile(const std::string &fileName)
+static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataGroupId)
 {
     xmlDoc *doc = nullptr;
+    PreferencesFileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName);
         if (doc != nullptr) {
             return doc;
         }
+        xmlErrorPtr xmlErr = xmlGetLastError();
+        LOG_ERROR("failed to read XML format file, error is %{public}s.", xmlErr->message);
         if (!RenameToBrokenFile(fileName)) {
             return doc;
         }
@@ -110,14 +114,15 @@ static xmlDoc *XmlReadFile(const std::string &fileName)
 }
 
 /* static */
-bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, std::vector<Element> &settings)
+bool PreferencesXmlUtils::ReadSettingXml(
+    const std::string &fileName, const std::string &dataGroupId, std::vector<Element> &settings)
 {
     LOG_RECORD_FILE_NAME("Read setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
     }
-    auto doc = std::shared_ptr<xmlDoc>(XmlReadFile(fileName), [](xmlDoc *doc) { xmlFreeDoc(doc); });
+    auto doc = std::shared_ptr<xmlDoc>(XmlReadFile(fileName, dataGroupId), [](xmlDoc *doc) { xmlFreeDoc(doc); });
     if (doc == nullptr) {
         return false;
     }
@@ -266,14 +271,16 @@ static bool SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
     return xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0;
 }
 
-bool XmlSaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
+bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &dataGroupId, xmlDoc *doc)
 {
+    PreferencesFileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
 
     if (!SaveFormatFileEnc(fileName, doc)) {
-        LOG_ERROR("Failed to save XML format file, attempting to restore backup");
+        xmlErrorPtr xmlErr = xmlGetLastError();
+        LOG_ERROR("failed to save XML format file, error is %{public}s.", xmlErr->message);
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
         }
@@ -283,12 +290,17 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
 
     RemoveBackupFile(fileName);
     PreferencesXmlUtils::LimitXmlPermission(fileName);
+    // make sure the file is written to disk.
+    if (!Fsync(fileName)) {
+        LOG_WARN("failed to write the file to the disk.");
+    }
     LOG_DEBUG("successfully saved the XML format file");
     return true;
 }
 
 /* static */
-bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, std::vector<Element> &settings)
+bool PreferencesXmlUtils::WriteSettingXml(
+    const std::string &fileName, const std::string &dataGroupId, const std::vector<Element> &settings)
 {
     LOG_RECORD_FILE_NAME("Write setting xml start.");
     if (fileName.size() == 0) {
@@ -328,7 +340,7 @@ bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, std::vect
     }
 
     /* 1: formatting spaces are added. */
-    bool result = XmlSaveFormatFileEnc(fileName.c_str(), doc.get());
+    bool result = XmlSaveFormatFileEnc(fileName, dataGroupId, doc.get());
     LOG_RECORD_FILE_NAME("Write setting xml end.");
     return result;
 }

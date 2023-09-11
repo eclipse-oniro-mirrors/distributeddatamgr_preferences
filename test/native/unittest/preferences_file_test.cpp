@@ -73,7 +73,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level1)
     elem.tag_ = std::string("int");
     elem.value_ = std::to_string(10);
     settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(backupFile, settings);
+    PreferencesXmlUtils::WriteSettingXml(backupFile, "", settings);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);

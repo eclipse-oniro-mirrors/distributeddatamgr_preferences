@@ -155,6 +155,11 @@ public:
 
     int UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
 
+    std::string GetGroupId() const override
+    {
+        return options_.dataGroupId;
+    }
+
     static std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
 
 private:
@@ -191,9 +196,8 @@ private:
     void AwaitLoadFile();
     static void WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr);
     bool CheckRequestValidForStateGeneration(std::shared_ptr<MemoryToDiskRequest> mcr);
-
-    bool ReadSettingXml(const std::string &prefPath, std::map<std::string, PreferencesValue> &prefMap);
-    bool WriteSettingXml(const std::string &prefPath, const std::map<std::string, PreferencesValue> &prefMap);
+    bool ReadSettingXml(std::shared_ptr<PreferencesImpl> pref);
+    bool WriteSettingXml(std::shared_ptr<PreferencesImpl> pref, const std::map<std::string, PreferencesValue> &prefMap);
 
     bool loaded_;
 

@@ -15,14 +15,18 @@
 #ifndef PREFERENCES_FILE_OPERATION_H
 #define PREFERENCES_FILE_OPERATION_H
 
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
 #include <string>
+
 #include "visibility.h"
 
 #if defined(WINDOWS_PLATFORM)
 
 #include <iostream>
+#include <windows.h>
 
 #else
 
@@ -37,7 +41,7 @@
 #endif
 
 #ifndef FILE_MODE
-#define FILE_MODE 0771
+#define FILE_MODE 0770
 #endif
 
 #ifndef FILE_EXIST
@@ -66,6 +70,30 @@ static UNUSED_FUNCTION int Access(const std::string &filePath)
 #else
     return access(filePath.c_str(), FILE_EXIST);
 #endif
+}
+
+static UNUSED_FUNCTION bool Fsync(const std::string &filePath)
+{
+#if defined(WINDOWS_PLATFORM)
+    int fd = _open(filePath.c_str(), _O_WRONLY, _S_IWRITE);
+    if (fd == -1) {
+        return false;
+    }
+    HANDLE handle = (HANDLE)_get_osfhandle(fd);
+    if (handle == INVALID_HANDLE_VALUE || !FlushFileBuffers(handle)) {
+        _close(fd);
+        return false;
+    }
+    _close(fd);
+#else
+    int fd = open(filePath.c_str(), O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd == -1 || fsync(fd) == -1) {
+        close(fd);
+        return false;
+    }
+    close(fd);
+#endif
+    return true;
 }
 } // namespace NativePreferences
 } // namespace OHOS

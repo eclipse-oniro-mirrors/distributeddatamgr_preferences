@@ -312,6 +312,18 @@ public:
      */
     virtual int UnRegisterObserver(
         std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode = RegisterMode::LOCAL_CHANGE) = 0;
+    
+    /**
+     * @brief  Get group id.
+     *
+     * This function is used to Get group id.
+     *
+     * @return Returns the groupId when it exists, otherwise returns an empty string.
+     */
+    virtual std::string GetGroupId() const
+    {
+        return "";
+    }
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
