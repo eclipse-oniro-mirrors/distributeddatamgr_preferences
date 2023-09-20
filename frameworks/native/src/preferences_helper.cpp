@@ -23,10 +23,10 @@
 #include "log_print.h"
 #include "preferences.h"
 #include "preferences_errno.h"
+#include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
 #include "preferences_impl.h"
 #include "securec.h"
-
 namespace OHOS {
 namespace NativePreferences {
 std::map<std::string, std::shared_ptr<Preferences>> PreferencesHelper::prefsCache_;
@@ -115,8 +115,10 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     }
 
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
+    std::string dataGroupId = "";
     std::map<std::string, std::shared_ptr<Preferences>>::iterator it = prefsCache_.find(realPath);
     if (it != prefsCache_.end()) {
+        dataGroupId = it->second->GetGroupId();
         prefsCache_.erase(it);
     }
 
@@ -125,9 +127,15 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string brokenPath = PreferencesImpl::MakeFilePath(filePath, STR_BROKEN);
     std::string lockFilePath = PreferencesImpl::MakeFilePath(filePath, STR_LOCK);
 
+    PreferencesFileLock(lockFilePath, dataGroupId);
+
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());
+
+    if (!dataGroupId.empty()) {
+        std::remove(lockFilePath.c_str());
+    }
 
     if (IsFileExist(filePath) || IsFileExist(backupPath) || IsFileExist(brokenPath)) {
         return E_DELETE_FILE_FAIL;

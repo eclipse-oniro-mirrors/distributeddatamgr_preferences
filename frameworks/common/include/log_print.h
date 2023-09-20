@@ -55,7 +55,7 @@ static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
         const char *name = fileName.data();                                                                \
         auto pos = fileName.rfind('/');                                                                    \
         pos = (pos != std::string::npos) ? pos + 1 : 0;                                                    \
-        LOG_DEBUG(message " fileName is %{private}s.", name + pos);                                         \
+        LOG_DEBUG(message " fileName is %{private}s.", name + pos);                                        \
     } while (0)
 
 #define LOG_INFO(fmt, ...)                                                                                 \
