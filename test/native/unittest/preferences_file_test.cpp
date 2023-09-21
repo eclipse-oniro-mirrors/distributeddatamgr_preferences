@@ -52,6 +52,15 @@ void PreferencesFileTest::TearDown(void)
 {
 }
 
+int PreferencesPutValue(std::shared_ptr<Preferences> pref, const std::string &intKey, int intValue,
+    const std::string &strKey, const std::string &strValue)
+{
+    pref->PutInt(intKey, intValue);
+    pref->PutString(strKey, strValue);
+    int ret = pref->FlushSync();
+    return ret;
+}
+
 /**
  * @tc.name: NativePreferencesFileTest_001
  * @tc.desc: normal testcase of backup file
@@ -108,9 +117,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_002, TestSize.Level1)
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
     EXPECT_EQ(errCode, E_OK);
 
-    pref->PutInt("key1", 2);
-    pref->PutString("key2", "test");
-    int ret = pref->FlushSync();
+    int ret = PreferencesPutValue(pref, "key1", 2, "key2", "test");
     EXPECT_EQ(ret, E_OK);
 
     struct stat st = { 0 };
@@ -141,9 +148,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level1)
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
     EXPECT_EQ(errCode, E_OK);
 
-    pref->PutInt("intKey", 1);
-    pref->PutString("stringKey", "string1");
-    ret = pref->FlushSync();
+    ret = PreferencesPutValue(pref, "intKey", 1, "stringKey", "string1");
     EXPECT_EQ(ret, E_OK);
 
     EXPECT_EQ(1, pref->GetInt("intKey", 0));
@@ -160,25 +165,10 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level1)
     EXPECT_EQ(1, pref->GetInt("intKey", 0));
     EXPECT_EQ("string1", pref->GetString("stringKey", ""));
 
-    pref->PutInt("intKey", 2);
-    pref->PutString("stringKey", "string2");
-    ret = pref->FlushSync();
-    EXPECT_EQ(ret, E_OK);
-    pref->PutInt("intKey", 3);
-    pref->PutString("stringKey", "string3");
-    ret = pref->FlushSync();
-    EXPECT_EQ(ret, E_OK);
-
-    pref->PutInt("intKey", 4);
-    pref->PutString("stringKey", "string4");
-    ret = pref->FlushSync();
-    EXPECT_EQ(ret, E_OK);
-
-    pref = PreferencesHelper::GetPreferences(file, errCode);
-    pref->PutInt("intKey", 5);
-    pref->PutString("stringKey", "string5");
-    ret = pref->FlushSync();
-    EXPECT_EQ(ret, E_OK);
+    for (int i = 2; i <= 5; i++) {
+        ret = PreferencesPutValue(pref, "intKey", i, "stringKey", "string" + std::to_string(i));
+        EXPECT_EQ(ret, E_OK);
+    }
 
     EXPECT_EQ(5, pref->GetInt("intKey", 0));
     EXPECT_EQ("string5", pref->GetString("stringKey", ""));
@@ -216,9 +206,8 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level3)
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
     EXPECT_EQ(errCode, E_OK);
 
-    pref->PutInt("intKey", 1);
-    pref->PutString("stringKey", "string1");
-    pref->Flush();
+    ret = PreferencesPutValue(pref, "intKey", 1, "stringKey", "string1");
+    EXPECT_EQ(ret, E_OK);
 
     EXPECT_EQ(1, pref->GetInt("intKey", 0));
     EXPECT_EQ("string1", pref->GetString("stringKey", ""));
@@ -236,20 +225,10 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level3)
     EXPECT_EQ(1, pref->GetInt("intKey", 0));
     EXPECT_EQ("string1", pref->GetString("stringKey", ""));
 
-    pref->PutInt("intKey", 2);
-    pref->PutString("stringKey", "string2");
-    pref->Flush();
-    pref->PutInt("intKey", 3);
-    pref->PutString("stringKey", "string3");
-    pref->Flush();
-
-    pref->PutInt("intKey", 4);
-    pref->PutString("stringKey", "string4");
-    pref->Flush();
-
-    pref->PutInt("intKey", 5);
-    pref->PutString("stringKey", "string5");
-    pref->Flush();
+    for (int i = 2; i <= 5; i++) {
+        ret = PreferencesPutValue(pref, "intKey", i, "stringKey", "string" + std::to_string(i));
+        EXPECT_EQ(ret, E_OK);
+    }
 
     EXPECT_EQ(5, pref->GetInt("intKey", 0));
     EXPECT_EQ("string5", pref->GetString("stringKey", ""));
