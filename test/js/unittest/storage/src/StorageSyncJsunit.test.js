@@ -27,12 +27,20 @@ var mPref;
 describe('StorageSyncJsunit', function () {
     beforeAll(function() {
         console.info('beforeAll')
-        mPref = storage.getStorageSync(PATH);
+    })
+
+    beforeEach(async function () {
+        console.info('beforeEach');
+        mPref = await storage.getStorageSync(PATH);
+    })
+
+    afterEach(async function () {
+        console.info('afterEach');
+        await storage.deleteStorageSync(PATH);
     })
 
     afterAll(function () {
         console.info('afterAll')
-        storage.deleteStorageSync(PATH);
     })
 
     it('testClear001', 0, function () {
@@ -56,7 +64,7 @@ describe('StorageSyncJsunit', function () {
     /**
      * @tc.name put string sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0020
-     * @tc.desc put string sync interface test
+     * @tc.desc put string sync interface test 
      */
     it('testHasKey003', 0, function () {
         mPref.putSync(KEY_TEST_STRING_ELEMENT, "test");
@@ -186,6 +194,9 @@ describe('StorageSyncJsunit', function () {
         mPref.putSync(KEY_TEST_BOOLEAN_ELEMENT, true);
         expect(true).assertEqual(mPref.getSync(KEY_TEST_BOOLEAN_ELEMENT, false));
         mPref.flushSync();
+        storage.removeStorageFromCacheSync(PATH);
+        mPref = null;
+        mPref = storage.getStorageSync(PATH);
         expect(true).assertEqual(mPref.getSync(KEY_TEST_BOOLEAN_ELEMENT, false));
     })
 
@@ -199,6 +210,9 @@ describe('StorageSyncJsunit', function () {
         mPref.putSync(KEY_TEST_FLOAT_ELEMENT, 4.0);
         expect(4.0).assertEqual(mPref.getSync(KEY_TEST_FLOAT_ELEMENT, 0.0));
         mPref.flushSync();
+        storage.removeStorageFromCacheSync(PATH);
+        mPref = null;
+        mPref = storage.getStorageSync(PATH);
         expect(4.0).assertEqual(mPref.getSync(KEY_TEST_FLOAT_ELEMENT, 0.0));
     })
 
@@ -212,6 +226,9 @@ describe('StorageSyncJsunit', function () {
         mPref.putSync(KEY_TEST_INT_ELEMENT, 4);
         expect(4).assertEqual(mPref.getSync(KEY_TEST_INT_ELEMENT, 0));
         mPref.flushSync();
+        storage.removeStorageFromCacheSync(PATH);
+        mPref = null;
+        mPref = storage.getStorageSync(PATH);
         expect(4).assertEqual(mPref.getSync(KEY_TEST_INT_ELEMENT, 0));
     })
 
@@ -225,6 +242,9 @@ describe('StorageSyncJsunit', function () {
         mPref.putSync(KEY_TEST_LONG_ELEMENT, 4);
         expect(4).assertEqual(mPref.getSync(KEY_TEST_LONG_ELEMENT, 0));
         mPref.flushSync();
+        storage.removeStorageFromCacheSync(PATH);
+        mPref = null;
+        mPref = storage.getStorageSync(PATH);
         expect(4).assertEqual(mPref.getSync(KEY_TEST_LONG_ELEMENT, 0));
     })
 
@@ -239,6 +259,9 @@ describe('StorageSyncJsunit', function () {
         mPref.putSync(KEY_TEST_STRING_ELEMENT, '');
         expect('').assertEqual(mPref.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue"));
         mPref.flushSync();
+        storage.removeStorageFromCacheSync(PATH);
+        mPref = null;
+        mPref = storage.getStorageSync(PATH);
         expect('').assertEqual(mPref.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue"));
     })
 

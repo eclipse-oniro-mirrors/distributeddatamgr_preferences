@@ -22,8 +22,8 @@ var context;
 
 describe('preferencesSyncTest', function () {
     beforeAll(async function () {
-        console.info('beforeAll')
-        context = featureAbility.getContext()
+        console.info('beforeAll');
+        context = featureAbility.getContext();
     })
 
     afterAll(async function () {
@@ -41,6 +41,7 @@ describe('preferencesSyncTest', function () {
         expect(preferences.hasSync(KEY_TEST_STRING_ELEMENT)).assertTrue();
         let val = preferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
         expect("132").assertEqual(val);
+        data_preferences.deletePreferencesSync(context, { name: NAME });
     })
 
     /**
@@ -60,6 +61,7 @@ describe('preferencesSyncTest', function () {
 
         let preferences1 = data_preferences.getPreferencesSync(context, NAME);
         expect(preferences1.hasSync(KEY_TEST_STRING_ELEMENT)).assertFalse();
+        data_preferences.deletePreferencesSync(context, NAME);
     })
 
     /**
@@ -79,5 +81,6 @@ describe('preferencesSyncTest', function () {
 
         let preferences1 = data_preferences.getPreferencesSync(context, { name: NAME });
         expect(preferences1.hasSync(KEY_TEST_STRING_ELEMENT)).assertFalse();
+        data_preferences.deletePreferencesSync(context, { name: NAME });
     })
 })
