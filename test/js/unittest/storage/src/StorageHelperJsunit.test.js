@@ -44,7 +44,6 @@ describe('StorageHelperJsunit', function () {
      * @tc.desc getStorageSync interface test
      */
     it('testGetStorageHelper001', 0, async function () {
-        mPref = storage.getStorageSync(PATH);
         mPref.putSync('test', 2);
         var value = mPref.getSync('test', 0);
         expect(value).assertEqual(2);

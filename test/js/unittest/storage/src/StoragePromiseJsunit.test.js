@@ -139,7 +139,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc get string promise interface test
      */
     it('testGetDefValue0061', 0, async function () {
-        mPref.clearSync();
         const promise = mPref.get(KEY_TEST_STRING_ELEMENT, "defaultValue");
         await promise.then((ret) => {
             expect('defaultValue').assertEqual(ret);
@@ -154,7 +153,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc get float promise interface test
      */
     it('testGetFloat0071', 0, async function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_FLOAT_ELEMENT, 3.0);
         const promise = mPref.get(KEY_TEST_FLOAT_ELEMENT, 0.0);
         await promise.then((ret) => {
@@ -170,7 +168,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc get int promise interface test
      */
     it('testGetInt0081', 0, async function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_INT_ELEMENT, 3);
         const promise = mPref.get(KEY_TEST_INT_ELEMENT, 0.0);
         await promise.then((ret) => {
@@ -186,7 +183,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc get long promise interface test
      */
     it('testGetLong0091', 0, async function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_LONG_ELEMENT, 3);
         const promise = mPref.get(KEY_TEST_LONG_ELEMENT, 0);
         await promise.then((ret) => {
@@ -202,7 +198,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc get String promise interface test
      */
     it('testGetString101', 0, async function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_STRING_ELEMENT, "test");
         mPref.flushSync();
         const promise = mPref.get(KEY_TEST_STRING_ELEMENT, "defaultvalue");
@@ -219,7 +214,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc put boolean promise interface test
      */
     it('testPutBoolean0121', 0, async function () {
-        mPref.clearSync();
         const promise = mPref.put(KEY_TEST_BOOLEAN_ELEMENT, true);
         await promise.then(async(ret) => {
             expect(true).assertEqual(mPref.getSync(KEY_TEST_BOOLEAN_ELEMENT, false));
@@ -239,7 +233,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc put float promise interface test
      */
     it('testPutFloat0131', 0, async function () {
-        mPref.clearSync();
         const promise = mPref.put(KEY_TEST_FLOAT_ELEMENT, 4.0);
         await  promise.then(async (ret) => {
             expect(4.0).assertEqual(mPref.getSync(KEY_TEST_FLOAT_ELEMENT, 0.0));
@@ -259,7 +252,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc put int promise interface test
      */
     it('testPutInt0141', 0, async function () {
-        mPref.clearSync();
         const promise = mPref.put(KEY_TEST_INT_ELEMENT, 4);
         await promise.then(async (ret) => {
             expect(4).assertEqual(mPref.getSync(KEY_TEST_INT_ELEMENT, 0));
@@ -279,7 +271,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc put long promise interface test
      */
     it('testPutLong0151', 0, async function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_LONG_ELEMENT, 4);
         const promise = mPref.put(KEY_TEST_LONG_ELEMENT, 4);
         await promise.then(async (ret) => {
@@ -300,7 +291,6 @@ describe('StoragePromiseJsunit', function () {
      * @tc.desc put String promise interface test
      */
     it('testPutString0161', 0, async function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_STRING_ELEMENT, "abc");
         const promise = mPref.put(KEY_TEST_STRING_ELEMENT, '');
         await promise.then(async (ret) => {

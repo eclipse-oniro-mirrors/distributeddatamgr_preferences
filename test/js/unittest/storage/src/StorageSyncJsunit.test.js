@@ -127,7 +127,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc get defaultValue sync interface test
      */
     it('testGetDefValue006', 0, function () {
-        mPref.clearSync();
         expect(-1).assertEqual(mPref.getSync(KEY_TEST_INT_ELEMENT, -1));
         expect(1.0).assertEqual(mPref.getSync(KEY_TEST_FLOAT_ELEMENT, 1.0));
         expect(10000).assertEqual(mPref.getSync(KEY_TEST_LONG_ELEMENT, 10000));
@@ -141,7 +140,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put float sync interface test
      */
     it('testGetFloat007', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_FLOAT_ELEMENT, 3.0);
         expect(3.0).assertEqual(mPref.getSync(KEY_TEST_FLOAT_ELEMENT, 0.0));
         expect(0.0).assertEqual(mPref.getSync(KEY_TEST_STRING_ELEMENT, 0.0));
@@ -153,7 +151,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put int sync interface test
      */
     it('testGetInt008', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_INT_ELEMENT, 3);
         expect(3).assertEqual(mPref.getSync(KEY_TEST_INT_ELEMENT, 0.0));
     })
@@ -164,7 +161,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put long sync interface test
      */
     it('testGetLong009', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_LONG_ELEMENT, 3);
         expect(3).assertEqual(mPref.getSync(KEY_TEST_LONG_ELEMENT, 0));
         expect(0).assertEqual(mPref.getSync(KEY_TEST_STRING_ELEMENT, 0));
@@ -176,7 +172,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put String & int sync interface test
      */
     it('testGetString10', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_STRING_ELEMENT, "test");
         mPref.putSync(KEY_TEST_INT_ELEMENT, 3);
         mPref.flushSync();
@@ -190,7 +185,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put boolean sync interface test
      */
     it('testPutBoolean012', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_BOOLEAN_ELEMENT, true);
         expect(true).assertEqual(mPref.getSync(KEY_TEST_BOOLEAN_ELEMENT, false));
         mPref.flushSync();
@@ -206,7 +200,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put float sync interface test
      */
     it('testPutFloat013', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_FLOAT_ELEMENT, 4.0);
         expect(4.0).assertEqual(mPref.getSync(KEY_TEST_FLOAT_ELEMENT, 0.0));
         mPref.flushSync();
@@ -221,8 +214,7 @@ describe('StorageSyncJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0110
      * @tc.desc put int sync interface test
      */
-    it('testPutInt014', 0, function () {
-        mPref.clearSync();
+    it('testPutInt014', 0, function () {;
         mPref.putSync(KEY_TEST_INT_ELEMENT, 4);
         expect(4).assertEqual(mPref.getSync(KEY_TEST_INT_ELEMENT, 0));
         mPref.flushSync();
@@ -238,7 +230,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put long sync interface test
      */
     it('testPutLong015', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_LONG_ELEMENT, 4);
         expect(4).assertEqual(mPref.getSync(KEY_TEST_LONG_ELEMENT, 0));
         mPref.flushSync();
@@ -254,7 +245,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put String sync interface test
      */
     it('testPutString016', 0, function () {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_STRING_ELEMENT, "abc");
         mPref.putSync(KEY_TEST_STRING_ELEMENT, '');
         expect('').assertEqual(mPref.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue"));
@@ -271,7 +261,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc put interface test
      */
     it('testRegisterObserver001', 0, function () {
-        mPref.clearSync();
         var observer = function (key) {
             expect('abcd').assertEqual(key);
         };
@@ -285,7 +274,6 @@ describe('StorageSyncJsunit', function () {
      * @tc.desc repeat on interface test
      */
     it('testRegisterObserver002', 0, function () {
-        mPref.clearSync();
         var observer = function (key) {
             console.info('testRegisterObserver001 key' + key);
             expect('abc').assertEqual(key);

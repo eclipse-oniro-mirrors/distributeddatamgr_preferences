@@ -56,9 +56,7 @@ describe('preferencesSyncTest', function () {
         let val = preferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
         expect("132").assertEqual(val);
         preferences = null;
-
         data_preferences.removePreferencesFromCacheSync(context, NAME);
-
         let preferences1 = data_preferences.getPreferencesSync(context, NAME);
         expect(preferences1.hasSync(KEY_TEST_STRING_ELEMENT)).assertFalse();
         data_preferences.deletePreferencesSync(context, NAME);
@@ -76,9 +74,7 @@ describe('preferencesSyncTest', function () {
         let val = preferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
         expect("132").assertEqual(val);
         preferences = null;
-
         data_preferences.removePreferencesFromCacheSync(context, { name: NAME });
-
         let preferences1 = data_preferences.getPreferencesSync(context, { name: NAME });
         expect(preferences1.hasSync(KEY_TEST_STRING_ELEMENT)).assertFalse();
         data_preferences.deletePreferencesSync(context, { name: NAME });

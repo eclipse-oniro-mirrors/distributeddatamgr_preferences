@@ -54,7 +54,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc put StringArray promise interface test
      */
     it('testPreferencesPutStringArray0131', 0, async function () {
-        await mPreferences.clear();
         var stringArr = ['1', '2', '3']
         await mPreferences.put(KEY_TEST_STRING_ARRAY_ELEMENT, stringArr);
         let pre = await mPreferences.get(KEY_TEST_STRING_ARRAY_ELEMENT, ['123', '321']);
@@ -69,7 +68,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc put NumberArray promise interface test
      */
     it('testPreferencesPutNumberArray0132', 0, async function () {
-        await mPreferences.clear();
         var numberArr = [11, 22, 33, 44, 55]
         await mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, numberArr);
         let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, [123, 321]);
@@ -84,7 +82,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc put BoolArray promise interface test
      */
     it('testPreferencesPutBoolArray0133', 0, async function () {
-        await mPreferences.clear();
         var boolArr = [true, true, false]
         await mPreferences.put(KEY_TEST_BOOL_ARRAY_ELEMENT, boolArr);
         let pre = await mPreferences.get(KEY_TEST_BOOL_ARRAY_ELEMENT, [false, true]);
@@ -99,7 +96,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc getAll promise interface test
      */
     it('testPreferencesGetAll0001', 0, async function () {
-        await mPreferences.clear();
         let doubleArr = [11, 22, 33]
         let stringArr = ['11', '22', '33']
         let boolArr = [true, false, false, true]
@@ -109,9 +105,6 @@ describe('PreferencesPromiseJsunit', function () {
         await mPreferences.put(KEY_TEST_BOOLEAN_ELEMENT, false)
         await mPreferences.put(KEY_TEST_STRING_ELEMENT, "123")
         await mPreferences.put(KEY_TEST_FLOAT_ELEMENT, 123.1)
-
-        await mPreferences.flush()
-
         let promise = mPreferences.getAll()
         await promise.then((obj) => {
             expect(false).assertEqual(obj.key_test_boolean)
@@ -121,12 +114,10 @@ describe('PreferencesPromiseJsunit', function () {
             for (let i = 0; i < sArr.length; i++) {
                 expect(sArr[i]).assertEqual(stringArr[i]);
             }
-
             let bArr = obj.key_test_bool_array
             for (let i = 0; i < bArr.length; i++) {
                 expect(bArr[i]).assertEqual(boolArr[i]);
             }
-
             let nArr = obj.key_test_number_array
             for (let i = 0; i < nArr.length; i++) {
                 expect(nArr[i]).assertEqual(doubleArr[i]);
@@ -235,7 +226,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc get string promise interface test
      */
     it('testPreferencesGetDefValue0061', 0, async function () {
-        await mPreferences.clear();
         const promise = mPreferences.get(KEY_TEST_STRING_ELEMENT, "defaultValue");
         await promise.then((ret) => {
             expect('defaultValue').assertEqual(ret);
@@ -250,7 +240,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc get float promise interface test
      */
     it('testPreferencesGetFloat0071', 0, async function () {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_FLOAT_ELEMENT, 3.0);
         const promise = mPreferences.get(KEY_TEST_FLOAT_ELEMENT, 0.0);
         await promise.then((ret) => {
@@ -266,7 +255,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc get int promise interface test
      */
     it('testPreferencesGetInt0081', 0, async function () {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_INT_ELEMENT, 3);
         const promise = mPreferences.get(KEY_TEST_INT_ELEMENT, 0.0);
         await promise.then((ret) => {
@@ -282,7 +270,6 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc get long promise interface test
      */
     it('testPreferencesGetLong0091', 0, async function () {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_LONG_ELEMENT, 3);
         const promise = mPreferences.get(KEY_TEST_LONG_ELEMENT, 0);
         await promise.then((ret) => {
@@ -298,9 +285,7 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.desc get String promise interface test
      */
     it('tesPreferencesGetString101', 0, async function () {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_STRING_ELEMENT, "test");
-        await mPreferences.flush();
         const promise = mPreferences.get(KEY_TEST_STRING_ELEMENT, "defaultvalue");
         await promise.then((ret) => {
             expect('test').assertEqual(ret);
@@ -439,22 +424,22 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0132
      * @tc.desc get empty array promise interface test
      */
-    it('testPreferencesFlushEmptyArray0181', 0, async function (done) {
-        await mPreferences.clear();
+    it('testPreferencesFlushEmptyArray0181', 0, async function () { 
         let value = new Array();
         const promise = mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, value);
         await promise.then(async (ret) => {
             let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue");
             expect(pre instanceof Array).assertEqual(true);
             expect(pre.length).assertEqual(0);
-            await mPreferences.flush();
+            await mPreferences.flush(); 
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
             let pre2 = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
             expect(pre2 instanceof Array).assertEqual(true);
             expect(pre2.length).assertEqual(0);
-            done();
         }).catch((err) => {
             expect(null).assertFail();
-            done();
         });
     })
 
@@ -463,21 +448,21 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0132
      * @tc.desc get empty array promise interface test
      */
-    it('testPreferencesGetEmptyArray0191', 0, async function (done) {
-        await mPreferences.clear();
+    it('testPreferencesGetEmptyArray0191', 0, async function () {
         const promise = mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, []);
         await promise.then(async (ret) => {
             let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue");
             expect(pre instanceof Array).assertEqual(true);
             expect(pre.length).assertEqual(0);
-            await mPreferences.flush();
+            await mPreferences.flush(); 
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
             let pre2 = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, "defaultvalue")
             expect(pre2 instanceof Array).assertEqual(true);
             expect(pre2.length).assertEqual(0);
-            done();
         }).catch((err) => {
             expect(null).assertFail();
-            done();
         });
     })
 })

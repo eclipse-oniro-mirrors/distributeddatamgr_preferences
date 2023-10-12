@@ -136,7 +136,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc get defaultValue callback interface test
      */
     it('testPreferencesGetDefValue0062', 0, async function (done) {
-        await mPreferences.clear();
         mPreferences.get(KEY_TEST_STRING_ELEMENT, "defaultValue", function (err, ret) {
             expect('defaultValue').assertEqual(ret);
             done();
@@ -149,7 +148,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc get float callback interface test
      */
     it('testPreferencesGetFloat0072', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_FLOAT_ELEMENT, 3.0);
         mPreferences.get(KEY_TEST_FLOAT_ELEMENT, 0.0, function (err, ret) {
             expect(3.0).assertEqual(ret);
@@ -163,7 +161,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc get int callback interface test
      */
     it('testPreferencesGetInt0082', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_INT_ELEMENT, 3);
         mPreferences.get(KEY_TEST_INT_ELEMENT, 0.0, function (err, ret) {
             expect(3).assertEqual(ret);
@@ -177,7 +174,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc get long callback interface test
      */
     it('testPreferencesGetLong0092', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_LONG_ELEMENT, 3);
         let pref = await mPreferences.get(KEY_TEST_LONG_ELEMENT, 0)
         expect(3).assertEqual(pref);
@@ -193,7 +189,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc get String callback interface test
      */
     it('testPreferencesGetString102', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_STRING_ELEMENT, "test");
         mPreferences.get(KEY_TEST_STRING_ELEMENT, "defaultvalue", function (err, ret) {
             expect('test').assertEqual(ret);
@@ -207,7 +202,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put boolean callback interface test
      */
     it('testPreferencesPutBoolean0122', 0, async function (done) {
-        await mPreferences.clear();
         mPreferences.put(KEY_TEST_BOOLEAN_ELEMENT, true, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_BOOLEAN_ELEMENT, false);
             expect(true).assertEqual(pre);
@@ -227,7 +221,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put float callback interface test
      */
     it('testPreferencesPutFloat0132', 0, async function (done) {
-        await mPreferences.clear();
         mPreferences.put(KEY_TEST_FLOAT_ELEMENT, 4.0, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_FLOAT_ELEMENT, 0.0);
             expect(4.0).assertEqual(pre);
@@ -247,7 +240,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put int callback interface test
      */
     it('testPreferencesPutInt0142', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_INT_ELEMENT, 4, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_INT_ELEMENT, 0);
             expect(4).assertEqual(pre);
@@ -267,7 +259,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put long callback interface test
      */
     it('testPreferencesPutLong0152', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_LONG_ELEMENT, 4);
         await mPreferences.put(KEY_TEST_LONG_ELEMENT, 4, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_LONG_ELEMENT, 0);
@@ -288,7 +279,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put String callback interface test
      */
     it('testPreferencesPutString0162', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_STRING_ELEMENT, '', async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_STRING_ELEMENT, "defaultvalue")
             expect('').assertEqual(pre);
@@ -346,14 +336,12 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put String callback interface test
      */
     it('testPreferencesPutStringArray0001', 0, async function (done) {
-        await mPreferences.clear();
         var stringArr = ['11', '22', '33']
         mPreferences.put(KEY_TEST_STRING_ARRAY_ELEMENT, stringArr, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_STRING_ARRAY_ELEMENT, ['123', '321'])
             for (let i = 0; i < stringArr.length; i++) {
                 expect(stringArr[i]).assertEqual(pre[i]);
             }
-
             done();
         });
     })
@@ -364,7 +352,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put String callback interface test
      */
     it('testPreferencesPutNumArray0001', 0, async function (done) {
-        await mPreferences.clear();
         var doubleArr = [11, 22, 33]
         mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, doubleArr, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_NUMBER_ARRAY_ELEMENT, [123, 321])
@@ -381,7 +368,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put String callback interface test
      */
     it('testPreferencesPutBoolArray0001', 0, async function (done) {
-        await mPreferences.clear();
         let boolArr = [true, false, false, true]
         await mPreferences.put(KEY_TEST_BOOL_ARRAY_ELEMENT, boolArr, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_BOOL_ARRAY_ELEMENT, [true, false])
@@ -398,7 +384,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc getAll callback interface test
      */
     it('testPreferencesGetAll0001', 0, async function (done) {
-        await mPreferences.clear();
         let doubleArr = [11, 22, 33]
         let stringArr = ['11', '22', '33']
         let boolArr = [true, false, false, true]
@@ -408,9 +393,6 @@ describe('PreferencesCallBackJsunit', function () {
         await mPreferences.put(KEY_TEST_BOOLEAN_ELEMENT, false)
         await mPreferences.put(KEY_TEST_STRING_ELEMENT, "123")
         await mPreferences.put(KEY_TEST_FLOAT_ELEMENT, 123.1)
-        
-        await mPreferences.flush()
-
         await mPreferences.getAll(function (err, obj) {
             expect(false).assertEqual(obj.key_test_boolean)
             expect("123").assertEqual(obj.key_test_string)
@@ -419,17 +401,14 @@ describe('PreferencesCallBackJsunit', function () {
             for (let i = 0; i < sArr.length; i++) {
                 expect(sArr[i]).assertEqual(stringArr[i]);
             }
-
             let bArr = obj.key_test_bool_array
             for (let i = 0; i < bArr.length; i++) {
                 expect(bArr[i]).assertEqual(boolArr[i]);
             }
-
             let nArr = obj.key_test_number_array
             for (let i = 0; i < nArr.length; i++) {
                 expect(nArr[i]).assertEqual(doubleArr[i]);
             }
-
             done()
         })
     })
@@ -457,7 +436,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc flush empty array callback interface test
      */
     it('testPreferencesFlushEmptyArray0001', 0, async function (done) {
-        await mPreferences.clear();
         let value = new Array();
         await mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, value, async function(err, ret) {
             if (err) {
@@ -484,7 +462,6 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc flush empty array callback interface test
      */
     it('testPreferencesFlushEmptyArray0002', 0, async function (done) {
-        await mPreferences.clear();
         await mPreferences.put(KEY_TEST_NUMBER_ARRAY_ELEMENT, [], async function(err, ret) {
             if (err) {
                 expect(null).assertFail();

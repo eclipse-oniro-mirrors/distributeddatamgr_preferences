@@ -47,7 +47,6 @@ describe('PreferencesHelperJsunit', function () {
      * @tc.desc getPreferences interface test
      */
     it('testGetPreferencesHelper001', 0, async function () {
-        mPreferences = await data_preferences.getPreferences(context, NAME);
         await mPreferences.put('test', 2);
         var value = await mPreferences.get('test', 0);
         expect(value).assertEqual(2);
@@ -62,7 +61,6 @@ describe('PreferencesHelperJsunit', function () {
         const promise = data_preferences.getPreferences(context, NAME);
         await promise.then(async (pref) => {
             await pref.put('test', 2);
-            await pref.flush();
             var value = await mPreferences.get('test', 0);
             done();
             expect(value).assertEqual(2);

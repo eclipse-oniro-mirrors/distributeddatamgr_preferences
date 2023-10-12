@@ -127,7 +127,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc get defaultValue callback interface test
      */
     it('testGetDefValue0062', 0, function (done) {
-        mPref.clearSync();
         mPref.get(KEY_TEST_STRING_ELEMENT, "defaultValue", function (err, ret) {
             expect('defaultValue').assertEqual(ret);
             done();
@@ -140,7 +139,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc get float callback interface test
      */
     it('testGetFloat0072', 0, function (done) {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_FLOAT_ELEMENT, 3.0);
         mPref.get(KEY_TEST_FLOAT_ELEMENT, 0.0, function (err, ret) {
             expect(3.0).assertEqual(ret);
@@ -154,7 +152,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc get int callback interface test
      */
     it('testGetInt0082', 0, function (done) {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_INT_ELEMENT, 3);
         mPref.get(KEY_TEST_INT_ELEMENT, 0.0, function (err, ret) {
             expect(3).assertEqual(ret);
@@ -168,7 +165,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc get long callback interface test
      */
     it('testGetLong0092', 0, function (done) {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_LONG_ELEMENT, 3);
         expect(3).assertEqual(mPref.getSync(KEY_TEST_LONG_ELEMENT, 0));
         mPref.get(KEY_TEST_LONG_ELEMENT, 0, function (err, ret) {
@@ -183,7 +179,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc get String callback interface test
      */
     it('testGetString102', 0, function (done) {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_STRING_ELEMENT, "test");
         mPref.flushSync();
         mPref.get(KEY_TEST_STRING_ELEMENT, "defaultvalue", function (err, ret) {
@@ -198,7 +193,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc put boolean callback interface test
      */
     it('testPutBoolean0122', 0, function (done) {
-        mPref.clearSync();
         mPref.put(KEY_TEST_BOOLEAN_ELEMENT, true, function (err, ret) {
             expect(true).assertEqual(mPref.getSync(KEY_TEST_BOOLEAN_ELEMENT, false));
             mPref.flushSync();
@@ -216,7 +210,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc put float callback interface test
      */
     it('testPutFloat0132', 0, function (done) {
-        mPref.clearSync();
         mPref.put(KEY_TEST_FLOAT_ELEMENT, 4.0, function (err, ret) {
             expect(4.0).assertEqual(mPref.getSync(KEY_TEST_FLOAT_ELEMENT, 0.0));
             mPref.flushSync();
@@ -234,7 +227,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc put int callback interface test
      */
     it('testPutInt0142', 0, function (done) {
-        mPref.clearSync();
         mPref.put(KEY_TEST_INT_ELEMENT, 4,  function (err, ret) {
             expect(4).assertEqual(mPref.getSync(KEY_TEST_INT_ELEMENT, 0));
             mPref.flushSync();
@@ -252,7 +244,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc put long callback interface test
      */
     it('testPutLong0152', 0, function (done) {
-        mPref.clearSync();
         mPref.putSync(KEY_TEST_LONG_ELEMENT, 4);
         mPref.put(KEY_TEST_LONG_ELEMENT, 4, function (err, ret) {
             expect(4).assertEqual(mPref.getSync(KEY_TEST_LONG_ELEMENT, 0));
@@ -271,7 +262,6 @@ describe('StorageCallBackJsunit', function () {
      * @tc.desc put String callback interface test
      */
     it('testPutString0162', 0, function (done) {
-        mPref.clearSync();
         mPref.put(KEY_TEST_STRING_ELEMENT, '', function (err, ret) {
             expect('').assertEqual(mPref.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue"));
             mPref.flushSync();
