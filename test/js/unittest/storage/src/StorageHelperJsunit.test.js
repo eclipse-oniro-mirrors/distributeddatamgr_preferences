@@ -22,12 +22,20 @@ var mPref;
 describe('StorageHelperJsunit', function () {
     beforeAll(function () {
         console.info('beforeAll')
+    })
+
+    beforeEach(function () {
+        console.info('beforeEach');
         mPref = storage.getStorageSync(PATH);
+    })
+
+    afterEach(function () {
+        console.info('afterEach');
+        storage.deleteStorageSync(PATH);
     })
 
     afterAll(function () {
         console.info('afterAll')
-        storage.deleteStorageSync(PATH);
     })
 
     /**
@@ -35,10 +43,8 @@ describe('StorageHelperJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Storage_0010
      * @tc.desc getStorageSync interface test
      */
-    it('testGetStorageHelper001', 0, function () {
-        mPref = storage.getStorageSync(PATH);
+    it('testGetStorageHelper001', 0, async function () {
         mPref.putSync('test', 2);
-        mPref.flushSync();
         var value = mPref.getSync('test', 0);
         expect(value).assertEqual(2);
     })
@@ -48,18 +54,15 @@ describe('StorageHelperJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Storage_0020
      * @tc.desc getStorage interface test
      */
-    it('testGetStorageHelper002', 0, async function (done) {
+    it('testGetStorageHelper002', 0, async function () {
         const promise = storage.getStorage(PATH);
-        promise.then((pref) => {
+        await promise.then((pref) => {
             pref.putSync('test', 2);
-            pref.flushSync();
             var value = mPref.getSync('test', 0);
             expect(value).assertEqual(2);
         }).catch((err) => {
             expect(null).assertFail();
         });
-        await promise;
-        done();
     })
 
     /**
@@ -68,32 +71,31 @@ describe('StorageHelperJsunit', function () {
      * @tc.desc removeStorageFromCacheSync interface test
      */
     it('testRemoveStorageFromCache001', 0, function () {
-        let perf = storage.getStorageSync('/data/test_storage1');
+        let perf = storage.getStorageSync('/data/storage/el2/database/test_storage1');
         perf.putSync('test', 2);
+        perf.flushSync();
         try {
-            storage.removeStorageFromCacheSync('/data/test_storage1');
+            storage.removeStorageFromCacheSync('/data/storage/el2/database/test_storage1');
         } catch (e) {
             expect(null).assertFail();
         }
-        var value = mPref.getSync('test', 0);
+        perf = storage.getStorageSync('/data/storage/el2/database/test_storage1');
+        var value = perf.getSync('test', 0);
         expect(value).assertEqual(2);
     })
-
     /**
      * @tc.name removeStorageFromCache interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Storage_0040
      * @tc.desc removeStorageFromCache interface test
      */
-    it('testRemoveStorageFromCache002', 0, async function (done) {
+    it('testRemoveStorageFromCache002', 0, async function () {
         let perf = storage.getStorageSync('/data/test_storage2');
         perf = null;
         const promise = storage.removeStorageFromCache('/data/test_storage2');
-        promise.then((pref) => {
+        await promise.then((pref) => {
         }).catch((err) => {
             expect(null).assertFail();
-        });
-        await promise;
-        done();
+        }); 
     })
 
     /**
@@ -120,15 +122,13 @@ describe('StorageHelperJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Storage_0060
      * @tc.desc deleteStorage interface test
      */
-    it('testDeleteStorageHelper002', 0, async function (done) {
+    it('testDeleteStorageHelper002', 0, async function () {
         let perf = storage.getStorageSync('/data/test_storage4');
         perf = null;
         const promise = storage.deleteStorage('/data/test_storage4');
-        promise.then((pref) => {
+        await promise.then((pref) => {
         }).catch((err) => {
             expect(null).assertFail();
         });
-        await promise;
-        done();
     })
 })

@@ -22,15 +22,23 @@ const KEY_TEST_STRING_ELEMENT = 'key_test_string';
 var mPreferences;
 var context;
 describe('PreferencesHelperJsunit', function () {
-    beforeAll(async function () {
-        console.info('beforeAll')
-        context = featureAbility.getContext()
+    beforeAll(function () {
+        console.info('beforeAll');
+        context = featureAbility.getContext();
+    })
+
+    beforeEach(async function () {
+        console.info('beforeEach');
         mPreferences = await data_preferences.getPreferences(context, NAME);
     })
 
-    afterAll(async function () {
-        console.info('afterAll')
+    afterEach(async function () {
+        console.info('afterEach');
         await data_preferences.deletePreferences(context, NAME);
+    })
+
+    afterAll(function () {
+        console.info('afterAll')
     })
 
     /**
@@ -39,9 +47,7 @@ describe('PreferencesHelperJsunit', function () {
      * @tc.desc getPreferences interface test
      */
     it('testGetPreferencesHelper001', 0, async function () {
-        mPreferences = await data_preferences.getPreferences(context, NAME);
         await mPreferences.put('test', 2);
-        await mPreferences.flush();
         var value = await mPreferences.get('test', 0);
         expect(value).assertEqual(2);
     })
@@ -53,16 +59,14 @@ describe('PreferencesHelperJsunit', function () {
      */
     it('testGetPreferencesHelper002', 0, async function (done) {
         const promise = data_preferences.getPreferences(context, NAME);
-        promise.then(async (pref) => {
+        await promise.then(async (pref) => {
             await pref.put('test', 2);
-            await pref.flush();
             var value = await mPreferences.get('test', 0);
             done();
             expect(value).assertEqual(2);
         }).catch((err) => {
             expect(null).assertFail();
         });
-        await promise;
     })
 
     /**
@@ -144,16 +148,14 @@ describe('PreferencesHelperJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_removePreferencesFromCache_001
      * @tc.desc removePreferencesFromCache interface test
      */
-    it('testRemovePreferencesFromCache001', 0, async function (done) {
+    it('testRemovePreferencesFromCache001', 0, async function () {
         let perf = await data_preferences.getPreferences(context, NAME);
         perf = null;
         const promise = data_preferences.removePreferencesFromCache(context, NAME);
-        promise.then((pref) => {
+        await promise.then((pref) => {
         }).catch((err) => {
             expect(null).assertFail();
         });
-        await promise;
-        done();
     })
 
     /**
@@ -191,16 +193,14 @@ describe('PreferencesHelperJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_deletePreferences_001
      * @tc.desc deletePreferences interface test
      */
-    it('testDeletePreferencesHelper001', 0, async function (done) {
+    it('testDeletePreferencesHelper001', 0, async function () {
         let perf = await data_preferences.getPreferences(context, NAME);
         perf = null;
         const promise = data_preferences.deletePreferences(context, NAME);
-        promise.then((pref) => {
+        await promise.then((pref) => {   
         }).catch((err) => {
             expect(null).assertFail();
         });
-        await promise;
-        done();
     })
 
     /**
