@@ -18,11 +18,7 @@ group("unittest") {
   testonly = true
   deps = []
 
-  deps += [
-    "unittest/preferences/src:unittest",
-    "unittest/storage/src:unittest",
-    "unittest/system_storage/src:unittest",
-  ]
+  deps += [ ]
 }
 
 #################################performance#########################################
@@ -30,6 +26,14 @@ group("performancetest") {
   testonly = true
   deps = []
 
-  deps += [ "performance/preferences/src:performancetest" ]
+  deps += [  ]
+}
+###############################################################################
+
+group("stage_unittest") {
+  testonly = true
+  deps = []
+
+  deps += [ "stage_unittest/preferences/src:stage_unittest" ]
 }
 ###############################################################################
