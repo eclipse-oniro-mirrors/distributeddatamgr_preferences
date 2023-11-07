@@ -4,7 +4,7 @@
         "type": "entry",
         "srcEntrance": "./ets/Application/AbilityStage.ts",
         "description": "$string:testModule_entry_dsc",
-        "mainElement": "TestAbility",
+        "mainElement": "MainAbility",
         "deviceTypes": [
             "default",
             "tablet",
@@ -28,7 +28,7 @@
         ],
         "abilities": [
             {
-                "name": "TestAbility",
+                "name": "MainAbility",
                 "srcEntrance": "./ets/MainAbility/MainAbility.ts",
                 "description": "$string:testModule_entry_main",
                 "icon": "$media:icon",

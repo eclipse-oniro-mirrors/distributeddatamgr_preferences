@@ -19,7 +19,7 @@ group("unittest") {
   deps = []
 
   deps += [
-     "unittest/preferences/src:unittest",
+    "unittest/preferences/src:unittest",
     "unittest/storage/src:unittest",
     "unittest/system_storage/src:unittest",
   ]
@@ -38,6 +38,6 @@ group("stage_unittest") {
   testonly = true
   deps = []
 
-  deps += [ "stage_unittest/preferences/src:stage_unittest" ]
+  deps += [ "unittest/stage_unittest/preferences/src:stage_unittest" ]
 }
 ###############################################################################
