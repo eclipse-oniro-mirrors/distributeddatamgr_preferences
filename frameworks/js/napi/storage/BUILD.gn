@@ -26,6 +26,12 @@ if (!is_mingw && !is_mac) {
   }
 
   ohos_shared_library("storage") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
     include_dirs = [
       "include",
       "../common/include",
