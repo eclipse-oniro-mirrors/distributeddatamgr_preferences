@@ -142,6 +142,26 @@ void PreferencesObserverCrossProcess::OnChange(const std::string &key)
 }
 
 /**
+ * @tc.name: NativePreferencesGroupIdTest_001
+ * @tc.desc: normal testcase of GetGroupId
+ * @tc.type: FUNC
+ * @tc.require: AR000CU2BN
+ * @tc.author: lirui
+ */
+HWTEST_F(PreferencesTest, NativePreferencesGroupIdTest_001, TestSize.Level1)
+{
+    int errCode = E_OK;
+    Options option = Options("/data/test/test1", "ohos.test.demo", "2002001");
+    std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(option, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    EXPECT_EQ(preferences->GetGroupId(), "2002001");
+
+    preferences = nullptr;
+    int ret = PreferencesHelper::DeletePreferences("/data/test/test1");
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
  * @tc.name: NativePreferencesTest_001
  * @tc.desc: normal testcase of FlushSync
  * @tc.type: FUNC
