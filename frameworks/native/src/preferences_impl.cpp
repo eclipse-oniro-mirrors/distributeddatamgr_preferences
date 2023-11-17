@@ -154,6 +154,7 @@ void PreferencesImpl::AwaitLoadFile()
 
 void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr)
 {
+    std::unique_lock<std::mutex> lock(pref->writeToDiskMutex_);
     if (!pref->CheckRequestValidForStateGeneration(mcr)) {
         mcr->SetDiskWriteResult(true, E_OK);
         return;
@@ -494,7 +495,6 @@ int PreferencesImpl::FlushSync()
 {
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = true;
-    std::unique_lock<std::mutex> lock(request->reqMutex_);
     PreferencesImpl::WriteToDiskFile(shared_from_this(), request);
     if (request->wasWritten_) {
         LOG_DEBUG("Successfully written to disk file, memory state generation is %{public}" PRId64 "",

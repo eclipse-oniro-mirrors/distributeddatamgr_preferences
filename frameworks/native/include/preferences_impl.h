@@ -175,7 +175,6 @@ private:
         bool isSyncRequest_;
         int64_t memoryStateGeneration_;
         std::map<std::string, PreferencesValue> writeToDiskMap_;
-        std::mutex reqMutex_;
         std::condition_variable reqCond_;
         std::list<std::string> keysModified_;
         std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
@@ -207,6 +206,7 @@ private:
     int64_t diskStateGeneration_;
 
     std::mutex mutex_;
+    std::mutex writeToDiskMutex_;
     std::condition_variable cond_;
 
     std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
