@@ -75,7 +75,10 @@ if (is_ohos) {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
 
-    innerapi_tags = [ "platformsdk" ]
+    innerapi_tags = [
+      "platformsdk",
+      "sasdk",
+    ]
 
     configs = [ ":native_preferences_config" ]
 
