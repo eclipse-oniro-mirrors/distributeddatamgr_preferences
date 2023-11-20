@@ -28,7 +28,7 @@
         ],
         "abilities": [
             {
-                "name": "MainAbility",
+                "name": "com.example.myapplication.MainAbility",
                 "srcEntrance": "./ets/MainAbility/MainAbility.ts",
                 "description": "$string:testModule_entry_main",
                 "icon": "$media:icon",

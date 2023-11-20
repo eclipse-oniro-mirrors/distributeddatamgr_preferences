@@ -12,17 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Ability from '@ohos.app.ability.UIAbility'
-import AbilityDelegatorRegistry from "@ohos.app.ability.abilityDelegatorRegistry";
-indow from "@ohos.window";
+//OpenHarmary\vendor\unionman\unionpi_tiger\sample\app\distra-game\entry\src\ohosTest\ets\testability\TestAbility.ets
+import UIAbility from '@ohos.app.ability.UIAbility'
 
-export default class TestAbility extends Ability {
+export default class TestAbility extends UIAbility {
     onCreate(want, launchParam) {
-        console.log('TestAbility onCreate');
-        var abilityDelegator: any;
-        abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
-        var abilityDelegatorArguments: any;
-        abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments();
     }
 
     onDestroy() {
@@ -32,7 +26,6 @@ export default class TestAbility extends Ability {
     onWindowStageCreate(windowStage) {
         console.log('TestAbility onWindowStageCreate');
         windowStage.setUIContent(this.context, 'TestAbility/pages/index', null);
-
         globalThis.abilityContext = this.context;
     }
 
