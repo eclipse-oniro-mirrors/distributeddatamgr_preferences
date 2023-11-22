@@ -13,7 +13,8 @@
 * limitations under the License.
 */
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from 'deccjsunit/index'
-import data_preferences from '@ohos.data.preferences'
+import data_preferences from '@ohos.data.preferences';
+import util from '@ohos.util';
 import featureAbility from '@ohos.ability.featureAbility';
 
 const NAME = 'test_preferences';
@@ -22,9 +23,10 @@ const KEY_TEST_LONG_ELEMENT = 'key_test_long';
 const KEY_TEST_FLOAT_ELEMENT = 'key_test_float';
 const KEY_TEST_BOOLEAN_ELEMENT = 'key_test_boolean';
 const KEY_TEST_STRING_ELEMENT = 'key_test_string';
-const KEY_TEST_NUMBER_ARRAY_ELEMENT = 'key_test_number_array'
-const KEY_TEST_STRING_ARRAY_ELEMENT = 'key_test_string_array'
-const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array'
+const KEY_TEST_NUMBER_ARRAY_ELEMENT = 'key_test_number_array';
+const KEY_TEST_STRING_ARRAY_ELEMENT = 'key_test_string_array';
+const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array';
+const KEY_TEST_UINT8ARRAY = 'key_test_uint8array';
 var mPreferences;
 var context;
 
@@ -88,6 +90,18 @@ describe('PreferencesPromiseJsunit', function () {
         for (let i = 0; i < boolArr.length; i++) {
             expect(boolArr[i]).assertEqual(pre[i]);
         }
+    });
+
+    /**
+     * @tc.name put Uint8Array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0134
+     * @tc.desc put Uint8Array promise interface test
+     */
+    it('testPreferencesPutUint8Array0134', 0, async function () {
+        let uInt8Array = new util.TextEncoder().encodeInto("π\\n\\b@.(){},");
+        await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
+        let promise = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+        expect(uInt8Array.toString() === promise.toString()).assertTrue();
     });
 
     /**
@@ -295,6 +309,22 @@ describe('PreferencesPromiseJsunit', function () {
     })
 
     /**
+     * @tc.name get Uint8Array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0080
+     * @tc.desc get Uint8Array promise interface test
+     */
+    it('tesPreferencesGetUint8Array102', 0, async function () {
+        let uInt8Array = new util.TextEncoder().encodeInto("π\\n\\b@.(){},");
+        await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
+        const promise = mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+        await promise.then((ret) => {
+            expect(uInt8Array.toString() === ret.toString()).assertTrue();
+        }).catch((err) => {
+            expect(null).assertFail();
+        });
+    })
+
+    /**
      * @tc.name put boolean promise interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0090
      * @tc.desc put boolean promise interface test
@@ -465,4 +495,67 @@ describe('PreferencesPromiseJsunit', function () {
             expect(null).assertFail();
         });
     })
+
+    /**
+     * @tc.name put Uint8Array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0201
+     * @tc.desc put Uint8Array promise interface test
+     */
+    it('testPreferencesPutUint8Array0201', 0, async function () {
+        let uInt8Array = new util.TextEncoder().encodeInto("abc@#$%123");
+        const promise = mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
+        await promise.then(async (ret) => {
+            let pre = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            expect(uInt8Array.toString() === pre.toString()).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            expect(uInt8Array.toString() === pre2.toString()).assertTrue();
+        }).catch((err) => {
+            expect(null).assertFail();
+        });
+    })
+
+    /**
+     * @tc.name put Uint8Array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0202
+     * @tc.desc put Uint8Array promise interface test
+     */
+    it('testPreferencesPutUint8Array0202', 0, async function () {
+        let uInt8Array = new Uint8Array(8192);
+        uInt8Array.fill(100);
+        const promise = mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
+        await promise.then(async (ret) => {
+            let pre = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            expect(uInt8Array.toString() === pre.toString()).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            expect(uInt8Array.toString() === pre2.toString()).assertTrue();
+        }).catch((err) => {
+            expect(null).assertFail();
+        });
+    })
+
+    /**
+     * @tc.name put Uint8Array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0203
+     * @tc.desc put Uint8Array promise interface test
+     */
+    it('testPreferencesPutUint8Array0203', 0, async function (done) {
+        let uInt8Array = new Uint8Array(8193);
+        uInt8Array.fill(100);
+        try {
+            await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code + ", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
 })

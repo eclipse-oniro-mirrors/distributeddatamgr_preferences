@@ -45,6 +45,7 @@ config("adaptor_config") {
 base_sources = [
   "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
   "${preferences_native_path}/platform/src/preferences_thread.cpp",
+  "${preferences_native_path}/src/base64_helper.cpp",
   "${preferences_native_path}/src/preferences_helper.cpp",
   "${preferences_native_path}/src/preferences_impl.cpp",
   "${preferences_native_path}/src/preferences_observer.cpp",

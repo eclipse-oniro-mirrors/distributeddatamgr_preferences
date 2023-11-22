@@ -148,7 +148,7 @@ int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysn
     int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
     PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("value", "string."));
     PRE_CHECK_RETURN_ERR_SET(context->key.length() <= MAX_KEY_LENGTH,
-        std::make_shared<ParamTypeError>("value", "less than 80 bytes."));
+        std::make_shared<ParamTypeError>("key", "less than 80 bytes."));
     return OK;
 }
 

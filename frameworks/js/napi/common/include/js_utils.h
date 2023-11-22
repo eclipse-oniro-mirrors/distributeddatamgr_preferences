@@ -46,6 +46,7 @@ int32_t Convert2NativeValue(napi_env env, napi_value jsValue, float &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, double &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<uint8_t> &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value);
 
@@ -60,6 +61,7 @@ napi_value Convert2JSValue(napi_env env, uint32_t value);
 napi_value Convert2JSValue(napi_env env, bool value);
 napi_value Convert2JSValue(napi_env env, float value);
 napi_value Convert2JSValue(napi_env env, double value);
+napi_value Convert2JSValue(napi_env env, const std::vector<uint8_t> &value);
 napi_value Convert2JSValue(napi_env env, const std::string &value);
 napi_value Convert2JSValue(napi_env env, const std::monostate &value);
 

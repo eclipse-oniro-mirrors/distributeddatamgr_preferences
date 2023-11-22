@@ -135,6 +135,15 @@ public:
     PREF_API_EXPORT PreferencesValue(std::vector<bool> value);
 
     /**
+     * @brief Constructor.
+     *
+     * This constructor is used to convert the vector<uint8_t> input parameter to a value of type PreferencesValue.
+     *
+     * @param value Indicates a vector<uint8_t> input parameter.
+     */
+    PREF_API_EXPORT PreferencesValue(std::vector<uint8_t> value);
+
+    /**
      * @brief Move assignment operator overloaded function.
      */
     PREF_API_EXPORT PreferencesValue &operator=(PreferencesValue &&preferencesValue) noexcept;
@@ -208,6 +217,13 @@ public:
     PREF_API_EXPORT bool IsDoubleArray() const;
 
     /**
+     * @brief Determines whether the uint8 array type PreferencesValue is currently used.
+     *
+     * @return Returning true means it is, false means it isn't.
+     */
+    PREF_API_EXPORT bool IsUint8Array() const;
+
+    /**
      * @brief Type conversion function.
      *
      * @return The int type PreferencesValue.
@@ -271,6 +287,13 @@ public:
     PREF_API_EXPORT operator std::vector<std::string>() const;
 
     /**
+     * @brief Type conversion function.
+     *
+     * @return Returns vector<uint8_t> type PreferencesValue.
+     */
+    PREF_API_EXPORT operator std::vector<uint8_t>() const;
+
+    /**
      * @brief Overloaded operator "==".
      *
      * This function is used to determine whether the input value is equal to the current PreferencesValue.
@@ -282,8 +305,7 @@ public:
     PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
     std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>, std::vector<bool>,
-        std::vector<double>>
-        value_;
+        std::vector<double>, std::vector<uint8_t>> value_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
