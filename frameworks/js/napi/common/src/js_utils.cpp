@@ -32,7 +32,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
         return napi_invalid_arg;
     }
     if (bufferSize > MAX_VALUE_LENGTH) {
-        LOG_ERROR("get std::string maximum length.");
+        LOG_ERROR("string  must be less than the limit length.");
         return EXCEED_MAX_LENGTH;
     }
     char *buffer = (char *)malloc(bufferSize + 1);

@@ -269,7 +269,7 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAy
     }
     if (keyBufferSize > MAX_KEY_LENGTH) {
         LOG_ERROR("the length of the key is over maximum length.");
-        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "less than 80 bytes.");
+        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("key", "less than 80 bytes.");
         asyncContext->SetError(paramError);
         return ERR;
     }
