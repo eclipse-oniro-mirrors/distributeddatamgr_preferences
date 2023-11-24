@@ -46,6 +46,5 @@ ohos_resources("stageprejstest_resources") {
 
 group("stage_unittest") {
   testonly = true
-  deps = []
-  deps += [ ":stagePreferencesJsTest" ]
+  deps = [ ":stagePreferencesJsTest" ]
 }

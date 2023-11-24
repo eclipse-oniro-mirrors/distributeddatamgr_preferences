@@ -47,9 +47,7 @@ struct Index {
         top: 20
       })
       .backgroundColor('#0D9FFB')
-      .onClick(() => {
-
-      })
+      .onClick(() => {})
     }
     .width('100%')
     .height('100%')

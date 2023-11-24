@@ -49,7 +49,7 @@ export default function stagePreferencesCallbackJsTest() {
           })
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code},message is ${errInfo.message}`);
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('401');
         done();
       }
@@ -77,7 +77,7 @@ export default function stagePreferencesCallbackJsTest() {
           })
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code},message is ${errInfo.message}`);
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('401');
         done();
       }
@@ -104,7 +104,7 @@ export default function stagePreferencesCallbackJsTest() {
           })
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code},message is ${errInfo.message}`);
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
         done();
       }
@@ -132,7 +132,7 @@ export default function stagePreferencesCallbackJsTest() {
           })
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code},message is ${errInfo.message}`);
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('401');
         done();
       }
@@ -160,7 +160,7 @@ export default function stagePreferencesCallbackJsTest() {
           })
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code},message is ${errInfo.message}`);
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('401');
         done();
       }
@@ -187,7 +187,7 @@ export default function stagePreferencesCallbackJsTest() {
           })
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code},message is ${errInfo.message}`);
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
         done();
       }
