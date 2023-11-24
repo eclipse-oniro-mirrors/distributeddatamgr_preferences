@@ -20,35 +20,27 @@ import data_preferences from '@ohos.data.preferences'
 const NAME = 'test_preferences';
 var context = globalThis.stageContext;
 export default function stagePreferencesHelperTest() {
-  describe('UnitStagePreferencesHelperTest', function () {
-    beforeAll(function() {
-      console.info('beforeAll caled')
-    })
+    describe('UnitStagePreferencesHelperTest', function () {
+        beforeAll(function() {
+            console.info('beforeAll')
+        })
+        afterAll(async function () {
+            console.info('afterAll');
+            await data_preferences.deletePreferences(context, NAME);
+        })
+        /**
+        * @tc.name getPreferences
+        * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_001
+        * @tc.desc getPreferences interface test
+        */
+        it('testGetPreferencesHelper001', 0, async function (done) {
+            var mPreferences = await data_preferences.getPreferences(context, NAME);
+            await mPreferences.put('test', 2);
+            var value = await mPreferences.get('test', 0);
+            console.log('cjx testGetPreferencesHelper001 success');
+            done();
+            expect(value).assertEqual(2);
+        })
 
-    afterAll(function() {
-      console.info('afterAll caled')
     })
-
-    beforeEach(function() {
-      console.info('beforeEach caled')
-    })
-
-    afterEach(function() {
-      console.info('afterEach caled')
-    })
-    /**
-     * @tc.name getPreferences
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_001
-     * @tc.desc getPreferences interface test
-     */
-    it('testGetPreferencesHelper001', 0, async function (done) {
-        var mPreferences = await data_preferences.getPreferences(context, NAME);
-        await mPreferences.put('test', 2);
-        await mPreferences.flush();
-        var value = await mPreferences.get('test', 0);
-        console.log('cjx testGetPreferencesHelper001 success');
-        done();
-        expect(value).assertEqual(2);
-    })
-  })
 }
