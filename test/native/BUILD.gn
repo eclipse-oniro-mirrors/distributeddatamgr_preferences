@@ -30,6 +30,7 @@ ohos_unittest("NativePreferencesTest") {
   module_out_path = module_output_path
 
   sources = [
+    "unittest/base64_helper_test.cpp",
     "unittest/preferences_file_test.cpp",
     "unittest/preferences_helper_test.cpp",
     "unittest/preferences_test.cpp",

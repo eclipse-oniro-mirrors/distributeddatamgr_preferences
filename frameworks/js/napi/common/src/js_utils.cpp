@@ -93,6 +93,38 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &
     return napi_invalid_arg;
 }
 
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<uint8_t> &output)
+{
+    bool isTypedarray = false;
+    napi_status result = napi_is_typedarray(env, jsValue, &isTypedarray);
+    if (result != napi_ok || !isTypedarray) {
+        LOG_ERROR("napi_is_typedarray fail");
+        return napi_invalid_arg;
+    }
+    napi_typedarray_type type = napi_uint8_array;
+    size_t length = 0;
+    void *data = nullptr;
+    result = napi_get_typedarray_info(env, jsValue, &type, &length, &data, nullptr, nullptr);
+    if (result != napi_ok) {
+        LOG_ERROR("napi_get_typedarray_info fail");
+        return napi_invalid_arg;
+    }
+    if (type != napi_uint8_array) {
+        LOG_ERROR("value is not napi_uint8_array");
+        return napi_invalid_arg;
+    }
+    if (length > MAX_VALUE_LENGTH) {
+        LOG_ERROR("unit8Array must be less than the limit length.");
+        return EXCEED_MAX_LENGTH;
+    }
+    output.clear();
+    if (length > 0) {
+        output.resize(length);
+        output.assign(static_cast<uint8_t*>(data), static_cast<uint8_t*>(data) + length);
+    }
+    return napi_ok;
+}
+
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value)
 {
     napi_value tempValue;
@@ -185,9 +217,31 @@ napi_value JSUtils::Convert2JSValue(napi_env env, float value)
     return jsValue;
 }
 
+napi_value JSUtils::Convert2JSValue(napi_env env, const std::vector<uint8_t> &value)
+{
+    size_t size = value.size();
+    void *data = nullptr;
+    napi_value buffer = nullptr;
+    napi_status ret = napi_create_arraybuffer(env, size, &data, &buffer);
+    if (ret != napi_ok) {
+        LOG_ERROR("napi_create_arraybuffer failed %{public}d", ret);
+        return nullptr;
+    }
+    if (size != 0) {
+        std::copy(value.begin(), value.end(), static_cast<uint8_t*>(data));
+    }
+    napi_value napiValue = nullptr;
+    ret = napi_create_typedarray(env, napi_uint8_array, size, buffer, 0, &napiValue);
+    if (ret != napi_ok) {
+        LOG_ERROR("napi_create_typedarray failed %{public}d", ret);
+        return nullptr;
+    }
+    return napiValue;
+}
+
 napi_value JSUtils::Convert2JSValue(napi_env env, const std::string &value)
 {
-    napi_value jsValue;
+    napi_value jsValue = nullptr;
     if (napi_create_string_utf8(env, value.c_str(), value.size(), &jsValue) != napi_ok) {
         LOG_DEBUG("Convert std::string failed");
         return nullptr;

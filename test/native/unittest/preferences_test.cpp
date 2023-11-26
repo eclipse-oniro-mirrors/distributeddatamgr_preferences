@@ -44,6 +44,7 @@ const std::string KEY_TEST_STRING_ELEMENT = "key_test_string";
 const std::string KEY_TEST_STRING_ARRAY_ELEMENT = "key_test_string_array";
 const std::string KEY_TEST_BOOL_ARRAY_ELEMENT = "key_test_bool_array";
 const std::string KEY_TEST_DOUBLE_ARRAY_ELEMENT = "key_test_double_array";
+const std::string KEY_TEST_UINT8_ARRAY_ELEMENT = "key_test_uint8_array";
 class PreferencesTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -806,9 +807,11 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_026, TestSize.Level1)
     std::vector<std::string> stringArray = { "str1", "str2" };
     std::vector<bool> boolArray = { false, true };
     std::vector<double> doubleArray = { 0.1, 0.2 };
+    std::vector<uint8_t> uint8Array = { 1, 2, 3, 4, 5, 6, 7 };
     pref1->Put(KEY_TEST_STRING_ARRAY_ELEMENT, stringArray);
     pref1->Put(KEY_TEST_BOOL_ARRAY_ELEMENT, boolArray);
     pref1->Put(KEY_TEST_DOUBLE_ARRAY_ELEMENT, doubleArray);
+    pref1->Put(KEY_TEST_UINT8_ARRAY_ELEMENT, uint8Array);
     pref1->FlushSync();
 
     PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
@@ -827,6 +830,10 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_026, TestSize.Level1)
     PreferencesValue doubleArrayRes = pref1->Get(KEY_TEST_DOUBLE_ARRAY_ELEMENT, defValue);
     EXPECT_EQ(doubleArrayRes.IsDoubleArray(), true);
     EXPECT_EQ(static_cast<std::vector<double>>(doubleArrayRes), doubleArray);
+
+    PreferencesValue uint8ArrayRes = pref1->Get(KEY_TEST_UINT8_ARRAY_ELEMENT, defValue);
+    EXPECT_EQ(uint8ArrayRes.IsUint8Array(), true);
+    EXPECT_EQ(static_cast<std::vector<uint8_t>>(uint8ArrayRes), uint8Array);
     PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 
@@ -930,5 +937,9 @@ HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
     std::vector<string> valueVectorString(2, "test");
     std::vector<string> retVectorString = PreferencesValue(valueVectorString);
     EXPECT_EQ(valueVectorString, retVectorString);
+
+    std::vector<uint8_t> valueVectorUint8(3, 1);
+    std::vector<uint8_t> retVectorUint8 = PreferencesValue(valueVectorUint8);
+    EXPECT_EQ(valueVectorUint8, retVectorUint8);
 }
 } // namespace

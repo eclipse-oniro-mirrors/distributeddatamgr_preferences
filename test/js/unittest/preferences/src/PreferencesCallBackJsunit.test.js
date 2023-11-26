@@ -13,7 +13,8 @@
 * limitations under the License.
 */
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index'
-import data_preferences from '@ohos.data.preferences'
+import data_preferences from '@ohos.data.preferences';
+import util from '@ohos.util';
 import featureAbility from '@ohos.ability.featureAbility';
 
 const NAME = 'test_preferences';
@@ -25,6 +26,7 @@ const KEY_TEST_STRING_ELEMENT = 'key_test_string';
 const KEY_TEST_NUMBER_ARRAY_ELEMENT = 'key_test_number_array';
 const KEY_TEST_STRING_ARRAY_ELEMENT = 'key_test_string_array';
 const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array';
+const KEY_TEST_UINT8ARRAY = 'key_test_uint8array';
 var mPreferences;
 var context;
 
@@ -197,6 +199,20 @@ describe('PreferencesCallBackJsunit', function () {
     })
 
     /**
+     * @tc.name get Uint8Array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0140
+     * @tc.desc get Uint8Array callback interface test
+     */
+    it('testPreferencesGetUint8Array103', 0, async function (done) {
+        let uInt8Array = new util.TextEncoder().encodeInto("π\\n\\b@.(){},");
+        await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
+        mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0), function (err, ret) {
+            expect(uInt8Array.toString() === ret.toString()).assertTrue();
+            done();
+        });
+    })
+
+    /**
      * @tc.name put boolean callback interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0080
      * @tc.desc put boolean callback interface test
@@ -331,6 +347,64 @@ describe('PreferencesCallBackJsunit', function () {
     })
 
     /**
+     * @tc.name put Uint8Array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0080
+     * @tc.desc put Uint8Array callback interface test
+     */
+    it('testPreferencesPutUint8Array0182', 0, async function (done) {
+        let uInt8Array = new util.TextEncoder().encodeInto("qweasdzxc@#$%123");
+        mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array, async function (err, ret) {
+            let pre = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            expect(uInt8Array.toString() === pre.toString()).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            done();
+            expect(uInt8Array.toString() === pre2.toString()).assertTrue();
+        });
+    })
+
+    /**
+     * @tc.name put Uint8Array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0080
+     * @tc.desc put Uint8Array callback interface test
+     */
+    it('testPreferencesPutUint8Array0183', 0, async function (done) {
+        let uInt8Array = new Uint8Array(8192);
+        uInt8Array.fill(100);
+        mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array, async function (err, ret) {
+            let pre = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            expect(uInt8Array.toString() === pre.toString()).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            done();
+            expect(uInt8Array.toString() === pre2.toString()).assertTrue();
+        });
+    })
+
+    /**
+     * @tc.name put Uint8Array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0080
+     * @tc.desc put Uint8Array callback interface test
+     */
+    it('testPreferencesPutUint8Array0183', 0, async function (done) {
+        let uInt8Array = new Uint8Array(8193);
+        uInt8Array.fill(100);
+        try {
+            await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect("401").assertEqual(err.code.toString());
+            done();
+        }
+    })
+
+    /**
      * @tc.name put StringArray callback interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0001
      * @tc.desc put String callback interface test
@@ -374,6 +448,20 @@ describe('PreferencesCallBackJsunit', function () {
             for (let i = 0; i < boolArr.length; i++) {
                 expect(boolArr[i]).assertEqual(pre[i]);
             }
+            done();
+        });
+    })
+
+    /**
+     * @tc.name put Uint8Array callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0005
+     * @tc.desc put Uint8Array callback interface test
+     */
+    it('testPreferencesPutUint8Array0001', 0, async function (done) {
+        let uInt8Array = new util.TextEncoder().encodeInto("π\\n\\b@.(){},");
+        await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array, async function (err, ret) {
+            let pre = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0))
+            expect(uInt8Array.toString() === pre.toString()).assertTrue();
             done();
         });
     })

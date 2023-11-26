@@ -22,6 +22,7 @@
 #include <sstream>
 #include <thread>
 
+#include "base64_helper.h"
 #include "executor_pool.h"
 #include "log_print.h"
 #include "preferences_errno.h"
@@ -79,6 +80,11 @@ template<> std::string GetTypeName<std::vector<double>>()
 template<> std::string GetTypeName<std::vector<bool>>()
 {
     return "boolArray";
+}
+
+template<> std::string GetTypeName<std::vector<uint8_t>>()
+{
+    return "uint8Array";
 }
 
 ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
@@ -230,6 +236,13 @@ template<typename T> bool GetPrefValue(const Element &element, T &value)
     return false;
 }
 
+static void Convert2PrefValue(const Element &element, std::vector<uint8_t> &value)
+{
+    if (!Base64Helper::Decode(element.value_, value)) {
+        value.clear();
+    }
+}
+
 template<typename T, typename First, typename... Types> bool GetPrefValue(const Element &element, T &value)
 {
     if (element.tag_ == GetTypeName<First>()) {
@@ -287,6 +300,12 @@ template<typename T> void Convert2Element(Element &elem, const std::vector<T> &v
         Convert2Element(element, val);
         elem.children_.push_back(element);
     }
+}
+
+void Convert2Element(Element &elem, const std::vector<uint8_t> &value)
+{
+    elem.tag_ = GetTypeName<std::vector<uint8_t>>();
+    elem.value_ = Base64Helper::Encode(value);
 }
 
 template<typename T> void GetElement(Element &elem, const T &value)
@@ -408,7 +427,6 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
             return errCode;
         }
     }
-
     AwaitLoadFile();
 
     std::lock_guard<std::mutex> lock(mutex_);
@@ -420,7 +438,6 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
             return E_OK;
         }
     }
-
     map_.insert_or_assign(key, value);
     modifiedKeys_.push_back(key);
     return E_OK;
