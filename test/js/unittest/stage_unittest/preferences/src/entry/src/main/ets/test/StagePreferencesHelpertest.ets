@@ -33,14 +33,12 @@ export default function stagePreferencesHelperTest() {
         * @tc.number SUB_DDM_AppDataFWK_JSPreferences_getPreferences_001
         * @tc.desc getPreferences interface test
         */
-        it('testGetPreferencesHelper001', 0, async function (done) {
+        it('testGetPreferencesHelper001', 0, async function () {
             var mPreferences = await data_preferences.getPreferences(context, NAME);
             await mPreferences.put('test', 2);
             var value = await mPreferences.get('test', 0);
             console.log('cjx testGetPreferencesHelper001 success');
-            done();
             expect(value).assertEqual(2);
         })
-
     })
 }
