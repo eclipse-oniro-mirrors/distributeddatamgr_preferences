@@ -206,7 +206,6 @@ private:
     int64_t diskStateGeneration_;
 
     std::mutex mutex_;
-    std::mutex writeToDiskMutex_;
     std::condition_variable cond_;
 
     std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;

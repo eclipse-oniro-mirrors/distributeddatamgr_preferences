@@ -160,7 +160,7 @@ void PreferencesImpl::AwaitLoadFile()
 
 void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr)
 {
-    std::unique_lock<std::mutex> lock(pref->writeToDiskMutex_);
+    std::unique_lock<std::mutex> lock(pref->mutex_);
     if (!pref->CheckRequestValidForStateGeneration(mcr)) {
         mcr->SetDiskWriteResult(true, E_OK);
         return;
