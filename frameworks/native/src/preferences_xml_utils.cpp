@@ -102,7 +102,8 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataG
             return doc;
         }
         xmlErrorPtr xmlErr = xmlGetLastError();
-        LOG_ERROR("failed to read XML format file, error is %{public}s.", xmlErr->message);
+        std::string errMessage = xmlErr ? xmlErr->message : "";
+        LOG_ERROR("failed to read XML format file, error is %{public}s.", errMessage.c_str());
         if (!RenameToBrokenFile(fileName)) {
             return doc;
         }
@@ -281,7 +282,8 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &dataGr
 
     if (!SaveFormatFileEnc(fileName, doc)) {
         xmlErrorPtr xmlErr = xmlGetLastError();
-        LOG_ERROR("failed to save XML format file, error is %{public}s.", xmlErr->message);
+        std::string errMessage = xmlErr ? xmlErr->message : "";
+        LOG_ERROR("failed to save XML format file, error is %{public}s.", errMessage.c_str());
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
         }
