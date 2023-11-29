@@ -95,12 +95,12 @@ export default function stagePreferencesCallbackJsTest() {
           dataPreferences.deletePreferences(globalThis.abilityContext, Options, function (error) {
             console.info(TAG, `deletePreferences successfully.`);
             expect().assertFail();
-            done();
           })
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
+        done();
       }
     })
 
@@ -172,12 +172,12 @@ export default function stagePreferencesCallbackJsTest() {
           dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
             console.info(TAG, `removePreferencesFromCache successfully.`);
             expect().assertFail();
-            done();
           })
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
+        done();
       }
     })
 
