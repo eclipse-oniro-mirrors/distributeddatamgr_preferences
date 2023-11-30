@@ -475,8 +475,8 @@ int PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
         }
     }
     observers.clear();
-    return hasFailed ? E_ERROR : E_OK;
     LOG_INFO("All observers unsubscribed success.");
+    return hasFailed ? E_ERROR : E_OK;
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS
