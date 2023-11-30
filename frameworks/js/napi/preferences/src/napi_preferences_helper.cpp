@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,9 +61,9 @@ int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<Helper
             napi_get_named_property(env, argv[1], DATA_GROUP_ID, &temp);
             napi_valuetype valueType = napi_null;
             napi_typeof(env, temp, &valueType);
-            if(!(valueType == napi_null || valueType == napi_undefined)){
+            if(!(valueType == napi_null || valueType == napi_undefined)) {
                 PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
-                std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a string."));
+                    std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a string."));
             }
         }
     }
