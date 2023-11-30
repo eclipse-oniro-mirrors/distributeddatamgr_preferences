@@ -61,7 +61,7 @@ int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<Helper
             napi_get_named_property(env, argv[1], DATA_GROUP_ID, &temp);
             napi_valuetype type = napi_undefined;
             napi_status status = napi_typeof(env, jsValue, &type);
-            if (status == napi_ok && type != napi_null && type != napi_undefined) {
+            if (status == napi_ok && （type == napi_null || type == napi_undefined)） {
                 PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
                     std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a string."));
             }
