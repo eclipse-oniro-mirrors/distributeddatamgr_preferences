@@ -40,15 +40,14 @@ export default function stagePreferencesCallbackJsTest() {
       try {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
-          expect().assertFail();
           dataPreferences.deletePreferences(globalThis.abilityContext, Options, function (error) {
             console.info(TAG, `deletePreferences successfully.`);
-            expect().assertFail();
+            done();
           })
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect(errInfo.code).assertEqual('401');
+        expect().assertFail();
         done();
       }
     })
@@ -66,15 +65,14 @@ export default function stagePreferencesCallbackJsTest() {
       try {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
-          expect().assertFail();
           dataPreferences.deletePreferences(globalThis.abilityContext, Options, function (error) {
             console.info(TAG, `deletePreferences successfully.`);
-            expect().assertFail();
+            done();
           })
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect(errInfo.code).assertEqual('401');
+        expect().assertFail();
         done();
       }
     })
@@ -117,15 +115,14 @@ export default function stagePreferencesCallbackJsTest() {
       try {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
-          expect().assertFail();
           dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
             console.info(TAG, `removePreferencesFromCache successfully.`);
-            expect().assertFail();
+            done();
           })
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect(errInfo.code).assertEqual('401');
+        expect().assertFail();
         done();
       }
     })
@@ -143,15 +140,14 @@ export default function stagePreferencesCallbackJsTest() {
       try {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
-          expect().assertFail();
           dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
             console.info(TAG, `removePreferencesFromCache successfully.`);
-            expect().assertFail();
+            done();
           })
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect(errInfo.code).assertEqual('401');
+        expect().assertFail();
         done();
       }
     })
