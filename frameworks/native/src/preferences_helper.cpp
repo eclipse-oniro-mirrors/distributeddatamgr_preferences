@@ -114,12 +114,14 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         return errCode;
     }
 
-    std::lock_guard<std::mutex> lock(prefsCacheMutex_);
     std::string dataGroupId = "";
-    std::map<std::string, std::shared_ptr<Preferences>>::iterator it = prefsCache_.find(realPath);
-    if (it != prefsCache_.end()) {
-        dataGroupId = it->second->GetGroupId();
-        prefsCache_.erase(it);
+    {
+        std::lock_guard<std::mutex> lock(prefsCacheMutex_);
+        std::map<std::string, std::shared_ptr<Preferences>>::iterator it = prefsCache_.find(realPath);
+        if (it != prefsCache_.end()) {
+            dataGroupId = it->second->GetGroupId();
+            prefsCache_.erase(it);
+        }
     }
 
     std::string filePath = realPath.c_str();
@@ -127,8 +129,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string brokenPath = PreferencesImpl::MakeFilePath(filePath, STR_BROKEN);
     std::string lockFilePath = PreferencesImpl::MakeFilePath(filePath, STR_LOCK);
 
-    PreferencesFileLock(lockFilePath, dataGroupId);
-
+    PreferencesFileLock fileLock(lockFilePath, dataGroupId);
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());

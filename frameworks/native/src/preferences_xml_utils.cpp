@@ -95,7 +95,7 @@ static xmlDoc *ReadFile(const std::string &fileName)
 static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataGroupId)
 {
     xmlDoc *doc = nullptr;
-    PreferencesFileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    PreferencesFileLock fileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName);
         if (doc != nullptr) {
@@ -274,7 +274,7 @@ static bool SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
 
 bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &dataGroupId, xmlDoc *doc)
 {
-    PreferencesFileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    PreferencesFileLock fileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
