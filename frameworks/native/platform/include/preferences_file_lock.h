@@ -17,11 +17,22 @@
 #define PREFERENCES_FILE_LOCK_H
 
 #include <chrono>
+#include <map>
+#include <memory>
+#include <mutex>
 #include <string>
 
 #include "preferences_errno.h"
 namespace OHOS {
 namespace NativePreferences {
+
+class PreferencesLockManager {
+public:
+    static std::shared_ptr<std::mutex> Get(const std::string fileName);
+private:
+    static std::map<std::string, std::shared_ptr<std::mutex>> inProcessMutexs_;
+    static std::mutex mapMutex_;
+};
 class PreferencesFileLock final {
 public:
     PreferencesFileLock(const std::string &path, const std::string &dataGroupId);
@@ -29,6 +40,7 @@ public:
 
 private:
     int fd_{ -1 };
+    std::shared_ptr<std::mutex> inProcessMutex_;
 };
 } // namespace NativePreferences
 } // namespace OHOS

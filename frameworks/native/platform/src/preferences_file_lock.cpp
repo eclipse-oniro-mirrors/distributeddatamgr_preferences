@@ -37,12 +37,27 @@ static UNUSED_FUNCTION std::string ExtractFileName(const std::string &path)
     return path.substr(pos + 1);
 }
 
+std::map<std::string, std::shared_ptr<std::mutex>> PreferencesLockManager::inProcessMutexs_;
+std::mutex PreferencesLockManager::mapMutex_;
+
+std::shared_ptr<std::mutex> PreferencesLockManager::Get(const std::string fileName)
+{
+    std::lock_guard<std::mutex> lockMutex(mapMutex_);
+    auto iter = inProcessMutexs_.find(fileName);
+    if (iter != inProcessMutexs_.end()) {
+        return iter->second;
+    }
+    auto res = inProcessMutexs_.insert_or_assign(fileName, std::make_shared<std::mutex>());
+    return res.first->second;
+}
+
 #if !defined(WINDOWS_PLATFORM)
 static const std::chrono::microseconds WAIT_CONNECT_TIMEOUT(20);
 static const int ATTEMPTS = 5;
-
 PreferencesFileLock::PreferencesFileLock(const std::string &path, const std::string &dataGroupId)
+    : inProcessMutex_(PreferencesLockManager::Get(path))
 {
+    inProcessMutex_->lock();
     if (dataGroupId.empty()) {
         return;
     }
@@ -70,6 +85,7 @@ PreferencesFileLock::PreferencesFileLock(const std::string &path, const std::str
 
 PreferencesFileLock::~PreferencesFileLock()
 {
+    inProcessMutex_->unlock();
     if (fd_ > 0) {
         struct flock fileLockInfo = { 0 };
         fileLockInfo.l_type = F_UNLCK;
@@ -89,6 +105,7 @@ PreferencesFileLock::~PreferencesFileLock()
 PreferencesFileLock::PreferencesFileLock(const std::string &path, const std::string &dataGroupId)
 {
     fd_ = -1;
+    inProcessMutex_.reset();
 }
 
 PreferencesFileLock::~PreferencesFileLock()
