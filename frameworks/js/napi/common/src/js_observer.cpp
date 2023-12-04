@@ -24,16 +24,20 @@ JSObserver::JSObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback)
 
 JSObserver::~JSObserver()
 {
-    if (callback_ == nullptr) {
-        return ;
-    }
-    napi_delete_reference(uvQueue_->GetEnv(), callback_);
-    callback_ = nullptr;
 }
 
 napi_ref JSObserver::GetCallback()
 {
     return callback_;
+}
+
+void JSObserver::ClearCallback()
+{
+    if (callback_ == nullptr) {
+        return;
+    }
+    napi_delete_reference(uvQueue_->GetEnv(), callback_);
+    callback_ = nullptr;
 }
 
 void JSObserver::AsyncCall(UvQueue::NapiArgsGenerator genArgs)

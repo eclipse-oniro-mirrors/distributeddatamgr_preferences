@@ -61,7 +61,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs)
             }
             napi_value method = entry->callback(entry->env);
             if (method == nullptr) {
-                LOG_ERROR("the callback is invalid, maybe is cleared!");
+                LOG_WARN("the callback is invalid, maybe is cleared!");
                 napi_close_handle_scope(entry->env, scope);
                 return ;
             }

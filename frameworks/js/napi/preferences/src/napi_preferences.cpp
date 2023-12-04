@@ -452,6 +452,7 @@ int PreferencesProxy::UnRegisteredObserver(napi_value callback, RegisterMode mod
             if (errCode != E_OK) {
                 return errCode;
             }
+            (*it)->ClearCallback();
             it = observers.erase(it);
             LOG_INFO("The observer unsubscribed success.");
             break; // specified observer is current iterator
@@ -473,10 +474,11 @@ int PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
             hasFailed = true;
             LOG_ERROR("The observer unsubscribed has failed, errCode %{public}d.", errCode);
         }
+        observer->ClearCallback();
     }
     observers.clear();
-    return hasFailed ? E_ERROR : E_OK;
     LOG_INFO("All observers unsubscribed success.");
+    return hasFailed ? E_ERROR : E_OK;
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS
