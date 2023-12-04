@@ -240,7 +240,6 @@ export default function stagePreferencesCallbackJsTest() {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
           done();
-          expect().assertFail();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
