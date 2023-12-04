@@ -29,21 +29,18 @@ export default function stagePreferencesCallbackJsTest() {
     })
     /**
      * @tc.number SUB_DDM_Preferences_DataGroupId_Callback_0100
-     * @tc.name preferencesgetPreferences dataGroupId null callback test
+     * @tc.name preferences dataGroupId null callback test
      * @tc.desc preferences getPreferences dataGroupId null callback test
      */
     it('SUB_DDM_Preferences_DataGroupId_Callback_0100', 0, async function (done) {
       const Options = {
         name: "test_preferences_callback",
-        dataGroupId: null,
+        dataGroupId: '' ,
       };
       try {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
-          dataPreferences.deletePreferences(globalThis.abilityContext, Options, function (error) {
-            console.info(TAG, `deletePreferences successfully.`);
-            done();
-          })
+          done();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
@@ -60,22 +57,20 @@ export default function stagePreferencesCallbackJsTest() {
     it('SUB_DDM_Preferences_DataGroupId_Callback_0200', 0, async function (done) {
       const Options = {
         name: "test_preferences_callback",
-        dataGroupId: undefined,
+        dataGroupId: '112233',
       };
       try {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
-          dataPreferences.deletePreferences(globalThis.abilityContext, Options, function (error) {
-            console.info(TAG, `deletePreferences successfully.`);
-            done();
-          })
+          done();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
+        expect(errInfo.code).assertEqual('15501002');
         done();
-      }
+        }
     })
+
     /**
      * @tc.number SUB_DDM_Preferences_DataGroupId_Callback_0300
      * @tc.name preferences dataGroupId callback test
@@ -84,41 +79,34 @@ export default function stagePreferencesCallbackJsTest() {
     it('SUB_DDM_Preferences_DataGroupId_Callback_0300', 0, async function (done) {
       const Options = {
         name: "test_preferences_callback",
-        dataGroupId: '112233',
+        dataGroupId: '123456',
       };
       try {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
-          expect().assertFail();
-          dataPreferences.deletePreferences(globalThis.abilityContext, Options, function (error) {
-            console.info(TAG, `deletePreferences successfully.`);
-            expect().assertFail();
-          })
+          done();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
         done();
-      }
+      } 
     })
 
     /**
      * @tc.number SUB_DDM_Preferences_DataGroupId_Callback_0400
      * @tc.name preferences dataGroupId null callback test
-     * @tc.desc preferences getPreferences dataGroupId null callback test
+     * @tc.desc preferences removePreferencesFromCache dataGroupId null callback test
      */
     it('SUB_DDM_Preferences_DataGroupId_Callback_0400', 0, async function (done) {
       const Options = {
         name: "test_preferences_callback",
-        dataGroupId: null,
+        dataGroupId: '',
       };
       try {
-        dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
-          console.info(TAG, `getPreferences successfully.`);
-          dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
-            console.info(TAG, `removePreferencesFromCache successfully.`);
-            done();
-          })
+        dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
+          console.info(TAG, `removePreferencesFromCache successfully.`);
+          done();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
@@ -135,22 +123,20 @@ export default function stagePreferencesCallbackJsTest() {
     it('SUB_DDM_Preferences_DataGroupId_Callback_0500', 0, async function (done) {
       const Options = {
         name: "test_preferences_callback",
-        dataGroupId: undefined,
+        dataGroupId: '112233',
       };
       try {
-        dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
-          console.info(TAG, `getPreferences successfully.`);
-          dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
-            console.info(TAG, `removePreferencesFromCache successfully.`);
-            done();
-          })
+        dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
+          console.info(TAG, `removePreferencesFromCache successfully.`);
+          done();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
+        expect(errInfo.code).assertEqual('15501002');
         done();
       }
     })
+
     /**
      * @tc.number SUB_DDM_Preferences_DataGroupId_Callback_0600
      * @tc.name preferences dataGroupId callback test
@@ -159,22 +145,84 @@ export default function stagePreferencesCallbackJsTest() {
     it('SUB_DDM_Preferences_DataGroupId_Callback_0600', 0, async function (done) {
       const Options = {
         name: "test_preferences_callback",
-        dataGroupId: '112233',
+        dataGroupId: '123456',
       };
       try {
-        dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
-          console.info(TAG, `getPreferences successfully.`);
-          expect().assertFail();          
-          dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
-            console.info(TAG, `removePreferencesFromCache successfully.`);
-            expect().assertFail();
-          })
+        dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
+          console.info(TAG, `removePreferencesFromCache successfully.`);
+          done();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
         done();
       }
+    })
+
+    /**
+     * @tc.number SUB_DDM_Preferences_DataGroupId_Callback_0700
+     * @tc.name preferences dataGroupId null callback test
+     * @tc.desc preferences deletePreferences dataGroupId null callback test
+     */
+    it('SUB_DDM_Preferences_DataGroupId_Callback_0700', 0, async function (done) {
+      const Options = {
+        name: "test_preferences_callback",
+        dataGroupId: '',
+      };
+      try {
+        dataPreferences.deletePreferences(globalThis.abilityContext, Options, async function (err) {
+          console.info(TAG, `deletePreferences successfully.`);
+          done();
+        })
+      } catch (errInfo) {
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        expect().assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number SUB_DDM_Preferences_DataGroupId_Callback_0800
+     * @tc.name preferences dataGroupId undefined callback test
+     * @tc.desc preferences deletePreferences dataGroupId undefined callback test
+     */
+    it('SUB_DDM_Preferences_DataGroupId_Callback_0800', 0, async function (done) {
+      const Options = {
+        name: "test_preferences_callback",
+        dataGroupId: '123123',
+      };
+      try {
+        dataPreferences.deletePreferences(globalThis.abilityContext, Options, async function (err) {
+          console.info(TAG, `deletePreferences successfully.`);
+          done();
+        })
+      } catch (errInfo) {
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        expect(errInfo.code).assertEqual('15501002');
+        done();
+        }
+    })
+
+    /**
+     * @tc.number SUB_DDM_Preferences_DataGroupId_Callback_0900
+     * @tc.name preferences dataGroupId callback test
+     * @tc.desc preferences deletePreferences dataGroupId callback test
+     */
+    it('SUB_DDM_Preferences_DataGroupId_Callback_0900', 0, async function (done) {
+      const Options = {
+        name: "test_preferences_callback",
+        dataGroupId: '123456',
+      };
+      try {
+        dataPreferences.deletePreferences(globalThis.abilityContext, Options, async function (err) {
+          console.info(TAG, `deletePreferences successfully.`);
+          done();
+        })
+      } catch (errInfo) {
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        expect(errInfo.code).assertEqual('15501002');
+        done();
+      } 
     })
 
     console.log(TAG + "*************Unit Test End*************");

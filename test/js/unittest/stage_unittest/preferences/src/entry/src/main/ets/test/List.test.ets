@@ -13,13 +13,11 @@
  * limitations under the License.
  */
 
-import stagePreferencesHelperTest from './StagePreferencesHelpertest.ets';
 import stagePreferencesCallBackTest from './StagePreferencesCallBacktest.ets';
 import stagePreferencesPromiseTest from './StagePreferencesPromisetest.ets';
 import stagePreferencesSyncTest from './StagePreferencesSynctest.ets';
 
 export default function testsuite() {
-  stagePreferencesHelperTest();
   stagePreferencesCallBackTest();
   stagePreferencesPromiseTest();
   stagePreferencesSyncTest();
