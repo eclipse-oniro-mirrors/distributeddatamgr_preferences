@@ -175,6 +175,8 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when getting all."));
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
@@ -199,6 +201,8 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_create_reference(env, argv[1], 1, &context->inputValueRef);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when getting value."));
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
@@ -213,7 +217,8 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
             result = JSUtils::Convert2JSValue(env, context->defValue.value_);
         }
         napi_delete_reference(env, context->inputValueRef);
-        PRE_CHECK_RETURN_VOID_SET(result != nullptr, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(result != nullptr,
+            std::make_shared<InnerError>("Failed to delete reference when getting value."));
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -230,6 +235,8 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         PRE_CHECK_RETURN_VOID(ParseDefValue(env, argv[1], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when setting value."));
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
@@ -237,7 +244,8 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when setting value."));
         LOG_DEBUG("SetValue end.");
     };
     context->SetAction(env, info, input, exec, output);
@@ -254,6 +262,8 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when deleting value."));
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
@@ -261,7 +271,8 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when deleting value."));
         LOG_DEBUG("Delete end.");
     };
     context->SetAction(env, info, input, exec, output);
@@ -278,6 +289,8 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when having key."));
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
@@ -286,7 +299,8 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_boolean(env, context->hasKey, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get boolean when having key."));
         LOG_DEBUG("HasKey end.");
     };
     context->SetAction(env, info, input, exec, output);
@@ -302,6 +316,8 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when flushing."));
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
@@ -309,7 +325,8 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when flushing."));
         LOG_DEBUG("Flush end.");
     };
     context->SetAction(env, info, input, exec, output);
@@ -325,6 +342,8 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap unwrap when clearing."));
     };
     auto exec = [context]() -> int {
         PreferencesProxy *obj = reinterpret_cast<PreferencesProxy *>(context->boundObj);
@@ -332,7 +351,8 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when clearing."));
         LOG_DEBUG("Clear end.");
     };
     context->SetAction(env, info, input, exec, output);

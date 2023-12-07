@@ -45,7 +45,7 @@ void BaseContext::SetAction(
     if (status == napi_ok) {
         input(env, argc, argv, self);
     } else {
-        error = std::make_shared<InnerError>(NativePreferences::E_ERROR);
+        error = std::make_shared<InnerError>("Failed to set action.");
     }
 
     // if input return is not ok, then napi_throw_error context error
