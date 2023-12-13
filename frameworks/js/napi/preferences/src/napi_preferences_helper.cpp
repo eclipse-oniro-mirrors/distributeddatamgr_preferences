@@ -18,7 +18,6 @@
 
 #include "js_ability.h"
 #include "js_utils.h"
-#include "log_print.h"
 #include "napi_async_call.h"
 #include "napi_preferences_error.h"
 #include "napi_preferences.h"

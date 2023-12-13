@@ -18,7 +18,6 @@
 #include <string>
 
 #include "js_ability.h"
-#include "log_print.h"
 #include "js_utils.h"
 #include "preferences_errno.h"
 #include "preferences_helper.h"
