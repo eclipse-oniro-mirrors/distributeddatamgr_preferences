@@ -16,7 +16,7 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium'
 import dataPreferences from '@ohos.data.preferences';
 
-const TAG = "[ttt]"
+const TAG = "[preferencesStageTest]"
 
 export default function stagePreferencesCallbackJsTest() {
   describe('stagePreferencesCallbackJsTest', function () {
@@ -44,8 +44,8 @@ export default function stagePreferencesCallbackJsTest() {
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
         done();
+        expect().assertFail();
       }
     })
 
@@ -66,8 +66,8 @@ export default function stagePreferencesCallbackJsTest() {
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
         done();
+        expect().assertFail();
         }
     })
 
@@ -85,9 +85,10 @@ export default function stagePreferencesCallbackJsTest() {
         dataPreferences.getPreferences(globalThis.abilityContext, Options, async function (err) {
           console.info(TAG, `getPreferences successfully.`);
           done();
+          expect().assertFail();
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        console.info(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
         done();
       } 
@@ -110,8 +111,8 @@ export default function stagePreferencesCallbackJsTest() {
           })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
         done();
+        expect().assertFail();
       }
     })
 
@@ -132,8 +133,8 @@ export default function stagePreferencesCallbackJsTest() {
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
         done();
+        expect().assertFail();
       }
     })
 
@@ -150,10 +151,11 @@ export default function stagePreferencesCallbackJsTest() {
       try {
         dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options, function (error) {
           console.info(TAG, `removePreferencesFromCache successfully.`);
+          done();
           expect().assertFail();
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        console.info(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
         done();
       }
@@ -176,8 +178,8 @@ export default function stagePreferencesCallbackJsTest() {
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
         done();
+        expect().assertFail();
       }
     })
 
@@ -198,8 +200,8 @@ export default function stagePreferencesCallbackJsTest() {
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect().assertFail();
         done();
+        expect().assertFail();
         }
     })
 
@@ -220,7 +222,7 @@ export default function stagePreferencesCallbackJsTest() {
           expect().assertFail();
         })
       } catch (errInfo) {
-        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        console.info(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
         done();
       } 

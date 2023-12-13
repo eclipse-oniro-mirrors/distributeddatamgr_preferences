@@ -16,7 +16,7 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium'
 import dataPreferences from '@ohos.data.preferences';
 
-const TAG = "[ttt]"
+const TAG = "[preferencesStageTest]"
 
 export default function stagePreferencesPromiseJsTest() {
   describe('stagePreferencesPromiseJsTest', function () {
@@ -78,8 +78,9 @@ export default function stagePreferencesPromiseJsTest() {
       try {
         await dataPreferences.getPreferences(globalThis.abilityContext, Options)
         console.info(TAG, `getPreferences successfully.`);
+        expect().assertFail();
       } catch(errInfo){
-        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        console.info(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
       }
     })
@@ -135,8 +136,9 @@ export default function stagePreferencesPromiseJsTest() {
       try {
         await dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options)
         console.info(TAG, `removePreferencesFromCache successfully.`);
+        expect().assertFail();
       } catch(errInfo){
-        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        console.info(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
       }
     })
@@ -191,8 +193,9 @@ export default function stagePreferencesPromiseJsTest() {
       try {
         await dataPreferences.deletePreferences(globalThis.abilityContext, Options)
         console.info(TAG, `deletePreferences successfully.`);
+        expect().assertFail();
       } catch(errInfo){
-        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        console.info(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
       }
     })
