@@ -23,6 +23,8 @@
 #include <vector>
 #include <type_traits>
 
+#include "log_print.h"
+
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
@@ -76,6 +78,9 @@ template<typename... Types> napi_value Convert2JSValue(napi_env env, const std::
 
 template<typename T> int32_t GetCPPValue(napi_env env, napi_value jsValue, T &value)
 {
+    napi_valuetype type;
+    napi_typeof(env, jsValue, &type);
+    LOG_ERROR("parameter type error, jsValue type is %{public}d", type);
     return napi_invalid_arg;
 }
 

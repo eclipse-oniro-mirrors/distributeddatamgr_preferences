@@ -20,7 +20,6 @@
 #include <cmath>
 #include <list>
 
-#include "log_print.h"
 #include "napi_async_call.h"
 #include "napi_preferences_error.h"
 #include "preferences.h"
