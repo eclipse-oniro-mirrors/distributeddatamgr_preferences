@@ -379,7 +379,7 @@ napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
         } else {
             errCode = ERR;
         }
-        PRE_CHECK_RETURN_VOID_SET(errCode == OK, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(errCode == OK, std::make_shared<InnerError>("type error in get value."));
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -454,7 +454,8 @@ napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(context->env_, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when setting value."));
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -500,7 +501,8 @@ napi_value StorageProxy::Delete(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(context->env_, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when deleting value."));
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -548,7 +550,8 @@ napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_boolean(context->env_, context->hasKey, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get boolean when having key."));
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -570,7 +573,8 @@ napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(context->env_, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when flushing."));
     };
     context->SetAction(env, info, input, exec, output);
     
@@ -617,7 +621,8 @@ napi_value StorageProxy::Clear(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(context->env_, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when clearing."));
     };
     context->SetAction(env, info, input, exec, output);
     

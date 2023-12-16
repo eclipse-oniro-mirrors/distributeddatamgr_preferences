@@ -86,7 +86,8 @@ napi_value GetStorage(napi_env env, napi_callback_info info)
         napi_value path = nullptr;
         napi_create_string_utf8(env, context->path.c_str(), NAPI_AUTO_LENGTH, &path);
         auto ret = StorageProxy::NewInstance(env, path, &result);
-        PRE_CHECK_RETURN_VOID_SET(ret == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(ret == napi_ok,
+            std::make_shared<InnerError>("Failed to get instance when getting storage."));
         LOG_DEBUG("GetPreferences end.");
     };
     context->SetAction(env, info, input, exec, output);
@@ -151,12 +152,14 @@ napi_value DeleteStorage(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         int errCode = PreferencesHelper::DeletePreferences(context->path);
         LOG_DEBUG("DeletePreferences execfunction return %{public}d", errCode);
-        PRE_CHECK_RETURN_ERR_SET(errCode == E_OK, std::make_shared<InnerError>(errCode));
+        PRE_CHECK_RETURN_ERR_SET(errCode == E_OK,
+            std::make_shared<InnerError>("Failed to delete preferences when deleting storage."));
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when deleting storage."));
         LOG_DEBUG("DeletePreferences end.");
     };
     context->SetAction(env, info, input, exec, output);
@@ -199,7 +202,8 @@ napi_value RemoveStorageFromCache(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when removing storage."));
         LOG_DEBUG("RemovePreferencesFromCache end.");
     };
     context->SetAction(env, info, input, exec, output);

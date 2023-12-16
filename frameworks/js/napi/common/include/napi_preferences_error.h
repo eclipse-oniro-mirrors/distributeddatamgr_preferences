@@ -108,6 +108,12 @@ private:
 
 class InnerError : public JSError {
 public:
+    InnerError(const std::string &msg)
+    {
+        code_ = E_INNER_ERROR;
+        msg_ = "Inner error. " + msg;
+    }
+
     InnerError(int code)
     {
         auto iter = ERROR_MAPS.find(code);

@@ -86,7 +86,8 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         auto status = PreferencesProxy::NewInstance(env, context->proxy, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get instance when getting preferences."));
     };
     context->SetAction(env, info, input, exec, output);
 
@@ -106,7 +107,8 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when deleting preferences."));
     };
     context->SetAction(env, info, input, exec, output);
 
@@ -126,7 +128,8 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
-        PRE_CHECK_RETURN_VOID_SET(status == napi_ok, std::make_shared<InnerError>(E_ERROR));
+        PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
+            std::make_shared<InnerError>("Failed to get undefined when removing preferences."));
     };
     context->SetAction(env, info, input, exec, output);
 
