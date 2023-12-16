@@ -92,7 +92,7 @@ napi_value GetStorage(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "GetStorage");
 }
 
 napi_status GetInputPath(napi_env env, napi_callback_info info, std::string &pathString)
@@ -162,7 +162,7 @@ napi_value DeleteStorage(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "DeleteStorage");
 }
 
 napi_value RemoveStorageFromCacheSync(napi_env env, napi_callback_info info)
@@ -205,7 +205,7 @@ napi_value RemoveStorageFromCache(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "RemoveStorageFromCache");
 }
 
 napi_value InitPreferenceHelper(napi_env env, napi_value exports)

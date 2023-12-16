@@ -14,11 +14,14 @@
  */
 
 #include "napi_async_call.h"
+#include <chrono>
 
 namespace OHOS {
 namespace PreferencesJsKit {
 bool g_async = true;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
 bool g_sync = !g_async;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
+static constexpr int64_t ASYNC_PROCESS_WARING_TIME = 500;
+
 void BaseContext::SetAction(
     napi_env env, napi_callback_info info, InputAction input, ExecuteAction exec, OutputAction output)
 {
@@ -90,15 +93,16 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
     }
 }
 
-napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context)
+napi_value AsyncCall::Call(napi_env env, std::shared_ptr<BaseContext> context, const std::string &name)
 {
-    return context->isAsync_ ? Async(env, context) : Sync(env, context);
+    return context->isAsync_ ? Async(env, context, name) : Sync(env, context);
 }
 
-napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context)
+napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context, const std::string &name)
 {
     napi_value promise = nullptr;
 
+    auto start_time = std::chrono::steady_clock::now();
     if (context->callback_ == nullptr) {
         napi_create_promise(env, &context->defer_, &promise);
     } else {
@@ -112,6 +116,11 @@ napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context)
                            reinterpret_cast<void *>(context.get()), &context->work_);
     // add async work to execute queue
     napi_queue_async_work(env, context->work_);
+    auto end_time = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    if (duration.count() > ASYNC_PROCESS_WARING_TIME) {
+        LOG_ERROR("The execution time of %{public}s is %{public}lld.", name.c_str(), duration.count());
+    }
     return promise;
 }
 

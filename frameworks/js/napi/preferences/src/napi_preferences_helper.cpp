@@ -91,7 +91,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "GetPreferences");
 }
 
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
@@ -111,7 +111,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "DeletePreferences");
 }
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
@@ -131,7 +131,7 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "RemovePreferencesFromCache");
 }
 
 napi_value InitPreferencesHelper(napi_env env, napi_value exports)
