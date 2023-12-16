@@ -384,7 +384,7 @@ napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "GetValue");
 }
 
 napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
@@ -460,7 +460,7 @@ napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "SetValue");
 }
 
 napi_value StorageProxy::DeleteSync(napi_env env, napi_callback_info info)
@@ -507,7 +507,7 @@ napi_value StorageProxy::Delete(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "Delete");
 }
 
 napi_value StorageProxy::HasKeySync(napi_env env, napi_callback_info info)
@@ -556,7 +556,7 @@ napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "HasKey");
 }
 
 napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
@@ -579,7 +579,7 @@ napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "Flush");
 }
 
 napi_value StorageProxy::FlushSync(napi_env env, napi_callback_info info)
@@ -627,7 +627,7 @@ napi_value StorageProxy::Clear(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
     
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context);
+    return AsyncCall::Call(env, context, "Clear");
 }
 
 napi_value StorageProxy::RegisterObserver(napi_env env, napi_callback_info info)

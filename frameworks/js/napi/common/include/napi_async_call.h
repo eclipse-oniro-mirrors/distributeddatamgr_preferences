@@ -60,7 +60,7 @@ public:
 
 class AsyncCall final {
 public:
-    static napi_value Call(napi_env env, std::shared_ptr<BaseContext> context);
+    static napi_value Call(napi_env env, std::shared_ptr<BaseContext> context, const std::string &name);
 
 private:
     enum { ARG_ERROR, ARG_DATA, ARG_BUTT };
@@ -69,7 +69,7 @@ private:
     static void OnReturn(napi_env env, napi_status status, void *data);
     static void OnComplete(napi_env env, napi_status status, void *data);
     static void SetBusinessError(napi_env env, napi_value *businessError, std::shared_ptr<JSError> error);
-    static napi_value Async(napi_env env, std::shared_ptr<BaseContext> context);
+    static napi_value Async(napi_env env, std::shared_ptr<BaseContext> context, const std::string &name);
     static napi_value Sync(napi_env env, std::shared_ptr<BaseContext> context);
 };
 } // namespace PreferencesJsKit
