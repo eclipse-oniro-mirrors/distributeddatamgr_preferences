@@ -26,7 +26,6 @@ export default class TestAbility extends UIAbility {
     onWindowStageCreate(windowStage) {
         console.log('TestAbility onWindowStageCreate');
         windowStage.setUIContent(this.context, 'TestAbility/pages/index', null);
-        globalThis.abilityContext = this.context;
     }
 
     onWindowStageDestroy() {

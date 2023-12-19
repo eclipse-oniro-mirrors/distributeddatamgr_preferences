@@ -16,18 +16,17 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
 import data_preferences from '@ohos.data.preferences';
 
-
 const NAME = 'test_preferences_store';
 const TAG = "[stagePreferencesSyncJsTest]"
 const KEY_TEST_STRING_ELEMENT = 'key_test_string';
 let mPreferences;
 
 export default function stagePreferencesSyncJsTest() {
-  describe('stagePreferencesSyncJsTest', function () {
-    beforeAll(async function () {
+  describe('stagePreferencesSyncJsTest', () =>{
+    beforeAll(() => {
       console.info('beforeAll');
     })
-    afterAll(async function () {
+    afterAll(() => {
       console.info('afterAll');
     })
 
@@ -36,7 +35,7 @@ export default function stagePreferencesSyncJsTest() {
      * @tc.name getPreferencesSync interface test
      * @tc.desc getPreferencesSync interface test
      */
-    it('SUB_DDM_Preferences_GetPreferencesSync_0100', 0, async function () {
+    it('SUB_DDM_Preferences_GetPreferencesSync_0100', 0, () => {
       const Options = {
         name: "test_preferences_callback",
         dataGroupId: null,
@@ -44,6 +43,7 @@ export default function stagePreferencesSyncJsTest() {
       try {
         mPreferences = data_preferences.getPreferencesSync(globalThis.abilityContext, Options)
         console.info(TAG, `getPreferences successfully.`);
+        expect(true).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -55,13 +55,15 @@ export default function stagePreferencesSyncJsTest() {
      * @tc.name getPreferencesSync interface test
      * @tc.desc getPreferencesSync interface test
      */
-    it('SUB_DDM_Preferences_GetPreferencesSync_0200', 0, async function () {
+    it('SUB_DDM_Preferences_GetPreferencesSync_0200', 0, () => {
       const Options = {
         name: "test_preferences_callback",
         dataGroupId: undefined,
       };
       try {
         mPreferences = data_preferences.getPreferencesSync(globalThis.abilityContext, Options)
+        console.info(TAG, `getPreferences successfully.`);
+        expect(true).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -71,9 +73,9 @@ export default function stagePreferencesSyncJsTest() {
     /**
      * @tc.number SUB_DDM_Preferences_GetPreferencesSync_0300
      * @tc.name getPreferencesSync interface test
-     * @tc.desc getPreferencesSync interface test
+     * @tc.desc getPreferencesSync error interface test
      */
-    it('SUB_DDM_Preferences_GetPreferencesSync_0300', 0, async function () {
+    it('SUB_DDM_Preferences_GetPreferencesSync_0300', 0, () => {
       const Options = {
         name: "test_preferences_callback",
         dataGroupId: '123123',
@@ -92,7 +94,7 @@ export default function stagePreferencesSyncJsTest() {
      * @tc.name getPreferencesSync interface test
      * @tc.desc getPreferencesSync interface test
      */
-    it('SUB_DDM_Preferences_GetPreferencesSync_0400', 0, async function () {
+    it('SUB_DDM_Preferences_GetPreferencesSync_0400', 0, () => {
       const Options = {
         name: "test_preferences_callback",
         dataGroupId: '123456',
@@ -100,9 +102,10 @@ export default function stagePreferencesSyncJsTest() {
       try {
         mPreferences = data_preferences.getPreferencesSync(globalThis.abilityContext, Options)
         console.info(TAG, `getPreferences successfully.`);
+        expect(true).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect(errInfo.code).assertEqual('15501002');
+        expect().assertFail()
       }
     })
 
@@ -111,13 +114,15 @@ export default function stagePreferencesSyncJsTest() {
      * @tc.name removePreferencesFromCacheSync interface test
      * @tc.desc removePreferencesFromCacheSync interface test
      */
-    it('SUB_DDM_Preferences_removePreferencesFromCacheSync_0100', 0, async function () {
+    it('SUB_DDM_Preferences_removePreferencesFromCacheSync_0100', 0, () => {
       const Options = {
         name: "test_preferences_callback",
         dataGroupId: null,
       };
       try {
         data_preferences.removePreferencesFromCacheSync(globalThis.abilityContext, Options)
+        console.info(TAG, `removePreferencesFromCacheSync successfully.`);
+        expect(true).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -129,13 +134,15 @@ export default function stagePreferencesSyncJsTest() {
      * @tc.name removePreferencesFromCacheSync interface test
      * @tc.desc removePreferencesFromCacheSync interface test
      */
-    it('SUB_DDM_Preferences_removePreferencesFromCacheSync_0200', 0, async function () {
+    it('SUB_DDM_Preferences_removePreferencesFromCacheSync_0200', 0, () => {
       const Options = {
         name: "test_preferences_callback",
         dataGroupId: undefined,
       };
       try {
         data_preferences.removePreferencesFromCacheSync(globalThis.abilityContext, Options)
+        console.info(TAG, `removePreferencesFromCacheSync successfully.`);
+        expect(true).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -147,7 +154,7 @@ export default function stagePreferencesSyncJsTest() {
      * @tc.name removePreferencesFromCacheSync interface test
      * @tc.desc removePreferencesFromCacheSync interface test
      */
-    it('SUB_DDM_Preferences_removePreferencesFromCacheSync_0300', 0, async function () {
+    it('SUB_DDM_Preferences_removePreferencesFromCacheSync_0300', 0, () => {
       const Options = {
         name: "test_preferences_callback",
         dataGroupId: '123123',
@@ -158,6 +165,26 @@ export default function stagePreferencesSyncJsTest() {
       } catch (errInfo) {
         console.info(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect(errInfo.code).assertEqual('15501002');
+      }
+    })
+
+    /**
+     * @tc.number SUB_DDM_Preferences_removePreferencesFromCacheSync_0400
+     * @tc.name removePreferencesFromCacheSync interface test
+     * @tc.desc removePreferencesFromCacheSync interface test
+     */
+    it('SUB_DDM_Preferences_removePreferencesFromCacheSync_0400', 0, () => {
+      const Options = {
+        name: "test_preferences_callback",
+        dataGroupId: '123456',
+      };
+      try {
+        data_preferences.removePreferencesFromCacheSync(globalThis.abilityContext, Options)
+        console.info(TAG, `removePreferencesFromCacheSync successfully.`);
+        expect(true).assertTrue();
+      } catch (errInfo) {
+        console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
+        expect().assertFail();
       }
     })
   })

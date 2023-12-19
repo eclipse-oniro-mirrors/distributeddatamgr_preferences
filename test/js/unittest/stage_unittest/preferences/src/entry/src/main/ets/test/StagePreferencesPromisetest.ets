@@ -17,6 +17,7 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from
 import dataPreferences from '@ohos.data.preferences';
 
 const TAG = "[preferencesStageTest]"
+let preferences: dataPreferences.Preferences | null = null;
 
 export default function stagePreferencesPromiseJsTest() {
   describe('stagePreferencesPromiseJsTest', function () {
@@ -38,8 +39,15 @@ export default function stagePreferencesPromiseJsTest() {
         dataGroupId: null,
       };
       try {
-        await dataPreferences.getPreferences(globalThis.abilityContext, Options)
-        console.info(TAG, `getPreferences successfully.`);
+        let promise = dataPreferences.getPreferences(globalThis.abilityContext, Options)
+        promise.then((object: dataPreferences.Preferences) => {
+          preferences = object;
+          console.info(TAG, `getPreferences successfully.`);
+          expect(preferences !== null).assertTrue();
+        }).catch((error) => {
+          console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
+        })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -57,8 +65,15 @@ export default function stagePreferencesPromiseJsTest() {
         dataGroupId: undefined,
       };
       try {
-        await dataPreferences.getPreferences(globalThis.abilityContext, Options)
-        console.info(TAG, `getPreferences successfully.`);
+        let promise = dataPreferences.getPreferences(globalThis.abilityContext, Options)
+        promise.then((object: dataPreferences.Preferences) => {
+          preferences = object;
+          console.info(TAG, `getPreferences successfully.`);
+          expect(preferences !== null).assertTrue();
+        }).catch((error) => {
+          console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
+        })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -68,7 +83,7 @@ export default function stagePreferencesPromiseJsTest() {
     /**
      * @tc.number SUB_DDM_Preferences_DataGroupId_Promise_0300
      * @tc.name preferences dataGroupId promise test
-     * @tc.desc preferences getPreferences dataGroupId promise test
+     * @tc.desc preferences getPreferences error dataGroupId promise test
      */
     it('SUB_DDM_Preferences_DataGroupId_Promise_0300', 0, async function () {
       const Options = {
@@ -96,8 +111,14 @@ export default function stagePreferencesPromiseJsTest() {
         dataGroupId: null,
       };
       try {
-        await dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options)
-        console.info(TAG, `removePreferencesFromCache successfully.`);
+        let promise = dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options)
+        promise.then(() => {
+          console.info(TAG, `removePreferencesFromCache successfully.`);
+          expect(true).assertTrue();
+        }).catch((error) => {
+          console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
+        })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -115,8 +136,14 @@ export default function stagePreferencesPromiseJsTest() {
         dataGroupId: undefined,
       };
       try {
-        await dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options)
-        console.info(TAG, `removePreferencesFromCache successfully.`);
+        let promise = dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options)
+        promise.then(() => {
+          console.info(TAG, `removePreferencesFromCache successfully.`);
+          expect(true).assertTrue();
+        }).catch((error) => {
+          console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
+        })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -126,7 +153,7 @@ export default function stagePreferencesPromiseJsTest() {
     /**
      * @tc.number SUB_DDM_Preferences_DataGroupId_Promise_0600
      * @tc.name preferences dataGroupId promise test
-     * @tc.desc preferences removePreferencesFromCache dataGroupId promise test
+     * @tc.desc preferences removePreferencesFromCache error dataGroupId promise test
      */
     it('SUB_DDM_Preferences_DataGroupId_Promise_0600', 0, async function () {
       const Options = {
@@ -154,8 +181,14 @@ export default function stagePreferencesPromiseJsTest() {
         dataGroupId: null,
       };
       try {
-        await dataPreferences.deletePreferences(globalThis.abilityContext, Options)
-        console.info(TAG, `deletePreferences successfully.`);
+        let promise = dataPreferences.deletePreferences(globalThis.abilityContext, Options)
+        promise.then(() => {
+          console.info(TAG, `deletePreferences successfully.`);
+          expect(true).assertTrue();
+        }).catch((error) => {
+          console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
+        })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -172,8 +205,14 @@ export default function stagePreferencesPromiseJsTest() {
         dataGroupId: undefined,
       };
       try {
-        await dataPreferences.deletePreferences(globalThis.abilityContext, Options)
-        console.info(TAG, `deletePreferences successfully.`);
+        let promise = dataPreferences.deletePreferences(globalThis.abilityContext, Options)
+        promise.then(() => {
+          console.info(TAG, `deletePreferences successfully.`);
+          expect(true).assertTrue();
+        }).catch((error) => {
+          console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
+        })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -183,7 +222,7 @@ export default function stagePreferencesPromiseJsTest() {
     /**
      * @tc.number SUB_DDM_Preferences_DataGroupId_Promise_0900
      * @tc.name preferences dataGroupId promise test
-     * @tc.desc preferences deletePreferences dataGroupId promise test
+     * @tc.desc preferences deletePreferences error dataGroupId promise test
      */
     it('SUB_DDM_Preferences_DataGroupId_Promise_0900', 0, async function () {
       const Options = {
@@ -211,11 +250,18 @@ export default function stagePreferencesPromiseJsTest() {
         dataGroupId: '123456',
       };
       try {
-        await dataPreferences.getPreferences(globalThis.abilityContext, Options)
-        console.info(TAG, `getPreferences successfully.`);
+        let promise = dataPreferences.getPreferences(globalThis.abilityContext, Options)
+        promise.then((object: dataPreferences.Preferences) => {
+          preferences = object;
+          console.info(TAG, `getPreferences successfully.`);
+          expect(promise !== null).assertTrue();
+        }).catch((error) => {
+          console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
+        })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
-        expect(errInfo.code).assertEqual('15501002');
+        expect().assertFail()
       }
     })
 
