@@ -127,7 +127,6 @@ export default function stagePreferencesCallbackJsTest() {
           }
           console.info(TAG, `removePreferencesFromCache successfully.`);
           done();
-          expect(true).assertTrue();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
@@ -155,7 +154,6 @@ export default function stagePreferencesCallbackJsTest() {
           }
           console.info(TAG, `removePreferencesFromCache successfully.`);
           done();
-          expect(true).assertTrue();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
@@ -206,7 +204,6 @@ export default function stagePreferencesCallbackJsTest() {
           }
           console.info(TAG, `deletePreferences successfully.`);
           done();
-          expect(true).assertTrue();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
@@ -234,7 +231,6 @@ export default function stagePreferencesCallbackJsTest() {
           }
           console.info(TAG, `deletePreferences successfully.`);
           done();
-          expect(true).assertTrue();
         })
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
