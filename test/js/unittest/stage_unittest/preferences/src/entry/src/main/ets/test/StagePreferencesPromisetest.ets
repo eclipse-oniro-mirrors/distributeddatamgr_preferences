@@ -126,6 +126,7 @@ export default function stagePreferencesPromiseJsTest() {
           console.info(TAG, `removePreferencesFromCache successfully.`);
         }).catch((error) => {
           console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
+          expect().assertFail();
         })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
