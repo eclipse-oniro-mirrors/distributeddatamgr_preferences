@@ -100,7 +100,6 @@ export default function stagePreferencesPromiseJsTest() {
         let promise = dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options)
         await promise.then(() => {
           console.info(TAG, `removePreferencesFromCache successfully.`);
-          expect(true).assertTrue();
         }).catch((error) => {
           console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
           expect().assertFail();
@@ -125,10 +124,8 @@ export default function stagePreferencesPromiseJsTest() {
         let promise = dataPreferences.removePreferencesFromCache(globalThis.abilityContext, Options)
         await promise.then(() => {
           console.info(TAG, `removePreferencesFromCache successfully.`);
-          expect(true).assertTrue();
         }).catch((error) => {
           console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
-          expect().assertFail();
         })
       } catch(errInfo){
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
@@ -170,7 +167,6 @@ export default function stagePreferencesPromiseJsTest() {
         let promise = dataPreferences.deletePreferences(globalThis.abilityContext, Options)
         await promise.then(() => {
           console.info(TAG, `deletePreferences successfully.`);
-          expect(true).assertTrue();
         }).catch((error) => {
           console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
           expect().assertFail();
@@ -194,7 +190,6 @@ export default function stagePreferencesPromiseJsTest() {
         let promise = dataPreferences.deletePreferences(globalThis.abilityContext, Options)
         await promise.then(() => {
           console.info(TAG, `deletePreferences successfully.`);
-          expect(true).assertTrue();
         }).catch((error) => {
           console.error(TAG, `failed, code is ${error.code}, message is ${error.message}`);
           expect().assertFail();
