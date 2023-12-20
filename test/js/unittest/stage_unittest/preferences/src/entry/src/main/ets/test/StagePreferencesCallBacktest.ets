@@ -23,6 +23,7 @@ export default function stagePreferencesCallbackJsTest() {
   describe('stagePreferencesCallbackJsTest', ():void =>{
     console.log(TAG + "*************Unit Test Begin*************");
     beforeAll(():void => {
+      console.log('stagePreferencesCallbackJsTest lrui TestAbility context' + globalThis.abilityContext);
       console.info('beforeAll')
     })
     afterAll(():void =>{

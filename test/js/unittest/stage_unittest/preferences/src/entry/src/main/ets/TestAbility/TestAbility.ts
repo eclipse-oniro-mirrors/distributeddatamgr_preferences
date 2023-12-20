@@ -17,6 +17,7 @@ import UIAbility from '@ohos.app.ability.UIAbility'
 
 export default class TestAbility extends UIAbility {
     onCreate(want, launchParam) {
+        console.log('lrui TestAbility context' + this.context);
     }
 
     onDestroy() {

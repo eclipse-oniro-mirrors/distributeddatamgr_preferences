@@ -16,14 +16,13 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
 import data_preferences from '@ohos.data.preferences';
 
-const NAME = 'test_preferences_store';
 const TAG = "[stagePreferencesSyncJsTest]"
-const KEY_TEST_STRING_ELEMENT = 'key_test_string';
 let mPreferences;
 
 export default function stagePreferencesSyncJsTest() {
   describe('stagePreferencesSyncJsTest', () =>{
     beforeAll(() => {
+      console.log('stagePreferencesSyncJsTest lrui TestAbility context' + globalThis.abilityContext);
       console.info('beforeAll');
     })
     afterAll(() => {
@@ -43,7 +42,7 @@ export default function stagePreferencesSyncJsTest() {
       try {
         mPreferences = data_preferences.getPreferencesSync(globalThis.abilityContext, Options)
         console.info(TAG, `getPreferences successfully.`);
-        expect(true).assertTrue();
+        expect(mPreferences !== null).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -63,7 +62,7 @@ export default function stagePreferencesSyncJsTest() {
       try {
         mPreferences = data_preferences.getPreferencesSync(globalThis.abilityContext, Options)
         console.info(TAG, `getPreferences successfully.`);
-        expect(true).assertTrue();
+        expect(mPreferences !== null).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail();
@@ -102,7 +101,7 @@ export default function stagePreferencesSyncJsTest() {
       try {
         mPreferences = data_preferences.getPreferencesSync(globalThis.abilityContext, Options)
         console.info(TAG, `getPreferences successfully.`);
-        expect(true).assertTrue();
+        expect(mPreferences !== null).assertTrue();
       } catch (errInfo) {
         console.error(TAG, `failed, code is ${errInfo.code}, message is ${errInfo.message}`);
         expect().assertFail()
