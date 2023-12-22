@@ -32,4 +32,11 @@ group("performancetest") {
 
   deps += [ "performance/preferences/src:performancetest" ]
 }
+
+###############################################################################
+
+group("stage_unittest") {
+  testonly = true
+  deps = [ "unittest/stage_unittest/preferences/src:stage_unittest" ]
+}
 ###############################################################################

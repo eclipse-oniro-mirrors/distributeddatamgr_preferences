@@ -1,5 +1,5 @@
-﻿/*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+/*
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,8 +58,12 @@ int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<Helper
         if (hasGroupId) {
             temp = nullptr;
             napi_get_named_property(env, argv[1], DATA_GROUP_ID, &temp);
-            PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
-                std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a string."));
+            napi_valuetype type = napi_undefined;
+            napi_status status = napi_typeof(env, temp, &type);
+            if (status == napi_ok && (type != napi_null && type != napi_undefined)) {
+                PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
+                    std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a string."));
+            }
         }
     }
     JSAbility::ContextInfo contextInfo;
