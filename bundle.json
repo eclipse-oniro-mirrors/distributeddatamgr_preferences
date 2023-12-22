@@ -59,8 +59,7 @@
                 "ipc"
             ],
             "third_party": [
-                "libxml2",
-                "googletest"
+                "libxml2"
             ]
         },
         "build": {
