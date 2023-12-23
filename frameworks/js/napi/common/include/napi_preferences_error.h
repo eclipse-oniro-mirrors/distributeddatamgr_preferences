@@ -91,10 +91,10 @@ public:
 
 class ParamTypeError : public JSError {
 public:
-    ParamTypeError(const std::string &name, const std::string &wantType) : name(name), wantType(wantType){};
+    ParamTypeError(const std::string &errmsg) : errmsg_(errmsg){};
     std::string GetMsg() override
     {
-        return "Parameter error. The type of '" + name + "' must be " + wantType;
+        return "Parameter error. " + errmsg_;
     };
     int GetCode() override
     {
@@ -102,8 +102,7 @@ public:
     };
 
 private:
-    std::string name;
-    std::string wantType;
+    std::string errmsg_;
 };
 
 class InnerError : public JSError {

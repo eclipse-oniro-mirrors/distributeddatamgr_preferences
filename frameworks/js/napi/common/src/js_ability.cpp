@@ -16,7 +16,6 @@
 
 #include "extension_context.h"
 #include "log_print.h"
-#include "napi_preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -27,46 +26,47 @@ CONTEXT_MODE GetContextMode(napi_env env, napi_value value)
         bool isStageMode;
         napi_status status = AbilityRuntime::IsStageContext(env, value, isStageMode);
         gContextNode = (status == napi_ok && isStageMode) ? STAGE : FA;
-        LOG_INFO("set gContextNode = %{public}d", gContextNode);
+        LOG_INFO("set gContextNode: %{public}d, status: %{public}d,", gContextNode, status);
     }
     return gContextNode;
 }
 
-int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
+std::shared_ptr<JSError> GetContextInfo(napi_env env, napi_value value,
+    const std::string &dataGroupId, ContextInfo &contextInfo)
 {
     if (GetContextMode(env, value) == STAGE) {
         if (auto stageContext = AbilityRuntime::GetStageModeContext(env, value)) {
             int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
             if (errcode != 0) {
                 LOG_ERROR("GetSystemPreferencesDir fails, rc = %{public}d", errcode);
-                return E_DATA_GROUP_ID_INVALID;
+                return std::make_shared<InnerError>(E_DATA_GROUP_ID_INVALID);
             }
             contextInfo.bundleName = stageContext->GetBundleName();
-            return OK;
+            return nullptr;
         } else {
-            LOG_ERROR("failed to get stage mode context.");
-            return E_INNER_ERROR;
+            LOG_ERROR("failed to get the context of the stage model.");
+            return std::make_shared<ParamTypeError>("The context is invalid.");
         }
     }
 
     if (!dataGroupId.empty()) {
         LOG_ERROR("dataGroupId should be empty in fa mode");
-        return E_NOT_STAGE_MODE;
+        return std::make_shared<InnerError>(E_NOT_STAGE_MODE);
     }
 
     auto ability = AbilityRuntime::GetCurrentAbility(env);
     if (ability == nullptr) {
         LOG_ERROR("failed to get current ability.");
-        return E_INNER_ERROR;
+        return std::make_shared<ParamTypeError>("The context is invalid.");
     }
 
     auto abilityContext = ability->GetAbilityContext();
     if (ability == nullptr) {
         LOG_ERROR("failed to get ability context.");
-        return E_INNER_ERROR;
+        return std::make_shared<ParamTypeError>("The context is invalid.");
     }
     abilityContext->GetSystemPreferencesDir("", false, contextInfo.preferencesDir);
-    return OK;
+    return nullptr;
 }
 } // namespace JSAbility
 } // namespace PreferencesJsKit

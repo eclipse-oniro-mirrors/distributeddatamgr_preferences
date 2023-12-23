@@ -404,7 +404,7 @@ int PreferencesImpl::UnRegisterObserver(std::shared_ptr<PreferencesObserver> pre
             }
             int errcode = dataObsMgrClient->UnregisterObserver(MakeUri(), *it);
             if (errcode != 0) {
-                LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
+                LOG_ERROR("UnRegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
                 return errcode;
             }
             multiProcessObservers_.erase(it);
@@ -423,7 +423,7 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     if (value.IsString()) {
         errCode = CheckStringValue(value);
         if (errCode != E_OK) {
-            LOG_ERROR("PreferencesImpl::Put string value length should shorter than 8*1024");
+            LOG_ERROR("PreferencesImpl::Put string value length should shorter than 8192");
             return errCode;
         }
     }

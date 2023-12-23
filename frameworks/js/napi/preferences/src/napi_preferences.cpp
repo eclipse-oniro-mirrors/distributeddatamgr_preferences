@@ -145,16 +145,16 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
 int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
-    PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("value", "string."));
+    PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("The key must be string."));
     PRE_CHECK_RETURN_ERR_SET(context->key.length() <= MAX_KEY_LENGTH,
-        std::make_shared<ParamTypeError>("key", "less than 80 bytes."));
+        std::make_shared<ParamTypeError>("The key must be less than 80 bytes."));
     return OK;
 }
 
 int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
-    PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("value", "ValueType."));
+    PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("The type of value mast be ValueType."));
     return OK;
 }
 
@@ -372,14 +372,14 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string,
-        std::make_shared<ParamTypeError>("registerMode", "string 'change or multiProcessChange'."));
+        std::make_shared<ParamTypeError>("The registerMode must be string."));
     std::string registerMode;
     JSUtils::Convert2NativeValue(env, args[0], registerMode);
     PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE,
-        std::make_shared<ParamTypeError>("registerMode", "string 'change or multiProcessChange'."));
+        std::make_shared<ParamTypeError>("The registerMode must be 'change' or 'multiProcessChange'."));
 
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
-    PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("callback", "function type."));
+    PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("The callback must be function."));
 
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
@@ -402,17 +402,17 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string,
-        std::make_shared<ParamTypeError>("registerMode", "string change or multiProcessChange."));
+        std::make_shared<ParamTypeError>("The registerMode must be string."));
 
     std::string registerMode;
     JSUtils::Convert2NativeValue(env, args[0], registerMode);
     PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE,
-        std::make_shared<ParamTypeError>("registerMode", "string change or multiProcessChange."));
+        std::make_shared<ParamTypeError>("The registerMode must be 'change' or 'multiProcessChange'."));
 
     if (argc == requireArgc) {
         NAPI_CALL(env, napi_typeof(env, args[1], &type));
         PRE_NAPI_ASSERT(env, type == napi_function || type == napi_undefined || type == napi_null,
-            std::make_shared<ParamTypeError>("callback", "function type."));
+            std::make_shared<ParamTypeError>("The callback must be function."));
     }
 
     PreferencesProxy *obj = nullptr;

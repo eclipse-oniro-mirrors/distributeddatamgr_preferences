@@ -254,7 +254,7 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAy
     napi_typeof(env, arg, &keyType);
     if (keyType != napi_string) {
         LOG_ERROR("ParseKey: key type must be string.");
-        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "string type.");
+        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("The key must be string.");
         asyncContext->SetError(paramError);
         return ERR;
     }
@@ -262,13 +262,13 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAy
     napi_status status = napi_get_value_string_utf8(env, arg, nullptr, 0, &keyBufferSize);
     if (status != napi_ok) {
         LOG_ERROR("ParseKey: get keyBufferSize failed");
-        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("Failed to get keyBufferSize.");
         asyncContext->SetError(paramError);
         return ERR;
     }
     if (keyBufferSize > MAX_KEY_LENGTH) {
         LOG_ERROR("the length of the key is over maximum length.");
-        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("key", "less than 80 bytes.");
+        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("The key must be less than 80 bytes.");
         asyncContext->SetError(paramError);
         return ERR;
     }
@@ -281,7 +281,7 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAy
     status = napi_get_value_string_utf8(env, arg, key, keyBufferSize + 1, &keySize);
     if (status != napi_ok) {
         LOG_ERROR("ParseKey: get keySize failed");
-        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("Failed to get keySize.");
         asyncContext->SetError(paramError);
         delete[] key;
         return ERR;
@@ -300,7 +300,8 @@ int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<St
         double number = 0.0;
         if (JSUtils::Convert2NativeValue(env, jsVal, number) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2NativeValue error");
-            std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            std::shared_ptr<JSError> paramError =
+                std::make_shared<ParamTypeError>("The type of value must be ValueType.");
             asyncContext->SetError(paramError);
             return ERR;
         }
@@ -312,11 +313,12 @@ int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<St
             LOG_ERROR("ParseDefValue Convert2NativeValue error");
             if (ret == EXCEED_MAX_LENGTH) {
                 std::shared_ptr<JSError> paramError =
-                    std::make_shared<ParamTypeError>("value", "less than 8192 bytes.");
+                    std::make_shared<ParamTypeError>("The value must be less than 8192 bytes.");
                 asyncContext->SetError(paramError);
                 return ERR;
             }
-            std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            std::shared_ptr<JSError> paramError =
+                std::make_shared<ParamTypeError>("The type of value must be ValueType.");
             asyncContext->SetError(paramError);
             return ERR;
         }
@@ -325,14 +327,16 @@ int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<St
         bool bValue = false;
         if (JSUtils::Convert2NativeValue(env, jsVal, bValue) != E_OK) {
             LOG_ERROR("ParseDefValue Convert2NativeValue error");
-            std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+            std::shared_ptr<JSError> paramError =
+                std::make_shared<ParamTypeError>("The type of value must be ValueType.");
             asyncContext->SetError(paramError);
             return ERR;
         }
         asyncContext->defValue = bValue;
     } else {
         LOG_ERROR("Wrong second parameter type");
-        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("value", "a ValueType.");
+        std::shared_ptr<JSError> paramError =
+            std::make_shared<ParamTypeError>("The type of value must be ValueType.");
         asyncContext->SetError(paramError);
         return ERR;
     }

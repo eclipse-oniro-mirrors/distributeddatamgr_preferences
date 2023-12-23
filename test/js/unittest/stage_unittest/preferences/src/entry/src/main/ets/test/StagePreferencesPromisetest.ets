@@ -22,7 +22,7 @@ export default function stagePreferencesPromiseJsTest() {
   describe('stagePreferencesPromiseJsTest', function () {
     console.log(TAG + "*************Unit Test Begin*************");
     beforeAll(function() {
-      console.log('stagePreferencesPromiseJsTest lrui TestAbility context' + globalThis.abilityContext);
+      console.log('stagePreferencesPromiseJsTest TestAbility context' + globalThis.abilityContext);
       console.info('beforeAll')
     })
     afterAll(async function () {

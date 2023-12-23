@@ -22,7 +22,7 @@ let mPreferences;
 export default function stagePreferencesSyncJsTest() {
   describe('stagePreferencesSyncJsTest', () =>{
     beforeAll(() => {
-      console.log('stagePreferencesSyncJsTest lrui TestAbility context' + globalThis.abilityContext);
+      console.log('stagePreferencesSyncJsTest TestAbility context' + globalThis.abilityContext);
       console.info('beforeAll');
     })
     afterAll(() => {

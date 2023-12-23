@@ -18,6 +18,8 @@
 #include <iostream>
 #include <string>
 
+#include "napi_preferences_error.h"
+
 #include "ability.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -34,7 +36,8 @@ struct ContextInfo {
 };
 static CONTEXT_MODE gContextNode = INIT;
 CONTEXT_MODE GetContextMode(napi_env env, napi_value value);
-int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo);
+std::shared_ptr<JSError> GetContextInfo(napi_env env, napi_value value,
+    const std::string &dataGroupId, ContextInfo &contextInfo);
 } // namespace JSAbility
 } // namespace PreferencesJsKit
 } // namespace OHOS

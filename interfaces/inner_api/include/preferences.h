@@ -106,12 +106,12 @@ public:
     /**
      * @brief Obtains the string value of a preferences.
      *
-     * This function is used to get a string value of the corresponding key in the preference.
+     * This function is used to get string value of the corresponding key in the preference.
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param defValue Indicates the default value of the preferences.
      *
-     * @return Returns a string value matching the specified key if it is found; returns the default value otherwise.
+     * @return Returns string value matching the specified key if it is found; returns the default value otherwise.
      */
     virtual std::string GetString(const std::string &key, const std::string &defValue = {}) = 0;
 
@@ -198,7 +198,7 @@ public:
     /**
      * @brief Put or update an string value for the key.
      *
-     * This function is used to put or update a string value of the corresponding key in the preference.
+     * This function is used to put or update string value of the corresponding key in the preference.
      *
      * @param key Indicates the key of the preferences. It cannot be empty.
      * @param value Indicates the value of preferences to put or update.

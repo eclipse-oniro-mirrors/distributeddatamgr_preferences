@@ -18,7 +18,6 @@
 #include <cstdlib>
 
 #include "log_print.h"
-#include "napi_preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -28,10 +27,11 @@ CONTEXT_MODE GetContextMode(napi_env env, napi_value value)
     return STAGE;
 }
 
-int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupId, ContextInfo &contextInfo)
+std::shared_ptr<JSError> GetContextInfo(napi_env env, napi_value value,
+    const std::string &dataGroupId, ContextInfo &contextInfo)
 {
     if (!dataGroupId.empty()) {
-        return NativePreferences::E_NOT_SUPPORTED;
+        return std::make_shared<InnerError>(NativePreferences::E_NOT_SUPPORTED);
     }
     std::string baseDir = "";
 #ifdef WINDOWS_PLATFORM
@@ -48,7 +48,7 @@ int GetContextInfo(napi_env env, napi_value value, const std::string &dataGroupI
         contextInfo.preferencesDir = baseDir + "/HuaweiDevEcoStudioPreferences";
     }
 #endif
-    return OK;
+    return nullptr;
 }
 } // namespace JSAbility
 } // namespace PreferencesJsKit

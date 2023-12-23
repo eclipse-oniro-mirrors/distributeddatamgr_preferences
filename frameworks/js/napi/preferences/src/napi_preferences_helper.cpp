@@ -19,7 +19,6 @@
 #include "js_ability.h"
 #include "js_utils.h"
 #include "napi_async_call.h"
-#include "napi_preferences_error.h"
 #include "napi_preferences.h"
 #include "preferences_errno.h"
 #include "preferences.h"
@@ -51,7 +50,7 @@ int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<Helper
         napi_value temp = nullptr;
         napi_get_named_property(env, argv[1], NAME, &temp);
         PRE_CHECK_RETURN_ERR_SET(temp && JSUtils::Convert2NativeValue(env, temp, context->name) == napi_ok,
-            std::make_shared<ParamTypeError>(NAME, "a string."));
+            std::make_shared<ParamTypeError>("The name must be string."));
 
         bool hasGroupId = false;
         napi_has_named_property(env, argv[1], DATA_GROUP_ID, &hasGroupId);
@@ -62,17 +61,17 @@ int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<Helper
             napi_status status = napi_typeof(env, temp, &type);
             if (status == napi_ok && (type != napi_null && type != napi_undefined)) {
                 PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
-                    std::make_shared<ParamTypeError>(DATA_GROUP_ID, "a string."));
+                    std::make_shared<ParamTypeError>("The dataGroupId must be string."));
             }
         }
     }
     JSAbility::ContextInfo contextInfo;
-    int errCode = JSAbility::GetContextInfo(env, argv[0], context->dataGroupId, contextInfo);
-    PRE_CHECK_RETURN_ERR_SET(errCode == OK, std::make_shared<InnerError>(errCode));
+    std::shared_ptr<JSError> err = JSAbility::GetContextInfo(env, argv[0], context->dataGroupId, contextInfo);
+    PRE_CHECK_RETURN_ERR_SET(err == nullptr, err);
 
     context->bundleName = contextInfo.bundleName;
     context->path = contextInfo.preferencesDir.append("/").append(context->name);
-    return errCode;
+    return OK;
 }
 
 napi_value GetPreferences(napi_env env, napi_callback_info info)

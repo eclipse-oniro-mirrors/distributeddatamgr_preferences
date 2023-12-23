@@ -4,7 +4,7 @@
         "type": "entry",
         "srcEntrance": "./ets/Application/AbilityStage.ts",
         "description": "$string:testModule_entry_dsc",
-        "mainElement": "MainAbility",
+        "mainElement": "com.example.myapplication.MainAbility",
         "deviceTypes": [
             "default",
             "tablet",
