@@ -57,10 +57,9 @@ std::string Base64Helper::Encode(const std::vector<uint8_t> &input)
 {
     std::string result = "";
     uint32_t index = 0;
-    uint8_t code = 0;
     for (uint32_t len = input.size(); len > 0; len -= BASE64_SRC_UNIT_SIZE) {
         result += base64Encoder[input.at(index) >> BASE64_SHIFT_HIBYTE];
-        code = (input.at(index++) & BASE64_MASK1) << BASE64_SHIFT;
+        uint8_t code = (input.at(index++) & BASE64_MASK1) << BASE64_SHIFT;
         if (len > BASE64_ONE_PADDING) {
             result += base64Encoder[code | (input.at(index) >> BASE64_SHIFT)];
             code = (input.at(index++) & BASE64_MASK2) << BASE64_SHIFT_HIBYTE;
@@ -86,15 +85,11 @@ bool Base64Helper::Decode(const std::string &input, std::vector<uint8_t> &output
     if (input.length() % BASE64_DEST_UNIT_SIZE != 0) {
         return false;
     }
-    uint8_t ch1 = 0;
-    uint8_t ch2 = 0;
-    uint8_t ch3 = 0;
-    uint8_t ch4 = 0;
     uint32_t index = 0;
     std::vector<uint8_t> result {};
     while (index < input.length()) {
-        ch1 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
-        ch2 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
+        uint8_t ch1 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
+        uint8_t ch2 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
         if (ch1 == BASE64_INVALID || ch2 == BASE64_INVALID) {
             return false;
         }
@@ -102,7 +97,7 @@ bool Base64Helper::Decode(const std::string &input, std::vector<uint8_t> &output
         if (input.at(index) == '=') {
             break;
         }
-        ch3 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
+        uint8_t ch3 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
         if (ch3 == BASE64_INVALID) {
             return false;
         }
@@ -110,7 +105,7 @@ bool Base64Helper::Decode(const std::string &input, std::vector<uint8_t> &output
         if (input.at(index) == '=') {
             break;
         }
-        ch4 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
+        uint8_t ch4 = base64Decoder[static_cast<uint8_t>(input.at(index++))];
         if (ch4 == BASE64_INVALID) {
             return false;
         }
