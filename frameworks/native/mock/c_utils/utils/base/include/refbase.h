@@ -364,6 +364,9 @@ template<typename T> void sptr<T>::clear()
 
 template<typename T> inline sptr<T>::~sptr()
 {
+    if (refs_ != nullptr) {
+        refs_->DecStrongRef(this);
+    }
 }
 
 template<typename T> inline sptr<T>::sptr(WeakRefCounter *p, bool /* force */)
