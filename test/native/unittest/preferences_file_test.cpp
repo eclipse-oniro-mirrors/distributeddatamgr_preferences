@@ -52,7 +52,7 @@ void PreferencesFileTest::TearDown(void)
 {
 }
 
-static int PreferencesPutValue(std::shared_ptr<Preferences> pref, const std::string &intKey, int intValue,
+int PreferencesPutValue(std::shared_ptr<Preferences> pref, const std::string &intKey, int intValue,
     const std::string &strKey, const std::string &strValue)
 {
     pref->PutInt(intKey, intValue);
