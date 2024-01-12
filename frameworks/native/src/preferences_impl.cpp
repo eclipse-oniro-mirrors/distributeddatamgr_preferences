@@ -177,7 +177,7 @@ void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std
 bool PreferencesImpl::CheckRequestValidForStateGeneration(std::shared_ptr<MemoryToDiskRequest> mcr)
 {
     if (diskStateGeneration_ >= mcr->memoryStateGeneration_) {
-        LOG_INFO("DiskStateGeneration should be less than memoryStateGeneration.");
+        LOG_DEBUG("DiskStateGeneration should be less than memoryStateGeneration.");
         return false;
     }
 

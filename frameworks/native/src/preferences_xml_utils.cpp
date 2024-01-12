@@ -57,7 +57,7 @@ static bool RenameFromBackupFile(const std::string &fileName)
 {
     std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
-        LOG_INFO("the backup file does not exist.");
+        LOG_DEBUG("the backup file does not exist.");
         return false;
     }
     if (std::rename(backupFileName.c_str(), fileName.c_str())) {
