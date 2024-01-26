@@ -43,44 +43,53 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs)
 
     uv_work_t* work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
-        LOG_ERROR("no memory for uv_work_t");
         return;
     }
-    work->data = new UvEntry{ env_, getter, std::move(genArgs) };
-    uv_queue_work(
-        loop_, work, [](uv_work_t* work) {},
-        [](uv_work_t* work, int uvstatus) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(entry->env, &scope);
-            if (scope == nullptr) {
-                return;
-            }
-            napi_value method = entry->callback(entry->env);
-            if (method == nullptr) {
-                LOG_WARN("the callback is invalid, maybe is cleared!");
-                napi_close_handle_scope(entry->env, scope);
-                return ;
-            }
-            int argc = 0;
-            napi_value argv[MAX_CALLBACK_ARG_NUM] = { nullptr };
-            if (entry->args) {
-                argc = MAX_CALLBACK_ARG_NUM;
-                entry->args(entry->env, argc, argv);
-            }
-            LOG_DEBUG("queue uv_after_work_cb");
-            napi_value global = nullptr;
-            napi_get_global(entry->env, &global);
-            napi_value result;
-            napi_status status = napi_call_function(entry->env, global, method, argc, argv, &result);
-            if (status != napi_ok) {
-                LOG_ERROR("notify data change failed status:%{public}d.", status);
-            }
-            napi_close_handle_scope(entry->env, scope);
-        });
+    work->data = new (std::nothrow) UvEntry{ env_, getter, std::move(genArgs) };
+    if (work->data == nullptr) {
+        delete work;
+        return;
+    }
+    int ret = uv_queue_work(loop_, work, [](uv_work_t* work) {}, UvQueue::Work);
+    if (ret != 0) {
+        LOG_ERROR("Failed to uv_queue_work.");
+        delete static_cast<UvEntry *>(work->data);
+        delete work;
+    }
+}
+
+void UvQueue::Work(uv_work_t* work, int uvstatus)
+{
+    std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+        delete data;
+        delete work;
+    });
+    napi_handle_scope scope = nullptr;
+    napi_open_handle_scope(entry->env, &scope);
+    if (scope == nullptr) {
+        return;
+    }
+    napi_value method = entry->callback(entry->env);
+    if (method == nullptr) {
+        LOG_WARN("the callback is invalid, maybe is cleared!");
+        napi_close_handle_scope(entry->env, scope);
+        return ;
+    }
+    int argc = 0;
+    napi_value argv[MAX_CALLBACK_ARG_NUM] = { nullptr };
+    if (entry->args) {
+        argc = MAX_CALLBACK_ARG_NUM;
+        entry->args(entry->env, argc, argv);
+    }
+    LOG_DEBUG("queue uv_after_work_cb");
+    napi_value global = nullptr;
+    napi_get_global(entry->env, &global);
+    napi_value result;
+    napi_status status = napi_call_function(entry->env, global, method, argc, argv, &result);
+    if (status != napi_ok) {
+        LOG_ERROR("notify data change failed status:%{public}d.", status);
+    }
+    napi_close_handle_scope(entry->env, scope);
 }
 
 napi_env UvQueue::GetEnv()
