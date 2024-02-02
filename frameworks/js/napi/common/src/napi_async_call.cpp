@@ -115,7 +115,7 @@ napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context, 
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete,
                            reinterpret_cast<void *>(context.get()), &context->work_);
     // add async work to execute queue
-    napi_queue_async_work(env, context->work_);
+    napi_queue_async_work_with_qos(env, context->work_, napi_qos_user_initiated);
     auto end_time = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
     if (duration.count() > ASYNC_PROCESS_WARING_TIME) {
