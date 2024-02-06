@@ -163,7 +163,7 @@ if (is_ohos) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//commonlibrary/c_utils/base:utilsbase",
-      "//third_party/libxml2:static_libxml2",
+      "//third_party/libxml2:libxml2",
     ]
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
