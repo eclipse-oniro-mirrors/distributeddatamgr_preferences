@@ -22,9 +22,9 @@
 
 namespace OHOS {
 namespace PreferencesJsKit {
-class JSPreferencesObserver
-    : public OHOS::NativePreferences::PreferencesObserver
-    , public JSObserver {
+class JSPreferencesObserver :
+    public OHOS::NativePreferences::PreferencesObserver,
+    public JSObserver {
 public:
     JSPreferencesObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback);
     virtual ~JSPreferencesObserver() = default;
