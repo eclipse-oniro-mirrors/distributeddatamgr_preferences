@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,6 +125,7 @@ napi_value GetPreferencesSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    // Check if the number of arguments is 2
     PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
@@ -168,6 +169,7 @@ napi_value DeletePreferencesSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    // Check if the number of arguments is 2
     PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
@@ -204,6 +206,7 @@ napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    // Check if the number of arguments is 2
     PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
