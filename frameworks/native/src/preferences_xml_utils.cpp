@@ -222,7 +222,7 @@ bool ParseStringNodeElement(const xmlNode *node, Element &element)
         element.value_ = std::string(reinterpret_cast<char *>(text));
         success = true;
     } else {
-        LOG_ERROR("Failed to obtain a valid key or value when parsing a String element.");
+        LOG_ERROR("Failed to obtain a valid key or value when parsing string element.");
     }
 
     if (key != nullptr) {

@@ -94,7 +94,7 @@ public:
      *
      * This constructor is used to convert the string input parameter to a value of type PreferencesValue.
      *
-     * @param value Indicates a string input parameter.
+     * @param value Indicates string input parameter.
      */
     PREF_API_EXPORT PreferencesValue(std::string value);
 

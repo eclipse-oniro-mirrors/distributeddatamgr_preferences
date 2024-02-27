@@ -32,13 +32,13 @@
 namespace OHOS {
 namespace PreferencesJsKit {
 namespace JSUtils {
-constexpr int OK = 0;
-constexpr int ERR = -1;
-constexpr int EXCEED_MAX_LENGTH = -2;
+constexpr int32_t OK = 0;
+constexpr int32_t ERR = -1;
+constexpr int32_t EXCEED_MAX_LENGTH = -2;
 constexpr int32_t DEFAULT_BUF_SIZE = 1024;
 constexpr int32_t BUF_CACHE_MARGIN = 4;
 constexpr int32_t ASYNC_RST_SIZE = 2;
-constexpr int32_t MAX_VALUE_LENGTH = 8 * 1024;
+constexpr int32_t MAX_VALUE_LENGTH = 8 * DEFAULT_BUF_SIZE;
 constexpr int32_t SYNC_RESULT_ELEMNT_NUM = 2;
 
 bool Equals(napi_env env, napi_value value, napi_ref copy);
