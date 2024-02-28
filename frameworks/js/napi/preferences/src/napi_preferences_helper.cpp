@@ -39,6 +39,7 @@ struct HelperAysncContext : public BaseContext {
     std::string bundleName;
     std::string dataGroupId;
     std::shared_ptr<NativePreferences::Preferences> proxy;
+    static constexpr uint32_t ARG_NUM = 2;
 
     HelperAysncContext()
     {
@@ -125,8 +126,7 @@ napi_value GetPreferencesSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    // Check if the number of arguments is 2
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
     PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
@@ -169,8 +169,7 @@ napi_value DeletePreferencesSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    // Check if the number of arguments is 2
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
     PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
@@ -206,8 +205,7 @@ napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    // Check if the number of arguments is 2
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
     PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
