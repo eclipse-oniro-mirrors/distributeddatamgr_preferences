@@ -32,6 +32,7 @@ namespace OHOS {
 namespace PreferencesJsKit {
 constexpr const char* DATA_GROUP_ID = "dataGroupId";
 constexpr const char* NAME = "name";
+constexpr uint32_t ARG_NUM = 2;
 
 struct HelperAysncContext : public BaseContext {
     std::string path;
@@ -39,7 +40,6 @@ struct HelperAysncContext : public BaseContext {
     std::string bundleName;
     std::string dataGroupId;
     std::shared_ptr<NativePreferences::Preferences> proxy;
-    static constexpr uint32_t ARG_NUM = 2;
 
     HelperAysncContext()
     {
