@@ -29,6 +29,7 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
+constexpr uint32_t ARG_NUM = 2;
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -240,8 +241,7 @@ napi_value PreferencesProxy::GetValueSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    // Check if the number of arguments is 2
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
     PreferencesProxy *proxy = nullptr;
     napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
 
@@ -287,8 +287,7 @@ napi_value PreferencesProxy::SetValueSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    // Check if the number of arguments is 2
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
     PreferencesProxy *proxy = nullptr;
     napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
 
