@@ -29,12 +29,12 @@
 #include "securec.h"
 
 using namespace OHOS::NativePreferences;
-constexpr uint32_t ARG_NUM = 2;
 
 namespace OHOS {
 namespace PreferencesJsKit {
 #define MAX_KEY_LENGTH Preferences::MAX_KEY_LENGTH
 #define MAX_VALUE_LENGTH Preferences::MAX_VALUE_LENGTH
+static constexpr uint32_t ARG_NUM = 2;
 
 struct PreferencesAysncContext : public BaseContext {
     std::string key;
