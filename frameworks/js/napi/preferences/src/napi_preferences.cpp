@@ -34,6 +34,7 @@ namespace OHOS {
 namespace PreferencesJsKit {
 #define MAX_KEY_LENGTH Preferences::MAX_KEY_LENGTH
 #define MAX_VALUE_LENGTH Preferences::MAX_VALUE_LENGTH
+static constexpr uint32_t ARG_NUM = 2;
 
 struct PreferencesAysncContext : public BaseContext {
     std::string key;
@@ -240,7 +241,7 @@ napi_value PreferencesProxy::GetValueSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
     PreferencesProxy *proxy = nullptr;
     napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
 
@@ -286,7 +287,7 @@ napi_value PreferencesProxy::SetValueSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
     PreferencesProxy *proxy = nullptr;
     napi_unwrap(env, self, reinterpret_cast<void **>(&proxy));
 

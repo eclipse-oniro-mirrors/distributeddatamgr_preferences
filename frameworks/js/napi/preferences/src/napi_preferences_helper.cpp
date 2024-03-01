@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ namespace OHOS {
 namespace PreferencesJsKit {
 constexpr const char* DATA_GROUP_ID = "dataGroupId";
 constexpr const char* NAME = "name";
+constexpr uint32_t ARG_NUM = 2;
 
 struct HelperAysncContext : public BaseContext {
     std::string path;
@@ -125,7 +126,7 @@ napi_value GetPreferencesSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
     PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
@@ -168,7 +169,7 @@ napi_value DeletePreferencesSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
     PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);
@@ -204,7 +205,7 @@ napi_value RemovePreferencesFromCacheSync(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2] = { 0 };
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc == ARG_NUM, std::make_shared<ParamNumError>("2"));
 
     auto context = std::make_shared<HelperAysncContext>();
     PRE_NAPI_ASSERT(env, ParseParameters(env, argv, context) == OK, context->error);

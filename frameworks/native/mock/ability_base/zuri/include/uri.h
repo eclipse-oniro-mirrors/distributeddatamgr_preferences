@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef UTILS_NATIVE_INCLUDE_URI_H_
-#define UTILS_NATIVE_INCLUDE_URI_H_
+#ifndef UTILS_NATIVE_INCLUDE_URI_H
+#define UTILS_NATIVE_INCLUDE_URI_H
 
 #include <string>
 

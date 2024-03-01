@@ -36,6 +36,10 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
         return EXCEED_MAX_LENGTH;
     }
     char *buffer = (char *)malloc(bufferSize + 1);
+    if (buffer == nullptr) {
+        LOG_ERROR("malloc failed, buffer is nullptr.");
+        return ERR;
+    }
     status = napi_get_value_string_utf8(env, jsValue, buffer, bufferSize + 1, &bufferSize);
     if (status != napi_ok) {
         free(buffer);
