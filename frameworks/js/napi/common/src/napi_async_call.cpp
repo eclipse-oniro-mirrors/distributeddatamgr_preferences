@@ -146,14 +146,13 @@ void AsyncCall::OnComplete(napi_env env, void *data)
     BaseContext *context = reinterpret_cast<BaseContext *>(data);
     if (context->execCode_ != NativePreferences::E_OK) {
         context->SetError(std::make_shared<InnerError>(context->execCode_));
+        LOG_ERROR("The async execute status is %{public}d", context->execCode_);
     }
     // if async execute status is not napi_ok then un-execute out function
     if ((context->error == nullptr) && context->output_) {
         context->output_(env, context->result_);
     }
     context->output_ = nullptr;
-    // if output return is not ok, then napi_throw_error context error
-    PRE_NAPI_ASSERT_RETURN_VOID(env, context->error == nullptr, context->error);
 }
 
 void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
