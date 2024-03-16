@@ -24,7 +24,15 @@
 
 namespace OHOS {
 namespace NativePreferences {
-
+struct Object {
+    std::string valueStr;
+    Object() = default;
+    Object(const std::string &str) : valueStr(str) {};
+    bool operator==(const Object &other) const
+    {
+        return valueStr == other.valueStr;
+    }
+};
 /**
  * The PreferencesValue class of the preference. Various operations on PreferencesValue are provided in this class.
  */
@@ -143,6 +151,8 @@ public:
      */
     PREF_API_EXPORT PreferencesValue(std::vector<uint8_t> value);
 
+    PREF_API_EXPORT PreferencesValue(Object value);
+
     /**
      * @brief Move assignment operator overloaded function.
      */
@@ -223,6 +233,8 @@ public:
      */
     PREF_API_EXPORT bool IsUint8Array() const;
 
+    PREF_API_EXPORT bool IsObject() const;
+
     /**
      * @brief Type conversion function.
      *
@@ -293,6 +305,8 @@ public:
      */
     PREF_API_EXPORT operator std::vector<uint8_t>() const;
 
+    PREF_API_EXPORT operator Object() const;
+
     /**
      * @brief Overloaded operator "==".
      *
@@ -305,7 +319,7 @@ public:
     PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
     std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>, std::vector<bool>,
-        std::vector<double>, std::vector<uint8_t>> value_;
+        std::vector<double>, std::vector<uint8_t>, Object> value_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

@@ -87,6 +87,11 @@ template<> std::string GetTypeName<std::vector<uint8_t>>()
     return "uint8Array";
 }
 
+template<> std::string GetTypeName<Object>()
+{
+    return "object";
+}
+
 ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
 
 PreferencesImpl::PreferencesImpl(const Options &options) : loaded_(false), options_(options)
@@ -243,6 +248,11 @@ static void Convert2PrefValue(const Element &element, std::vector<uint8_t> &valu
     }
 }
 
+static void Convert2PrefValue(const Element &element, Object &value)
+{
+    value.valueStr = element.value_;
+}
+
 template<typename T, typename First, typename... Types> bool GetPrefValue(const Element &element, T &value)
 {
     if (element.tag_ == GetTypeName<First>()) {
@@ -306,6 +316,12 @@ void Convert2Element(Element &elem, const std::vector<uint8_t> &value)
 {
     elem.tag_ = GetTypeName<std::vector<uint8_t>>();
     elem.value_ = Base64Helper::Encode(value);
+}
+
+void Convert2Element(Element &elem, const Object &value)
+{
+    elem.tag_ = GetTypeName<Object>();
+    elem.value_ = value.valueStr;
 }
 
 template<typename T> void GetElement(Element &elem, const T &value)
@@ -427,6 +443,13 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
             return errCode;
         }
     }
+    if (value.IsObject()) {
+        errCode = CheckObjectValue(value);
+        if (errCode != E_OK) {
+            LOG_ERROR("PreferencesImpl::Put object value length should shorter than 8192");
+            return errCode;
+        }
+    }
     AwaitLoadFile();
 
     std::lock_guard<std::mutex> lock(mutex_);
@@ -450,6 +473,11 @@ int PreferencesImpl::CheckStringValue(const std::string &value)
         return E_VALUE_EXCEED_MAX_LENGTH;
     }
     return E_OK;
+}
+
+int PreferencesImpl::CheckObjectValue(const Object &value)
+{
+    return CheckStringValue(value.valueStr);
 }
 
 Uri PreferencesImpl::MakeUri(const std::string &key)

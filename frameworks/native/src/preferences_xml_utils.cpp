@@ -165,7 +165,8 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
     }
 
     if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("string"))
-        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("uint8Array"))) {
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("uint8Array"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("object"))) {
         return ParseStringNodeElement(node, element);
     }
 
@@ -357,7 +358,8 @@ xmlNode *CreateElementNode(Element &element)
         return CreatePrimitiveNode(element);
     }
 
-    if (element.tag_.compare("string") == 0 || element.tag_.compare("uint8Array") == 0) {
+    if (element.tag_.compare("string") == 0 || element.tag_.compare("uint8Array") == 0
+        || element.tag_.compare("object") == 0) {
         return CreateStringNode(element);
     }
 
