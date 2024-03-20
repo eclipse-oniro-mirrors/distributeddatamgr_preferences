@@ -41,57 +41,47 @@ static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
 }
 }
 } // namespace OHOS
-#define LOG_DEBUG(fmt, ...)                                                                                \
-    do {                                                                                                   \
-        using HiLog = OHOS::HiviewDFX::HiLog;                                                              \
-        auto lable = LogLabel();                                                                           \
-        if (HiLogIsLoggable(lable.domain, lable.tag, LogLevel::LOG_DEBUG)) {                               \
-            HiLog::Debug(lable, "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__); \
-        }                                                                                                  \
+#define LOG_DEBUG(fmt, ...)                                                                            \
+    do {                                                                                               \
+        auto lable = LogLabel();                                                                       \
+        ((void)HILOG_IMPL(lable.type, LOG_DEBUG, lable.domain, lable.tag,                              \
+                          "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__));  \
     } while (0)
 
-#define LOG_RECORD_FILE_NAME(message)                                                                      \
-    do {                                                                                                   \
-        const char *name = fileName.data();                                                                \
-        auto pos = fileName.rfind('/');                                                                    \
-        pos = (pos != std::string::npos) ? pos + 1 : 0;                                                    \
-        LOG_DEBUG(message " fileName is %{private}s.", name + pos);                                        \
+#define LOG_RECORD_FILE_NAME(message)                                                                  \
+    do {                                                                                               \
+        const char *name = fileName.data();                                                            \
+        auto pos = fileName.rfind('/');                                                                \
+        pos = (pos != std::string::npos) ? pos + 1 : 0;                                                \
+        LOG_DEBUG(message " fileName is %{private}s.", name + pos);                                    \
     } while (0)
 
-#define LOG_INFO(fmt, ...)                                                                                 \
-    do {                                                                                                   \
-        using HiLog = OHOS::HiviewDFX::HiLog;                                                              \
-        auto lable = LogLabel();                                                                           \
-        if (HiLogIsLoggable(lable.domain, lable.tag, LogLevel::LOG_INFO)) {                                \
-            HiLog::Info(lable, "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__);  \
-        }                                                                                                  \
+#define LOG_INFO(fmt, ...)                                                                             \
+    do {                                                                                               \
+        auto lable = LogLabel();                                                                       \
+        ((void)HILOG_IMPL(lable.type, LOG_INFO, lable.domain, lable.tag,                               \
+                          "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__));  \
     } while (0)
 
-#define LOG_WARN(fmt, ...)                                                                                 \
-    do {                                                                                                   \
-        using HiLog = OHOS::HiviewDFX::HiLog;                                                              \
-        auto lable = LogLabel();                                                                           \
-        if (HiLogIsLoggable(lable.domain, lable.tag, LogLevel::LOG_WARN)) {                                \
-            HiLog::Warn(lable, "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__);  \
-        }                                                                                                  \
+#define LOG_WARN(fmt, ...)                                                                             \
+    do {                                                                                               \
+        auto lable = LogLabel();                                                                       \
+        ((void)HILOG_IMPL(lable.type, LOG_WARN, lable.domain, lable.tag,                               \
+                          "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__));  \
     } while (0)
 
-#define LOG_ERROR(fmt, ...)                                                                                \
-    do {                                                                                                   \
-        using HiLog = OHOS::HiviewDFX::HiLog;                                                              \
-        auto lable = LogLabel();                                                                           \
-        if (HiLogIsLoggable(lable.domain, lable.tag, LogLevel::LOG_ERROR)) {                               \
-            HiLog::Error(lable, "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__); \
-        }                                                                                                  \
+#define LOG_ERROR(fmt, ...)                                                                            \
+    do {                                                                                               \
+        auto lable = LogLabel();                                                                       \
+        ((void)HILOG_IMPL(lable.type, LOG_ERROR, lable.domain, lable.tag,                              \
+                          "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__));  \
     } while (0)
 
-#define LOG_FATAL(fmt, ...)                                                                                \
-    do {                                                                                                   \
-        using HiLog = OHOS::HiviewDFX::HiLog;                                                              \
-        auto lable = LogLabel();                                                                           \
-        if (HiLogIsLoggable(lable.domain, lable.tag, LogLevel::LOG_FATAL)) {                               \
-            HiLog::Fatal(lable, "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__); \
-        }                                                                                                  \
+#define LOG_FATAL(fmt, ...)                                                                            \
+    do {                                                                                               \
+        auto lable = LogLabel();                                                                       \
+        ((void)HILOG_IMPL(lable.type, LOG_FATAL, lable.domain, lable.tag,                              \
+                          "%{public}d: %{public}s " fmt " ", __LINE__, __FUNCTION__, ##__VA_ARGS__));  \
     } while (0)
 
 #endif
