@@ -381,7 +381,7 @@ int PreferencesImpl::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
     if (mode == RegisterMode::LOCAL_CHANGE) {
         std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
         localObservers_.push_back(weakPreferencesObserver);
-    } else {
+    } else if (mode == RegisterMode::MULTI_PRECESS_CHANGE) {
         auto dataObsMgrClient = DataObsMgrClient::GetInstance();
         if (dataObsMgrClient == nullptr) {
             return E_GET_DATAOBSMGRCLIENT_FAIL;
@@ -393,6 +393,56 @@ int PreferencesImpl::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
             return errcode;
         }
         multiProcessObservers_.push_back(observer);
+    }
+    return E_OK;
+}
+
+int PreferencesImpl::UnRegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
+    const std::vector<std::string> &keys)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = dataObservers_.find(preferencesObserver);
+    if (it == dataObservers_.end()) {
+        return E_OK;
+    }
+    std::weak_ptr<PreferencesObserver> weakPreferencesObserver = it->first;
+    for (const auto &key : keys) {
+        auto keyIt = it->second.find(key);
+        if (keyIt != it->second.end()) {
+            it->second.erase(key);
+        }
+    }
+    LOG_DEBUG("UnRegisterObserver keysSize:%{public}zu, curSize:%{public}zu", keys.size(), it->second.size());
+    if (keys.empty()) {
+        it->second.clear();
+    }
+    if (it->second.empty()) {
+        dataObserversIndex_.erase(std::remove_if(dataObserversIndex_.begin(), dataObserversIndex_.end(),
+            [&preferencesObserver](const std::weak_ptr<PreferencesObserver> &obIndex) {
+                return preferencesObserver == obIndex.lock();
+            }));
+        it = dataObservers_.erase(it);
+        LOG_DEBUG("UnRegisterObserver finish. IndexSize:%{public}zu, obSize:%{public}zu", dataObserversIndex_.size(),
+            dataObservers_.size());
+        return E_OK;
+    }
+    LOG_DEBUG("UnRegisterObserver finish, observer need reserve. IndexSize:%{public}zu, obSize:%{public}zu",
+        dataObserversIndex_.size(), dataObservers_.size());
+    return E_OBSERVER_RESERVE;
+}
+
+int PreferencesImpl::RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
+    const std::vector<std::string> &keys)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = dataObservers_.find(preferencesObserver);
+    if (it == dataObservers_.end()) {
+        std::set<std::string> callKeys(keys.begin(), keys.end());
+        std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
+        dataObservers_.insert({weakPreferencesObserver, callKeys});
+        dataObserversIndex_.push_back(weakPreferencesObserver);
+    } else {
+        it->second.insert(keys.begin(), keys.end());
     }
     return E_OK;
 }
@@ -564,14 +614,42 @@ std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> PreferencesImpl::commitToM
     }
     memoryStateGeneration = currentMemoryStateGeneration_;
     preferencesObservers = localObservers_;
-    return std::make_shared<MemoryToDiskRequest>(
+    auto request = std::make_shared<MemoryToDiskRequest>(
         writeToDiskMap, keysModified, preferencesObservers, memoryStateGeneration);
+    request->SetDataObserver(dataObservers_, dataObserversIndex_);
+    return request;
 }
 
 void PreferencesImpl::notifyPreferencesObserver(const PreferencesImpl::MemoryToDiskRequest &request)
 {
     if (request.keysModified_.empty()) {
         return;
+    }
+    LOG_DEBUG("notify observer size:%{public}zu", request.dataObserversIndex_.size());
+    for (auto weakPrt : request.dataObserversIndex_) {
+        std::map<std::string, PreferencesValue> records;
+        auto itPtr = request.dataObservers_.find(weakPrt);
+        if (itPtr == request.dataObservers_.end()) {
+            continue;
+        }
+        for (auto key = request.keysModified_.begin(); key != request.keysModified_.end(); ++key) {
+            auto itKey = itPtr->second.find(*key);
+            if (itKey == itPtr->second.end()) {
+                continue;
+            }
+            auto dataIt = request.writeToDiskMap_.find(*key);
+            if (dataIt == request.writeToDiskMap_.end()) {
+                continue;
+            }
+            records.insert({*key, dataIt->second});
+        }
+        if (records.empty()) {
+            continue;
+        }
+        if (std::shared_ptr<PreferencesObserver> sharedPtr = weakPrt.lock()) {
+            LOG_DEBUG("dataChange observer call, resultSize:%{public}zu", records.size());
+            sharedPtr->OnChange(records);
+        }
     }
 
     auto dataObsMgrClient = DataObsMgrClient::GetInstance();
@@ -601,6 +679,14 @@ PreferencesImpl::MemoryToDiskRequest::MemoryToDiskRequest(
     isSyncRequest_ = false;
     wasWritten_ = false;
     writeToDiskResult_ = E_ERROR;
+}
+
+void PreferencesImpl::MemoryToDiskRequest::SetDataObserver(const std::map<std::weak_ptr<PreferencesObserver>,
+    std::set<std::string>, WeakPtrCompare> preferencesDataObservers,
+    const std::list<std::weak_ptr<PreferencesObserver>> dataObserversIndex)
+{
+    dataObservers_ = preferencesDataObservers;
+    dataObserversIndex_ = dataObserversIndex;
 }
 
 void PreferencesImpl::MemoryToDiskRequest::SetDiskWriteResult(bool wasWritten, int result)

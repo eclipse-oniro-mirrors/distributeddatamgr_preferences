@@ -60,6 +60,7 @@ PreferencesProxy::~PreferencesProxy()
 {
     UnRegisteredAllObservers(RegisterMode::LOCAL_CHANGE);
     UnRegisteredAllObservers(RegisterMode::MULTI_PRECESS_CHANGE);
+    UnRegisteredAllObservers(RegisterMode::DATA_CHANGE);
 }
 
 void PreferencesProxy::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
@@ -363,21 +364,27 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
 napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info info)
 {
     napi_value thiz = nullptr;
-    const size_t requireArgc = 2;
-    size_t argc = 2;
-    napi_value args[2] = { 0 };
+    size_t argc = 3; // 3 is specifies the length of the provided argc array
+    napi_value args[3] = { 0 }; // 3 is the max args length
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
-    PRE_NAPI_ASSERT(env, argc == requireArgc, std::make_shared<ParamNumError>("2"));
+    PRE_NAPI_ASSERT(env, argc > 0, std::make_shared<ParamNumError>("more than 1"));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string,
         std::make_shared<ParamTypeError>("The registerMode must be string."));
     std::string registerMode;
     JSUtils::Convert2NativeValue(env, args[0], registerMode);
-    PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE,
-        std::make_shared<ParamTypeError>("The registerMode must be 'change' or 'multiProcessChange'."));
+    PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE
+        || registerMode == STR_DATA_CHANGE, std::make_shared<ParamTypeError>(
+        "The registerMode must be 'change' or 'multiProcessChange' or 'dataChange'."));
 
+    if (registerMode == STR_DATA_CHANGE) {
+        return RegisterDataObserver(env, argc, args, thiz);
+    }
+
+    // This interface must have 2 parameters.
+    PRE_NAPI_ASSERT(env, argc == 2, std::make_shared<ParamNumError>("2"));
     NAPI_CALL(env, napi_typeof(env, args[1], &type));
     PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("The callback must be function."));
 
@@ -392,12 +399,11 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
 napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info info)
 {
     napi_value thiz = nullptr;
-    const size_t requireArgc = 2;
-    size_t argc = 2;
-    napi_value args[2] = { 0 };
+    size_t argc = 3; // 3 is specifies the length of the provided argc array
+    napi_value args[3] = { 0 }; // 3 is the max args length
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
-    PRE_NAPI_ASSERT(env, argc > 0 && argc <= requireArgc, std::make_shared<ParamNumError>("1 or 2"));
+    PRE_NAPI_ASSERT(env, argc > 0, std::make_shared<ParamNumError>("more than 1"));
 
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
@@ -406,10 +412,18 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
 
     std::string registerMode;
     JSUtils::Convert2NativeValue(env, args[0], registerMode);
-    PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE,
-        std::make_shared<ParamTypeError>("The registerMode must be 'change' or 'multiProcessChange'."));
+    PRE_NAPI_ASSERT(env, registerMode == STR_CHANGE || registerMode == STR_MULTI_PRECESS_CHANGE
+        || registerMode == STR_DATA_CHANGE, std::make_shared<ParamTypeError>(
+        "The unRegisterMode must be 'change' or 'multiProcessChange' or 'dataChange'."));
 
-    if (argc == requireArgc) {
+    if (registerMode == STR_DATA_CHANGE) {
+        return unRegisterDataObserver(env, argc, args, thiz);
+    }
+
+    // This interface must less than 2 parameters.
+    PRE_NAPI_ASSERT(env, argc <= 2, std::make_shared<ParamNumError>("1 or 2"));
+    // when there are 2 parameters, function needs to be parsed.
+    if (argc == 2) {
         NAPI_CALL(env, napi_typeof(env, args[1], &type));
         PRE_NAPI_ASSERT(env, type == napi_function || type == napi_undefined || type == napi_null,
             std::make_shared<ParamTypeError>("The callback must be function."));
@@ -441,7 +455,13 @@ bool PreferencesProxy::HasRegisteredObserver(napi_value callback, RegisterMode m
 
 RegisterMode PreferencesProxy::ConvertToRegisterMode(const std::string &mode)
 {
-    return (mode == STR_CHANGE) ? RegisterMode::LOCAL_CHANGE : RegisterMode::MULTI_PRECESS_CHANGE;
+    if (mode == STR_CHANGE) {
+        return RegisterMode::LOCAL_CHANGE;
+    } else if (mode == STR_MULTI_PRECESS_CHANGE) {
+        return RegisterMode::MULTI_PRECESS_CHANGE;
+    } else {
+        return RegisterMode::DATA_CHANGE;
+    }
 }
 
 int PreferencesProxy::RegisteredObserver(napi_value callback, RegisterMode mode)
@@ -481,8 +501,11 @@ int PreferencesProxy::UnRegisteredObserver(napi_value callback, RegisterMode mod
     return E_OK;
 }
 
-int PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
+int PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode, const std::vector<std::string> &keys)
 {
+    if (mode == RegisterMode::DATA_CHANGE) {
+        return UnRegisteredDataObserver(keys, nullptr);
+    }
     std::lock_guard<std::mutex> lck(listMutex_);
     auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
     bool hasFailed = false;
@@ -498,6 +521,128 @@ int PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
     observers.clear();
     LOG_DEBUG("All observers unsubscribed success.");
     return hasFailed ? E_ERROR : E_OK;
+}
+
+napi_value PreferencesProxy::RegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self)
+{
+    const size_t funcIndex = 2; // 2 is the index of the callback function
+    // This interface must have 3 parameters.
+    PRE_NAPI_ASSERT(env, argc == 3, std::make_shared<ParamNumError>("3"));
+    bool isArray = false;
+    NAPI_CALL(env, napi_is_array(env, argv[1], &isArray));
+    PRE_NAPI_ASSERT(env, isArray == true,
+        std::make_shared<ParamTypeError>("The keys must be Array."));
+
+    std::vector<std::string> keys;
+    int errCode = JSUtils::Convert2NativeValue(env, argv[1], keys);
+    PRE_NAPI_ASSERT(env, errCode == napi_ok,
+        std::make_shared<ParamTypeError>("The keys must be Array<string>."));
+
+    napi_valuetype type;
+    NAPI_CALL(env, napi_typeof(env, argv[funcIndex], &type));
+    PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("The callback must be function."));
+
+    PreferencesProxy *obj = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, self, reinterpret_cast<void **>(&obj)));
+    errCode = obj->RegisteredDataObserver(keys, argv[funcIndex]);
+    PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
+}
+
+int PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &keys, napi_value callback)
+{
+    std::lock_guard<std::mutex> lck(listMutex_);
+    auto &observers = dataObservers_;
+    auto it = observers.begin();
+    auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
+    for (; it != observers.end(); it++) {
+        if (!JSUtils::Equals(env_, callback, it->first->GetCallback())) {
+            continue;
+        }
+        observer = it->first;
+        break;
+    }
+    int errCode = value_->RegisterDataObserver(observer, keys);
+    if (errCode != E_OK) {
+        LOG_ERROR("Registered dataObserver failed:%{public}d", errCode);
+        return errCode;
+    }
+
+    if (it == observers.end()) {
+        std::set<std::string> callKeys(keys.begin(), keys.end());
+        observers.insert({observer, callKeys});
+    } else {
+        it->second.insert(keys.begin(), keys.end());
+    }
+
+    LOG_INFO("The dataChange observer subscribed success.");
+    return E_OK;
+}
+
+napi_value PreferencesProxy::unRegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self)
+{
+    const size_t funcIndex = 2; // 2 is the index of the callback function
+    // This interface should have 2 or 3 parameters.
+    PRE_NAPI_ASSERT(env, argc > 1 && argc <= 3, std::make_shared<ParamNumError>("2 or 3"));
+
+    bool isArray = false;
+    NAPI_CALL(env, napi_is_array(env, argv[1], &isArray));
+    PRE_NAPI_ASSERT(env, isArray == true,
+        std::make_shared<ParamTypeError>("The keys must be Array."));
+
+    napi_valuetype type;
+    // when there are 3 parameters, function needs to be parsed.
+    if (argc == 3) {
+        NAPI_CALL(env, napi_typeof(env, argv[funcIndex], &type));
+        PRE_NAPI_ASSERT(env, type == napi_function || type == napi_undefined || type == napi_null,
+            std::make_shared<ParamTypeError>("The callback must be function."));
+    }
+    PreferencesProxy *obj = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, self, reinterpret_cast<void **>(&obj)));
+    uint32_t arrLen = 0;
+    napi_get_array_length(env, argv[1], &arrLen);
+    std::vector<std::string> keys;
+    int errCode = napi_ok;
+    if (arrLen != 0) {
+        errCode = JSUtils::Convert2NativeValue(env, argv[1], keys);
+    }
+    PRE_NAPI_ASSERT(env, errCode == napi_ok,
+        std::make_shared<ParamTypeError>("The keys must be Array<string>."));
+    if (type == napi_function) {
+        errCode = obj->UnRegisteredDataObserver(keys, argv[funcIndex]);
+    } else {
+        errCode = obj->UnRegisteredAllObservers(RegisterMode::DATA_CHANGE, keys);
+    }
+    PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
+    return nullptr;
+}
+
+int PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &keys, napi_value callback)
+{
+    std::lock_guard<std::mutex> lck(listMutex_);
+    auto &observers = dataObservers_;
+    auto it = observers.begin();
+    while (it != observers.end()) {
+        if (callback == nullptr || JSUtils::Equals(env_, callback, it->first->GetCallback())) {
+            int errCode = value_->UnRegisterDataObserver(it->first, keys);
+            if (errCode != E_OK && errCode != E_OBSERVER_RESERVE) {
+                return errCode;
+            }
+            if (errCode == E_OK) {
+                it->first->ClearCallback();
+                it = observers.erase(it);
+            } else {
+                ++it;
+            }
+            if (callback != nullptr) {
+                break;
+            }
+        } else {
+            ++it;
+        }
+    }
+    LOG_INFO("The dataChange observer unsubscribed success.");
+    return E_OK;
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS

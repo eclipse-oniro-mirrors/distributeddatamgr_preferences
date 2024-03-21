@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include <list>
+#include <set>
 
 #include "js_observer.h"
 #include "js_utils.h"
@@ -43,6 +44,7 @@ public:
 private:
     static constexpr char STR_CHANGE[] = "change";
     static constexpr char STR_MULTI_PRECESS_CHANGE[] = "multiProcessChange";
+    static constexpr char STR_DATA_CHANGE[] = "dataChange";
     explicit PreferencesProxy();
     ~PreferencesProxy();
 
@@ -64,16 +66,21 @@ private:
     static napi_value GetAllSync(napi_env env, napi_callback_info info);
 
     static RegisterMode ConvertToRegisterMode(const std::string &mode);
+    static napi_value RegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self);
+    static napi_value unRegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self);
     bool HasRegisteredObserver(napi_value callback, RegisterMode mode);
     int RegisteredObserver(napi_value callback, RegisterMode mode);
     int UnRegisteredObserver(napi_value callback, RegisterMode mode);
-    int UnRegisteredAllObservers(RegisterMode mode);
+    int UnRegisteredAllObservers(RegisterMode mode, const std::vector<std::string> &keys = {});
+    int RegisteredDataObserver(const std::vector<std::string> &keys, napi_value callback);
+    int UnRegisteredDataObserver(const std::vector<std::string> &keys, napi_value callback);
     std::shared_ptr<OHOS::NativePreferences::Preferences> value_;
     napi_env env_;
 
     std::mutex listMutex_ {};
     std::list<std::shared_ptr<JSPreferencesObserver>> localObservers_;
     std::list<std::shared_ptr<JSPreferencesObserver>> multiProcessObservers_;
+    std::map<std::shared_ptr<JSPreferencesObserver>, std::set<std::string>> dataObservers_;
     std::shared_ptr<UvQueue> uvQueue_;
 };
 } // namespace PreferencesJsKit

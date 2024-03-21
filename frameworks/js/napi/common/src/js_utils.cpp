@@ -297,18 +297,21 @@ napi_value JSUtils::JsonStringify(napi_env env, napi_value value)
         return undefined;
     }
     napi_value global = nullptr;
-    NAPI_CALL_BASE(env, napi_get_global(env, &global), undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, undefined);
     napi_value json = nullptr;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, global, GLOBAL_JSON, &json), undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
+        PRE_REVT_NOTHING, undefined);
     napi_value stringify = nullptr;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, json, GLOBAL_STRINGIFY, &stringify), undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_STRINGIFY, &stringify) == napi_ok,
+        PRE_REVT_NOTHING, undefined);
     if (GetValueType(env, stringify) != napi_function) {
         LOG_ERROR("Get stringify func failed");
         return undefined;
     }
     napi_value res = nullptr;
     napi_value argv[1] = {value};
-    NAPI_CALL_BASE(env, napi_call_function(env, json, stringify, 1, argv, &res), undefined);
+    PRE_CHECK_RETURN_CORE(napi_call_function(env, json, stringify, 1, argv, &res) == napi_ok,
+        PRE_REVT_NOTHING, undefined);
     return res;
 }
 
@@ -320,26 +323,46 @@ napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr)
         LOG_ERROR("JsonParse failed, inStr is empty");
         return undefined;
     }
-    napi_value jsValue;
-    napi_status ret = napi_create_string_utf8(env, inStr.c_str(), NAPI_AUTO_LENGTH, &jsValue);
-    if (ret != napi_ok) {
-        LOG_ERROR("napi_create_string_utf8 failed %{public}d", ret);
-        return undefined;
-    }
+    napi_value jsValue = Convert2JSValue(env, inStr);
     napi_value global = nullptr;
-    NAPI_CALL_BASE(env, napi_get_global(env, &global), undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, undefined);
     napi_value json = nullptr;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, global, GLOBAL_JSON, &json), undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
+        PRE_REVT_NOTHING, undefined);
     napi_value parse = nullptr;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, json, GLOBAL_PARSE, &parse), undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_PARSE, &parse) == napi_ok,
+        PRE_REVT_NOTHING, undefined);
     if (GetValueType(env, parse) != napi_function) {
         LOG_ERROR("Get parse func failed");
         return undefined;
     }
     napi_value res = undefined;
     napi_value argv[1] = {jsValue};
-    NAPI_CALL_BASE(env, napi_call_function(env, json, parse, 1, argv, &res), undefined);
+    PRE_CHECK_RETURN_CORE(napi_call_function(env, json, parse, 1, argv, &res) == napi_ok, PRE_REVT_NOTHING, undefined);
     return res;
+}
+
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<std::string> &output)
+{
+    uint32_t arrLen = 0;
+    napi_get_array_length(env, jsValue, &arrLen);
+    if (arrLen == 0) {
+        return napi_invalid_arg;
+    }
+    std::vector<std::string> result;
+    for (size_t i = 0; i < arrLen; ++i) {
+        napi_value element;
+        if (napi_get_element(env, jsValue, i, &element) != napi_ok) {
+            return napi_invalid_arg;
+        }
+        std::string resValue;
+        if (Convert2NativeValue(env, element, resValue) != napi_ok) {
+            return napi_invalid_arg;
+        }
+        result.push_back(resValue);
+    }
+    output = result;
+    return napi_ok;
 }
 } // namespace PreferencesJsKit
 } // namespace OHOS

@@ -24,6 +24,7 @@
 #include <type_traits>
 
 #include "log_print.h"
+#include "napi_preferences_error.h"
 #include "preferences_value.h"
 
 #include "napi/native_api.h"
@@ -56,6 +57,7 @@ int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<uint8_
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, OHOS::NativePreferences::Object &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<std::string> &output);
 
 template<typename T> int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<T> &value);
 

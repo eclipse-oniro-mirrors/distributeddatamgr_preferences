@@ -357,6 +357,244 @@ describe('V9_PreferencesPromiseJsunit', async function () {
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
             done();
+        } finally {
+            mPreference.off('change', observer);
+        }
+    })
+
+    it('testPreferencesDataChange001', 0, async function (done) {
+        console.log("testPreferencesDataChange001 begin.")
+        await mPreference.clear();
+        try {
+            var observer = function (data) {
+            };
+            mPreference.on('dataChange', [], observer);
+            expect(false).assertTrue()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            done();
+        }
+    })
+
+    it('testPreferencesDataChange002', 0, async function (done) {
+        console.log("testPreferencesDataChange002 begin.")
+        await mPreference.clear();
+        try {
+            var observer = function (data) {}
+            mPreference.off('dataChange', {}, observer);
+            expect(false).assertTrue()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            done();
+        }
+    })
+
+    it('testPreferencesDataChange003', 0, async function (done) {
+        console.log("testPreferencesDataChange003 begin.")
+        await mPreference.clear();
+        let obj = {
+            "key":"value"
+        }
+        try {
+            var observer = function (data) {
+            };
+            mPreference.on('dataChange', obj, observer);
+            expect(false).assertTrue()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            done();
+        }
+    })
+
+    it('testPreferencesDataChange004', 0, async function (done) {
+        console.log("testPreferencesDataChange004 begin.")
+        await mPreference.clear();
+        try {
+            mPreference.on('dataChange', []);
+            expect(false).assertTrue()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            done();
+        }
+    })
+
+    it('testPreferencesDataChange005', 0, async function (done) {
+        console.log("testPreferencesDataChange005 begin.")
+        await mPreference.clear();
+        try {
+            let obj1 = {
+                "key1":"value1"
+            }
+            let obj2 = {
+                "key1":"value1",
+                "key2":222
+            }
+            var observer1 = function (data) {
+                for (const key in data)  {
+                    if (data.hasOwnProperty(key)) {
+                        console.log(`ob1 Key: ${key}, Value: ${data[key]}`)
+                        if (data[key] != obj1[key]) {
+                            console.log(`Not as expected act: ${data[key]}, exc: ${obj1[key]}`)
+                        }
+                    }
+                }
+                expect(Object.keys(data).length).assertEqual(Object.keys(obj1).length)
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(obj1))
+            }
+            var observer2 = function (data) {
+                for (const key in data)  {
+                    if (data.hasOwnProperty(key)) {
+                        console.log(`ob2 Key: ${key}, Value: ${data[key]}`)
+                        if (data[key] != obj2[key]) {
+                            console.log(`Not as expected act: ${data[key]}, exc: ${obj2[key]}`)
+                        }
+                    }
+                }
+                expect(Object.keys(data).length).assertEqual(Object.keys(obj2).length)
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(obj2))
+            }
+            mPreference.on('dataChange', ['key1'], observer1);
+            mPreference.on('dataChange', ['key1', 'key2', 'key3'], observer2);
+            await mPreference.put("key2", "value2")
+            await mPreference.put("key1", "value1")
+            await mPreference.put("key2", 222)
+            await mPreference.flush()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect(false).assertTrue()
+        } finally {
+            mPreference.off('dataChange', ['key1'], observer1)
+            mPreference.off('dataChange', ['key1', 'key2', 'key4'], observer2)
+            mPreference.off('dataChange', ['key2', 'key3'], observer2)
+            done()
+        }
+    })
+
+    it('testPreferencesDataChange006', 0, async function (done) {
+        console.log("testPreferencesDataChange006 begin.")
+        await mPreference.clear();
+        try {
+            var observer1 = function (data) {
+                console.log("observer1")
+                expect(false).assertTrue()
+            }
+            var observer2 = function (data) {
+                console.log("observer2")
+            }
+            var observer3= function (data) {
+                console.log("observer3")
+            }
+            let keys = ['key1', 'key2', 'key3']
+            mPreference.on('dataChange', keys, observer1);
+            mPreference.on('dataChange', keys, observer2);
+            mPreference.on('dataChange', keys, observer3);
+            mPreference.off('dataChange', [], observer1)
+            await mPreference.put("key2", "value2")
+            await mPreference.put("key1", "value1")
+            await mPreference.flush()
+            mPreference.off('dataChange', [])
+            done()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect(false).assertTrue()
+        }
+    })
+
+    it('testPreferencesDataChange007', 0, async function (done) {
+        console.log("testPreferencesDataChange007 begin.")
+        await mPreference.clear();
+        try {
+            let obj = {
+                "key2":"value2"
+            }
+            var observer1 = function (data) {
+                console.log("observer1")
+                expect(Object.keys(data).length).assertEqual(Object.keys(obj).length)
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(obj))
+            }
+            var observer2 = function (data) {
+                console.log("observer2")
+                expect(Object.keys(data).length).assertEqual(Object.keys(obj).length)
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(obj))
+            }
+            let keys = ['key1', 'key2', 'key3']
+            mPreference.on('dataChange', keys, observer1);
+            mPreference.on('dataChange', keys, observer2);
+            await mPreference.put("key1", "value1")
+            await mPreference.put("key2", "value2")
+            await mPreference.put("key3", "value3")
+            mPreference.off('dataChange', ['key1', 'key3'])
+            await mPreference.flush()
+            mPreference.off('dataChange', [])
+            done()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect(false).assertTrue()
+        }
+    })
+
+
+
+    it('testPreferencesDataChange008', 0, async function (done) {
+        console.log("testPreferencesDataChange008 begin.")
+        await mPreference.clear();
+        try {
+            var observer1 = function (data) {
+                console.log("observer1")
+                expect(false).assertTrue()
+            }
+            var observer2 = function (data) {
+                console.log("observer2")
+                expect(false).assertTrue()
+            }
+            var observer3= function (data) {
+                console.log("observer3")
+                expect(false).assertTrue()
+            }
+            let keys = ['key1', 'key2', 'key3']
+            mPreference.on('dataChange', keys, observer1);
+            mPreference.on('dataChange', keys, observer2);
+            mPreference.on('dataChange', keys, observer3);
+            mPreference.off('dataChange', [])
+            await mPreference.put("key2", "value2")
+            await mPreference.put("key1", "value1")
+            await mPreference.flush()
+            done()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect(false).assertTrue()
+        }
+    })
+
+    it('testPreferencesDataChange009', 0, async function (done) {
+        console.log("testPreferencesDataChange009 begin.")
+        await mPreference.clear();
+        try {
+            let obj1 = {
+                "key2":"value2"
+            }
+            var observer1 = function (data) {
+                console.log("observer1")
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(obj1))
+            }
+            var observer2 = function (data) {
+                console.log("observer2")
+                expect(false).assertTrue()
+            }
+            mPreference.on('dataChange', ['key1', 'key2'], observer1);
+            mPreference.on('dataChange', ['key1', 'key3'], observer2);
+            await mPreference.put("key2", "value2")
+            await mPreference.put("key1", "value1")
+            await mPreference.put("key3", "value3")
+            mPreference.off('dataChange', ['key1', 'key3'], observer1);
+            mPreference.off('dataChange', ['key1', 'key3'], observer2);
+            await mPreference.flush()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect(false).assertTrue()
+        } finally {
+            mPreference.off('dataChange', [])
+            done()
         }
     })
 })

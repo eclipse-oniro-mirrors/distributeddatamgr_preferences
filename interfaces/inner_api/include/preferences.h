@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "preferences_errno.h"
 #include "preferences_observer.h"
 #include "preferences_value.h"
 #include "preferences_visibility.h"
@@ -323,6 +324,32 @@ public:
     virtual std::string GetGroupId() const
     {
         return "";
+    }
+
+    /**
+     * @brief  Registers a data observer.
+     *
+     * This function is used to registers an observer to listen for changes in data based on the keys
+     *
+     * @param preferencesObserver Indicates callback function for data changes.
+     */
+    virtual int RegisterDataObserver(
+        std::shared_ptr<PreferencesObserver> preferencesObserver, const std::vector<std::string> &keys = {})
+    {
+        return E_OK;
+    }
+
+    /**
+     * @brief  Unregister an existing observer.
+     *
+     * This function is used to unregister an existing observer based on the keys
+     *
+     * @param preferencesObserver Indicates callback function for data changes.
+     */
+    virtual int UnRegisterDataObserver(
+        std::shared_ptr<PreferencesObserver> preferencesObserver, const std::vector<std::string> &keys = {})
+    {
+        return E_OK;
     }
 };
 } // End of namespace NativePreferences

@@ -155,6 +155,12 @@ public:
 
     int UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
 
+    int UnRegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
+        const std::vector<std::string> &keys) override;
+
+    int RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
+        const std::vector<std::string> &keys) override;
+
     std::string GetGroupId() const override
     {
         return options_.dataGroupId;
@@ -163,6 +169,12 @@ public:
     static std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
 
 private:
+    struct WeakPtrCompare {
+        bool operator()(const std::weak_ptr<PreferencesObserver> &a, const std::weak_ptr<PreferencesObserver> &b) const
+        {
+            return a.owner_before(b);
+        }
+    };
     explicit PreferencesImpl(const Options &options);
     class MemoryToDiskRequest {
     public:
@@ -171,6 +183,8 @@ private:
             const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration);
         ~MemoryToDiskRequest() {}
         void SetDiskWriteResult(bool wasWritten, int result);
+        void SetDataObserver(const std::map<std::weak_ptr<PreferencesObserver>, std::set<std::string>, WeakPtrCompare>
+            preferencesDataObservers, const std::list<std::weak_ptr<PreferencesObserver>> dataObserversIndex);
 
         bool isSyncRequest_;
         int64_t memoryStateGeneration_;
@@ -178,6 +192,8 @@ private:
         std::condition_variable reqCond_;
         std::list<std::string> keysModified_;
         std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
+        std::map<std::weak_ptr<PreferencesObserver>, std::set<std::string>, WeakPtrCompare> dataObservers_;
+        std::list<std::weak_ptr<PreferencesObserver>> dataObserversIndex_;
 
         int writeToDiskResult_;
         bool wasWritten_;
@@ -211,6 +227,8 @@ private:
 
     std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
     std::vector<sptr<DataPreferencesObserverStub>> multiProcessObservers_;
+    std::map<std::weak_ptr<PreferencesObserver>, std::set<std::string>, WeakPtrCompare> dataObservers_;
+    std::list<std::weak_ptr<PreferencesObserver>> dataObserversIndex_;
     std::map<std::string, PreferencesValue> map_;
     std::list<std::string> modifiedKeys_;
     static ExecutorPool executorPool_;

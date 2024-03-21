@@ -559,22 +559,28 @@ describe('PreferencesPromiseJsunit', function () {
         }
     })
 
-    it('testPreferencesPutObjectBty0205', 0, async function () {
+    it('testPreferencesPutObject001', 0, async function () {
         let obj = {
             name: "xiaowang",
             age: 18
         }
-        await mPreferences.put(KEY_TEST_OBJECT, obj);
-        let res = await mPreferences.get(KEY_TEST_OBJECT, {});
-        console.log('get object data : ' + JSON.stringify(res));
-        expect(JSON.stringify(res)).assertEqual(JSON.stringify(obj));
+        try {
+            await mPreferences.put(KEY_TEST_OBJECT, obj);
+            let res = await mPreferences.get(KEY_TEST_OBJECT, {});
+            console.log('get object data : ' + JSON.stringify(res));
+            expect(obj["age"]).assertEqual(18);
+            expect(JSON.stringify(res)).assertEqual(JSON.stringify(obj));
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code + ", message =" + err.message);
+            expect(null).assertFail();
+        }
     })
 
 
-    it('testPreferencesPutObjectBty0206', 0, async function (done) {
+    it('testPreferencesPutObject002', 0, async function (done) {
         let obj = {
             name: "xiaohong",
-            age: 18
+            age: "99"
         }
         const promise = mPreferences.put(KEY_TEST_OBJECT, obj);
         await promise.then(async (ret) => {
@@ -588,10 +594,13 @@ describe('PreferencesPromiseJsunit', function () {
             mPreferences = await data_preferences.getPreferences(context, NAME);
             let data2 = await mPreferences.get(KEY_TEST_OBJECT, {});
             console.log('get object data2 : ' + JSON.stringify(data2));
-            done();
+            expect(obj["age"]).assertEqual("99");
             expect(JSON.stringify(data2)).assertEqual(JSON.stringify(obj));
+            done();
         }).catch((err) => {
             console.log("try catch err =" + err + ", code =" + err.code + ", message =" + err.message);
+            expect(null).assertFail();
+
         });
     })
 })
