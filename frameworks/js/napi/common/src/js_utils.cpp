@@ -19,10 +19,11 @@
 #include "securec.h"
 #endif
 
-using namespace OHOS::NativePreferences;
 
 namespace OHOS {
 namespace PreferencesJsKit {
+using namespace OHOS::NativePreferences;
+
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output)
 {
     size_t bufferSize = 0;
@@ -342,27 +343,5 @@ napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr)
     return res;
 }
 
-int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<std::string> &output)
-{
-    uint32_t arrLen = 0;
-    napi_get_array_length(env, jsValue, &arrLen);
-    if (arrLen == 0) {
-        return napi_invalid_arg;
-    }
-    std::vector<std::string> result;
-    for (size_t i = 0; i < arrLen; ++i) {
-        napi_value element;
-        if (napi_get_element(env, jsValue, i, &element) != napi_ok) {
-            return napi_invalid_arg;
-        }
-        std::string resValue;
-        if (Convert2NativeValue(env, element, resValue) != napi_ok) {
-            return napi_invalid_arg;
-        }
-        result.push_back(resValue);
-    }
-    output = result;
-    return napi_ok;
-}
 } // namespace PreferencesJsKit
 } // namespace OHOS

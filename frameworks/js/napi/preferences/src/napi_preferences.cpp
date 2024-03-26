@@ -368,7 +368,8 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     napi_value args[3] = { 0 }; // 3 is the max args length
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
-    PRE_NAPI_ASSERT(env, argc > 0, std::make_shared<ParamNumError>("more than 1"));
+    // This interface must have 2 or 3 parameters.
+    PRE_NAPI_ASSERT(env, argc == 2 || argc == 3, std::make_shared<ParamNumError>("2 or 3"));
     napi_valuetype type;
     NAPI_CALL(env, napi_typeof(env, args[0], &type));
     PRE_NAPI_ASSERT(env, type == napi_string,
@@ -417,7 +418,7 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
         "The unRegisterMode must be 'change' or 'multiProcessChange' or 'dataChange'."));
 
     if (registerMode == STR_DATA_CHANGE) {
-        return unRegisterDataObserver(env, argc, args, thiz);
+        return UnRegisterDataObserver(env, argc, args, thiz);
     }
 
     // This interface must less than 2 parameters.
@@ -579,18 +580,18 @@ int PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &key
     return E_OK;
 }
 
-napi_value PreferencesProxy::unRegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self)
+napi_value PreferencesProxy::UnRegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self)
 {
     const size_t funcIndex = 2; // 2 is the index of the callback function
     // This interface should have 2 or 3 parameters.
     PRE_NAPI_ASSERT(env, argc > 1 && argc <= 3, std::make_shared<ParamNumError>("2 or 3"));
 
-    bool isArray = false;
-    NAPI_CALL(env, napi_is_array(env, argv[1], &isArray));
-    PRE_NAPI_ASSERT(env, isArray == true,
-        std::make_shared<ParamTypeError>("The keys must be Array."));
+    std::vector<std::string> keys;
+    int errCode = JSUtils::Convert2NativeValue(env, argv[1], keys);
+    PRE_NAPI_ASSERT(env, errCode == napi_ok,
+        std::make_shared<ParamTypeError>("The keys must be Array<string>."));
 
-    napi_valuetype type;
+    napi_valuetype type = napi_undefined;
     // when there are 3 parameters, function needs to be parsed.
     if (argc == 3) {
         NAPI_CALL(env, napi_typeof(env, argv[funcIndex], &type));
@@ -599,15 +600,6 @@ napi_value PreferencesProxy::unRegisterDataObserver(napi_env env, size_t argc, n
     }
     PreferencesProxy *obj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, self, reinterpret_cast<void **>(&obj)));
-    uint32_t arrLen = 0;
-    napi_get_array_length(env, argv[1], &arrLen);
-    std::vector<std::string> keys;
-    int errCode = napi_ok;
-    if (arrLen != 0) {
-        errCode = JSUtils::Convert2NativeValue(env, argv[1], keys);
-    }
-    PRE_NAPI_ASSERT(env, errCode == napi_ok,
-        std::make_shared<ParamTypeError>("The keys must be Array<string>."));
     if (type == napi_function) {
         errCode = obj->UnRegisteredDataObserver(keys, argv[funcIndex]);
     } else {
@@ -622,8 +614,9 @@ int PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &k
     std::lock_guard<std::mutex> lck(listMutex_);
     auto &observers = dataObservers_;
     auto it = observers.begin();
+    bool isUnRegisterAll = (callback == nullptr);
     while (it != observers.end()) {
-        if (callback == nullptr || JSUtils::Equals(env_, callback, it->first->GetCallback())) {
+        if (isUnRegisterAll || JSUtils::Equals(env_, callback, it->first->GetCallback())) {
             int errCode = value_->UnRegisterDataObserver(it->first, keys);
             if (errCode != E_OK && errCode != E_OBSERVER_RESERVE) {
                 return errCode;
@@ -634,7 +627,7 @@ int PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &k
             } else {
                 ++it;
             }
-            if (callback != nullptr) {
+            if (!isUnRegisterAll) {
                 break;
             }
         } else {

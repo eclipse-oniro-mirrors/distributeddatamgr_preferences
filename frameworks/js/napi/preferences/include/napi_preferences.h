@@ -44,7 +44,7 @@ public:
 private:
     static constexpr char STR_CHANGE[] = "change";
     static constexpr char STR_MULTI_PRECESS_CHANGE[] = "multiProcessChange";
-    static constexpr char STR_DATA_CHANGE[] = "dataChange";
+    static constexpr const char*  STR_DATA_CHANGE = "dataChange";
     explicit PreferencesProxy();
     ~PreferencesProxy();
 
@@ -67,7 +67,7 @@ private:
 
     static RegisterMode ConvertToRegisterMode(const std::string &mode);
     static napi_value RegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self);
-    static napi_value unRegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self);
+    static napi_value UnRegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self);
     bool HasRegisteredObserver(napi_value callback, RegisterMode mode);
     int RegisteredObserver(napi_value callback, RegisterMode mode);
     int UnRegisteredObserver(napi_value callback, RegisterMode mode);
