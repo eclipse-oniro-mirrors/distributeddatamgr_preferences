@@ -181,11 +181,10 @@ private:
     public:
         MemoryToDiskRequest(const std::map<std::string, PreferencesValue> &writeToDiskMap,
             const std::list<std::string> &keysModified,
-            const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration);
+            const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration,
+            const DataObserverMap preferencesDataObservers);
         ~MemoryToDiskRequest() {}
         void SetDiskWriteResult(bool wasWritten, int result);
-        void SetDataObserver(const DataObserverMap preferencesDataObservers,
-            const std::list<std::weak_ptr<PreferencesObserver>> dataObserversIndex);
 
         bool isSyncRequest_;
         int64_t memoryStateGeneration_;
@@ -229,7 +228,6 @@ private:
     std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
     std::vector<sptr<DataPreferencesObserverStub>> multiProcessObservers_;
     DataObserverMap dataObserversMap_;
-    std::list<std::weak_ptr<PreferencesObserver>> dataObservers_;
     std::map<std::string, PreferencesValue> map_;
     std::list<std::string> modifiedKeys_;
     static ExecutorPool executorPool_;

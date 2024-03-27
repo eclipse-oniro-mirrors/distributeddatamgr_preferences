@@ -536,7 +536,7 @@ napi_value PreferencesProxy::RegisterDataObserver(napi_env env, size_t argc, nap
 
     std::vector<std::string> keys;
     int errCode = JSUtils::Convert2NativeValue(env, argv[1], keys);
-    PRE_NAPI_ASSERT(env, errCode == napi_ok,
+    PRE_NAPI_ASSERT(env, errCode == napi_ok && !keys.empty(),
         std::make_shared<ParamTypeError>("The keys must be Array<string>."));
 
     napi_valuetype type;
@@ -571,9 +571,7 @@ int PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &key
 
     if (it == observers.end()) {
         std::set<std::string> callKeys(keys.begin(), keys.end());
-        observers.insert({observer, callKeys});
-    } else {
-        it->second.insert(keys.begin(), keys.end());
+        observers.insert({observer, {}});
     }
 
     LOG_INFO("The dataChange observer subscribed success.");

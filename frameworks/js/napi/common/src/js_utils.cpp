@@ -128,13 +128,18 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vect
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, Object &output)
 {
+    bool isArray = false;
+    napi_status result = napi_is_array(env, jsValue, &isArray);
+    if (result != napi_ok || isArray) {
+        return napi_invalid_arg;
+    }
     bool isTypedarray = false;
-    napi_status result = napi_is_typedarray(env, jsValue, &isTypedarray);
-    if (result == napi_ok && isTypedarray) {
+    result = napi_is_typedarray(env, jsValue, &isTypedarray);
+    if (result != napi_ok || isTypedarray) {
         return napi_invalid_arg;
     }
     napi_value jsonStr = JsonStringify(env, jsValue);
-    if (GetValueType(env, jsonStr) != napi_string) {
+    if (jsonStr == nullptr) {
         LOG_ERROR("json stringify failed");
         return napi_invalid_arg;
     }
@@ -258,9 +263,8 @@ napi_value JSUtils::Convert2JSValue(napi_env env, const std::vector<uint8_t> &va
 napi_value JSUtils::Convert2JSValue(napi_env env, const Object &value)
 {
     napi_value jsValue = JsonParse(env, value.valueStr);
-    if (GetValueType(env, jsValue) != napi_object) {
+    if (jsValue == nullptr) {
         LOG_ERROR("Convert object failed");
-        return nullptr;
     }
     return jsValue;
 }
@@ -291,55 +295,61 @@ napi_valuetype JSUtils::GetValueType(napi_env env, napi_value value)
 
 napi_value JSUtils::JsonStringify(napi_env env, napi_value value)
 {
-    napi_value undefined = nullptr;
-    napi_get_undefined(env, &undefined);
     if (GetValueType(env, value) != napi_object) {
         LOG_DEBUG("Not of object type");
-        return undefined;
+        return nullptr;
+    }
+    bool isArray = false;
+    napi_status result = napi_is_array(env, jsValue, &isArray);
+    if (result != napi_ok || isArray) {
+        return nullptr;
+    }
+    bool isTypedarray = false;
+    result = napi_is_typedarray(env, jsValue, &isTypedarray);
+    if (result != napi_ok || isTypedarray) {
+        return nullptr;
     }
     napi_value global = nullptr;
-    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, nullptr);
     napi_value json = nullptr;
     PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
-        PRE_REVT_NOTHING, undefined);
+        PRE_REVT_NOTHING, nullptr);
     napi_value stringify = nullptr;
     PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_STRINGIFY, &stringify) == napi_ok,
-        PRE_REVT_NOTHING, undefined);
+        PRE_REVT_NOTHING, nullptr);
     if (GetValueType(env, stringify) != napi_function) {
         LOG_ERROR("Get stringify func failed");
-        return undefined;
+        return nullptr;
     }
     napi_value res = nullptr;
     napi_value argv[1] = {value};
     PRE_CHECK_RETURN_CORE(napi_call_function(env, json, stringify, 1, argv, &res) == napi_ok,
-        PRE_REVT_NOTHING, undefined);
+        PRE_REVT_NOTHING, nullptr);
     return res;
 }
 
 napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr)
 {
-    napi_value undefined = nullptr;
-    napi_get_undefined(env, &undefined);
     if (inStr.empty()) {
         LOG_ERROR("JsonParse failed, inStr is empty");
-        return undefined;
+        return nullptr;
     }
     napi_value jsValue = Convert2JSValue(env, inStr);
     napi_value global = nullptr;
-    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, undefined);
+    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, nullptr);
     napi_value json = nullptr;
     PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
-        PRE_REVT_NOTHING, undefined);
+        PRE_REVT_NOTHING, nullptr);
     napi_value parse = nullptr;
     PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_PARSE, &parse) == napi_ok,
-        PRE_REVT_NOTHING, undefined);
+        PRE_REVT_NOTHING, nullptr);
     if (GetValueType(env, parse) != napi_function) {
         LOG_ERROR("Get parse func failed");
-        return undefined;
+        return nullptr;
     }
-    napi_value res = undefined;
+    napi_value res = nullptr;
     napi_value argv[1] = {jsValue};
-    PRE_CHECK_RETURN_CORE(napi_call_function(env, json, parse, 1, argv, &res) == napi_ok, PRE_REVT_NOTHING, undefined);
+    PRE_CHECK_RETURN_CORE(napi_call_function(env, json, parse, 1, argv, &res) == napi_ok, PRE_REVT_NOTHING, nullptr);
     return res;
 }
 
