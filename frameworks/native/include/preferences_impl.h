@@ -193,7 +193,6 @@ private:
         std::list<std::string> keysModified_;
         std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
         DataObserverMap dataObserversMap_;
-        std::list<std::weak_ptr<PreferencesObserver>> dataObservers_;
 
         int writeToDiskResult_;
         bool wasWritten_;

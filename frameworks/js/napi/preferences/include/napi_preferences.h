@@ -80,7 +80,7 @@ private:
     std::mutex listMutex_ {};
     std::list<std::shared_ptr<JSPreferencesObserver>> localObservers_;
     std::list<std::shared_ptr<JSPreferencesObserver>> multiProcessObservers_;
-    std::map<std::shared_ptr<JSPreferencesObserver>, std::set<std::string>> dataObservers_;
+    std::list<std::shared_ptr<JSPreferencesObserver>> dataObservers_;
     std::shared_ptr<UvQueue> uvQueue_;
 };
 } // namespace PreferencesJsKit

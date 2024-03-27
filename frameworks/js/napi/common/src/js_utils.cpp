@@ -299,16 +299,6 @@ napi_value JSUtils::JsonStringify(napi_env env, napi_value value)
         LOG_DEBUG("Not of object type");
         return nullptr;
     }
-    bool isArray = false;
-    napi_status result = napi_is_array(env, jsValue, &isArray);
-    if (result != napi_ok || isArray) {
-        return nullptr;
-    }
-    bool isTypedarray = false;
-    result = napi_is_typedarray(env, jsValue, &isTypedarray);
-    if (result != napi_ok || isTypedarray) {
-        return nullptr;
-    }
     napi_value global = nullptr;
     PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, nullptr);
     napi_value json = nullptr;

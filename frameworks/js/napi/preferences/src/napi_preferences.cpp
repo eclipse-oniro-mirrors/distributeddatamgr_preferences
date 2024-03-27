@@ -444,7 +444,8 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
 
 bool PreferencesProxy::HasRegisteredObserver(napi_value callback, RegisterMode mode)
 {
-    auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
+    auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ :
+        (mode == RegisterMode::MULTI_PRECESS_CHANGE) ? multiProcessObservers_ : dataObservers_;
     for (auto &it : observers) {
         if (JSUtils::Equals(env_, callback, it->GetCallback())) {
             LOG_INFO("The observer has already subscribed.");
@@ -554,26 +555,15 @@ int PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &key
 {
     std::lock_guard<std::mutex> lck(listMutex_);
     auto &observers = dataObservers_;
-    auto it = observers.begin();
-    auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
-    for (; it != observers.end(); it++) {
-        if (!JSUtils::Equals(env_, callback, it->first->GetCallback())) {
-            continue;
+    if (!HasRegisteredObserver(callback, RegisterMode::DATA_CHANGE)) {
+        auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
+        int errCode = value_->RegisterDataObserver(observer, keys);
+        if (errCode != E_OK) {
+            LOG_ERROR("Registered dataObserver failed:%{public}d", errCode);
+            return errCode;
         }
-        observer = it->first;
-        break;
+        observers.push_back(observer);
     }
-    int errCode = value_->RegisterDataObserver(observer, keys);
-    if (errCode != E_OK) {
-        LOG_ERROR("Registered dataObserver failed:%{public}d", errCode);
-        return errCode;
-    }
-
-    if (it == observers.end()) {
-        std::set<std::string> callKeys(keys.begin(), keys.end());
-        observers.insert({observer, {}});
-    }
-
     LOG_INFO("The dataChange observer subscribed success.");
     return E_OK;
 }
@@ -611,16 +601,15 @@ int PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &k
 {
     std::lock_guard<std::mutex> lck(listMutex_);
     auto &observers = dataObservers_;
-    auto it = observers.begin();
     bool isUnRegisterAll = (callback == nullptr);
+    auto it = observers.begin();
     while (it != observers.end()) {
-        if (isUnRegisterAll || JSUtils::Equals(env_, callback, it->first->GetCallback())) {
-            int errCode = value_->UnRegisterDataObserver(it->first, keys);
+        if (isUnRegisterAll || JSUtils::Equals(env_, callback, (*it)->GetCallback())) {
+            int errCode = value_->UnRegisterDataObserver(*it, keys);
             if (errCode != E_OK && errCode != E_OBSERVER_RESERVE) {
                 return errCode;
-            }
-            if (errCode == E_OK) {
-                it->first->ClearCallback();
+            } else if (errCode == E_OK) {
+                (*it)->ClearCallback();
                 it = observers.erase(it);
             } else {
                 ++it;
