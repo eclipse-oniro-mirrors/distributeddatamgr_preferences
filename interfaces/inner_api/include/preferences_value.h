@@ -33,6 +33,22 @@ struct Object {
         return valueStr == other.valueStr;
     }
 };
+
+struct BigInt {
+public:
+    BigInt() = default;
+    BigInt(const std::vector<uint64_t> &words, int sign) : words_(std::move(words)), sign_(sign)
+    {
+    }
+    ~BigInt() = default;
+    bool operator==(const BigInt &value) const
+    {
+        return sign_ == value.sign_ && words_ == value.words_;
+    }
+    std::vector<uint64_t> words_;
+    int sign_;
+};
+
 /**
  * The PreferencesValue class of the preference. Various operations on PreferencesValue are provided in this class.
  */
@@ -154,6 +170,15 @@ public:
     PREF_API_EXPORT PreferencesValue(Object value);
 
     /**
+     * @brief Constructor.
+     *
+     * This constructor is used to convert the BigInt input parameter to a value of type PreferencesValue.
+     *
+     * @param value Indicates a vector<uint8_t> input parameter.
+     */
+    PREF_API_EXPORT PreferencesValue(BigInt value);
+
+    /**
      * @brief Move assignment operator overloaded function.
      */
     PREF_API_EXPORT PreferencesValue &operator=(PreferencesValue &&preferencesValue) noexcept;
@@ -236,6 +261,13 @@ public:
     PREF_API_EXPORT bool IsObject() const;
 
     /**
+     * @brief Determines whether the BigInt type PreferencesValue is currently used.
+     *
+     * @return Returning true means it is, false means it isn't.
+     */
+    PREF_API_EXPORT bool IsBigInt() const;
+
+    /**
      * @brief Type conversion function.
      *
      * @return The int type PreferencesValue.
@@ -308,6 +340,13 @@ public:
     PREF_API_EXPORT operator Object() const;
 
     /**
+     * @brief Type conversion function.
+     *
+     * @return Returns BigInt type PreferencesValue.
+     */
+    PREF_API_EXPORT operator BigInt() const;
+
+    /**
      * @brief Overloaded operator "==".
      *
      * This function is used to determine whether the input value is equal to the current PreferencesValue.
@@ -319,7 +358,7 @@ public:
     PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
     std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>, std::vector<bool>,
-        std::vector<double>, std::vector<uint8_t>, Object> value_;
+        std::vector<double>, std::vector<uint8_t>, Object, BigInt> value_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

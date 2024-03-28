@@ -26,6 +26,7 @@ constexpr int MAX_INPUT_COUNT = 10;
 constexpr int OK = 0;
 constexpr int ERR = -1;
 constexpr int EXCEED_MAX_LENGTH = -2;
+constexpr int NAPI_TYPE_ERROR = -3;
 
 constexpr int E_INVALID_PARAM = 401;
 constexpr int E_INNER_ERROR = 15500000;

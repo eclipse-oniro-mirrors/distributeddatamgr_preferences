@@ -25,6 +25,7 @@ const KEY_TEST_STRING_ELEMENT = 'key_test_string';
 const KEY_TEST_NUMBER_ARRAY_ELEMENT = 'key_test_number_array'
 const KEY_TEST_STRING_ARRAY_ELEMENT = 'key_test_string_array'
 const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array'
+const KEY_TEST_BIGINT = 'key_test_bigint'
 var mPreferences;
 var context;
 
@@ -49,9 +50,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name put StringArray promise interface test
+     * @tc.name put StringArray sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0131
-     * @tc.desc put StringArray promise interface test
+     * @tc.desc put StringArray sync interface test
      */
     it('testPreferencesPutStringArray0131', 0, function () {
         const stringArr = ['1', '2', '3'];
@@ -63,9 +64,9 @@ describe('preferencesSyncTest', function () {
     });
 
     /**
-     * @tc.name put NumberArray promise interface test
+     * @tc.name put NumberArray sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0132
-     * @tc.desc put NumberArray promise interface test
+     * @tc.desc put NumberArray sync interface test
      */
     it('testPreferencesPutNumberArray0132', 0, function () {
         const numberArr = [11, 22, 33, 44, 55];
@@ -77,9 +78,9 @@ describe('preferencesSyncTest', function () {
     });
 
     /**
-     * @tc.name put BoolArray promise interface test
+     * @tc.name put BoolArray sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0133
-     * @tc.desc put BoolArray promise interface test
+     * @tc.desc put BoolArray sync interface test
      */
     it('testPreferencesPutBoolArray0133', 0, function () {
         const boolArr = [true, true, false];
@@ -91,9 +92,9 @@ describe('preferencesSyncTest', function () {
     });
 
     /**
-     * @tc.name getAll promise interface test
+     * @tc.name getAll sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0133
-     * @tc.desc getAll promise interface test
+     * @tc.desc getAll sync interface test
      */
     it('testPreferencesGetAll0001', 0, function () {
         const doubleArr = [11, 22, 33];
@@ -124,9 +125,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name clear promise interface test
+     * @tc.name clear sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Promise_0010
-     * @tc.desc clear promise interface test
+     * @tc.desc clear sync interface test
      */
     it('testPreferencesClear0011', 0, function () {
         mPreferences.putSync(KEY_TEST_STRING_ELEMENT, "test");
@@ -192,9 +193,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name get string promise interface test
+     * @tc.name get string sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0030
-     * @tc.desc get string promise interface test
+     * @tc.desc get string sync interface test
      */
     it('testPreferencesGetDefValue0061', 0, function () {
         const ret = mPreferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultValue");
@@ -202,9 +203,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name get float promise interface test
+     * @tc.name get float sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0040
-     * @tc.desc get float promise interface test
+     * @tc.desc get float sync interface test
      */
     it('testPreferencesGetFloat0071', 0, function () {
         mPreferences.putSync(KEY_TEST_FLOAT_ELEMENT, 3.0);
@@ -213,9 +214,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name get int promise interface test
+     * @tc.name get int sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0050
-     * @tc.desc get int promise interface test
+     * @tc.desc get int sync interface test
      */
     it('testPreferencesGetInt0081', 0,  function () {
         mPreferences.putSync(KEY_TEST_INT_ELEMENT, 3);
@@ -224,9 +225,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name get long promise interface test
+     * @tc.name get long sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0060
-     * @tc.desc get long promise interface test
+     * @tc.desc get long sync interface test
      */
     it('testPreferencesGetLong0091', 0, function () {
         mPreferences.putSync(KEY_TEST_LONG_ELEMENT, 3);
@@ -235,9 +236,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name get String promise interface test
+     * @tc.name get String sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0070
-     * @tc.desc get String promise interface test
+     * @tc.desc get String sync interface test
      */
     it('tesPreferencesGetString101', 0, async function () {
         mPreferences.putSync(KEY_TEST_STRING_ELEMENT, "test");
@@ -247,9 +248,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name put boolean promise interface test
+     * @tc.name put boolean sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0090
-     * @tc.desc put boolean promise interface test
+     * @tc.desc put boolean sync interface test
      */
     it('testPreferencesPutBoolean0121', 0, async function () {
         mPreferences.putSync(KEY_TEST_BOOLEAN_ELEMENT, true);
@@ -264,9 +265,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name put float promise interface test
+     * @tc.name put float sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0100
-     * @tc.desc put float promise interface test
+     * @tc.desc put float sync interface test
      */
     it('testPreferencesPutFloat0131', 0, async function () {
         mPreferences.putSync(KEY_TEST_FLOAT_ELEMENT, 4.0);
@@ -281,9 +282,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name put int promise interface test
+     * @tc.name put int sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0110
-     * @tc.desc put int promise interface test
+     * @tc.desc put int sync interface test
      */
     it('testPreferencesPutInt0141', 0, async function () {
         mPreferences.putSync(KEY_TEST_INT_ELEMENT, 4);
@@ -299,9 +300,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name put long promise interface test
+     * @tc.name put long sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0120
-     * @tc.desc put long promise interface test
+     * @tc.desc put long sync interface test
      */
     it('testPreferencesPutLong0151', 0, async function () {
         mPreferences.putSync(KEY_TEST_LONG_ELEMENT, 4);
@@ -317,9 +318,9 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
-     * @tc.name put String promise interface test
+     * @tc.name put String sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0130
-     * @tc.desc put String promise interface test
+     * @tc.desc put String sync interface test
      */
     it('testPreferencesPutString0161', 0, async function () {
         mPreferences.putSync(KEY_TEST_STRING_ELEMENT, '');
@@ -331,6 +332,23 @@ describe('preferencesSyncTest', function () {
         mPreferences = data_preferences.getPreferencesSync(context, NAME);
         let per2 = mPreferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
         expect('').assertEqual(per2);
-        
+    })
+
+    /**
+     * @tc.name put BigInt sync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0007
+     * @tc.desc put BigInt sync interface test
+     */
+    it('testPreferencesPutBigInt0162', 0, async function () {
+        let bigint = BigInt(Number.MIN_SAFE_INTEGER);
+        mPreferences.putSync(KEY_TEST_BIGINT, bigint);
+        let pre = mPreferences.getSync(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre).assertTrue();
+        await mPreferences.flush();
+        await data_preferences.removePreferencesFromCacheSync(context, NAME);
+        mPreferences = null;
+        mPreferences = await data_preferences.getPreferencesSync(context, NAME);
+        let pre2 = await mPreferences.getSync(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre2).assertTrue();
     })
 })

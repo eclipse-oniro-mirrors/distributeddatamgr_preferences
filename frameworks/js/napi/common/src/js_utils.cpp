@@ -14,6 +14,12 @@
  */
 
 #include "js_utils.h"
+#include <cstdint>
+#include <tuple>
+#include <utility>
+#include "hilog/log_c.h"
+#include "js_native_api.h"
+#include "js_native_api_types.h"
 
 #ifndef MAC_PLATFORM
 #include "securec.h"
@@ -23,14 +29,13 @@
 namespace OHOS {
 namespace PreferencesJsKit {
 using namespace OHOS::NativePreferences;
-
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output)
 {
     size_t bufferSize = 0;
     napi_status status = napi_get_value_string_utf8(env, jsValue, nullptr, 0, &bufferSize);
     if (status != napi_ok) {
         LOG_DEBUG("get std::string failed, status = %{public}d", status);
-        return napi_invalid_arg;
+        return NAPI_TYPE_ERROR;
     }
     if (bufferSize > MAX_VALUE_LENGTH) {
         LOG_ERROR("string  must be less than the limit length.");
@@ -45,7 +50,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::stri
     if (status != napi_ok) {
         free(buffer);
         LOG_DEBUG("JSUtils::Convert2NativeValue get jsVal failed, status = %{public}d", status);
-        return napi_invalid_arg;
+        return status;
     }
     output = buffer;
     free(buffer);
@@ -58,7 +63,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, bool &out
     napi_status status = napi_get_value_bool(env, jsValue, &bValue);
     if (status != napi_ok) {
         LOG_DEBUG("get bool failed, status = %{public}d", status);
-        return napi_invalid_arg;
+        return NAPI_TYPE_ERROR;
     }
     output = bValue;
     return napi_ok;
@@ -70,7 +75,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &o
     napi_status status = napi_get_value_double(env, jsValue, &number);
     if (status != napi_ok) {
         LOG_DEBUG("get double failed, status = %{public}d", status);
-        return napi_invalid_arg;
+        return NAPI_TYPE_ERROR;
     }
     output = number;
     return napi_ok;
@@ -79,19 +84,19 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, double &o
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, float &output)
 {
     LOG_DEBUG("Convert2NativeValue js just support double data not support float");
-    return napi_invalid_arg;
+    return NAPI_TYPE_ERROR;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output)
 {
     LOG_DEBUG("Convert2NativeValue js just support double data not support int32_t");
-    return napi_invalid_arg;
+    return NAPI_TYPE_ERROR;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output)
 {
     LOG_DEBUG("Convert2NativeValue js just support double data not support int64_t");
-    return napi_invalid_arg;
+    return NAPI_TYPE_ERROR;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<uint8_t> &output)
@@ -99,8 +104,8 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vect
     bool isTypedarray = false;
     napi_status result = napi_is_typedarray(env, jsValue, &isTypedarray);
     if (result != napi_ok || !isTypedarray) {
-        LOG_ERROR("napi_is_typedarray fail");
-        return napi_invalid_arg;
+        LOG_DEBUG("napi_is_typedarray fail %{public}d", result);
+        return NAPI_TYPE_ERROR;
     }
     napi_typedarray_type type = napi_uint8_array;
     size_t length = 0;
@@ -108,11 +113,11 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vect
     result = napi_get_typedarray_info(env, jsValue, &type, &length, &data, nullptr, nullptr);
     if (result != napi_ok) {
         LOG_ERROR("napi_get_typedarray_info fail");
-        return napi_invalid_arg;
+        return result;
     }
     if (type != napi_uint8_array) {
         LOG_ERROR("value is not napi_uint8_array");
-        return napi_invalid_arg;
+        return NAPI_TYPE_ERROR;
     }
     if (length > MAX_VALUE_LENGTH) {
         LOG_ERROR("unit8Array must be less than the limit length.");
@@ -128,22 +133,37 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vect
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, Object &output)
 {
-    bool isArray = false;
-    napi_status result = napi_is_array(env, jsValue, &isArray);
-    if (result != napi_ok || isArray) {
-        return napi_invalid_arg;
+    if (GetValueType(env, jsValue) != napi_object) {
+        LOG_DEBUG("Not of object type.");
+        return NAPI_TYPE_ERROR;
     }
-    bool isTypedarray = false;
-    result = napi_is_typedarray(env, jsValue, &isTypedarray);
-    if (result != napi_ok || isTypedarray) {
-        return napi_invalid_arg;
-    }
-    napi_value jsonStr = JsonStringify(env, jsValue);
-    if (jsonStr == nullptr) {
-        LOG_ERROR("json stringify failed");
-        return napi_invalid_arg;
+    auto [status, jsonStr] = JsonStringify(env, jsValue);
+    if (status != napi_ok) {
+        LOG_ERROR("json stringify failed.");
+        return status;
     }
     return Convert2NativeValue(env, jsonStr, output.valueStr);
+}
+
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, BigInt &output)
+{
+    if (GetValueType(env, jsValue) != napi_bigint) {
+        LOG_DEBUG("Not of bigint type.");
+        return NAPI_TYPE_ERROR;
+    }
+    size_t wordCount = 0;
+    napi_status status = napi_get_value_bigint_words(env, jsValue, nullptr, &wordCount, nullptr);
+    if (status != napi_ok || wordCount == 0) {
+        LOG_ERROR("get wordCount failed %{public}d wordCount %{public}zu.", status, wordCount);
+        return status;
+    }
+    output.words_.resize(wordCount);
+    status = napi_get_value_bigint_words(env, jsValue, &output.sign_, &wordCount, output.words_.data());
+    if (status != napi_ok) {
+        LOG_ERROR("napi_get_value_bigint_words failed %{public}d wordCount %{public}zu.", status, wordCount);
+        return status;
+    }
+    return napi_ok;
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value)
@@ -279,6 +299,17 @@ napi_value JSUtils::Convert2JSValue(napi_env env, const std::string &value)
     return jsValue;
 }
 
+napi_value JSUtils::Convert2JSValue(napi_env env, const BigInt &value)
+{
+    napi_value bigint = nullptr;
+    napi_status status = napi_create_bigint_words(env, value.sign_, value.words_.size(), value.words_.data(), &bigint);
+    if (status != napi_ok || bigint == nullptr) {
+        LOG_ERROR("napi_create_bigint_words failed %{public}d", status);
+        return nullptr;
+    }
+    return bigint;
+}
+
 napi_value JSUtils::Convert2JSValue(napi_env env, const std::monostate &value)
 {
     napi_value result = nullptr;
@@ -293,29 +324,22 @@ napi_valuetype JSUtils::GetValueType(napi_env env, napi_value value)
     return valueType;
 }
 
-napi_value JSUtils::JsonStringify(napi_env env, napi_value value)
+std::tuple<napi_status, napi_value> JSUtils::JsonStringify(napi_env env, napi_value value)
 {
-    if (GetValueType(env, value) != napi_object) {
-        LOG_DEBUG("Not of object type");
-        return nullptr;
-    }
     napi_value global = nullptr;
-    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, nullptr);
+    napi_status status = napi_get_global(env, &global);
+    PRE_CHECK_RETURN_CORE(status == napi_ok, PRE_REVT_NOTHING, std::make_tuple(status, nullptr));
     napi_value json = nullptr;
-    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
-        PRE_REVT_NOTHING, nullptr);
+    status = napi_get_named_property(env, global, GLOBAL_JSON, &json);
+    PRE_CHECK_RETURN_CORE(status == napi_ok, PRE_REVT_NOTHING, std::make_tuple(status, nullptr));
     napi_value stringify = nullptr;
-    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_STRINGIFY, &stringify) == napi_ok,
-        PRE_REVT_NOTHING, nullptr);
-    if (GetValueType(env, stringify) != napi_function) {
-        LOG_ERROR("Get stringify func failed");
-        return nullptr;
-    }
+    status = napi_get_named_property(env, json, GLOBAL_STRINGIFY, &stringify);
+    PRE_CHECK_RETURN_CORE(status == napi_ok, PRE_REVT_NOTHING, std::make_tuple(status, nullptr));
     napi_value res = nullptr;
     napi_value argv[1] = {value};
-    PRE_CHECK_RETURN_CORE(napi_call_function(env, json, stringify, 1, argv, &res) == napi_ok,
-        PRE_REVT_NOTHING, nullptr);
-    return res;
+    status = napi_call_function(env, json, stringify, 1, argv, &res);
+    PRE_CHECK_RETURN_CORE(status == napi_ok, PRE_REVT_NOTHING, std::make_tuple(status, nullptr));
+    return std::make_tuple(napi_ok, res);
 }
 
 napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr)

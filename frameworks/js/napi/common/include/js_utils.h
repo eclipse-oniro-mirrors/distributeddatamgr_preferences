@@ -19,21 +19,23 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <type_traits>
 #include <variant>
 #include <vector>
-#include <type_traits>
 
 #include "log_print.h"
-#include "napi_preferences_error.h"
-#include "preferences_value.h"
-
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "napi_preferences_error.h"
+#include "preferences_value.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
 namespace JSUtils {
+
+using namespace NativePreferences;
+
 constexpr int32_t OK = 0;
 constexpr int32_t ERR = -1;
 constexpr int32_t EXCEED_MAX_LENGTH = -2;
@@ -55,7 +57,8 @@ int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<uint8_t> &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output);
-int32_t Convert2NativeValue(napi_env env, napi_value jsValue, OHOS::NativePreferences::Object &output);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, Object &output);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, BigInt &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value);
 
 template<typename T> int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<T> &value);
@@ -72,10 +75,11 @@ napi_value Convert2JSValue(napi_env env, double value);
 napi_value Convert2JSValue(napi_env env, const std::vector<uint8_t> &value);
 napi_value Convert2JSValue(napi_env env, const std::string &value);
 napi_value Convert2JSValue(napi_env env, const OHOS::NativePreferences::Object &value);
+napi_value Convert2JSValue(napi_env env, const BigInt &value);
 napi_value Convert2JSValue(napi_env env, const std::monostate &value);
 
 napi_valuetype GetValueType(napi_env env, napi_value value);
-napi_value JsonStringify(napi_env env, napi_value value);
+std::tuple<napi_status, napi_value> JsonStringify(napi_env env, napi_value value);
 napi_value JsonParse(napi_env env, const std::string &inStr);
 
 template<typename T>
@@ -99,7 +103,7 @@ template<typename T, typename First, typename... Types> int32_t GetCPPValue(napi
 {
     First cValue;
     auto ret = Convert2NativeValue(env, jsValue, cValue);
-    if (ret == napi_ok) {
+    if (ret != NAPI_TYPE_ERROR) {
         value = cValue;
         return ret;
     }
@@ -126,7 +130,7 @@ template<typename T> int32_t JSUtils::Convert2NativeValue(napi_env env, napi_val
     bool isArray = false;
     napi_is_array(env, jsValue, &isArray);
     if (!isArray) {
-        return napi_invalid_arg;
+        return NAPI_TYPE_ERROR;
     }
 
     uint32_t arrLen = 0;
@@ -141,7 +145,7 @@ template<typename T> int32_t JSUtils::Convert2NativeValue(napi_env env, napi_val
         T item;
         auto status = Convert2NativeValue(env, element, item);
         if (status != napi_ok) {
-            return napi_invalid_arg;
+            return status;
         }
         value.push_back(std::move(item));
     }
