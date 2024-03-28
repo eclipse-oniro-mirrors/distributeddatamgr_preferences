@@ -29,6 +29,7 @@ public:
     JSPreferencesObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback);
     virtual ~JSPreferencesObserver() = default;
     void OnChange(const std::string &key) override;
+    void OnChange(const std::map<std::string, NativePreferences::PreferencesValue> &records) override;
 };
 } // namespace PreferencesJsKit
 } // namespace OHOS

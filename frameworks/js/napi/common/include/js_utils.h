@@ -24,6 +24,8 @@
 #include <type_traits>
 
 #include "log_print.h"
+#include "napi_preferences_error.h"
+#include "preferences_value.h"
 
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -40,6 +42,9 @@ constexpr int32_t BUF_CACHE_MARGIN = 4;
 constexpr int32_t ASYNC_RST_SIZE = 2;
 constexpr int32_t MAX_VALUE_LENGTH = 8 * DEFAULT_BUF_SIZE;
 constexpr int32_t SYNC_RESULT_ELEMNT_NUM = 2;
+constexpr const char* GLOBAL_JSON = "JSON";
+constexpr const char* GLOBAL_STRINGIFY = "stringify";
+constexpr const char* GLOBAL_PARSE = "parse";
 
 bool Equals(napi_env env, napi_value value, napi_ref copy);
 
@@ -50,6 +55,7 @@ int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int32_t &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, int64_t &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<uint8_t> &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output);
+int32_t Convert2NativeValue(napi_env env, napi_value jsValue, OHOS::NativePreferences::Object &output);
 int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value);
 
 template<typename T> int32_t Convert2NativeValue(napi_env env, napi_value jsValue, std::vector<T> &value);
@@ -65,7 +71,12 @@ napi_value Convert2JSValue(napi_env env, float value);
 napi_value Convert2JSValue(napi_env env, double value);
 napi_value Convert2JSValue(napi_env env, const std::vector<uint8_t> &value);
 napi_value Convert2JSValue(napi_env env, const std::string &value);
+napi_value Convert2JSValue(napi_env env, const OHOS::NativePreferences::Object &value);
 napi_value Convert2JSValue(napi_env env, const std::monostate &value);
+
+napi_valuetype GetValueType(napi_env env, napi_value value);
+napi_value JsonStringify(napi_env env, napi_value value);
+napi_value JsonParse(napi_env env, const std::string &inStr);
 
 template<typename T>
 std::enable_if_t<std::is_class_v<T>, napi_value> Convert2JSValue(napi_env env, const T &value);

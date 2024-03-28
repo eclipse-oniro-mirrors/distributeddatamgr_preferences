@@ -88,6 +88,11 @@ PreferencesValue::PreferencesValue(std::vector<uint8_t> value)
     value_ = value;
 }
 
+PreferencesValue::PreferencesValue(Object value)
+{
+    value_ = value;
+}
+
 PreferencesValue &PreferencesValue::operator=(PreferencesValue &&preferencesValue) noexcept
 {
     if (this == &preferencesValue) {
@@ -144,6 +149,11 @@ bool PreferencesValue::IsDoubleArray() const
 bool PreferencesValue::IsUint8Array() const
 {
     return std::holds_alternative<std::vector<uint8_t>>(value_);
+}
+
+bool PreferencesValue::IsObject() const
+{
+    return std::holds_alternative<Object>(value_);
 }
 
 bool PreferencesValue::IsStringArray() const
@@ -204,6 +214,11 @@ PreferencesValue::operator std::vector<std::string>() const
 PreferencesValue::operator std::vector<uint8_t>() const
 {
     return std::get<std::vector<uint8_t>>(value_);
+}
+
+PreferencesValue::operator Object() const
+{
+    return std::get<Object>(value_);
 }
 
 bool PreferencesValue::operator==(const PreferencesValue &value)

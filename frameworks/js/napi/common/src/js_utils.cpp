@@ -19,8 +19,11 @@
 #include "securec.h"
 #endif
 
+
 namespace OHOS {
 namespace PreferencesJsKit {
+using namespace OHOS::NativePreferences;
+
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::string &output)
 {
     size_t bufferSize = 0;
@@ -121,6 +124,26 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vect
         output.assign(static_cast<uint8_t*>(data), static_cast<uint8_t*>(data) + length);
     }
     return napi_ok;
+}
+
+int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, Object &output)
+{
+    bool isArray = false;
+    napi_status result = napi_is_array(env, jsValue, &isArray);
+    if (result != napi_ok || isArray) {
+        return napi_invalid_arg;
+    }
+    bool isTypedarray = false;
+    result = napi_is_typedarray(env, jsValue, &isTypedarray);
+    if (result != napi_ok || isTypedarray) {
+        return napi_invalid_arg;
+    }
+    napi_value jsonStr = JsonStringify(env, jsValue);
+    if (jsonStr == nullptr) {
+        LOG_ERROR("json stringify failed");
+        return napi_invalid_arg;
+    }
+    return Convert2NativeValue(env, jsonStr, output.valueStr);
 }
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value)
@@ -237,6 +260,15 @@ napi_value JSUtils::Convert2JSValue(napi_env env, const std::vector<uint8_t> &va
     return napiValue;
 }
 
+napi_value JSUtils::Convert2JSValue(napi_env env, const Object &value)
+{
+    napi_value jsValue = JsonParse(env, value.valueStr);
+    if (jsValue == nullptr) {
+        LOG_ERROR("Convert object failed");
+    }
+    return jsValue;
+}
+
 napi_value JSUtils::Convert2JSValue(napi_env env, const std::string &value)
 {
     napi_value jsValue = nullptr;
@@ -253,5 +285,63 @@ napi_value JSUtils::Convert2JSValue(napi_env env, const std::monostate &value)
     napi_get_null(env, &result);
     return result;
 }
+
+napi_valuetype JSUtils::GetValueType(napi_env env, napi_value value)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, value, &valueType);
+    return valueType;
+}
+
+napi_value JSUtils::JsonStringify(napi_env env, napi_value value)
+{
+    if (GetValueType(env, value) != napi_object) {
+        LOG_DEBUG("Not of object type");
+        return nullptr;
+    }
+    napi_value global = nullptr;
+    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, nullptr);
+    napi_value json = nullptr;
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
+        PRE_REVT_NOTHING, nullptr);
+    napi_value stringify = nullptr;
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_STRINGIFY, &stringify) == napi_ok,
+        PRE_REVT_NOTHING, nullptr);
+    if (GetValueType(env, stringify) != napi_function) {
+        LOG_ERROR("Get stringify func failed");
+        return nullptr;
+    }
+    napi_value res = nullptr;
+    napi_value argv[1] = {value};
+    PRE_CHECK_RETURN_CORE(napi_call_function(env, json, stringify, 1, argv, &res) == napi_ok,
+        PRE_REVT_NOTHING, nullptr);
+    return res;
+}
+
+napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr)
+{
+    if (inStr.empty()) {
+        LOG_ERROR("JsonParse failed, inStr is empty");
+        return nullptr;
+    }
+    napi_value jsValue = Convert2JSValue(env, inStr);
+    napi_value global = nullptr;
+    PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, nullptr);
+    napi_value json = nullptr;
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
+        PRE_REVT_NOTHING, nullptr);
+    napi_value parse = nullptr;
+    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_PARSE, &parse) == napi_ok,
+        PRE_REVT_NOTHING, nullptr);
+    if (GetValueType(env, parse) != napi_function) {
+        LOG_ERROR("Get parse func failed");
+        return nullptr;
+    }
+    napi_value res = nullptr;
+    napi_value argv[1] = {jsValue};
+    PRE_CHECK_RETURN_CORE(napi_call_function(env, json, parse, 1, argv, &res) == napi_ok, PRE_REVT_NOTHING, nullptr);
+    return res;
+}
+
 } // namespace PreferencesJsKit
 } // namespace OHOS

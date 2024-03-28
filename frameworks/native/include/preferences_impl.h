@@ -155,6 +155,12 @@ public:
 
     int UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
 
+    int UnRegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
+        const std::vector<std::string> &keys) override;
+
+    int RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
+        const std::vector<std::string> &keys) override;
+
     std::string GetGroupId() const override
     {
         return options_.dataGroupId;
@@ -163,12 +169,20 @@ public:
     static std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
 
 private:
+    struct WeakPtrCompare {
+        bool operator()(const std::weak_ptr<PreferencesObserver> &a, const std::weak_ptr<PreferencesObserver> &b) const
+        {
+            return a.owner_before(b);
+        }
+    };
+    using DataObserverMap = std::map<std::weak_ptr<PreferencesObserver>, std::set<std::string>, WeakPtrCompare>;
     explicit PreferencesImpl(const Options &options);
     class MemoryToDiskRequest {
     public:
         MemoryToDiskRequest(const std::map<std::string, PreferencesValue> &writeToDiskMap,
             const std::list<std::string> &keysModified,
-            const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration);
+            const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration,
+            const DataObserverMap preferencesDataObservers);
         ~MemoryToDiskRequest() {}
         void SetDiskWriteResult(bool wasWritten, int result);
 
@@ -178,6 +192,7 @@ private:
         std::condition_variable reqCond_;
         std::list<std::string> keysModified_;
         std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
+        DataObserverMap dataObserversMap_;
 
         int writeToDiskResult_;
         bool wasWritten_;
@@ -188,6 +203,7 @@ private:
     bool StartLoadFromDisk();
     int CheckKey(const std::string &key);
     int CheckStringValue(const std::string &value);
+    int CheckObjectValue(const Object &value);
     Uri MakeUri(const std::string &key = "");
 
     /* thread function */
@@ -210,6 +226,7 @@ private:
 
     std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
     std::vector<sptr<DataPreferencesObserverStub>> multiProcessObservers_;
+    DataObserverMap dataObserversMap_;
     std::map<std::string, PreferencesValue> map_;
     std::list<std::string> modifiedKeys_;
     static ExecutorPool executorPool_;

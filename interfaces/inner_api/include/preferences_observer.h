@@ -16,8 +16,10 @@
 #ifndef PREFERENCES_OBSERVER_H
 #define PREFERENCES_OBSERVER_H
 
+#include <map>
 #include <string>
 
+#include "preferences_value.h"
 #include "preferences_visibility.h"
 
 namespace OHOS {
@@ -28,7 +30,7 @@ namespace NativePreferences {
 
 class PREF_API_EXPORT PreferencesObserver {
 public:
-    enum RegisterMode { LOCAL_CHANGE = 0, MULTI_PRECESS_CHANGE };
+    enum RegisterMode { LOCAL_CHANGE = 0, MULTI_PRECESS_CHANGE, DATA_CHANGE};
     PREF_API_EXPORT virtual ~PreferencesObserver();
 
     /**
@@ -39,6 +41,8 @@ public:
      * @param key Indicates the key of the preferences. It cannot be empty.
      */
     virtual void OnChange(const std::string &key) = 0;
+
+    virtual void OnChange(const std::map<std::string, NativePreferences::PreferencesValue> &records) {};
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

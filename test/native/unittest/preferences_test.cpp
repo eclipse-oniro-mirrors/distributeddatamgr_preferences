@@ -45,6 +45,7 @@ const std::string KEY_TEST_STRING_ARRAY_ELEMENT = "key_test_string_array";
 const std::string KEY_TEST_BOOL_ARRAY_ELEMENT = "key_test_bool_array";
 const std::string KEY_TEST_DOUBLE_ARRAY_ELEMENT = "key_test_double_array";
 const std::string KEY_TEST_UINT8_ARRAY_ELEMENT = "key_test_uint8_array";
+const std::string KEY_TEST_OBJECT_ELEMENT = "key_test_object";
 class PreferencesTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -941,5 +942,29 @@ HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
     std::vector<uint8_t> valueVectorUint8(3, 1);
     std::vector<uint8_t> retVectorUint8 = PreferencesValue(valueVectorUint8);
     EXPECT_EQ(valueVectorUint8, retVectorUint8);
+}
+
+/**
+ * @tc.name: NativePreferencesTest_029
+ * @tc.desc: normal testcase of get object
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author: bty
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_029, TestSize.Level1)
+{
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    Object object("{\"key1\":\"value1\",\"key2\":222}");
+    EXPECT_EQ(pref1->Put(KEY_TEST_OBJECT_ELEMENT, object), E_OK);
+    pref1->FlushSync();
+
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test1");
+    pref1.reset();
+    pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
+    PreferencesValue defValue(static_cast<int64_t>(0));
+    PreferencesValue res = pref1->Get(KEY_TEST_OBJECT_ELEMENT, defValue);
+    EXPECT_EQ(static_cast<Object>(res), object);
+    PreferencesHelper::DeletePreferences("/data/test/test1");
 }
 } // namespace

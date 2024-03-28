@@ -27,6 +27,7 @@ const KEY_TEST_NUMBER_ARRAY_ELEMENT = 'key_test_number_array';
 const KEY_TEST_STRING_ARRAY_ELEMENT = 'key_test_string_array';
 const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array';
 const KEY_TEST_UINT8ARRAY = 'key_test_uint8array';
+const KEY_TEST_OBJECT = 'key_test_object';
 var mPreferences;
 var context;
 
@@ -558,4 +559,48 @@ describe('PreferencesPromiseJsunit', function () {
         }
     })
 
+    it('testPreferencesPutObject001', 0, async function () {
+        let obj = {
+            name: "xiaowang",
+            age: 18
+        }
+        try {
+            await mPreferences.put(KEY_TEST_OBJECT, obj);
+            let res = await mPreferences.get(KEY_TEST_OBJECT, {});
+            console.log('get object data : ' + JSON.stringify(res));
+            expect(obj["age"]).assertEqual(18);
+            expect(JSON.stringify(res)).assertEqual(JSON.stringify(obj));
+        } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code + ", message =" + err.message);
+            expect(null).assertFail();
+        }
+    })
+
+
+    it('testPreferencesPutObject002', 0, async function (done) {
+        let obj = {
+            name: "xiaohong",
+            age: "99"
+        }
+        const promise = mPreferences.put(KEY_TEST_OBJECT, obj);
+        await promise.then(async (ret) => {
+            await mPreferences.flush();
+            let data = await mPreferences.get(KEY_TEST_OBJECT, {});
+            expect(JSON.stringify(data)).assertEqual(JSON.stringify(obj));
+            console.log('get object data : ' + JSON.stringify(data));
+
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let data2 = await mPreferences.get(KEY_TEST_OBJECT, {});
+            console.log('get object data2 : ' + JSON.stringify(data2));
+            expect(obj["age"]).assertEqual("99");
+            expect(JSON.stringify(data2)).assertEqual(JSON.stringify(obj));
+            done();
+        }).catch((err) => {
+            console.log("try catch err =" + err + ", code =" + err.code + ", message =" + err.message);
+            expect(null).assertFail();
+
+        });
+    })
 })
