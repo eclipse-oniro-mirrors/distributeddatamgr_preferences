@@ -17,6 +17,7 @@
 
 #include <cinttypes>
 #include <climits>
+#include <cstdint>
 #include <cstdlib>
 #include <functional>
 #include <sstream>
@@ -27,69 +28,94 @@
 #include "log_print.h"
 #include "preferences_errno.h"
 #include "preferences_observer_stub.h"
+#include "preferences_value.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"
 
 namespace OHOS {
 namespace NativePreferences {
-template<typename T> std::string GetTypeName()
+template<typename T>
+std::string GetTypeName()
 {
     return "unknown";
 }
 
-template<> std::string GetTypeName<int>()
+template<>
+std::string GetTypeName<int>()
 {
     return "int";
 }
 
-template<> std::string GetTypeName<bool>()
+template<>
+std::string GetTypeName<bool>()
 {
     return "bool";
 }
 
-template<> std::string GetTypeName<int64_t>()
+template<>
+std::string GetTypeName<int64_t>()
 {
     return "long";
 }
 
-template<> std::string GetTypeName<float>()
+template<>
+std::string GetTypeName<uint64_t>()
+{
+    return "uint64_t";
+}
+
+template<>
+std::string GetTypeName<float>()
 {
     return "float";
 }
 
-template<> std::string GetTypeName<double>()
+template<>
+std::string GetTypeName<double>()
 {
     return "double";
 }
 
-template<> std::string GetTypeName<std::string>()
+template<>
+std::string GetTypeName<std::string>()
 {
     return "string";
 }
 
-template<> std::string GetTypeName<std::vector<std::string>>()
+template<>
+std::string GetTypeName<std::vector<std::string>>()
 {
     return "stringArray";
 }
 
-template<> std::string GetTypeName<std::vector<double>>()
+template<>
+std::string GetTypeName<std::vector<double>>()
 {
     return "doubleArray";
 }
 
-template<> std::string GetTypeName<std::vector<bool>>()
+template<>
+std::string GetTypeName<std::vector<bool>>()
 {
     return "boolArray";
 }
 
-template<> std::string GetTypeName<std::vector<uint8_t>>()
+template<>
+std::string GetTypeName<std::vector<uint8_t>>()
 {
     return "uint8Array";
 }
 
-template<> std::string GetTypeName<Object>()
+template<>
+std::string GetTypeName<Object>()
 {
     return "object";
+}
+
+template<>
+std::string GetTypeName<BigInt>()
+{
+    return "BigInt";
 }
 
 ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
@@ -213,7 +239,8 @@ std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
     return map_;
 }
 
-template<typename T> static void Convert2PrefValue(const Element &element, T &value)
+template<typename T>
+static void Convert2PrefValue(const Element &element, T &value)
 {
     if constexpr (std::is_same<T, bool>::value) {
         value = (element.value_.compare("true") == 0) ? true : false;
@@ -226,7 +253,8 @@ template<typename T> static void Convert2PrefValue(const Element &element, T &va
     }
 }
 
-template<typename T> static void Convert2PrefValue(const Element &element, std::vector<T> &values)
+template<typename T>
+static void Convert2PrefValue(const Element &element, std::vector<T> &values)
 {
     for (const auto &child : element.children_) {
         T value;
@@ -235,7 +263,19 @@ template<typename T> static void Convert2PrefValue(const Element &element, std::
     }
 }
 
-template<typename T> bool GetPrefValue(const Element &element, T &value)
+static void Convert2PrefValue(const Element &element, BigInt &value)
+{
+    for (const auto &child : element.children_) {
+        uint64_t val;
+        Convert2PrefValue(child, val);
+        value.words_.push_back(val);
+    }
+    value.sign_ = static_cast<int>(value.words_[value.words_.size() - 1]);
+    value.words_.pop_back();
+}
+
+template<typename T>
+bool GetPrefValue(const Element &element, T &value)
 {
     LOG_WARN("unknown element type. the key is %{public}s", element.key_.c_str());
     return false;
@@ -253,7 +293,8 @@ static void Convert2PrefValue(const Element &element, Object &value)
     value.valueStr = element.value_;
 }
 
-template<typename T, typename First, typename... Types> bool GetPrefValue(const Element &element, T &value)
+template<typename T, typename First, typename... Types>
+bool GetPrefValue(const Element &element, T &value)
 {
     if (element.tag_ == GetTypeName<First>()) {
         First val;
@@ -264,7 +305,8 @@ template<typename T, typename First, typename... Types> bool GetPrefValue(const 
     return GetPrefValue<T, Types...>(element, value);
 }
 
-template<typename... Types> bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
+template<typename... Types>
+bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
 {
     return GetPrefValue<decltype(value), Types...>(element, value);
 }
@@ -290,7 +332,8 @@ bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
     return true;
 }
 
-template<typename T> void Convert2Element(Element &elem, const T &value)
+template<typename T>
+void Convert2Element(Element &elem, const T &value)
 {
     elem.tag_ = GetTypeName<T>();
     if constexpr (std::is_same<T, bool>::value) {
@@ -302,7 +345,8 @@ template<typename T> void Convert2Element(Element &elem, const T &value)
     }
 }
 
-template<typename T> void Convert2Element(Element &elem, const std::vector<T> &value)
+template<typename T>
+void Convert2Element(Element &elem, const std::vector<T> &value)
 {
     elem.tag_ = GetTypeName<std::vector<T>>();
     for (const T &val : value) {
@@ -322,6 +366,20 @@ void Convert2Element(Element &elem, const Object &value)
 {
     elem.tag_ = GetTypeName<Object>();
     elem.value_ = value.valueStr;
+}
+
+void Convert2Element(Element &elem, const BigInt &value)
+{
+    elem.tag_ = GetTypeName<BigInt>();
+    for (const auto &val : value.words_) {
+        Element element;
+        Convert2Element(element, val);
+        elem.children_.push_back(element);
+    }
+    // place symbol at the end
+    Element symbolElement;
+    Convert2Element(symbolElement, static_cast<uint64_t>(value.sign_));
+    elem.children_.push_back(symbolElement);
 }
 
 template<typename T> void GetElement(Element &elem, const T &value)
@@ -478,19 +536,9 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     if (errCode != E_OK) {
         return errCode;
     }
-    if (value.IsString()) {
-        errCode = CheckStringValue(value);
-        if (errCode != E_OK) {
-            LOG_ERROR("PreferencesImpl::Put string value length should shorter than 8192");
-            return errCode;
-        }
-    }
-    if (value.IsObject()) {
-        errCode = CheckObjectValue(value);
-        if (errCode != E_OK) {
-            LOG_ERROR("PreferencesImpl::Put object value length should shorter than 8192");
-            return errCode;
-        }
+    errCode = CheckValue(value);
+    if (errCode != E_OK) {
+        return errCode;
     }
     AwaitLoadFile();
 
@@ -508,18 +556,36 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     return E_OK;
 }
 
-int PreferencesImpl::CheckStringValue(const std::string &value)
+int PreferencesImpl::CheckValue(const PreferencesValue &value)
 {
-    if (Preferences::MAX_VALUE_LENGTH < value.length()) {
-        LOG_ERROR("The value string length should shorter than 8 * 1024.");
-        return E_VALUE_EXCEED_MAX_LENGTH;
+    auto lengthCheck = [] (uint32_t length, const std::string &errMsg) {
+        if (Preferences::MAX_VALUE_LENGTH < length) {
+            LOG_ERROR("%{public}s", errMsg.c_str());
+            return E_VALUE_EXCEED_MAX_LENGTH;
+        }
+        return E_OK;
+    };
+
+    if (value.IsString()) {
+        std::string val = value;
+        return lengthCheck(val.length(), "the value string length should shorter than 8 * 1024.");
+    }
+
+    if (value.IsObject()) {
+        Object obj = value;
+        return lengthCheck(obj.valueStr.length(), "the length of the object converted to JSON should be less than 8 *"
+                                                  " 1024");
+    }
+
+    if (value.IsBigInt()) {
+        BigInt bigint = value;
+        if (bigint.words_.empty()) {
+            LOG_ERROR("BigInt words cannot be empty.");
+            return E_ERROR;
+        }
+        return E_OK;
     }
     return E_OK;
-}
-
-int PreferencesImpl::CheckObjectValue(const Object &value)
-{
-    return CheckStringValue(value.valueStr);
 }
 
 Uri PreferencesImpl::MakeUri(const std::string &key)

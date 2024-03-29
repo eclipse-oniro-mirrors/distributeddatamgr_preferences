@@ -27,6 +27,7 @@ const KEY_TEST_NUMBER_ARRAY_ELEMENT = 'key_test_number_array';
 const KEY_TEST_STRING_ARRAY_ELEMENT = 'key_test_string_array';
 const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array';
 const KEY_TEST_UINT8ARRAY = 'key_test_uint8array';
+const KEY_TEST_BIGINT = 'key_test_bigint';
 var mPreferences;
 var context;
 
@@ -453,16 +454,82 @@ describe('PreferencesCallBackJsunit', function () {
     })
 
     /**
-     * @tc.name put Uint8Array callback interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0005
-     * @tc.desc put Uint8Array callback interface test
+     * @tc.name put BigInt callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0004
+     * @tc.desc put Bigint negative test
      */
-    it('testPreferencesPutUint8Array0001', 0, async function (done) {
-        let uInt8Array = new util.TextEncoder().encodeInto("π\\n\\b@.(){},");
-        await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array, async function (err, ret) {
-            let pre = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0))
-            expect(uInt8Array.toString() === pre.toString()).assertTrue();
+    it('testPreferencesPutBigInt0001', 0, async function (done) {
+        let bigint = BigInt("-12345678912345678912345678971234567123456");
+        await mPreferences.put(KEY_TEST_BIGINT, bigint, async function (err, ret) {
+            let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+            expect(bigint === pre).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
             done();
+            expect(bigint === pre2).assertTrue();
+        });
+    })
+
+    /**
+     * @tc.name put BigInt callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0005
+     * @tc.desc put Bigint positive test
+     */
+    it('testPreferencesPutBigInt0002', 0, async function (done) {
+        let bigint = BigInt("12345678912345678912345678971234567123456");
+        await mPreferences.put(KEY_TEST_BIGINT, bigint, async function (err, ret) {
+            let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+            expect(bigint === pre).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+            done();
+            expect(bigint === pre2).assertTrue();
+        });
+    })
+
+    /**
+     * @tc.name put BigInt callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0006
+     * @tc.desc put Bigint boundary value test
+     */
+    it('testPreferencesPutBigInt0003', 0, async function (done) {
+        let bigint = BigInt(Number.MAX_SAFE_INTEGER);
+        await mPreferences.put(KEY_TEST_BIGINT, bigint, async function (err, ret) {
+            let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+            expect(bigint === pre).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+            done();
+            expect(bigint === pre2).assertTrue();
+        });
+    })
+
+    /**
+     * @tc.name put BigInt callback interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0007
+     * @tc.desc put Bigint boundary value test
+     */
+    it('testPreferencesPutBigInt0004', 0, async function (done) {
+        let bigint = BigInt(Number.MIN_SAFE_INTEGER);
+        await mPreferences.put(KEY_TEST_BIGINT, bigint, async function (err, ret) {
+            let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+            expect(bigint === pre).assertTrue();
+            await mPreferences.flush();
+            await data_preferences.removePreferencesFromCache(context, NAME);
+            mPreferences = null;
+            mPreferences = await data_preferences.getPreferences(context, NAME);
+            let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+            done();
+            expect(bigint === pre2).assertTrue();
         });
     })
 

@@ -203,7 +203,7 @@ private:
     bool StartLoadFromDisk();
     int CheckKey(const std::string &key);
     int CheckStringValue(const std::string &value);
-    int CheckObjectValue(const Object &value);
+    int CheckValue(const PreferencesValue &value);
     Uri MakeUri(const std::string &key = "");
 
     /* thread function */

@@ -93,6 +93,11 @@ PreferencesValue::PreferencesValue(Object value)
     value_ = value;
 }
 
+PreferencesValue::PreferencesValue(BigInt value)
+{
+    value_ = value;
+}
+
 PreferencesValue &PreferencesValue::operator=(PreferencesValue &&preferencesValue) noexcept
 {
     if (this == &preferencesValue) {
@@ -166,6 +171,11 @@ bool PreferencesValue::IsBoolArray() const
     return std::holds_alternative<std::vector<bool>>(value_);
 }
 
+bool PreferencesValue::IsBigInt() const
+{
+    return std::holds_alternative<BigInt>(value_);
+}
+
 PreferencesValue::operator int() const
 {
     return std::get<int>(value_);
@@ -219,6 +229,11 @@ PreferencesValue::operator std::vector<uint8_t>() const
 PreferencesValue::operator Object() const
 {
     return std::get<Object>(value_);
+}
+
+PreferencesValue::operator BigInt() const
+{
+    return std::get<BigInt>(value_);
 }
 
 bool PreferencesValue::operator==(const PreferencesValue &value)

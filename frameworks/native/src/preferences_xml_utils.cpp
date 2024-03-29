@@ -160,7 +160,8 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("long"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("bool"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("float"))
-        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("double"))) {
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("double"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("uint64_t"))) {
         return ParsePrimitiveNodeElement(node, element);
     }
 
@@ -173,6 +174,7 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
     if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("boolArray"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("stringArray"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("doubleArray"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("BigInt"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("set"))) {
         return ParseArrayNodeElement(node, element);
     }
@@ -364,7 +366,7 @@ xmlNode *CreateElementNode(Element &element)
     }
 
     if ((element.tag_.compare("doubleArray") == 0) || (element.tag_.compare("stringArray") == 0)
-        || (element.tag_.compare("boolArray") == 0)) {
+        || (element.tag_.compare("boolArray") == 0) || (element.tag_.compare("BigInt") == 0)) {
         return CreateArrayNode(element);
     }
 
@@ -426,7 +428,8 @@ xmlNode *CreateArrayNode(Element &element)
         return node;
     }
     Element flag = element.children_[0];
-    if ((flag.tag_.compare("bool") == 0) || (flag.tag_.compare("double") == 0)) {
+    if ((flag.tag_.compare("bool") == 0) || (flag.tag_.compare("double") == 0) ||
+        (flag.tag_.compare("uint64_t") == 0)) {
         for (Element &child : element.children_) {
             xmlNode *childNode = CreatePrimitiveNode(child);
             if (childNode == nullptr) {

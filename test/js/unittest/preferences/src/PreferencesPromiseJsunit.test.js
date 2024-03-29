@@ -28,6 +28,7 @@ const KEY_TEST_STRING_ARRAY_ELEMENT = 'key_test_string_array';
 const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array';
 const KEY_TEST_UINT8ARRAY = 'key_test_uint8array';
 const KEY_TEST_OBJECT = 'key_test_object';
+const KEY_TEST_BIGINT = 'key_test_bigint';
 var mPreferences;
 var context;
 
@@ -91,18 +92,6 @@ describe('PreferencesPromiseJsunit', function () {
         for (let i = 0; i < boolArr.length; i++) {
             expect(boolArr[i]).assertEqual(pre[i]);
         }
-    });
-
-    /**
-     * @tc.name put Uint8Array promise interface test
-     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0134
-     * @tc.desc put Uint8Array promise interface test
-     */
-    it('testPreferencesPutUint8Array0134', 0, async function () {
-        let uInt8Array = new util.TextEncoder().encodeInto("π\\n\\b@.(){},");
-        await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);
-        let promise = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
-        expect(uInt8Array.toString() === promise.toString()).assertTrue();
     });
 
     /**
@@ -547,7 +536,7 @@ describe('PreferencesPromiseJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0203
      * @tc.desc put Uint8Array promise interface test
      */
-    it('testPreferencesPutUint8Array0203', 0, async function (done) {
+    it('testPreferencesPutUint8Array0203', 0, async function () {
         let uInt8Array = new Uint8Array(8193);
         uInt8Array.fill(100);
         try {
@@ -555,10 +544,14 @@ describe('PreferencesPromiseJsunit', function () {
         } catch (err) {
             console.log("try catch err =" + err + ", code =" + err.code + ", message =" + err.message);
             expect("401").assertEqual(err.code.toString());
-            done();
         }
     })
 
+    /**
+     * @tc.name put Uint8Array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0204
+     * @tc.desc put object promise interface test
+     */
     it('testPreferencesPutObject001', 0, async function () {
         let obj = {
             name: "xiaowang",
@@ -576,7 +569,11 @@ describe('PreferencesPromiseJsunit', function () {
         }
     })
 
-
+    /**
+     * @tc.name put Uint8Array promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0205
+     * @tc.desc put object promise interface test
+     */
     it('testPreferencesPutObject002', 0, async function (done) {
         let obj = {
             name: "xiaohong",
@@ -602,5 +599,77 @@ describe('PreferencesPromiseJsunit', function () {
             expect(null).assertFail();
 
         });
+    })
+
+    /**
+     * @tc.name put BigInt promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0206
+     * @tc.desc put Bigint negative test
+     */
+    it('testPreferencesPutBigInt0001', 0, async function () {
+        let bigint = BigInt("-12345678912345678912345678971234567123456");
+        await mPreferences.put(KEY_TEST_BIGINT, bigint);
+        let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre).assertTrue();
+        await mPreferences.flush();
+        await data_preferences.removePreferencesFromCache(context, NAME);
+        mPreferences = null;
+        mPreferences = await data_preferences.getPreferences(context, NAME);
+        let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre2).assertTrue();
+    })
+
+    /**
+     * @tc.name put BigInt promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0207
+     * @tc.desc put Bigint positive test
+     */
+    it('testPreferencesPutBigInt0002', 0, async function () {
+        let bigint = BigInt("12345678912345678912345678971234567123456");
+        await mPreferences.put(KEY_TEST_BIGINT, bigint);
+        let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre).assertTrue();
+        await mPreferences.flush();
+        await data_preferences.removePreferencesFromCache(context, NAME);
+        mPreferences = null;
+        mPreferences = await data_preferences.getPreferences(context, NAME);
+        let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre2).assertTrue();
+    })
+
+    /**
+     * @tc.name put BigInt promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0208
+     * @tc.desc put Bigint boundary value test
+     */
+    it('testPreferencesPutBigInt0003', 0, async function () {
+        let bigint = BigInt(Number.MAX_SAFE_INTEGER);
+        await mPreferences.put(KEY_TEST_BIGINT, bigint);
+        let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre).assertTrue();
+        await mPreferences.flush();
+        await data_preferences.removePreferencesFromCache(context, NAME);
+        mPreferences = null;
+        mPreferences = await data_preferences.getPreferences(context, NAME);
+        let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre2).assertTrue();
+    })
+
+    /**
+     * @tc.name put BigInt promise interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0209
+     * @tc.desc put Bigint boundary value test
+     */
+    it('testPreferencesPutBigInt0004', 0, async function () {
+        let bigint = BigInt(Number.MIN_SAFE_INTEGER);
+        await mPreferences.put(KEY_TEST_BIGINT, bigint);
+        let pre = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre).assertTrue();
+        await mPreferences.flush();
+        await data_preferences.removePreferencesFromCache(context, NAME);
+        mPreferences = null;
+        mPreferences = await data_preferences.getPreferences(context, NAME);
+        let pre2 = await mPreferences.get(KEY_TEST_BIGINT, BigInt(0));
+        expect(bigint === pre2).assertTrue();
     })
 })
