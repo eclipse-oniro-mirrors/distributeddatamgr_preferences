@@ -48,6 +48,7 @@ base_sources = [
   "${preferences_native_path}/src/base64_helper.cpp",
   "${preferences_native_path}/src/preferences_base.cpp",
   "${preferences_native_path}/src/preferences_helper.cpp",
+  "${preferences_native_path}/src/preferences_base.cpp",
   "${preferences_native_path}/src/preferences_impl.cpp",
   "${preferences_native_path}/src/preferences_observer.cpp",
   "${preferences_native_path}/src/preferences_utils.cpp",
