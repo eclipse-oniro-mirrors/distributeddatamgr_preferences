@@ -21,27 +21,15 @@
 #include <filesystem>
 #include <list>
 #include <map>
-#include <mutex>
-#include <set>
 #include <string>
 #include <vector>
 
-#include "preferences.h"
-#include "preferences_observer.h"
-#include "preferences_value.h"
+#include "preferences_base.h"
+
 namespace OHOS {
-template <typename T> class sptr;
-class Uri;
 namespace NativePreferences {
-class DataPreferencesObserverStub;
 class ExecutorPool;
-static const char *STR_BROKEN = ".broken";
-static const char *STR_BACKUP = ".bak";
-static const char *STR_LOCK = ".lock";
-static const char *STR_QUERY = "?";
-static const char *STR_SLASH = "/";
-static const char *STR_SCHEME = "sharepreferences://";
-class PreferencesImpl : public Preferences, public std::enable_shared_from_this<PreferencesImpl> {
+class PreferencesImpl : public PreferencesBase, public std::enable_shared_from_this<PreferencesImpl> {
 public:
     static std::shared_ptr<PreferencesImpl> GetPreferences(const Options &options)
     {
@@ -55,91 +43,7 @@ public:
 
     int Put(const std::string &key, const PreferencesValue &value) override;
 
-    int GetInt(const std::string &key, const int &defValue) override
-    {
-        PreferencesValue preferencesValue = Get(key, defValue);
-        if (!preferencesValue.IsInt()) {
-            return defValue;
-        }
-        return preferencesValue;
-    }
-
-    std::string GetString(const std::string &key, const std::string &defValue) override
-    {
-        PreferencesValue preferencesValue = Get(key, defValue);
-        if (!preferencesValue.IsString()) {
-            return defValue;
-        }
-        return preferencesValue;
-    }
-
-    bool GetBool(const std::string &key, const bool &defValue) override
-    {
-        PreferencesValue preferencesValue = Get(key, defValue);
-        if (!preferencesValue.IsBool()) {
-            return defValue;
-        }
-        return preferencesValue;
-    }
-
-    float GetFloat(const std::string &key, const float &defValue) override
-    {
-        PreferencesValue preferencesValue = Get(key, defValue);
-        if (!preferencesValue.IsFloat()) {
-            return defValue;
-        }
-        return preferencesValue;
-    }
-
-    double GetDouble(const std::string &key, const double &defValue) override
-    {
-        PreferencesValue preferencesValue = Get(key, defValue);
-        if (!preferencesValue.IsDouble()) {
-            return defValue;
-        }
-        return preferencesValue;
-    }
-
-    int64_t GetLong(const std::string &key, const int64_t &defValue) override
-    {
-        PreferencesValue preferencesValue = Get(key, defValue);
-        if (!preferencesValue.IsLong()) {
-            return defValue;
-        }
-        return preferencesValue;
-    }
-
     bool HasKey(const std::string &key) override;
-
-    int PutInt(const std::string &key, int value) override
-    {
-        return Put(key, value);
-    }
-
-    int PutString(const std::string &key, const std::string &value) override
-    {
-        return Put(key, value);
-    }
-
-    int PutBool(const std::string &key, bool value) override
-    {
-        return Put(key, value);
-    }
-
-    int PutLong(const std::string &key, int64_t value) override
-    {
-        return Put(key, value);
-    }
-
-    int PutFloat(const std::string &key, float value) override
-    {
-        return Put(key, value);
-    }
-
-    int PutDouble(const std::string &key, double value) override
-    {
-        return Put(key, value);
-    }
 
     std::map<std::string, PreferencesValue> GetAll() override;
 
@@ -150,32 +54,7 @@ public:
     void Flush() override;
 
     int FlushSync() override;
-
-    int RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
-
-    int UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode) override;
-
-    int UnRegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
-        const std::vector<std::string> &keys) override;
-
-    int RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
-        const std::vector<std::string> &keys) override;
-
-    std::string GetGroupId() const override
-    {
-        return options_.dataGroupId;
-    }
-
-    static std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
-
 private:
-    struct WeakPtrCompare {
-        bool operator()(const std::weak_ptr<PreferencesObserver> &a, const std::weak_ptr<PreferencesObserver> &b) const
-        {
-            return a.owner_before(b);
-        }
-    };
-    using DataObserverMap = std::map<std::weak_ptr<PreferencesObserver>, std::set<std::string>, WeakPtrCompare>;
     explicit PreferencesImpl(const Options &options);
     class MemoryToDiskRequest {
     public:
@@ -201,10 +80,6 @@ private:
     std::shared_ptr<MemoryToDiskRequest> commitToMemory();
     void notifyPreferencesObserver(const MemoryToDiskRequest &request);
     bool StartLoadFromDisk();
-    int CheckKey(const std::string &key);
-    int CheckStringValue(const std::string &value);
-    int CheckValue(const PreferencesValue &value);
-    Uri MakeUri(const std::string &key = "");
 
     /* thread function */
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
@@ -221,17 +96,10 @@ private:
     /* Latest memory state that was committed to disk */
     int64_t diskStateGeneration_;
 
-    std::mutex mutex_;
-    std::condition_variable cond_;
-
-    std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
-    std::vector<sptr<DataPreferencesObserverStub>> multiProcessObservers_;
-    DataObserverMap dataObserversMap_;
-    std::map<std::string, PreferencesValue> map_;
     std::list<std::string> modifiedKeys_;
     static ExecutorPool executorPool_;
 
-    const Options options_;
+    std::map<std::string, PreferencesValue> map_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

@@ -409,7 +409,7 @@ HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level1)
     elem.value_ = "2";
 
     settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(PreferencesImpl::MakeFilePath(fileName, STR_BACKUP), "", settings);
+    PreferencesXmlUtils::WriteSettingXml(MakeFilePath(fileName, STR_BACKUP), "", settings);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(fileName, errCode);
