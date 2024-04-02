@@ -25,7 +25,9 @@ CONTEXT_MODE GetContextMode(napi_env env, napi_value value)
     if (gContextNode == INIT) {
         bool isStageMode;
         napi_status status = AbilityRuntime::IsStageContext(env, value, isStageMode);
-        gContextNode = (status == napi_ok && isStageMode) ? STAGE : FA;
+        if (status == napi_ok) {
+            gContextNode = isStageMode ? STAGE : FA;
+        }
         LOG_INFO("set gContextNode: %{public}d, status: %{public}d,", gContextNode, status);
     }
     return gContextNode;
