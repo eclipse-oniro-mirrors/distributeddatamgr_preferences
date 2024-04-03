@@ -62,7 +62,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         errorCode = E_INVALID_FILE_PATH;
         return "";
     }
-#else 
+#else
     if (path.front() != '/') {
         LOG_ERROR("The path can not be relative path.");
         errorCode = E_RELATIVE_PATH;
