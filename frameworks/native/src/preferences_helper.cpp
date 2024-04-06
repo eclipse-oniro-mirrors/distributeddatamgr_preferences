@@ -44,11 +44,6 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         errorCode = E_EMPTY_FILE_PATH;
         return "";
     }
-    if (path.front() != '/') {
-        LOG_ERROR("The path can not be relative path.");
-        errorCode = E_RELATIVE_PATH;
-        return "";
-    }
     if (path.length() > PATH_MAX) {
         LOG_ERROR("The path exceeds max length.");
         errorCode = E_PATH_EXCEED_MAX_LENGTH;
@@ -67,9 +62,15 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
     std::string filePath = path.substr(0, pos);
-    if (Access(filePath) != 0 && Mkdir(filePath)) {
+    if (Access(filePath) != 0 && !Mkdir(filePath)) {
         LOG_ERROR("Failed to create path");
         errorCode = E_INVALID_FILE_PATH;
+        return "";
+    }
+#else
+    if (path.front() != '/') {
+        LOG_ERROR("The path can not be relative path.");
+        errorCode = E_RELATIVE_PATH;
         return "";
     }
 #endif
