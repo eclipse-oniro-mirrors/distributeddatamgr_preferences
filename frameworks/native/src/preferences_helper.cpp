@@ -62,7 +62,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
     std::string filePath = path.substr(0, pos);
-    if (Access(filePath) == 0 || Mkdir(filePath)) {
+    if (Access(filePath) != 0 && !Mkdir(filePath)) {
         LOG_ERROR("Failed to create path");
         errorCode = E_INVALID_FILE_PATH;
         return "";
