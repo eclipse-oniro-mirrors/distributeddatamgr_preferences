@@ -50,6 +50,11 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
     std::string::size_type pos = path.find_last_of('/');
+    if (pos == std::string::npos) {
+        LOG_ERROR("path can not be relative path.");
+        errorCode = E_RELATIVE_PATH;
+        return "";
+    }
 #if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
     if (path.at(1) != ':') {
         LOG_ERROR("The path can not be relative path.");
@@ -57,7 +62,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
     std::string filePath = path.substr(0, pos);
-    if (Access(filePath) != 0 && !Mkdir(filePath)) {
+    if (Access(filePath) == 0 || Mkdir(filePath)) {
         LOG_ERROR("Failed to create path");
         errorCode = E_INVALID_FILE_PATH;
         return "";
@@ -65,11 +70,6 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 #else
     if (path.front() != '/') {
         LOG_ERROR("The path can not be relative path.");
-        errorCode = E_RELATIVE_PATH;
-        return "";
-    }
-    if (pos == std::string::npos) {
-        LOG_ERROR("path can not be relative path.");
         errorCode = E_RELATIVE_PATH;
         return "";
     }
