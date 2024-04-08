@@ -97,6 +97,7 @@ private:
     int64_t diskStateGeneration_;
 
     std::list<std::string> modifiedKeys_;
+
     static ExecutorPool executorPool_;
 
     std::map<std::string, PreferencesValue> map_;

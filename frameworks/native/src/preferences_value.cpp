@@ -17,6 +17,10 @@
 
 namespace OHOS {
 namespace NativePreferences {
+PreferencesValue::PreferencesValue()
+{
+}
+
 PreferencesValue::PreferencesValue(const PreferencesValue &preferencesValue)
 {
     if (this == &preferencesValue) {
