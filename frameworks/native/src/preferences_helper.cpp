@@ -22,6 +22,7 @@
 
 #include "log_print.h"
 #include "preferences.h"
+#include "preferences_db_adapter.h"
 #include "preferences_errno.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
@@ -119,6 +120,14 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     return path;
 }
 
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
+static bool IsUseEnhanceDb()
+{
+    PreferenceDbAdapter::ApiInit();
+    return PreferenceDbAdapter::IsUseEnhanceDbInner();
+}
+#endif
+
 std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &options, int &errCode)
 {
     std::string realPath = GetRealPath(options.filePath, errCode);
@@ -135,7 +144,8 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     const_cast<Options &>(options).filePath = realPath;
     std::shared_ptr<Preferences> pref = nullptr;
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
-    if (options.bundleName == "changlian") { //  for demo test
+    if (options.bundleName == "com.huawei.hmos.meetimeservice" && IsUseEnhanceDb()) {
+        LOG_DEBUG("PreferencesHelper::GetPreferences using enhance db.");
         pref = PreferencesEnhanceImpl::GetPreferences(options);
         errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
     } else {

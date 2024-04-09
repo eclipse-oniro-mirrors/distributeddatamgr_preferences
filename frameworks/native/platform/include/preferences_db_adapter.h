@@ -27,7 +27,7 @@ namespace NativePreferences {
 typedef struct GRD_DB GRD_DB;
 
 const char * const TABLENAME = "preferences_data";
-const char * const TABLE_MODE = "{\"mode\" : \"kv\"}";
+const char * const TABLE_MODE = "{\"mode\" : \"kv\", \"indextype\" : \"hash\"}";
 
 #define GRD_DB_OPEN_CREATE 0x01
 #define GRD_DB_CLOSE_IGNORE_ERROR 0x01
@@ -37,11 +37,13 @@ typedef struct GRD_KVItem {
     uint32_t dataLen;
 } GRD_KVItemT;
 
-typedef enum KvScanMode {
+typedef enum GRD_KvScanMode {
     KV_SCAN_PREFIX = 0,
     KV_SCAN_EQUAL_OR_LESS_KEY = 1,
     KV_SCAN_EQUAL_OR_GREATER_KEY = 2,
-    KV_SCAN_BUTT
+    KV_SCAN_RANGE = 3,
+    KV_SCAN_ALL = 4,
+    KV_SCAN_BUTT    // INVALID SCAN
 } GRD_KvScanModeE;
 
 typedef struct GRD_FilterOption {
@@ -86,9 +88,22 @@ struct GRD_APIInfo {
     GetItem GetItemApi = nullptr;
     GetItemSize GetItemSizeApi = nullptr;
     Fetch FetchApi = nullptr;
-    KVFreeItem FreeValueApi = nullptr;
+    KVFreeItem FreeItemApi = nullptr;
     FreeResultSet FreeResultSetApi = nullptr;
 };
+
+class PreferenceDbAdapter {
+public:
+    static bool IsUseEnhanceDbInner();
+    static GRD_APIInfo& GetApiInstance();
+    static void ApiInit();
+
+    static void *gLibrary_;
+    static std::mutex apiMutex_;
+    static GRD_APIInfo api_;
+    static std::atomic<bool> isInit_;
+};
+
 
 class PreferencesDb {
 public:
@@ -104,6 +119,16 @@ private:
     std::vector<uint8_t> KvItemToBlob(GRD_KVItemT &item);
     GRD_DB *db_ = nullptr;
 };
+
+// grd errcode
+#define GRD_OK 0
+#define GRD_NOT_SUPPORT -1000
+#define GRD_OVER_LIMIT -2000
+#define GRD_INVALID_ARGS -3000
+#define GRD_FAILED_MEMORY_ALLOCATE -13000
+#define GRD_FAILED_MEMORY_RELEASE -14000
+#define GRD_PERMISSION_DENIED -43000
+
 } // End of namespace NativePreferences
 } // End of namespace OHOS
 #endif // End of #ifndef PREFERENCES_THREAD_H

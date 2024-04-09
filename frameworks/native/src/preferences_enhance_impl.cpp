@@ -24,8 +24,9 @@
 #include <thread>
 
 #include "log_print.h"
+#include "preferences_observer_stub.h"
 #include "preferences_value.h"
-#include "preferences_value_parsel.h"
+#include "preferences_value_parcel.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -96,6 +97,8 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     }
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     std::vector<uint8_t> oriValue;
+    uint32_t oriValueLen = PreferencesValueParcel::CalSize(value);
+    oriValue.resize(oriValueLen);
     errCode = PreferencesValueParcel::SerializePreferenceValue(value, oriValue);
     if (errCode != E_OK) {
         LOG_ERROR("serialize value failed, errCode=%d", errCode);
