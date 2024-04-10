@@ -47,7 +47,7 @@ static bool IsFileExist(const std::string &inputPath)
 
 static void RemoveBackupFile(const std::string &fileName)
 {
-    std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
+    std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
     if (IsFileExist(backupFileName) && std::remove(backupFileName.c_str())) {
         LOG_WARN("failed to delete backup file %{public}d.", errno);
     }
@@ -55,7 +55,7 @@ static void RemoveBackupFile(const std::string &fileName)
 
 static bool RenameFromBackupFile(const std::string &fileName)
 {
-    std::string backupFileName = PreferencesImpl::MakeFilePath(fileName, STR_BACKUP);
+    std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
         LOG_DEBUG("the backup file does not exist.");
         return false;
@@ -69,7 +69,7 @@ static bool RenameFromBackupFile(const std::string &fileName)
 
 static bool RenameFile(const std::string &fileName, const std::string &fileType)
 {
-    std::string name = PreferencesImpl::MakeFilePath(fileName, fileType);
+    std::string name = MakeFilePath(fileName, fileType);
     if (std::rename(fileName.c_str(), name.c_str())) {
         LOG_ERROR("failed to rename file to %{public}s file %{public}d.", fileType.c_str(), errno);
         return false;
@@ -95,7 +95,7 @@ static xmlDoc *ReadFile(const std::string &fileName)
 static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataGroupId)
 {
     xmlDoc *doc = nullptr;
-    PreferencesFileLock fileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName);
         if (doc != nullptr) {
@@ -278,7 +278,7 @@ static bool SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
 
 bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &dataGroupId, xmlDoc *doc)
 {
-    PreferencesFileLock fileLock(PreferencesImpl::MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }

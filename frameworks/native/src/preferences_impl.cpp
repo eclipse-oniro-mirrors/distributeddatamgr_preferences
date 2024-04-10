@@ -26,9 +26,7 @@
 #include "base64_helper.h"
 #include "executor_pool.h"
 #include "log_print.h"
-#include "preferences_errno.h"
 #include "preferences_observer_stub.h"
-#include "preferences_value.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"
 
@@ -120,17 +118,10 @@ std::string GetTypeName<BigInt>()
 
 ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
 
-PreferencesImpl::PreferencesImpl(const Options &options) : loaded_(false), options_(options)
+PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options), loaded_(false)
 {
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
-}
-
-std::string PreferencesImpl::MakeFilePath(const std::string &prefPath, const std::string &suffix)
-{
-    std::string filePath = prefPath;
-    filePath += suffix;
-    return filePath;
 }
 
 PreferencesImpl::~PreferencesImpl()
@@ -154,19 +145,6 @@ bool PreferencesImpl::StartLoadFromDisk()
 
     ExecutorPool::Task task = std::bind(PreferencesImpl::LoadFromDisk, shared_from_this());
     return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
-}
-
-int PreferencesImpl::CheckKey(const std::string &key)
-{
-    if (key.empty()) {
-        LOG_ERROR("The key string is null or empty.");
-        return E_KEY_EMPTY;
-    }
-    if (Preferences::MAX_KEY_LENGTH < key.length()) {
-        LOG_ERROR("The key string length should shorter than 80.");
-        return E_KEY_EXCEED_MAX_LENGTH;
-    }
-    return E_OK;
 }
 
 /* static */
@@ -433,103 +411,6 @@ bool PreferencesImpl::HasKey(const std::string &key)
     return (map_.find(key) != map_.end());
 }
 
-int PreferencesImpl::RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (mode == RegisterMode::LOCAL_CHANGE) {
-        std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
-        localObservers_.push_back(weakPreferencesObserver);
-    } else if (mode == RegisterMode::MULTI_PRECESS_CHANGE) {
-        auto dataObsMgrClient = DataObsMgrClient::GetInstance();
-        if (dataObsMgrClient == nullptr) {
-            return E_GET_DATAOBSMGRCLIENT_FAIL;
-        }
-        sptr<DataPreferencesObserverStub> observer(new (std::nothrow) DataPreferencesObserverStub(preferencesObserver));
-        int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
-        if (errcode != 0) {
-            LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
-            return errcode;
-        }
-        multiProcessObservers_.push_back(observer);
-    }
-    return E_OK;
-}
-
-int PreferencesImpl::UnRegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
-    const std::vector<std::string> &keys)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = dataObserversMap_.find(preferencesObserver);
-    if (it == dataObserversMap_.end()) {
-        return E_OK;
-    }
-    for (const auto &key : keys) {
-        auto keyIt = it->second.find(key);
-        if (keyIt != it->second.end()) {
-            it->second.erase(key);
-        }
-    }
-    LOG_DEBUG("UnRegisterObserver keysSize:%{public}zu, curSize:%{public}zu", keys.size(), it->second.size());
-    if (keys.empty()) {
-        it->second.clear();
-    }
-    if (it->second.empty()) {
-        it = dataObserversMap_.erase(it);
-        LOG_DEBUG("UnRegisterObserver finish. obSize:%{public}zu", dataObserversMap_.size());
-        return E_OK;
-    }
-    LOG_DEBUG("UnRegisterObserver finish, observer need reserve. obSize:%{public}zu", dataObserversMap_.size());
-    return E_OBSERVER_RESERVE;
-}
-
-int PreferencesImpl::RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
-    const std::vector<std::string> &keys)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = dataObserversMap_.find(preferencesObserver);
-    if (it == dataObserversMap_.end()) {
-        std::set<std::string> callKeys(keys.begin(), keys.end());
-        std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
-        dataObserversMap_.insert({weakPreferencesObserver, std::move(callKeys)});
-    } else {
-        it->second.insert(keys.begin(), keys.end());
-    }
-    return E_OK;
-}
-
-int PreferencesImpl::UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (mode == RegisterMode::LOCAL_CHANGE) {
-        for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
-            std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
-            std::shared_ptr<PreferencesObserver> sharedObserver = weakPreferencesObserver.lock();
-            if (!sharedObserver || sharedObserver == preferencesObserver) {
-                localObservers_.erase(it);
-                break;
-            }
-        }
-        return E_OK;
-    }
-    for (auto it = multiProcessObservers_.begin(); it != multiProcessObservers_.end(); ++it) {
-        std::shared_ptr<PreferencesObserver> sharedObserver = (*it)->preferencesObserver_.lock();
-        if (!sharedObserver || sharedObserver == preferencesObserver) {
-            auto dataObsMgrClient = DataObsMgrClient::GetInstance();
-            if (dataObsMgrClient == nullptr) {
-                return E_GET_DATAOBSMGRCLIENT_FAIL;
-            }
-            int errcode = dataObsMgrClient->UnregisterObserver(MakeUri(), *it);
-            if (errcode != 0) {
-                LOG_ERROR("UnRegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
-                return errcode;
-            }
-            multiProcessObservers_.erase(it);
-            break;
-        }
-    }
-    return E_OK;
-}
-
 int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
 {
     int errCode = CheckKey(key);
@@ -554,53 +435,6 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     map_.insert_or_assign(key, value);
     modifiedKeys_.push_back(key);
     return E_OK;
-}
-
-int PreferencesImpl::CheckValue(const PreferencesValue &value)
-{
-    auto lengthCheck = [] (uint32_t length, const std::string &errMsg) {
-        if (Preferences::MAX_VALUE_LENGTH < length) {
-            LOG_ERROR("%{public}s", errMsg.c_str());
-            return E_VALUE_EXCEED_MAX_LENGTH;
-        }
-        return E_OK;
-    };
-
-    if (value.IsString()) {
-        std::string val = value;
-        return lengthCheck(val.length(), "the value string length should shorter than 8 * 1024.");
-    }
-
-    if (value.IsObject()) {
-        Object obj = value;
-        return lengthCheck(obj.valueStr.length(), "the length of the object converted to JSON should be less than 8 *"
-                                                  " 1024");
-    }
-
-    if (value.IsBigInt()) {
-        BigInt bigint = value;
-        if (bigint.words_.empty()) {
-            LOG_ERROR("BigInt words cannot be empty.");
-            return E_ERROR;
-        }
-        return E_OK;
-    }
-    return E_OK;
-}
-
-Uri PreferencesImpl::MakeUri(const std::string &key)
-{
-    std::string uriStr;
-    if (options_.dataGroupId.empty()) {
-        uriStr = STR_SCHEME + options_.bundleName + STR_SLASH + options_.filePath;
-    } else {
-        uriStr = STR_SCHEME + options_.dataGroupId + STR_SLASH + options_.filePath;
-    }
-
-    if (!key.empty()) {
-        uriStr = uriStr + STR_QUERY + key;
-    }
-    return Uri(uriStr);
 }
 
 int PreferencesImpl::Delete(const std::string &key)
