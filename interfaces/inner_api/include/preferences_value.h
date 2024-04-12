@@ -54,6 +54,11 @@ public:
  */
 class PREF_API_EXPORT PreferencesValue {
 public:
+    PREF_API_EXPORT PreferencesValue()
+    {
+        value_ = std::monostate();
+    }
+
     PREF_API_EXPORT ~PreferencesValue()
     {
     }
@@ -357,8 +362,8 @@ public:
      */
     PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
-    std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>, std::vector<bool>,
-        std::vector<double>, std::vector<uint8_t>, Object, BigInt> value_;
+    std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>,
+        std::vector<bool>, std::vector<double>, std::vector<uint8_t>, Object, BigInt, std::monostate> value_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

@@ -224,6 +224,8 @@ static void Convert2PrefValue(const Element &element, T &value)
         value = (element.value_.compare("true") == 0) ? true : false;
     } else if constexpr (std::is_same<T, std::string>::value) {
         value = element.value_;
+    } else if constexpr (std::is_same<T, std::monostate>::value) {
+        value = std::monostate();
     } else {
         std::stringstream ss;
         ss << element.value_;
@@ -318,6 +320,8 @@ void Convert2Element(Element &elem, const T &value)
         elem.value_ = ((bool)value) ? "true" : "false";
     } else if constexpr (std::is_same<T, std::string>::value) {
         elem.value_ = value;
+    } else if constexpr (std::is_same<T, std::monostate>::value) {
+        elem.value_ = {};
     } else {
         elem.value_ = std::to_string(value);
     }
@@ -523,12 +527,12 @@ void PreferencesImpl::notifyPreferencesObserver(const PreferencesImpl::MemoryToD
             if (itKey == keys.end()) {
                 continue;
             }
+            PreferencesValue value;
             auto dataIt = request.writeToDiskMap_.find(*key);
-            if (dataIt == request.writeToDiskMap_.end()) {
-                LOG_ERROR("Find key:%{public}s from diskMap failed", (*key).c_str());
-                continue;
+            if (dataIt != request.writeToDiskMap_.end()) {
+                value = dataIt->second;
             }
-            records.insert({*key, dataIt->second});
+            records.insert({*key, value});
         }
         if (records.empty()) {
             continue;

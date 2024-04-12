@@ -168,20 +168,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, BigInt &o
 
 int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::monostate &value)
 {
-    napi_value tempValue;
-    napi_get_null(env, &tempValue);
-    bool equal = false;
-    napi_strict_equals(env, jsValue, tempValue, &equal);
-    if (equal) {
-        return napi_ok;
-    }
-    napi_get_undefined(env, &tempValue);
-    napi_strict_equals(env, jsValue, tempValue, &equal);
-    if (equal) {
-        return napi_ok;
-    }
-    LOG_DEBUG("std::monostate is not null");
-    return napi_invalid_arg;
+    return NAPI_TYPE_ERROR;
 }
 
 bool JSUtils::Equals(napi_env env, napi_value value, napi_ref copy)

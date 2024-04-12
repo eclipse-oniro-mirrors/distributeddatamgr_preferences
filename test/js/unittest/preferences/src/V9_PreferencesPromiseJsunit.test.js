@@ -597,4 +597,44 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             done()
         }
     })
+
+    it('testPreferencesDataChange010', 0, async function (done) {
+        console.log("testPreferencesDataChange010 begin.")
+        await mPreference.clear();
+        try {
+            let obj1 = {
+                "key1":"value1",
+                "key2":null
+            }
+            var observer1 = function (data) {
+                for (const key in data)  {
+                    if (data.hasOwnProperty(key)) {
+                        console.log(`ob1 Key: ${key}, Value: ${data[key]}`)
+                        if (data[key] != obj1[key]) {
+                            console.log(`Not as expected act: ${data[key]}, exc: ${obj1[key]}`)
+                        }
+                    }
+                }
+                expect(Object.keys(data).length).assertEqual(Object.keys(obj1).length)
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(obj1))
+            }
+            mPreference.on('dataChange', ['key1', 'key2'], observer1);
+            await mPreference.put("key2", 222)
+            await mPreference.put("key1", "value1")
+            await mPreference.delete("key2", (err) => {
+                if (err) {
+                    console.log("delete err =" + err + ", code =" + err.code +", message =" + err.message)
+                    expect(false).assertTrue()
+                }
+                console.log("delete err")
+            });
+            await mPreference.flush()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect(false).assertTrue()
+        } finally {
+            mPreference.off('dataChange', [])
+            done()
+        }
+    })
 })
