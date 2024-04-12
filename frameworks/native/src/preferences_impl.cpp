@@ -169,7 +169,7 @@ void PreferencesImpl::AwaitLoadFile()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (!loaded_) {
-        cond_.wait_for(lock, std::chrono::seconds(WAIT_TIME),[this] { return loaded_; });
+        cond_.wait_for(lock, std::chrono::seconds(WAIT_TIME), [this] { return loaded_; });
     }
 
     if (!loaded_) {
