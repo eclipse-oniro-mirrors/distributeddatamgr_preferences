@@ -26,7 +26,7 @@ uint8_t PreferencesValueParcel::GetTypeIndex(const PreferencesValue &value)
 {
     if (value.IsInt()) {
         return INT_TYPE;
-    } else if (value.IsLong()){
+    } else if (value.IsLong()) {
         return LONG_TYPE;
     } else if (value.IsFloat()) {
         return FLOAT_TYPE;
@@ -76,7 +76,7 @@ uint32_t PreferencesValueParcel::CalSize(PreferencesValue value)
             strLen += (type == STRING_TYPE) ? std::get<std::string>(value.value_).size() :
                 std::get<Object>(value.value_).valueStr.size();
 
-             return  strLen;
+            return  strLen;
         }
 
         case BOOL_ARRAY_TYPE:
@@ -88,7 +88,7 @@ uint32_t PreferencesValueParcel::CalSize(PreferencesValue value)
 
         case UINT8_ARRAY_TYPE:
             return sizeof(uint8_t) + sizeof(size_t) +
-                std::get<std::vector<uint8_t>>(value.value_).size() * sizeof(uint8_t);
+                ((std::get<std::vector<uint8_t>>(value.value_).size()) * sizeof(uint8_t));
 
         case STRING_ARRAY_TYPE: {
             uint32_t strArrBlobLen = sizeof(uint8_t) + sizeof(size_t);
@@ -454,7 +454,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeBasicValue(c
     const std::vector<uint8_t> &data)
 {
     const uint8_t *startAddr = data.data();
-    switch(type) {
+    switch (type) {
         case INT_TYPE: {
             const int intValue = *(reinterpret_cast<const int *>(startAddr + sizeof(uint8_t)));
             return std::make_pair(E_OK, PreferencesValue(intValue));
@@ -488,7 +488,8 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeStringValue(
     std::string strValue;
     size_t strLen = *(reinterpret_cast<const size_t *>(startAddr + sizeof(uint8_t)));
     strValue.resize(strLen);
-    strValue.assign(startAddr + sizeof(uint8_t) + sizeof(size_t), startAddr + sizeof(uint8_t) + sizeof(size_t) + strLen);
+    strValue.assign(startAddr + sizeof(uint8_t) + sizeof(size_t), startAddr + sizeof(uint8_t) + sizeof(size_t) +
+        strLen);
 
     if (type == OBJECT_TYPE) {
         Object obj;

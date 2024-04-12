@@ -142,7 +142,7 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
         LOG_ERROR("get all failed, errCode=%d", errCode);
         return {};
     }
-    for(auto it = data.begin(); it!=data.end();it++) {
+    for (auto it = data.begin(); it != data.end(); it++) {
         std::string key(it->first.begin(), it->first.end());
         auto item = PreferencesValueParcel::DeSerializePreferenceValue(it->second);
         result.insert({key, item.second});

@@ -144,7 +144,8 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     const_cast<Options &>(options).filePath = realPath;
     std::shared_ptr<Preferences> pref = nullptr;
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
-    if (options.bundleName == "com.huawei.hmos.meetimeservice" && IsUseEnhanceDb()) {
+    bool isBundleUsingEnhanceDb = options.bundleName == "com.huawei.hmos.meetimeservice";
+    if (isBundleUsingEnhanceDb && IsUseEnhanceDb()) {
         LOG_DEBUG("PreferencesHelper::GetPreferences using enhance db.");
         pref = PreferencesEnhanceImpl::GetPreferences(options);
         errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();

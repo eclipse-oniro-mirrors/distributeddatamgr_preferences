@@ -122,7 +122,7 @@ PreferencesDb::~PreferencesDb()
 
 int PreferencesDb::Init(const std::string &dbPath)
 {
-    if(db_ != nullptr) {
+    if (db_ != nullptr) {
         LOG_DEBUG("db handle is already inited");
         return E_OK;
     }

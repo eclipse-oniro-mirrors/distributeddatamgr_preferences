@@ -65,7 +65,6 @@ private:
     static int SerializeBasicArrayValue(const PreferencesValue &value, const uint8_t type,
     std::vector<uint8_t> &data);
 
-
     static std::pair<int, PreferencesValue> DeSerializeBasicValue(const uint8_t type,
         const std::vector<uint8_t> &data);
 

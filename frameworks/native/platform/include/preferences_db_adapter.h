@@ -122,12 +122,12 @@ private:
 
 // grd errcode
 #define GRD_OK 0
-#define GRD_NOT_SUPPORT -1000
-#define GRD_OVER_LIMIT -2000
-#define GRD_INVALID_ARGS -3000
-#define GRD_FAILED_MEMORY_ALLOCATE -13000
-#define GRD_FAILED_MEMORY_RELEASE -14000
-#define GRD_PERMISSION_DENIED -43000
+#define GRD_NOT_SUPPORT (-1000)
+#define GRD_OVER_LIMIT (-2000)
+#define GRD_INVALID_ARGS (-3000)
+#define GRD_FAILED_MEMORY_ALLOCATE (-13000)
+#define GRD_FAILED_MEMORY_RELEASE (-14000)
+#define GRD_PERMISSION_DENIED (-43000)
 
 } // End of namespace NativePreferences
 } // End of namespace OHOS
