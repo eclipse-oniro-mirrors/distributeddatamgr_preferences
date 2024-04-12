@@ -32,9 +32,6 @@
 
 namespace OHOS {
 namespace NativePreferences {
-
-constexpr int32_t WAIT_TIME = 2;
-
 template<typename T>
 std::string GetTypeName()
 {
@@ -157,10 +154,7 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     if (pref->loaded_) {
         return;
     }
-    bool loadResult = pref->ReadSettingXml(pref);
-    if (!loadResult) {
-        LOG_ERROR("The settingXml load failed.");
-    }
+    pref->ReadSettingXml(pref);
     pref->loaded_ = true;
     pref->cond_.notify_all();
 }
@@ -168,8 +162,8 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
 void PreferencesImpl::AwaitLoadFile()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (!loaded_ || !cond_.wait_for(lock, std::chrono::seconds(WAIT_TIME), [this] { return loaded_; })) {
-        LOG_ERROR("The settingXml load timeout.");
+    if (!loaded_) {
+        cond_.wait(lock, [this] { return loaded_; });
     }
 }
 
