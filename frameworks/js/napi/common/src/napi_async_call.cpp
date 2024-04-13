@@ -104,7 +104,8 @@ napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context, 
 
     auto start_time = std::chrono::steady_clock::now();
     if (context->callback_ == nullptr) {
-        napi_create_promise(env, &context->defer_, &promise);
+        napi_status status = napi_create_promise(env, &context->defer_, &promise);
+        PRE_NAPI_ASSERT(env, status == napi_ok, std::make_shared<InnerError>("Failed to create promise."));
     } else {
         napi_get_undefined(env, &promise);
     }
