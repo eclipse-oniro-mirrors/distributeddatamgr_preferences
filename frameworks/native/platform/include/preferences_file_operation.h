@@ -23,6 +23,10 @@
 
 #include "visibility.h"
 
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+
 #if defined(WINDOWS_PLATFORM)
 
 #include <iostream>
@@ -54,6 +58,16 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+static UNUSED_FUNCTION void *DBDlOpen()
+{
+#ifndef _WIN32
+    return dlopen("libgaussdb_rd_vector.z.so", RTLD_LAZY);
+#else
+    return nullptr;
+#endif
+}
+
 static UNUSED_FUNCTION int Mkdir(const std::string &filePath)
 {
 #if defined(WINDOWS_PLATFORM)
