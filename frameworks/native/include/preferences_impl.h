@@ -78,7 +78,7 @@ private:
     };
 
     std::shared_ptr<MemoryToDiskRequest> commitToMemory();
-    void notifyPreferencesObserver(const MemoryToDiskRequest &request);
+    void NotifyPreferencesObserver(const MemoryToDiskRequest &request);
     bool StartLoadFromDisk();
 
     /* thread function */

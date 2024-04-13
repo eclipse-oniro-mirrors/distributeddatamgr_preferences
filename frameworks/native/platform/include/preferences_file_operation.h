@@ -59,10 +59,10 @@
 namespace OHOS {
 namespace NativePreferences {
 
-inline void *DBDlOpen()
+static UNUSED_FUNCTION void *DBDlOpen()
 {
 #ifndef _WIN32
-    return dlopen("/system/lib64/libgaussdb_rd_vector.z.so", RTLD_LAZY);
+    return dlopen("libgaussdb_rd_vector.z.so", RTLD_LAZY);
 #else
     return nullptr;
 #endif

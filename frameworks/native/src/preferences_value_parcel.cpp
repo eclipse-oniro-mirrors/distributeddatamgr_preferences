@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,39 +57,29 @@ uint32_t PreferencesValueParcel::CalSize(PreferencesValue value)
     switch (type) {
         case INT_TYPE:
             return sizeof(uint8_t) + sizeof(int);
-
         case LONG_TYPE:
             return sizeof(uint8_t) + sizeof(int64_t);
-
         case FLOAT_TYPE:
             return sizeof(uint8_t) + sizeof(float);
-
         case DOUBLE_TYPE:
             return sizeof(uint8_t) + sizeof(double);
-
         case BOOL_TYPE:
             return sizeof(uint8_t) + sizeof(bool);
-
         case OBJECT_TYPE:
         case STRING_TYPE: {
             uint32_t strLen = sizeof(uint8_t) + sizeof(size_t);
             strLen += (type == STRING_TYPE) ? std::get<std::string>(value.value_).size() :
                 std::get<Object>(value.value_).valueStr.size();
-
             return  strLen;
         }
-
         case BOOL_ARRAY_TYPE:
             return sizeof(uint8_t) + sizeof(size_t) + std::get<std::vector<bool>>(value.value_).size() * sizeof(bool);
-
         case DOUBLE_ARRAY_TYPE:
             return sizeof(uint8_t) + sizeof(size_t) +
                 std::get<std::vector<double>>(value.value_).size() * sizeof(double);
-
         case UINT8_ARRAY_TYPE:
             return sizeof(uint8_t) + sizeof(size_t) +
                 ((std::get<std::vector<uint8_t>>(value.value_).size()) * sizeof(uint8_t));
-
         case STRING_ARRAY_TYPE: {
             uint32_t strArrBlobLen = sizeof(uint8_t) + sizeof(size_t);
             std::vector<std::string> strVec = std::get<std::vector<std::string>>(value.value_);
@@ -100,11 +90,9 @@ uint32_t PreferencesValueParcel::CalSize(PreferencesValue value)
             }
             return strArrBlobLen;
         }
-
         case BIG_INT_TYPE:
             return sizeof(uint8_t) + sizeof(size_t) + sizeof(int64_t) +
                 std::get<BigInt>(value.value_).words_.size() * sizeof(uint64_t);
-
         default:
             break;
     }
@@ -117,13 +105,13 @@ uint32_t PreferencesValueParcel::CalSize(PreferencesValue value)
  *     ------------------------
  * len:  uint8_t   sizeof(int) or size of(Bool) e.g.
 */
-int PreferencesValueParcel::SerializeBasicValue(const PreferencesValue &value, const uint8_t type,
+int PreferencesValueParcel::MarshallingBasicValue(const PreferencesValue &value, const uint8_t type,
     std::vector<uint8_t> &data)
 {
     uint8_t *startAddr = data.data();
     int errCode = memcpy_s(startAddr, data.size(), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize basic value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling basic value's type, %d", errCode);
         return E_ERROR;
     }
     size_t basicDataLen = 0;
@@ -163,7 +151,7 @@ int PreferencesValueParcel::SerializeBasicValue(const PreferencesValue &value, c
     }
     
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize basic value, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling basic value, %d", errCode);
         return E_ERROR;
     }
     return E_OK;
@@ -175,7 +163,7 @@ int PreferencesValueParcel::SerializeBasicValue(const PreferencesValue &value, c
  *     -------------------------------------
  * len:  uint8_t   size_t        strLen
 */
-int PreferencesValueParcel::SerializeStringValue(const PreferencesValue &value, const uint8_t type,
+int PreferencesValueParcel::MarshallingStringValue(const PreferencesValue &value, const uint8_t type,
     std::vector<uint8_t> &data)
 {
     std::string stringValue;
@@ -189,19 +177,19 @@ int PreferencesValueParcel::SerializeStringValue(const PreferencesValue &value, 
     uint8_t *startAddr = data.data();
     int errCode = memcpy_s(startAddr, sizeof(uint8_t), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize string value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string value's type, %d", errCode);
         return -E_ERROR;
     }
     size_t strLen = stringValue.size();
     errCode = memcpy_s(startAddr + sizeof(uint8_t), sizeof(size_t), &strLen, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize string value's str len, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string value's str len, %d", errCode);
         return -E_ERROR;
     }
     errCode = memcpy_s(startAddr + sizeof(uint8_t) + sizeof(size_t), strLen,
         stringValue.c_str(), strLen);
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize string value's str data, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string value's str data, %d", errCode);
         return -E_ERROR;
     }
     return E_OK;
@@ -213,7 +201,7 @@ int PreferencesValueParcel::SerializeStringValue(const PreferencesValue &value, 
  *     --------------------------------------------------------------------
  * len:  uint8_t   size_t        sizet     len1    size_t   len2
 */
-int PreferencesValueParcel::SerializeStringArrayValue(const PreferencesValue &value, const uint8_t type,
+int PreferencesValueParcel::MarshallingStringArrayValue(const PreferencesValue &value, const uint8_t type,
     std::vector<uint8_t> &data)
 {
     std::vector<std::string> strVec = std::get<std::vector<std::string>>(value.value_);
@@ -221,7 +209,7 @@ int PreferencesValueParcel::SerializeStringArrayValue(const PreferencesValue &va
     // write type into data
     int errCode = memcpy_s(startAddr, sizeof(uint8_t), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize string array value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string array value's type, %d", errCode);
         return -E_ERROR;
     }
     startAddr += sizeof(uint8_t);
@@ -230,7 +218,7 @@ int PreferencesValueParcel::SerializeStringArrayValue(const PreferencesValue &va
     size_t vecNum = strVec.size();
     errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize string array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string array value's vector num, %d", errCode);
         return -E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -240,14 +228,14 @@ int PreferencesValueParcel::SerializeStringArrayValue(const PreferencesValue &va
         size_t strLen = strVec[i].size();
         errCode = memcpy_s(startAddr, sizeof(size_t), &strLen, sizeof(size_t));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when serialize string array value's str len, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling string array value's str len, %d", errCode);
             return -E_ERROR;
         }
         startAddr += sizeof(size_t);
 
         errCode = memcpy_s(startAddr, strLen, strVec[i].c_str(), strLen);
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when serialize string array value's str data, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling string array value's str data, %d", errCode);
             return -E_ERROR;
         }
         startAddr += strLen;
@@ -255,26 +243,21 @@ int PreferencesValueParcel::SerializeStringArrayValue(const PreferencesValue &va
     return E_OK;
 }
 
-int PreferencesValueParcel::SerializeVecUInt8AfterType(const PreferencesValue &value, uint8_t *startAddr)
+int PreferencesValueParcel::MarshallingVecUInt8AfterType(const PreferencesValue &value, uint8_t *startAddr)
 {
     std::vector<uint8_t> vec = std::get<std::vector<uint8_t>>(value.value_);
     size_t vecNum = vec.size();
     // write vec num
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize uint8 array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling uint8 array value's vector num, %d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
-
-    for (size_t i = 0; i < vecNum; i++) {
-        uint8_t item = vec[i];
-        errCode = memcpy_s(startAddr, sizeof(uint8_t), &item, sizeof(uint8_t));
-        if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when serialize uint8 array value's data, %d", errCode);
-            return E_ERROR;
-        }
-        startAddr += sizeof(uint8_t);
+    errCode = memcpy_s(startAddr, vecNum * sizeof(uint8_t), vec.data(), vecNum * sizeof(uint8_t));
+    if (errCode != E_OK) {
+        LOG_ERROR("memcpy failed when marshalling uint8 array value's data, %d", errCode);
+        return E_ERROR;
     }
     return errCode;
 }
@@ -285,7 +268,7 @@ int PreferencesValueParcel::SerializeVecUInt8AfterType(const PreferencesValue &v
  *     --------------------------------------------------------------------------
  * len:  uint8_t   size_t   sizeof(int64_t)  sizeof(int64_t)    sizeof(int64_t)
 */
-int PreferencesValueParcel::SerializeVecBigIntAfterType(const PreferencesValue &value, uint8_t *startAddr)
+int PreferencesValueParcel::MarshallingVecBigIntAfterType(const PreferencesValue &value, uint8_t *startAddr)
 {
     BigInt bigIntValue = std::get<BigInt>(value.value_);
     int64_t sign = static_cast<int64_t>(bigIntValue.sign_);
@@ -295,7 +278,7 @@ int PreferencesValueParcel::SerializeVecBigIntAfterType(const PreferencesValue &
     size_t vecNum = words.size();
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize bigInt array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling bigInt array value's vector num, %d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -303,7 +286,7 @@ int PreferencesValueParcel::SerializeVecBigIntAfterType(const PreferencesValue &
     // write sign
     errCode = memcpy_s(startAddr, sizeof(int64_t), &sign, sizeof(int64_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize bigInt array value's sign, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling bigInt array value's sign, %d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(int64_t);
@@ -313,7 +296,7 @@ int PreferencesValueParcel::SerializeVecBigIntAfterType(const PreferencesValue &
         uint64_t item = words[i];
         errCode = memcpy_s(startAddr, sizeof(uint64_t), &item, sizeof(uint64_t));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when serialize bigInt array value's words, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling bigInt array value's words, %d", errCode);
             return E_ERROR;
         }
         startAddr += sizeof(uint64_t);
@@ -321,14 +304,14 @@ int PreferencesValueParcel::SerializeVecBigIntAfterType(const PreferencesValue &
     return errCode;
 }
 
-int PreferencesValueParcel::SerializeVecDoubleAfterType(const PreferencesValue &value, uint8_t *startAddr)
+int PreferencesValueParcel::MarshallingVecDoubleAfterType(const PreferencesValue &value, uint8_t *startAddr)
 {
     std::vector<double> vec = std::get<std::vector<double>>(value.value_);
     size_t vecNum = vec.size();
     // write vec num
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize double array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling double array value's vector num, %d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -338,7 +321,7 @@ int PreferencesValueParcel::SerializeVecDoubleAfterType(const PreferencesValue &
         double item = vec[i];
         errCode = memcpy_s(startAddr, sizeof(double), &item, sizeof(double));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when serialize double array value's vector data, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling double array value's vector data, %d", errCode);
             return E_ERROR;
         }
         startAddr += sizeof(double);
@@ -346,14 +329,14 @@ int PreferencesValueParcel::SerializeVecDoubleAfterType(const PreferencesValue &
     return errCode;
 }
 
-int PreferencesValueParcel::SerializeVecBoolAfterType(const PreferencesValue &value, uint8_t *startAddr)
+int PreferencesValueParcel::MarshallingVecBoolAfterType(const PreferencesValue &value, uint8_t *startAddr)
 {
     const std::vector<bool> vec = std::get<std::vector<bool>>(value.value_);
     size_t vecNum = vec.size();
     // write vec num
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize bool array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling bool array value's vector num, %d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -363,7 +346,7 @@ int PreferencesValueParcel::SerializeVecBoolAfterType(const PreferencesValue &va
         bool item = vec[i];
         errCode = memcpy_s(startAddr, sizeof(bool), &item, sizeof(bool));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when serialize bool array value's vector data, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling bool array value's vector data, %d", errCode);
             return E_ERROR;
         }
         startAddr += sizeof(bool);
@@ -377,13 +360,13 @@ int PreferencesValueParcel::SerializeVecBoolAfterType(const PreferencesValue &va
  *     ----------------------------------------------------------------------
  * len:  uint8_t   size_t     sizeof(typ)    sizeof(typ)
 */
-int PreferencesValueParcel::SerializeBasicArrayValue(const PreferencesValue &value, const uint8_t type,
+int PreferencesValueParcel::MarshallingBasicArrayValue(const PreferencesValue &value, const uint8_t type,
     std::vector<uint8_t> &data)
 {
     uint8_t *startAddr = data.data();
     int errCode = memcpy_s(startAddr, sizeof(uint8_t), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when serialize basic array value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling basic array value's type, %d", errCode);
         return E_ERROR;
     }
     // write type
@@ -391,21 +374,17 @@ int PreferencesValueParcel::SerializeBasicArrayValue(const PreferencesValue &val
 
     switch (type) {
         case UINT8_ARRAY_TYPE:
-            errCode = SerializeVecUInt8AfterType(value, startAddr);
+            errCode = MarshallingVecUInt8AfterType(value, startAddr);
             break;
-
         case BIG_INT_TYPE:
-            errCode = SerializeVecBigIntAfterType(value, startAddr);
+            errCode = MarshallingVecBigIntAfterType(value, startAddr);
             break;
-
         case DOUBLE_ARRAY_TYPE:
-            errCode = SerializeVecDoubleAfterType(value, startAddr);
+            errCode = MarshallingVecDoubleAfterType(value, startAddr);
             break;
-
         case BOOL_ARRAY_TYPE:
-            errCode = SerializeVecBoolAfterType(value, startAddr);
+            errCode = MarshallingVecBoolAfterType(value, startAddr);
             break;
-
         default:
             errCode = E_INVALID_ARGS;
             break;
@@ -413,7 +392,7 @@ int PreferencesValueParcel::SerializeBasicArrayValue(const PreferencesValue &val
     return errCode;
 }
 
-int PreferencesValueParcel::SerializePreferenceValue(const PreferencesValue &value, std::vector<uint8_t> &data)
+int PreferencesValueParcel::MarshallingPreferenceValue(const PreferencesValue &value, std::vector<uint8_t> &data)
 {
     int errCode = E_OK;
     uint8_t type = GetTypeIndex(value);
@@ -423,34 +402,30 @@ int PreferencesValueParcel::SerializePreferenceValue(const PreferencesValue &val
         case FLOAT_TYPE:
         case DOUBLE_TYPE:
         case BOOL_TYPE:
-            errCode = SerializeBasicValue(value, type, data);
+            errCode = MarshallingBasicValue(value, type, data);
             break;
-
         case STRING_TYPE:
         case OBJECT_TYPE:
-            errCode = SerializeStringValue(value, type, data);
+            errCode = MarshallingStringValue(value, type, data);
             break;
-
         case STRING_ARRAY_TYPE:
-            errCode = SerializeStringArrayValue(value, type, data);
+            errCode = MarshallingStringArrayValue(value, type, data);
             break;
-
         case UINT8_ARRAY_TYPE:
         case BIG_INT_TYPE:
         case DOUBLE_ARRAY_TYPE:
         case BOOL_ARRAY_TYPE:
-            errCode = SerializeBasicArrayValue(value, type, data);
+            errCode = MarshallingBasicArrayValue(value, type, data);
             break;
-
         default:
             errCode = E_INVALID_ARGS;
-            LOG_ERROR("SerializePreferenceValue failed, type invalid, %d", errCode);
+            LOG_ERROR("MarshallingPreferenceValue failed, type invalid, %d", errCode);
             break;
     }
     return errCode;
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeBasicValue(const uint8_t type,
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingBasicValue(const uint8_t type,
     const std::vector<uint8_t> &data)
 {
     const uint8_t *startAddr = data.data();
@@ -481,7 +456,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeBasicValue(c
     return std::make_pair(E_INVALID_ARGS, PreferencesValue(0));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeStringValue(const uint8_t type,
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingStringValue(const uint8_t type,
     const std::vector<uint8_t> &data)
 {
     const uint8_t *startAddr = data.data();
@@ -501,7 +476,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeStringValue(
     return std::make_pair(E_INVALID_ARGS, PreferencesValue(0));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeStringArrayValue(const uint8_t type,
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingStringArrayValue(const uint8_t type,
     const std::vector<uint8_t> &data)
 {
     if (type != STRING_ARRAY_TYPE) {
@@ -526,7 +501,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeStringArrayV
     return std::make_pair(E_OK, PreferencesValue(strVec));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecUInt8(const std::vector<uint8_t> &data)
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingVecUInt8(const std::vector<uint8_t> &data)
 {
     const uint8_t *startAddr = data.data() + sizeof(uint8_t);
     size_t vecNum = *(reinterpret_cast<const size_t *>(startAddr));
@@ -542,7 +517,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecUInt8(con
     return std::make_pair(E_OK, PreferencesValue(vec));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecDouble(const std::vector<uint8_t> &data)
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingVecDouble(const std::vector<uint8_t> &data)
 {
     const uint8_t *startAddr = data.data() + sizeof(uint8_t);
     size_t vecNum = *(reinterpret_cast<const size_t *>(startAddr));
@@ -558,7 +533,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecDouble(co
     return std::make_pair(E_OK, PreferencesValue(vec));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecBool(const std::vector<uint8_t> &data)
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingVecBool(const std::vector<uint8_t> &data)
 {
     const uint8_t *startAddr = data.data() + sizeof(uint8_t);
     size_t vecNum = *(reinterpret_cast<const size_t *>(startAddr));
@@ -574,7 +549,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecBool(cons
     return std::make_pair(E_OK, PreferencesValue(vec));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecBigInt(const std::vector<uint8_t> &data)
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingVecBigInt(const std::vector<uint8_t> &data)
 {
     const uint8_t *startAddr = data.data() + sizeof(uint8_t);
     size_t vecNum = *(reinterpret_cast<const size_t *>(startAddr));
@@ -594,34 +569,33 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeVecBigInt(co
     return std::make_pair(E_OK, PreferencesValue(bigIntValue));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializeBasicArrayValue(const uint8_t type,
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingBasicArrayValue(const uint8_t type,
     const std::vector<uint8_t> &data)
 {
     switch (type) {
         case UINT8_ARRAY_TYPE:
-            return DeSerializeVecUInt8(data);
+            return UnmarshallingVecUInt8(data);
             break;
         case BIG_INT_TYPE:
-            return DeSerializeVecBigInt(data);
+            return UnmarshallingVecBigInt(data);
             break;
         case DOUBLE_ARRAY_TYPE:
-            return DeSerializeVecDouble(data);
+            return UnmarshallingVecDouble(data);
             break;
         case BOOL_ARRAY_TYPE:
-            return DeSerializeVecBool(data);
+            return UnmarshallingVecBool(data);
             break;
-
         default:
             break;
     }
     return std::make_pair(E_INVALID_ARGS, PreferencesValue(0));
 }
 
-std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializePreferenceValue(const std::vector<uint8_t> &data)
+std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingPreferenceValue(const std::vector<uint8_t> &data)
 {
     PreferencesValue value(0);
     if (data.empty()) {
-        LOG_ERROR("DeSerializePreferenceValue failed, data empty, %d", E_INVALID_ARGS);
+        LOG_ERROR("UnmarshallingPreferenceValue failed, data empty, %d", E_INVALID_ARGS);
         return std::make_pair(E_INVALID_ARGS, value);
     }
     uint8_t type = data[0];
@@ -632,18 +606,17 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::DeSerializePreferenceVa
         case FLOAT_TYPE:
         case DOUBLE_TYPE:
         case BOOL_TYPE:
-            return DeSerializeBasicValue(type, data);
+            return UnmarshallingBasicValue(type, data);
         case OBJECT_TYPE:
         case STRING_TYPE:
-            return DeSerializeStringValue(type, data);
+            return UnmarshallingStringValue(type, data);
         case STRING_ARRAY_TYPE:
-            return DeSerializeStringArrayValue(type, data);
+            return UnmarshallingStringArrayValue(type, data);
         case UINT8_ARRAY_TYPE:
         case BIG_INT_TYPE:
         case DOUBLE_ARRAY_TYPE:
         case BOOL_ARRAY_TYPE:
-            return DeSerializeBasicArrayValue(type, data);
-
+            return UnmarshallingBasicArrayValue(type, data);
         default:
             break;
     }

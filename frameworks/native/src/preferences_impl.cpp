@@ -479,7 +479,7 @@ void PreferencesImpl::Flush()
     ExecutorPool::Task task = std::bind(PreferencesImpl::WriteToDiskFile, shared_from_this(), request);
     executorPool_.Execute(std::move(task));
 
-    notifyPreferencesObserver(*request);
+    NotifyPreferencesObserver(*request);
 }
 
 int PreferencesImpl::FlushSync()
@@ -491,7 +491,7 @@ int PreferencesImpl::FlushSync()
         LOG_DEBUG("Successfully written to disk file, memory state generation is %{public}" PRId64 "",
             request->memoryStateGeneration_);
     }
-    notifyPreferencesObserver(*request);
+    NotifyPreferencesObserver(*request);
     return request->writeToDiskResult_;
 }
 
@@ -514,7 +514,7 @@ std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> PreferencesImpl::commitToM
         writeToDiskMap, keysModified, preferencesObservers, memoryStateGeneration, dataObserversMap_);
 }
 
-void PreferencesImpl::notifyPreferencesObserver(const PreferencesImpl::MemoryToDiskRequest &request)
+void PreferencesImpl::NotifyPreferencesObserver(const PreferencesImpl::MemoryToDiskRequest &request)
 {
     if (request.keysModified_.empty()) {
         return;

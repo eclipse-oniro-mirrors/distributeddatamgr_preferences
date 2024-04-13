@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "preferences_db_adapter.h"
+#include <map>
 
+#include "preferences_db_adapter.h"
 #include "log_print.h"
 #include "preferences_errno.h"
 #include "preferences_file_operation.h"
@@ -29,12 +30,7 @@ GRD_APIInfo PreferenceDbAdapter::api_;
 
 std::atomic<bool> PreferenceDbAdapter::isInit_ = false;
 
-struct GrdErrnoPair {
-    int32_t grdCode;
-    int prefCode;
-};
-
-void GRD_DBApiInitEnhance(GRD_APIInfo &GRD_DBApiInfo)
+void GRDDBApiInitEnhance(GRD_APIInfo &GRD_DBApiInfo)
 {
 #ifndef _WIN32
     GRD_DBApiInfo.DbOpenApi = (DBOpen)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_DBOpen");
@@ -57,7 +53,7 @@ void GRD_DBApiInitEnhance(GRD_APIInfo &GRD_DBApiInfo)
 #endif
 }
 
-const GrdErrnoPair GRD_ERRNO_MAP[] = {
+const std::map<int, int> GRDErrnoMap = {
     { GRD_OK, E_OK },
     { GRD_NOT_SUPPORT, E_NOT_SUPPORTED },
     { GRD_OVER_LIMIT, E_DEFAULT_EXCEED_LENGTH_LIMIT },
@@ -72,17 +68,18 @@ int TransferGrdErrno(int err)
     if (err > 0) {
         return err;
     }
-    for (const auto &item : GRD_ERRNO_MAP) {
-        if (item.grdCode == err) {
-            return item.prefCode;
-        }
+
+    auto iter = GRDErrnoMap.find(err);
+    if (iter != GRDErrnoMap.end()) {
+        return iter->second;
     }
+
     return E_ERROR;
 }
 
 bool PreferenceDbAdapter::IsUseEnhanceDbInner()
 {
-    return PreferenceDbAdapter::gLibrary_ != NULL;
+    return PreferenceDbAdapter::gLibrary_ != nullptr;
 }
 
 GRD_APIInfo& PreferenceDbAdapter::GetApiInstance()
@@ -100,9 +97,12 @@ void PreferenceDbAdapter::ApiInit()
         return;
     }
     std::lock_guard<std::mutex> lck(PreferenceDbAdapter::apiMutex_);
+    if (PreferenceDbAdapter::isInit_) {
+        return;
+    }
     PreferenceDbAdapter::gLibrary_ = DBDlOpen();
     if (PreferenceDbAdapter::gLibrary_ != nullptr) {
-        GRD_DBApiInitEnhance(PreferenceDbAdapter::api_);
+        GRDDBApiInitEnhance(PreferenceDbAdapter::api_);
     } else {
         LOG_DEBUG("use default db kernel");
     }

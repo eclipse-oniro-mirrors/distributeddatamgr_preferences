@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,7 +61,7 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
         LOG_ERROR("get key failed, errCode=%d", errCode);
         return defValue;
     }
-    auto item = PreferencesValueParcel::DeSerializePreferenceValue(oriValue);
+    auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
     if (item.first != E_OK) {
         LOG_ERROR("get key failed, errCode=%d", errCode);
         return defValue;
@@ -99,9 +99,9 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     std::vector<uint8_t> oriValue;
     uint32_t oriValueLen = PreferencesValueParcel::CalSize(value);
     oriValue.resize(oriValueLen);
-    errCode = PreferencesValueParcel::SerializePreferenceValue(value, oriValue);
+    errCode = PreferencesValueParcel::MarshallingPreferenceValue(value, oriValue);
     if (errCode != E_OK) {
-        LOG_ERROR("serialize value failed, errCode=%d", errCode);
+        LOG_ERROR("marshalling value failed, errCode=%d", errCode);
         return errCode;
     }
     std::vector<uint8_t> oriKey(key.begin(), key.end());
@@ -110,7 +110,7 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
         LOG_ERROR("put data failed, errCode=%d", errCode);
         return errCode;
     }
-    notifyPreferencesObserver(key, value);
+    NotifyPreferencesObserver(key, value);
     return E_OK;
 }
 
@@ -128,7 +128,7 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
         return errCode;
     }
     PreferencesValue value;
-    notifyPreferencesObserver(key, value);
+    NotifyPreferencesObserver(key, value);
     return E_OK;
 }
 
@@ -144,7 +144,7 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
     }
     for (auto it = data.begin(); it != data.end(); it++) {
         std::string key(it->first.begin(), it->first.end());
-        auto item = PreferencesValueParcel::DeSerializePreferenceValue(it->second);
+        auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(it->second);
         result.insert({key, item.second});
         if (item.first != E_OK) {
             LOG_ERROR("get key failed, errCode=%d", errCode);
@@ -154,7 +154,7 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
     return result;
 }
 
-void PreferencesEnhanceImpl::notifyPreferencesObserver(const std::string &key, const PreferencesValue &value)
+void PreferencesEnhanceImpl::NotifyPreferencesObserver(const std::string &key, const PreferencesValue &value)
 {
     LOG_DEBUG("notify observer size:%{public}zu", dataObserversMap_.size());
     for (const auto &[weakPrt, keys] : dataObserversMap_) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,7 +51,7 @@ public:
     int Delete(const std::string &key) override;
 private:
     explicit PreferencesEnhanceImpl(const Options &options);
-    void notifyPreferencesObserver(const std::string &key, const PreferencesValue &value);
+    void NotifyPreferencesObserver(const std::string &key, const PreferencesValue &value);
     std::shared_mutex dbMutex_;
     std::shared_ptr<PreferencesDb> db_;
 };
