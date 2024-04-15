@@ -120,7 +120,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     return path;
 }
 
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 static bool IsUseEnhanceDb()
 {
     PreferenceDbAdapter::ApiInit();
@@ -143,7 +143,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
 
     const_cast<Options &>(options).filePath = realPath;
     std::shared_ptr<Preferences> pref = nullptr;
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) &&!defined(IOS_PLATFORM)
     bool isBundleUsingEnhanceDb = options.bundleName == "com.huawei.hmos.meetimeservice";
     if (isBundleUsingEnhanceDb && IsUseEnhanceDb()) {
         LOG_DEBUG("PreferencesHelper::GetPreferences using enhance db.");

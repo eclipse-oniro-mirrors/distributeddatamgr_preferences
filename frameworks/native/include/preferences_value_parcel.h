@@ -69,6 +69,8 @@ private:
     static std::pair<int, PreferencesValue> UnmarshallingVecBigInt(const std::vector<uint8_t> &data);
     static std::pair<int, PreferencesValue> UnmarshallingBasicArrayValue(const uint8_t type,
         const std::vector<uint8_t> &data);
+    static int MarshallingBasicValueInner(const PreferencesValue &value, const uint8_t type,
+        std::vector<uint8_t> &data);
 };
 } // namespace NativePreferences
 } // namespace OHOS
