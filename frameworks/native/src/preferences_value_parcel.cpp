@@ -99,6 +99,59 @@ uint32_t PreferencesValueParcel::CalSize(PreferencesValue value)
     return 0;
 }
 
+int PreferencesValueParcel::MarshallingBasicValueInner(const PreferencesValue &value, const uint8_t type,
+    std::vector<uint8_t> &data)
+{
+    uint8_t *startAddr = data.data();
+    size_t basicDataLen = 0;
+    if (data.size() <= sizeof(uint8_t)) {
+        LOG_ERROR("memcpy error when marshalling basic value, type: %d", type);
+        return E_ERROR;
+    }
+    size_t memLen = data.size() - sizeof(uint8_t);
+    int errCode = E_OK;
+    switch (type) {
+        case INT_TYPE: {
+            int intValue = std::get<int>(value.value_);
+            basicDataLen = sizeof(int);
+            errCode = memcpy_s(startAddr + sizeof(uint8_t), memLen, &intValue, basicDataLen);
+            break;
+        }
+        case LONG_TYPE: {
+            int64_t longValue = std::get<int64_t>(value.value_);
+            basicDataLen = sizeof(int64_t);
+            errCode = memcpy_s(startAddr + sizeof(uint8_t), memLen, &longValue, basicDataLen);
+            break;
+        }
+        case FLOAT_TYPE: {
+            float floatValue = std::get<float>(value.value_);
+            basicDataLen = sizeof(float);
+            errCode = memcpy_s(startAddr + sizeof(uint8_t), memLen, &floatValue, basicDataLen);
+            break;
+        }
+        case DOUBLE_TYPE: {
+            double doubleValue = std::get<double>(value.value_);
+            basicDataLen = sizeof(double);
+            errCode = memcpy_s(startAddr + sizeof(uint8_t), memLen, &doubleValue, basicDataLen);
+            break;
+        }
+        case BOOL_TYPE: {
+            bool boolValue = std::get<bool>(value.value_);
+            basicDataLen = sizeof(bool);
+            errCode = memcpy_s(startAddr + sizeof(uint8_t), memLen, &boolValue, basicDataLen);
+            break;
+        }
+        default:
+            break;
+    }
+    
+    if (errCode != E_OK) {
+        LOG_ERROR("memcpy failed when marshalling basic value, %d", errCode);
+        return E_ERROR;
+    }
+    return E_OK;
+}
+
 /**
  *     ------------------------
  *     |  type  |   BasicData   |
@@ -112,49 +165,9 @@ int PreferencesValueParcel::MarshallingBasicValue(const PreferencesValue &value,
     int errCode = memcpy_s(startAddr, data.size(), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
         LOG_ERROR("memcpy failed when marshalling basic value's type, %d", errCode);
-        return E_ERROR;
+        return E_NOT_SUPPORTED;
     }
-    size_t basicDataLen = 0;
-    switch (type) {
-        case INT_TYPE: {
-            int intValue = std::get<int>(value.value_);
-            basicDataLen = sizeof(int);
-            errCode = memcpy_s(startAddr + sizeof(uint8_t), data.size() - sizeof(uint8_t), &intValue, basicDataLen);
-            break;
-        }
-        case LONG_TYPE: {
-            int64_t longValue = std::get<int64_t>(value.value_);
-            basicDataLen = sizeof(int64_t);
-            errCode = memcpy_s(startAddr + sizeof(uint8_t), data.size() - sizeof(uint8_t), &longValue, basicDataLen);
-            break;
-        }
-        case FLOAT_TYPE: {
-            float floatValue = std::get<float>(value.value_);
-            basicDataLen = sizeof(float);
-            errCode = memcpy_s(startAddr + sizeof(uint8_t), data.size() - sizeof(uint8_t), &floatValue, basicDataLen);
-            break;
-        }
-        case DOUBLE_TYPE: {
-            double doubleValue = std::get<double>(value.value_);
-            basicDataLen = sizeof(double);
-            errCode = memcpy_s(startAddr + sizeof(uint8_t), data.size() - sizeof(uint8_t), &doubleValue, basicDataLen);
-            break;
-        }
-        case BOOL_TYPE: {
-            bool boolValue = std::get<bool>(value.value_);
-            basicDataLen = sizeof(bool);
-            errCode = memcpy_s(startAddr + sizeof(uint8_t), data.size() - sizeof(uint8_t), &boolValue, basicDataLen);
-            break;
-        }
-        default:
-            break;
-    }
-    
-    if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling basic value, %d", errCode);
-        return E_ERROR;
-    }
-    return E_OK;
+    return MarshallingBasicValueInner(value, type, data);
 }
 
 /**
