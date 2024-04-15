@@ -41,12 +41,10 @@ PreferencesValue PreferencesBase::Get(const std::string &key, const PreferencesV
 {
     return defValue;
 }
-
 int PreferencesBase::Put(const std::string &key, const PreferencesValue &value)
 {
     return E_OK;
 }
-
 int PreferencesBase::GetInt(const std::string &key, const int &defValue = {})
 {
     PreferencesValue preferencesValue = Get(key, defValue);
@@ -55,7 +53,6 @@ int PreferencesBase::GetInt(const std::string &key, const int &defValue = {})
     }
     return preferencesValue;
 }
-
 std::string PreferencesBase::GetString(const std::string &key, const std::string &defValue = {})
 {
     PreferencesValue preferencesValue = Get(key, defValue);
@@ -80,7 +77,6 @@ float PreferencesBase::GetFloat(const std::string &key, const float &defValue = 
     }
     return preferencesValue;
 }
-
 double PreferencesBase::GetDouble(const std::string &key, const double &defValue = {})
 {
     PreferencesValue preferencesValue = Get(key, defValue);
@@ -89,7 +85,6 @@ double PreferencesBase::GetDouble(const std::string &key, const double &defValue
     }
     return preferencesValue;
 }
-
 int64_t PreferencesBase::GetLong(const std::string &key, const int64_t &defValue = {})
 {
     PreferencesValue preferencesValue = Get(key, defValue);
@@ -98,37 +93,30 @@ int64_t PreferencesBase::GetLong(const std::string &key, const int64_t &defValue
     }
     return preferencesValue;
 }
-
 std::map<std::string, PreferencesValue> PreferencesBase::GetAll()
 {
     return {};
 }
-
 bool PreferencesBase::HasKey(const std::string &key)
 {
     return true;
 }
-
 int PreferencesBase::PutInt(const std::string &key, int value)
 {
     return Put(key, value);
 }
-
 int PreferencesBase::PutString(const std::string &key, const std::string &value)
 {
     return Put(key, value);
 }
-
 int PreferencesBase::PutBool(const std::string &key, bool value)
 {
     return Put(key, value);
 }
-
 int PreferencesBase::PutLong(const std::string &key, int64_t value)
 {
     return Put(key, value);
 }
-
 int PreferencesBase::PutFloat(const std::string &key, float value)
 {
     return Put(key, value);

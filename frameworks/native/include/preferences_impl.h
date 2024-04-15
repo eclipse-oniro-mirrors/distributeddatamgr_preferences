@@ -78,7 +78,7 @@ private:
     };
 
     std::shared_ptr<MemoryToDiskRequest> commitToMemory();
-    void NotifyPreferencesObserver(const MemoryToDiskRequest &request);
+    void notifyPreferencesObserver(const MemoryToDiskRequest &request);
     bool StartLoadFromDisk();
 
     /* thread function */
@@ -97,7 +97,6 @@ private:
     int64_t diskStateGeneration_;
 
     std::list<std::string> modifiedKeys_;
-
     static ExecutorPool executorPool_;
 
     std::map<std::string, PreferencesValue> map_;

@@ -22,12 +22,10 @@
 
 #include "log_print.h"
 #include "preferences.h"
-#include "preferences_db_adapter.h"
 #include "preferences_errno.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
 #include "preferences_impl.h"
-#include "preferences_enhance_impl.h"
 #include "securec.h"
 namespace OHOS {
 namespace NativePreferences {
@@ -37,40 +35,6 @@ static bool IsFileExist(const std::string &path)
 {
     struct stat buffer;
     return (stat(path.c_str(), &buffer) == 0);
-}
-
-static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
-{
-    if (IsFileExist(filePath.c_str()) && std::remove(filePath.c_str()) != 0) {
-        LOG_ERROR("remove filePath failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    std::string tmpFilePath = filePath + ".ctrl";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = filePath + ".redo";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = filePath + ".undo";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = filePath + ".safe";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = filePath + ".map";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    return E_OK;
 }
 
 std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCode)
@@ -120,14 +84,6 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     return path;
 }
 
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
-static bool IsUseEnhanceDb()
-{
-    PreferenceDbAdapter::ApiInit();
-    return PreferenceDbAdapter::IsUseEnhanceDbInner();
-}
-#endif
-
 std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &options, int &errCode)
 {
     std::string realPath = GetRealPath(options.filePath, errCode);
@@ -142,21 +98,8 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     }
 
     const_cast<Options &>(options).filePath = realPath;
-    std::shared_ptr<Preferences> pref = nullptr;
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
-    bool isBundleUsingEnhanceDb = options.bundleName == "com.huawei.hmos.meetimeservice";
-    if (isBundleUsingEnhanceDb && IsUseEnhanceDb()) {
-        LOG_DEBUG("PreferencesHelper::GetPreferences using enhance db.");
-        pref = PreferencesEnhanceImpl::GetPreferences(options);
-        errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
-    } else {
-        pref = PreferencesImpl::GetPreferences(options);
-        errCode = std::static_pointer_cast<PreferencesImpl>(pref)->Init();
-    }
-#else
-    pref = PreferencesImpl::GetPreferences(options);
-    errCode = std::static_pointer_cast<PreferencesImpl>(pref)->Init();
-#endif
+    std::shared_ptr<PreferencesImpl> pref = PreferencesImpl::GetPreferences(options);
+    errCode = pref->Init();
     if (errCode != E_OK) {
         return nullptr;
     }
@@ -191,9 +134,6 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());
-    if (RemoveEnhanceDbFileIfNeed(path) != E_OK) {
-        return E_DELETE_FILE_FAIL;
-    }
 
     if (!dataGroupId.empty()) {
         std::remove(lockFilePath.c_str());
