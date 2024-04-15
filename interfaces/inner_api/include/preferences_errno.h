@@ -138,7 +138,7 @@ constexpr int PERMISSION_DENIED = (E_BASE + 18);
 static constexpr int E_GET_DATAOBSMGRCLIENT_FAIL = (E_BASE + 19);
 
 /**
-* @brief The error code is used to retain the observer.
+* @brief The error code is used to retain the observer
 */
 constexpr int E_OBSERVER_RESERVE = (E_BASE + 20);
 
