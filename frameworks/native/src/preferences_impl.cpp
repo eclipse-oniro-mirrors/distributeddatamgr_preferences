@@ -260,8 +260,11 @@ static void Convert2PrefValue(const Element &element, BigInt &value)
         Convert2PrefValue(child, val);
         value.words_.push_back(val);
     }
-    value.sign_ = static_cast<int>(value.words_[value.words_.size() - 1]);
-    value.words_.pop_back();
+    value.sign_ = 0;
+    if (!value.words_.empty()) {
+        value.sign_ = static_cast<int>(value.words_[value.words_.size() - 1]);
+        value.words_.pop_back();
+    }
 }
 
 template<typename T>

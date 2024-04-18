@@ -204,6 +204,7 @@ napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
     napi_value args[2] = { 0 };
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
+    // Check if the number of arguments is 2
     NAPI_ASSERT(env, argc == 2, "Wrong number of arguments");
     // get value type
     napi_valuetype valueType = napi_undefined;
@@ -399,6 +400,7 @@ napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
 
     LOG_DEBUG("SETVALUE");
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &thiz, nullptr));
+    // Check if the number of arguments is 2
     NAPI_ASSERT(env, argc == 2, "Wrong number of arguments");
     // get value type
     napi_valuetype valueType = napi_undefined;
