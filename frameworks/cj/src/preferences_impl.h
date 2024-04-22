@@ -78,11 +78,15 @@ public:
     OHOS::FFI::RuntimeType* GetRuntimeType() override { return GetClassType(); }
 
 private:
-    friend class OHOS::FFI::RuntimeType; 
-    friend class OHOS::FFI::TypeBase; 
-    static OHOS::FFI::RuntimeType* GetClassType() { static OHOS::FFI::RuntimeType runtimeType = OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("PreferencesImpl"); return &runtimeType; } 
-    static constexpr char STR_CHANGE[] = "change";
-    static constexpr char STR_MULTI_PRECESS_CHANGE[] = "multiProcessChange";
+    friend class OHOS::FFI::TypeBase;
+    friend class OHOS::FFI::RuntimeType;
+    static OHOS::FFI::RuntimeType* GetClassType()
+    {
+        static OHOS::FFI::RuntimeType runtimeType = OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("PreferencesImpl");
+        return &runtimeType;
+    }
+    static constexpr char strChange[] = "change";
+    static constexpr char strMultiProcessChange[] = "multiProcessChange";
     std::shared_ptr<NativePreferences::Preferences> preferences;
     std::mutex listMutex_ {};
     std::list<std::shared_ptr<CJPreferencesObserver>> localObservers_;
