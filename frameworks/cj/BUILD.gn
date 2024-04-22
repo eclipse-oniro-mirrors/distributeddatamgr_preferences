@@ -14,9 +14,7 @@ import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
 
-base_include = [
-  "${preferences_base_path}/frameworks/common/include",
-]
+base_include = [ "${preferences_base_path}/frameworks/common/include" ]
 
 base_sources = [
   "${preferences_cj_path}/preferences_ffi.cpp",
@@ -25,30 +23,25 @@ base_sources = [
 ]
 
 ohos_shared_library("cj_preferences_ffi") {
-    include_dirs = base_include
-    sources = base_sources
+  include_dirs = base_include
+  sources = base_sources
 
-    sanitize = {
-      cfi = true
-      cfi_cross_dso = true
-      debug = false
-    }
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 
-    external_deps = [
-        "ability_runtime:abilitykit_native",
-        "ability_runtime:napi_base_context",
-        "c_utils:utils",
-        "hilog:libhilog",
-        "napi:ace_napi",
-        "napi:cj_bind_ffi",
+  external_deps = [
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:napi_base_context",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "napi:ace_napi",
+    "napi:cj_bind_ffi",
+  ]
 
-        "ability_base:base",
-        "ability_base:want",
-        "ability_runtime:ability_manager",
-        "c_utils:utils",
-    ]
-
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
-    relative_install_dir = "module/data"
+  subsystem_name = "distributeddatamgr"
+  part_name = "preferences"
+  relative_install_dir = "module/data"
 }
