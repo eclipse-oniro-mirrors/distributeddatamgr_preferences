@@ -77,7 +77,7 @@ int TransferGrdErrno(int err)
     return E_ERROR;
 }
 
-bool PreferenceDbAdapter::IsUseEnhanceDbInner()
+bool PreferenceDbAdapter::IsEnhandceDbEnable()
 {
     return PreferenceDbAdapter::gLibrary_ != nullptr;
 }

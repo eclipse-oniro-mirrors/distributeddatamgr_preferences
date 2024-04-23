@@ -33,6 +33,7 @@ namespace OHOS {
 namespace NativePreferences {
 std::map<std::string, std::shared_ptr<Preferences>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
+
 static bool IsFileExist(const std::string &path)
 {
     struct stat buffer;
@@ -121,10 +122,10 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 }
 
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
-static bool IsUseEnhanceDb()
+static bool IsUseEnhanceDb(std::string bundleName)
 {
     PreferenceDbAdapter::ApiInit();
-    return PreferenceDbAdapter::IsUseEnhanceDbInner();
+    return (bundleName.find("meetimeservice") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
 }
 #endif
 
@@ -144,8 +145,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     const_cast<Options &>(options).filePath = realPath;
     std::shared_ptr<Preferences> pref = nullptr;
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) &&!defined(IOS_PLATFORM)
-    bool isBundleUsingEnhanceDb = options.bundleName == "com.huawei.hmos.meetimeservice";
-    if (isBundleUsingEnhanceDb && IsUseEnhanceDb()) {
+    if (IsUseEnhanceDb(options.bundleName)) {
         LOG_DEBUG("PreferencesHelper::GetPreferences using enhance db.");
         pref = PreferencesEnhanceImpl::GetPreferences(options);
         errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();

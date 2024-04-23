@@ -94,7 +94,7 @@ struct GRD_APIInfo {
 
 class PreferenceDbAdapter {
 public:
-    static bool IsUseEnhanceDbInner();
+    static bool IsEnhandceDbEnable();
     static GRD_APIInfo& GetApiInstance();
     static void ApiInit();
 
