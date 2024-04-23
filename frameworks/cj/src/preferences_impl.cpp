@@ -173,7 +173,7 @@ bool PreferencesImpl::HasRegisteredObserver(std::function<void(std::string)> *ca
 
 RegisterMode PreferencesImpl::ConvertToRegisterMode(const std::string &mode)
 {
-    return (mode == STR_CHANGE) ? RegisterMode::LOCAL_CHANGE : RegisterMode::MULTI_PRECESS_CHANGE;
+    return (mode == strChange) ? RegisterMode::LOCAL_CHANGE : RegisterMode::MULTI_PRECESS_CHANGE;
 }
 
 PreferencesValue ValueTypeToPreferencesValue(const ValueType &value)

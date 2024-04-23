@@ -82,7 +82,8 @@ private:
     friend class OHOS::FFI::RuntimeType;
     static OHOS::FFI::RuntimeType* GetClassType()
     {
-        static OHOS::FFI::RuntimeType runtimeType = OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("PreferencesImpl");
+        static OHOS::FFI::RuntimeType runtimeType =
+            OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("PreferencesImpl");
         return &runtimeType;
     }
     static constexpr char strChange[] = "change";
