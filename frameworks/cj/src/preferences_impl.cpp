@@ -39,12 +39,13 @@ struct ContextInfo {
     std::string preferencesDir;
 };
 
-std::tuple<int, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* context, const std::string &name,
+std::tuple<int32_t, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* context, const std::string &name,
     const std::string &dataGroupId)
 {
     std::string path;
     if (context == nullptr) {
-        return {-1, path};
+        LOGE("The context is nullptr.");
+        return {E_ERROR, path};
     }
     int32_t errcode = 0;
     auto tempContext = std::make_shared<HelperAysncContext>();
@@ -53,12 +54,11 @@ std::tuple<int, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* cont
     ContextInfo contextInfo;
     errcode = context->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
     if (errcode != 0) {
-        return {-1, path};
+        return {errcode, path};
     }
     tempContext->path = contextInfo.preferencesDir.append("/").append(tempContext->name);
-    return {0, tempContext->path};
+    return {E_OK, tempContext->path};
 }
-
 
 PreferencesImpl::PreferencesImpl(OHOS::AbilityRuntime::Context* context,
     const std::string& name, const std::string& dataGroupId, int32_t* errCode)
@@ -69,7 +69,7 @@ PreferencesImpl::PreferencesImpl(OHOS::AbilityRuntime::Context* context,
         return;
     }
     auto [code, path] = GetInstancePath(context, name, dataGroupId);
-    if (code != 0) {
+    if (code != E_OK) {
         return;
     }
     NativePreferences::Options options(path, context->GetBundleName(), dataGroupId);
@@ -77,7 +77,7 @@ PreferencesImpl::PreferencesImpl(OHOS::AbilityRuntime::Context* context,
     auto proxy = PreferencesHelper::GetPreferences(options, err);
     *errCode = err;
     if (err != E_OK) {
-        LOGE("Failed to get underlying preferences instance");
+        LOGE("Failed to get underlying preferences instance.");
         return;
     }
     preferences = proxy;
@@ -91,12 +91,12 @@ int32_t PreferencesImpl::DeletePreferences(OHOS::AbilityRuntime::Context* contex
     const std::string &dataGroupId)
 {
     auto [code, path] = GetInstancePath(context, name, dataGroupId);
-    if (code != 0) {
+    if (code != E_OK) {
         return code;
     }
     int errCode = PreferencesHelper::DeletePreferences(path);
     if (errCode != E_OK) {
-        return -1;
+        return E_OK;
     }
     return 0;
 }
@@ -110,31 +110,47 @@ int32_t PreferencesImpl::RemovePreferencesFromCache(OHOS::AbilityRuntime::Contex
     }
     int errCode = PreferencesHelper::RemovePreferencesFromCache(path);
     if (errCode != E_OK) {
-        return -1;
+        return errCode;
     }
-    return 0;
+    return E_OK;
 }
 
 void PreferencesImpl::Flush()
 {
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return;
+    }
     preferences->FlushSync();
     return;
 }
 
 void PreferencesImpl::Clear()
 {
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return;
+    }
     preferences->Clear();
     return;
 }
 
 int32_t PreferencesImpl::Delete(const std::string &key)
 {
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return E_ERROR;
+    }
     int errCode = preferences->Delete(key);
     return errCode;
 }
 
 bool PreferencesImpl::HasKey(const std::string &key)
 {
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return false;
+    }
     bool result = preferences->HasKey(key);
     return result;
 }
@@ -332,6 +348,10 @@ ValueTypes PreferencesValuesToValueTypes(const std::map<std::string, Preferences
 
 ValueType PreferencesImpl::Get(const std::string &key, const ValueType &defValue)
 {
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return ValueType{0};
+    }
     auto result = PreferencesValueToValueType(preferences->Get(key, ValueTypeToPreferencesValue(defValue)));
     if (result.tag == defValue.tag) {
         return result;
@@ -342,11 +362,19 @@ ValueType PreferencesImpl::Get(const std::string &key, const ValueType &defValue
 
 int32_t PreferencesImpl::Put(const std::string &key, const ValueType &value)
 {
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return E_ERROR;
+    }
     return preferences->Put(key, ValueTypeToPreferencesValue(value));
 }
 
 ValueTypes PreferencesImpl::GetAll()
 {
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return ValueTypes{0};
+    }
     return PreferencesValuesToValueTypes(preferences->GetAll());
 }
 
@@ -358,6 +386,10 @@ int32_t PreferencesImpl::RegisterObserver(const std::string &mode, std::function
                         localObservers_ : multiProcessObservers_;
     if (!HasRegisteredObserver(callback, ConvertToRegisterMode(mode))) {
         auto observer = std::make_shared<CJPreferencesObserver>(callback, callbackRef);
+        if (preferences == nullptr) {
+            LOGE("The preferences is nullptr.");
+            return E_ERROR;
+        }
         int errCode = preferences->RegisterObserver(observer, ConvertToRegisterMode(mode));
         if (errCode != E_OK) {
             return errCode;
@@ -373,6 +405,10 @@ int32_t PreferencesImpl::UnRegisterObserver(const std::string &mode, std::functi
     auto &observers = (ConvertToRegisterMode(mode) == RegisterMode::LOCAL_CHANGE) ?
                         localObservers_ : multiProcessObservers_;
     auto it = observers.begin();
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return E_ERROR;
+    }
     while (it != observers.end()) {
         if (isSameFunction(callback, (*it)->m_callback)) {
             int errCode = preferences->UnRegisterObserver(*it, ConvertToRegisterMode(mode));
@@ -394,6 +430,10 @@ int32_t PreferencesImpl::UnRegisteredAllObservers(const std::string &mode)
                         localObservers_ : multiProcessObservers_;
     bool hasFailed = false;
     int errCode = E_OK;
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return E_ERROR;
+    }
     for (auto &observer : observers) {
         errCode = preferences->UnRegisterObserver(observer, ConvertToRegisterMode(mode));
         if (errCode != E_OK) {
