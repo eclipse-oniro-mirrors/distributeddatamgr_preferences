@@ -111,7 +111,8 @@ void PreferencesObserverCounter::OnChange(const std::string &key)
     }
 }
 
-void PreferencesObserverCounter::OnChange(const std::map<std::string, OHOS::NativePreferences::PreferencesValue> &records)
+void PreferencesObserverCounter::OnChange(const std::map<std::string,
+    OHOS::NativePreferences::PreferencesValue> &records)
 {
     for (auto it = NOTIFY_KEYS_VECTOR.cbegin(); it != NOTIFY_KEYS_VECTOR.cend(); it++) {
         for (auto iter = records.begin(); iter != records.end(); iter++) {
