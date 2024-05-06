@@ -91,6 +91,7 @@ class PreferencesObserverCounter : public PreferencesObserver {
 public:
     virtual ~PreferencesObserverCounter();
     void OnChange(const std::string &key) override;
+    void OnChange(const std::map<std::string, OHOS::NativePreferences::PreferencesValue> &records) override;
 
     std::atomic_int notifyTimes;
     static const std::vector<std::string> NOTIFY_KEYS_VECTOR;
@@ -106,6 +107,20 @@ void PreferencesObserverCounter::OnChange(const std::string &key)
         if (key.compare(*it)) {
             notifyTimes++;
             break;
+        }
+    }
+}
+
+void PreferencesObserverCounter::OnChange(
+    const std::map<std::string, OHOS::NativePreferences::PreferencesValue> &records)
+{
+    for (auto it = NOTIFY_KEYS_VECTOR.cbegin(); it != NOTIFY_KEYS_VECTOR.cend(); it++) {
+        for (auto iter = records.begin(); iter != records.end(); iter++) {
+            std::string key = iter->first;
+            if (key.compare(*it)) {
+                notifyTimes++;
+                return;
+            }
         }
     }
 }
@@ -969,6 +984,23 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_031, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NativePreferencesTest_032
+ * @tc.desc: normal testcase of OnChange DataChange
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author: lirui
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_032, TestSize.Level1)
+{
+    std::shared_ptr<PreferencesObserver> counter = std::make_shared<PreferencesObserverCounter>();
+    std::vector<std::string> keys = { KEY_TEST_STRING_ELEMENT };
+    pref->RegisterDataObserver(counter, keys);
+    pref->PutString(KEY_TEST_STRING_ELEMENT, "test");
+    pref->FlushSync();
+    EXPECT_EQ(static_cast<PreferencesObserverCounter *>(counter.get())->notifyTimes, 1);
+}
+
+/**
  * @tc.name: OperatorTest_001
  * @tc.desc: normal testcase of PreferencesValue Operator
  * @tc.type: FUNC
@@ -1016,5 +1048,14 @@ HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
     std::vector<uint8_t> valueVectorUint8(3, 1);
     std::vector<uint8_t> retVectorUint8 = PreferencesValue(valueVectorUint8);
     EXPECT_EQ(valueVectorUint8, retVectorUint8);
+
+    Object object("{\"key1\":\"value1\",\"key2\":222}");
+    Object retObjecte = PreferencesValue(object);
+    EXPECT_EQ(object, retObjecte);
+    
+    std::vector<uint64_t> words = { 1, 2, 3 };
+    BigInt bigint(words, 0);
+    BigInt retBigint = PreferencesValue(bigint);
+    EXPECT_EQ(bigint, retBigint);
 }
 } // namespace
