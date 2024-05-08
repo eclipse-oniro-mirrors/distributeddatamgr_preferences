@@ -18,15 +18,16 @@
 #include <variant>
 #include <vector>
 #include <map>
+
 #include "ffi_remote_data.h"
 #include "securec.h"
-
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_impl.h"
 #include "preferences_value.h"
 #include "preferences_utils.h"
-
+#include "preferences_errno.h"
+#include "preferences_log.h"
 
 using namespace OHOS::Preferences;
 using namespace OHOS::FFI;
@@ -70,6 +71,7 @@ PreferencesImpl::PreferencesImpl(OHOS::AbilityRuntime::Context* context,
     }
     auto [code, path] = GetInstancePath(context, name, dataGroupId);
     if (code != E_OK) {
+        *errCode = code;
         return;
     }
     NativePreferences::Options options(path, context->GetBundleName(), dataGroupId);
@@ -96,7 +98,7 @@ int32_t PreferencesImpl::DeletePreferences(OHOS::AbilityRuntime::Context* contex
     }
     int errCode = PreferencesHelper::DeletePreferences(path);
     if (errCode != E_OK) {
-        return E_OK;
+        return errCode;
     }
     return 0;
 }
@@ -227,7 +229,7 @@ PreferencesValue ValueTypeToPreferencesValue(const ValueType &value)
     return preferencesValue;
 }
 
-CArrDouble vectorToDoubleArray(std::vector<double> doubles)
+CArrDouble vectorToDoubleArray(const std::vector<double> &doubles)
 {
     double* head = (double*)malloc(doubles.size() * sizeof(double));
     if (head == nullptr) {

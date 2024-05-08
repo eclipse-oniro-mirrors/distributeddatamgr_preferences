@@ -15,14 +15,12 @@
 #ifndef PREFERENCES_FFI_H
 #define PREFERENCES_FFI_H
 
+#include <cstdint>
+
 #include "napi_base_context.h"
 #include "ffi_remote_data.h"
 #include "cj_common_ffi.h"
-#include "preferences_log.h"
-#include "preferences_impl.h"
 #include "preferences_interface.h"
-
-#include <cstdint>
 
 namespace OHOS {
 namespace Preferences {

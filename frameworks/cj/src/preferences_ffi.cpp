@@ -12,12 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "preferences_ffi.h"
-#include "preferences_impl.h"
 
 #include <vector>
-#include "cj_lambda.h"
 #include <map>
+
+#include "preferences_ffi.h"
+#include "preferences_impl.h"
+#include "preferences_log.h"
+#include "cj_lambda.h"
 
 using namespace OHOS::FFI;
 using namespace OHOS::Preferences;
@@ -35,15 +37,13 @@ int64_t FfiOHOSPreferencesGetPreferences(OHOS::AbilityRuntime::Context* context,
 int32_t FfiOHOSPreferencesDeletePreferences(OHOS::AbilityRuntime::Context* context, const char* name,
     const char* dataGroupId)
 {
-    int32_t result = PreferencesImpl::DeletePreferences(context, name, dataGroupId);
-    return result;
+    return PreferencesImpl::DeletePreferences(context, name, dataGroupId);
 }
 
 int32_t FfiOHOSPreferencesRemovePreferencesFromCache(OHOS::AbilityRuntime::Context* context, const char* name,
     const char* dataGroupId)
 {
-    int32_t result = PreferencesImpl::RemovePreferencesFromCache(context, name, dataGroupId);
-    return result;
+    return PreferencesImpl::RemovePreferencesFromCache(context, name, dataGroupId);
 }
 
 ValueType FfiOHOSPreferencesGet(int64_t id, const char* key, ValueType defValue)

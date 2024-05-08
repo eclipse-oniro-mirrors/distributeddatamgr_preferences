@@ -17,9 +17,8 @@
 
 #include <cstdint>
 #include <string>
-#include "preferences_errno.h"
+
 #include "preferences.h"
-#include "securec.h"
 
 namespace OHOS {
 namespace Preferences {

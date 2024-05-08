@@ -17,10 +17,7 @@
 
 #include <string>
 
-#include "preferences_errno.h"
 #include "preferences.h"
-#include "securec.h"
-#include "preferences_log.h"
 #include "preferences_interface.h"
 #include "ffi_remote_data.h"
 #include "ability_context.h"
