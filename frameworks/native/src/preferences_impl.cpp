@@ -224,6 +224,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
 std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
 {
     AwaitLoadFile();
+    std::lock_guard<std::mutex> lock(mutex_);
     return map_;
 }
 
