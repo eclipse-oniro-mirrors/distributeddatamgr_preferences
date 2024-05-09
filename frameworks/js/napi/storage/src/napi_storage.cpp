@@ -269,7 +269,7 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAy
     }
     if (keyBufferSize > MAX_KEY_LENGTH) {
         LOG_ERROR("the length of the key is over maximum length.");
-        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("The key must be less than 80 bytes.");
+        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("The key must be less than 1024 bytes.");
         asyncContext->SetError(paramError);
         return ERR;
     }
@@ -314,7 +314,7 @@ int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<St
             LOG_ERROR("ParseDefValue Convert2NativeValue error");
             if (ret == EXCEED_MAX_LENGTH) {
                 std::shared_ptr<JSError> paramError =
-                    std::make_shared<ParamTypeError>("The value must be less than 8192 bytes.");
+                    std::make_shared<ParamTypeError>("The value must be less than 16 * 1024 * 1024 bytes.");
                 asyncContext->SetError(paramError);
                 return ERR;
             }

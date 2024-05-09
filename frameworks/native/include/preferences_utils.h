@@ -25,11 +25,11 @@ namespace NativePreferences {
 /**
 * @brief The constant Indicates the maximum length of the key in the preferences.
 */
-static constexpr uint32_t MAX_KEY_LENGTH = 80;
+static constexpr uint32_t MAX_KEY_LENGTH = 1024;
 /**
  * @brief The constant Indicates the maximum length of the value in the preferences.
  */
-static constexpr uint32_t MAX_VALUE_LENGTH = 8 * 1024;
+static constexpr uint32_t MAX_VALUE_LENGTH = 16 * 1024 * 1024;
 
 static const char *STR_BROKEN = ".broken";
 static const char *STR_BACKUP = ".bak";

@@ -89,7 +89,7 @@ static bool RenameToBrokenFile(const std::string &fileName)
 
 static xmlDoc *ReadFile(const std::string &fileName)
 {
-    return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS);
+    return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS | XML_PARSE_HUGE);
 }
 
 static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataGroupId)

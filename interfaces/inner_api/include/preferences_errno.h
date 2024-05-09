@@ -67,7 +67,7 @@ constexpr int E_NOT_PERMIT = (E_BASE + 4); // operation is not permitted
 constexpr int E_KEY_EMPTY = (E_BASE + 5);
 
 /**
-* @brief The error code for the key string length exceed the max length (80).
+* @brief The error code for the key string length exceed the max length (1024).
 */
 constexpr int E_KEY_EXCEED_MAX_LENGTH = (E_BASE + 6);
 
@@ -108,7 +108,7 @@ constexpr int E_INVALID_FILE_PATH = (E_BASE + 12);
 constexpr int E_PATH_EXCEED_MAX_LENGTH = (E_BASE + 13);
 
 /**
-* @brief The error code for the value exceeds the max length (8 * 1024).
+* @brief The error code for the value exceeds the max length (16 * 1024 * 1024 ).
 */
 constexpr int E_VALUE_EXCEED_MAX_LENGTH = (E_BASE + 14);
 

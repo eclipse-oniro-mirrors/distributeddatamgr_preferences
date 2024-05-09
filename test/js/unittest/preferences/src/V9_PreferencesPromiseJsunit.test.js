@@ -304,6 +304,7 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             expect(false).assertTrue()
         } finally {
             mPreference.off('change', observer);
+            done();
         }
     })
 

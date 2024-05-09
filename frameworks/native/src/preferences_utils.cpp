@@ -35,7 +35,7 @@ int CheckKey(const std::string &key)
         return E_KEY_EMPTY;
     }
     if (MAX_KEY_LENGTH < key.length()) {
-        LOG_ERROR("The key string length should shorter than 80.");
+        LOG_ERROR("The key string length should shorter than 1024.");
         return E_KEY_EXCEED_MAX_LENGTH;
     }
     return E_OK;
@@ -53,13 +53,13 @@ int CheckValue(const PreferencesValue &value)
 
     if (value.IsString()) {
         std::string val = value;
-        return lengthCheck(val.length(), "the value string length should shorter than 8 * 1024.");
+        return lengthCheck(val.length(), "the value string length should shorter than 16 * 1024 * 1024.");
     }
 
     if (value.IsObject()) {
         Object obj = value;
-        return lengthCheck(obj.valueStr.length(), "the length of the object converted to JSON should be less than 8 *"
-                                                  " 1024");
+        return lengthCheck(obj.valueStr.length(), "the length of the object converted to JSON should be less than 16 *"
+                                                  " 1024 * 1024");
     }
 
     if (value.IsBigInt()) {
