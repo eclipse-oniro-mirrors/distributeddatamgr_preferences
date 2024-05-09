@@ -33,6 +33,8 @@ ohos_shared_library("cj_preferences_ffi") {
     debug = false
   }
 
+  deps = [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
+
   external_deps = [
     "ability_runtime:abilitykit_native",
     "ability_runtime:napi_base_context",
@@ -44,5 +46,5 @@ ohos_shared_library("cj_preferences_ffi") {
 
   subsystem_name = "distributeddatamgr"
   part_name = "preferences"
-  relative_install_dir = "module/data"
+  innerapi_tags = [ "platformsdk" ]
 }
