@@ -132,7 +132,6 @@ describe('PreferencesTaskpoolJsunit', function () {
         let preference = await data_preferences.getPreferences(context, NAME);
         preference.getAll().then((ret) => {
             done();
-            data_preferences.deletePreferences(context, NAME);
             console.log("testPreferencesTaskpool0002 end.");
         }).catch((err) => {
             console.log("getAll err =" + err + ", code =" + err.code + ", message =" + err.message);
