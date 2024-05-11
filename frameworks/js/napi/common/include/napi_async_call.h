@@ -43,6 +43,7 @@ public:
     
     napi_env env_ = nullptr;
     bool isAsync_ = true;
+    bool sendable_ = false;
     void *boundObj = nullptr;
     int execCode_ = ERR;
     std::shared_ptr<JSError> error;

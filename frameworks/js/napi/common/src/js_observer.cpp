@@ -16,10 +16,10 @@
 #include "js_observer.h"
 
 namespace OHOS::PreferencesJsKit {
-JSObserver::JSObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback)
-    : uvQueue_(uvQueue)
+JSObserver::JSObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback, bool sendable)
+    : uvQueue_(uvQueue), sendabel_(sendable)
 {
-    napi_create_reference(uvQueue_->GetEnv(), callback, 1, &callback_);
+    napi_create_reference(uvQueue->GetEnv(), callback, 1, &callback_);
 }
 
 JSObserver::~JSObserver()
@@ -36,8 +36,22 @@ void JSObserver::ClearCallback()
     if (callback_ == nullptr) {
         return;
     }
-    napi_delete_reference(uvQueue_->GetEnv(), callback_);
-    callback_ = nullptr;
+    auto uvQueue = uvQueue_.lock();
+    if (uvQueue != nullptr) {
+        napi_delete_reference(uvQueue->GetEnv(), callback_);
+        callback_ = nullptr;
+    }
+}
+
+
+napi_env JSObserver::GetEnv()
+{
+    auto uvQueue = uvQueue_.lock();
+    if (uvQueue != nullptr) {
+        return uvQueue->GetEnv();
+    }
+
+    return nullptr;
 }
 
 void JSObserver::AsyncCall(UvQueue::NapiArgsGenerator genArgs)
@@ -45,8 +59,11 @@ void JSObserver::AsyncCall(UvQueue::NapiArgsGenerator genArgs)
     if (callback_ == nullptr) {
         return;
     }
-
-    uvQueue_->AsyncCall(
+    auto uvQueue = uvQueue_.lock();
+    if (uvQueue == nullptr) {
+        return;
+    }
+    uvQueue->AsyncCall(
         [observer = shared_from_this()](napi_env env) -> napi_value {
             // the lambda run in js main thread, so it serial run with Clear(), so we can use no lock.
             if (observer->callback_ == nullptr) {
@@ -56,6 +73,6 @@ void JSObserver::AsyncCall(UvQueue::NapiArgsGenerator genArgs)
             napi_get_reference_value(env, observer->callback_, &callback);
             return callback;
         },
-        genArgs);
+        genArgs, sendabel_);
 }
 } // namespace OHOS::DistributedKVStore

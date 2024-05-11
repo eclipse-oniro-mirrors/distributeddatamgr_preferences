@@ -26,7 +26,7 @@ class JSPreferencesObserver :
     public OHOS::NativePreferences::PreferencesObserver,
     public JSObserver {
 public:
-    JSPreferencesObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback);
+    JSPreferencesObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback, bool sendable = false);
     virtual ~JSPreferencesObserver() = default;
     void OnChange(const std::string &key) override;
     void OnChange(const std::map<std::string, NativePreferences::PreferencesValue> &records) override;
