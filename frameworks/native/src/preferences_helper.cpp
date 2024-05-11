@@ -125,7 +125,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 static bool IsUseEnhanceDb(std::string bundleName)
 {
     PreferenceDbAdapter::ApiInit();
-    return (bundleName.find("meetimeservice") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
+    return (bundleName.find("uttest") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
 }
 #endif
 
