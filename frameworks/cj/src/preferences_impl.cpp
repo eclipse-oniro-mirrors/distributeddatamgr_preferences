@@ -157,9 +157,9 @@ bool PreferencesImpl::HasKey(const std::string &key)
     return result;
 }
 
-OHOS::FFI::RuntimeType* PreferencesImpl::GetRuntimeType() 
-{ 
-    return GetClassType(); 
+OHOS::FFI::RuntimeType* PreferencesImpl::GetRuntimeType()
+{
+    return GetClassType();
 }
 
 OHOS::FFI::RuntimeType* PreferencesImpl::GetClassType()
