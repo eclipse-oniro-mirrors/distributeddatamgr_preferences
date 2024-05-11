@@ -47,6 +47,7 @@ constexpr int32_t SYNC_RESULT_ELEMNT_NUM = 2;
 constexpr const char* GLOBAL_JSON = "JSON";
 constexpr const char* GLOBAL_STRINGIFY = "stringify";
 constexpr const char* GLOBAL_PARSE = "parse";
+constexpr const char* GLOBAL_PARSE_SENDABLE = "parseSendable";
 
 bool Equals(napi_env env, napi_value value, napi_ref copy);
 
@@ -80,7 +81,7 @@ napi_value Convert2JSValue(napi_env env, const std::monostate &value);
 
 napi_valuetype GetValueType(napi_env env, napi_value value);
 std::tuple<napi_status, napi_value> JsonStringify(napi_env env, napi_value value);
-napi_value JsonParse(napi_env env, const std::string &inStr);
+napi_value JsonParse(napi_env env, const std::string &inStr, bool sendable = false);
 
 template<typename T>
 std::enable_if_t<std::is_class_v<T>, napi_value> Convert2JSValue(napi_env env, const T &value);

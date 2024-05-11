@@ -22,17 +22,18 @@
 namespace OHOS::PreferencesJsKit {
 class JSObserver : public std::enable_shared_from_this<JSObserver> {
 public:
-    JSObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback);
+    JSObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback, bool sendable);
     virtual ~JSObserver();
     napi_ref GetCallback();
     void ClearCallback();
-
+    napi_env GetEnv();
 protected:
     void AsyncCall(UvQueue::NapiArgsGenerator genArgs = UvQueue::NapiArgsGenerator());
 
 private:
-    std::shared_ptr<UvQueue> uvQueue_;
+    std::weak_ptr<UvQueue> uvQueue_;
     napi_ref callback_;
+    bool sendabel_;
 };
 } // namespace OHOS::PreferencesJsKit
 #endif // OHOS_JS_OBSERVER_H

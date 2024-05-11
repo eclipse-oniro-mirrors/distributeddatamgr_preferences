@@ -362,8 +362,8 @@ public:
      */
     PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
-    std::variant<int, int64_t, float, double, bool, std::string, std::vector<std::string>,
-        std::vector<bool>, std::vector<double>, std::vector<uint8_t>, Object, BigInt, std::monostate> value_;
+    std::variant<std::monostate, int, int64_t, float, double, bool, std::string, std::vector<std::string>,
+        std::vector<bool>, std::vector<double>, std::vector<uint8_t>, Object, BigInt> value_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

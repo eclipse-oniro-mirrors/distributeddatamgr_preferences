@@ -23,19 +23,20 @@
 namespace OHOS::PreferencesJsKit {
 class UvQueue final {
 public:
-    using NapiArgsGenerator = std::function<void(napi_env env, int& argc, napi_value* argv)>;
+    using NapiArgsGenerator = std::function<void(napi_env env, bool sendable, int& argc, napi_value* argv)>;
     using NapiCallbackGetter = std::function<napi_value(napi_env env)>;
     UvQueue(napi_env env);
     ~UvQueue();
 
     napi_env GetEnv();
-    void AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs = NapiArgsGenerator());
+    void AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs = NapiArgsGenerator(), bool sendable = false);
 private:
     static void Work(uv_work_t* work, int uvstatus);
     struct UvEntry {
         napi_env env;
         NapiCallbackGetter callback;
         NapiArgsGenerator args;
+        bool sendable;
     };
     napi_env env_ = nullptr;
     uv_loop_s* loop_ = nullptr;
