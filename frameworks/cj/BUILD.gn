@@ -42,6 +42,7 @@ ohos_shared_library("cj_preferences_ffi") {
     "hilog:libhilog",
     "napi:ace_napi",
     "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
   ]
 
   subsystem_name = "distributeddatamgr"
