@@ -229,6 +229,33 @@ PreferencesValue ValueTypeToPreferencesValue(const ValueType &value)
     return preferencesValue;
 }
 
+void freeValueType(ValueType v)
+{
+    switch (v.tag) {
+        case TYPE_STR: {
+            free(v.string);
+            break;
+        }
+        case TYPE_BOOLARR: {
+            free(v.boolArray.head);
+            break;
+        }
+        case TYPE_DOUARR: {
+            free(v.doubleArray.head);
+            break;
+        }
+        case TYPE_STRARR: {
+            for (int64_t i = 0; i < v.stringArray.size; i++) {
+                free(v.stringArray.head[i]);
+            }
+            free(v.stringArray.head);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 CArrDouble vectorToDoubleArray(const std::vector<double> &doubles)
 {
     double* head = (double*)malloc(doubles.size() * sizeof(double));
@@ -335,10 +362,18 @@ ValueTypes PreferencesValuesToValueTypes(const std::map<std::string, Preferences
         // 将键转换成 char*
         valueTypes.key[i] = (char*)malloc((key.length() + 1) * sizeof(char));
         if (valueTypes.key[i] == nullptr) {
+            for (int j = i - 1; j >= 0; j--) {
+                free(valueTypes.key[j]);
+                freeValueType(valueTypes.head[i]);
+            }
             return valueTypes;
         }
         errno_t ret = strcpy_s(valueTypes.key[i], (key.length() + 1) * sizeof(char), key.c_str());
         if (ret != EOK) {
+            for (int j = i - 1; j >= 0; j--) {
+                free(valueTypes.key[j]);
+                freeValueType(valueTypes.head[i]);
+            }
             return valueTypes;
         }
         // 将值转换成 ValueType
