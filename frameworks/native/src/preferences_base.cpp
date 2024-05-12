@@ -26,6 +26,7 @@
 #include "log_print.h"
 #include "preferences_observer_stub.h"
 #include "securec.h"
+#include "preferences_radar_reporter.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -158,6 +159,7 @@ int PreferencesBase::FlushSync()
 
 int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
 {
+    PreferencesRadar radar(SCENE_ON, __FUNCTION__);
     std::lock_guard<std::mutex> lock(mutex_);
     if (mode == RegisterMode::LOCAL_CHANGE) {
         std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
@@ -165,12 +167,14 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
     } else if (mode == RegisterMode::MULTI_PRECESS_CHANGE) {
         auto dataObsMgrClient = DataObsMgrClient::GetInstance();
         if (dataObsMgrClient == nullptr) {
+            radar = E_GET_DATAOBSMGRCLIENT_FAIL;
             return E_GET_DATAOBSMGRCLIENT_FAIL;
         }
         sptr<DataPreferencesObserverStub> observer(new (std::nothrow) DataPreferencesObserverStub(preferencesObserver));
         int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
         if (errcode != 0) {
             LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
+            radar = errcode;
             return errcode;
         }
         multiProcessObservers_.push_back(observer);

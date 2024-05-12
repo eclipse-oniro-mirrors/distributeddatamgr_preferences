@@ -41,6 +41,7 @@ if (!is_mingw && !is_mac) {
     sources = [
       "../common/src/js_ability.cpp",
       "../common/src/js_utils.cpp",
+      "../common/src/napi_preferences_error.cpp",
       "src/entry_point_system_storage.cpp",
       "src/napi_system_storage.cpp",
     ]

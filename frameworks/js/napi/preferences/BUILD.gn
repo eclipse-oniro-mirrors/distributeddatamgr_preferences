@@ -24,6 +24,7 @@ base_sources = [
   "${preferences_napi_path}/common/src/js_observer.cpp",
   "${preferences_napi_path}/common/src/js_utils.cpp",
   "${preferences_napi_path}/common/src/napi_async_call.cpp",
+  "${preferences_napi_path}/common/src/napi_preferences_error.cpp",
   "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
   "${preferences_napi_path}/common/src/uv_queue.cpp",
   "${preferences_napi_path}/preferences/src/entry_point.cpp",
