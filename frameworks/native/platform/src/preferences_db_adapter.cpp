@@ -245,7 +245,8 @@ GRD_KVItemT PreferencesDb::BlobToKvItem(const std::vector<uint8_t> &blob)
 
 std::vector<uint8_t> PreferencesDb::KvItemToBlob(GRD_KVItemT &item)
 {
-    return std::vector<uint8_t>((uint8_t *)item.data, (uint8_t *)item.data + item.dataLen);
+    return std::vector<uint8_t>(static_cast<uint8_t *>(item.data),
+        static_cast<uint8_t *>(item.data) + item.dataLen);
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS
