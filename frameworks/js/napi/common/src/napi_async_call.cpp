@@ -31,10 +31,11 @@ void BaseContext::SetAction(
     napi_value argv[MAX_INPUT_COUNT] = { nullptr };
     void *data = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argc, argv, &self, &data);
+    napi_is_sendable(env, self, &sendable_);
     napi_valuetype valueType = napi_undefined;
     if (status == napi_ok && argc > 0) {
         napi_typeof(env, argv[argc - 1], &valueType);
-        if (valueType == napi_function) {
+        if (!sendable_ && valueType == napi_function) {
             status = napi_create_reference(env, argv[argc - 1], 1, &callback_);
             argc = argc - 1;
         }
@@ -55,7 +56,6 @@ void BaseContext::SetAction(
 
     output_ = std::move(output);
     exec_ = std::move(exec);
-    
     napi_create_reference(env, self, 1, &self_);
 }
 
@@ -83,13 +83,16 @@ void AsyncCall::SetBusinessError(napi_env env, napi_value *businessError, std::s
 {
     napi_value code = nullptr;
     napi_value msg = nullptr;
-    napi_create_object(env, businessError);
     // if error is not inner error
     if (error != nullptr && error->GetCode() != E_INVALID_PARAM) {
         napi_create_int32(env, error->GetCode(), &code);
         napi_create_string_utf8(env, error->GetMsg().c_str(), NAPI_AUTO_LENGTH, &msg);
-        napi_set_named_property(env, *businessError, "code", code);
-        napi_set_named_property(env, *businessError, "message", msg);
+        napi_property_descriptor descriptors[] = {
+            DECLARE_NAPI_DEFAULT_PROPERTY("code", code),
+            DECLARE_NAPI_DEFAULT_PROPERTY("message", msg),
+        };
+        // 2 represents the current number of incorrect object attributes
+        napi_create_object_with_properties(env, businessError, 2, descriptors);
     }
 }
 
@@ -185,7 +188,7 @@ void AsyncCall::OnReturn(napi_env env, napi_status status, void *data)
         } else {
             napi_reject_deferred(env, context->defer_, result[ARG_ERROR]);
         }
-    } else {
+    } else if (!context->sendable_) {
         // callback
         napi_value callback = nullptr;
         napi_get_reference_value(env, context->callback_, &callback);

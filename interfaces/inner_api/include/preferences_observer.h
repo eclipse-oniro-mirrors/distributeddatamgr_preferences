@@ -30,7 +30,7 @@ namespace NativePreferences {
 
 class PREF_API_EXPORT PreferencesObserver {
 public:
-    enum RegisterMode { LOCAL_CHANGE = 0, MULTI_PRECESS_CHANGE, DATA_CHANGE};
+    enum RegisterMode { LOCAL_CHANGE = 0, MULTI_PRECESS_CHANGE, DATA_CHANGE, CHANGE_BUTT };
     PREF_API_EXPORT virtual ~PreferencesObserver();
 
     /**

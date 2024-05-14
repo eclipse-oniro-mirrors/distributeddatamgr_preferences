@@ -304,6 +304,21 @@ public:
     virtual int RegisterObserver(
         std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode = RegisterMode::LOCAL_CHANGE) = 0;
 
+    int Subscribe(std::shared_ptr<PreferencesObserver> observer, RegisterMode mode = RegisterMode::LOCAL_CHANGE,
+        const std::vector<std::string> &keys = {})
+    {
+        switch (mode) {
+            case RegisterMode::LOCAL_CHANGE:
+            case RegisterMode::MULTI_PRECESS_CHANGE:
+                return RegisterObserver(observer, mode);
+            case RegisterMode::DATA_CHANGE:
+                return RegisterDataObserver(observer, keys);
+            default:
+                break;
+        }
+        return E_INVALID_ARGS;
+    }
+
     /**
      * @brief  Unregister an existing observer.
      *
@@ -313,7 +328,22 @@ public:
      */
     virtual int UnRegisterObserver(
         std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode = RegisterMode::LOCAL_CHANGE) = 0;
-    
+
+    int Unsubscribe(std::shared_ptr<PreferencesObserver> observer, RegisterMode mode = RegisterMode::LOCAL_CHANGE,
+        const std::vector<std::string> &keys = {})
+    {
+        switch (mode) {
+            case RegisterMode::LOCAL_CHANGE:
+            case RegisterMode::MULTI_PRECESS_CHANGE:
+                return UnRegisterObserver(observer, mode);
+            case RegisterMode::DATA_CHANGE:
+                return UnRegisterDataObserver(observer, keys);
+            default:
+                break;
+        }
+        return E_INVALID_ARGS;
+    }
+
     /**
      * @brief  Get group id.
      *

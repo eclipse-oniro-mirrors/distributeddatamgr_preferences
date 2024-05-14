@@ -20,6 +20,7 @@
 #include "hilog/log_c.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
+#include "log_print.h"
 
 #ifndef MAC_PLATFORM
 #include "securec.h"
@@ -104,7 +105,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::vect
     bool isTypedarray = false;
     napi_status result = napi_is_typedarray(env, jsValue, &isTypedarray);
     if (result != napi_ok || !isTypedarray) {
-        LOG_DEBUG("napi_is_typedarray fail %{public}d", result);
+        LOG_DEBUG("napi_is_typedarray fail. result %{public}d isTypedarray %{public}d", result, isTypedarray);
         return NAPI_TYPE_ERROR;
     }
     napi_typedarray_type type = napi_uint8_array;
@@ -173,7 +174,7 @@ int32_t JSUtils::Convert2NativeValue(napi_env env, napi_value jsValue, std::mono
 
 bool JSUtils::Equals(napi_env env, napi_value value, napi_ref copy)
 {
-    if (copy == nullptr) {
+    if (copy == nullptr || env == nullptr) {
         return (value == nullptr);
     }
 
@@ -329,7 +330,7 @@ std::tuple<napi_status, napi_value> JSUtils::JsonStringify(napi_env env, napi_va
     return std::make_tuple(napi_ok, res);
 }
 
-napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr)
+napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr, bool sendable)
 {
     if (inStr.empty()) {
         LOG_ERROR("JsonParse failed, inStr is empty");
@@ -339,17 +340,18 @@ napi_value JSUtils::JsonParse(napi_env env, const std::string &inStr)
     napi_value global = nullptr;
     PRE_CHECK_RETURN_CORE(napi_get_global(env, &global) == napi_ok, PRE_REVT_NOTHING, nullptr);
     napi_value json = nullptr;
-    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok,
-        PRE_REVT_NOTHING, nullptr);
+    PRE_CHECK_RETURN_CORE(
+        napi_get_named_property(env, global, GLOBAL_JSON, &json) == napi_ok, PRE_REVT_NOTHING, nullptr);
     napi_value parse = nullptr;
-    PRE_CHECK_RETURN_CORE(napi_get_named_property(env, json, GLOBAL_PARSE, &parse) == napi_ok,
+    PRE_CHECK_RETURN_CORE(
+        napi_get_named_property(env, json, sendable ? GLOBAL_PARSE_SENDABLE : GLOBAL_PARSE, &parse) == napi_ok,
         PRE_REVT_NOTHING, nullptr);
     if (GetValueType(env, parse) != napi_function) {
         LOG_ERROR("Get parse func failed");
         return nullptr;
     }
     napi_value res = nullptr;
-    napi_value argv[1] = {jsValue};
+    napi_value argv[1] = { jsValue };
     PRE_CHECK_RETURN_CORE(napi_call_function(env, json, parse, 1, argv, &res) == napi_ok, PRE_REVT_NOTHING, nullptr);
     return res;
 }
