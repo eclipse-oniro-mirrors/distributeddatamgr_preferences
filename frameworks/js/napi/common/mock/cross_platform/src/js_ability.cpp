@@ -29,7 +29,7 @@ std::shared_ptr<JSError> GetContextInfo(napi_env env, napi_value value,
     const std::string &dataGroupId, ContextInfo &contextInfo)
 {
     if (!dataGroupId.empty()) {
-        return std::make_shared<InnerError>(NativePreferences::E_NOT_SUPPORTED);
+        return std::make_shared<InnerError>(E_NOT_SUPPORTED);
     }
     auto stageContext = AbilityRuntime::Platform::GetStageModeContext(env, value);
     if (stageContext == nullptr) {

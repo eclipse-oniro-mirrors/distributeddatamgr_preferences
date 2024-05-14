@@ -21,6 +21,13 @@
 namespace OHOS {
 namespace NativePreferences {
 
+constexpr int SUBSYS_DISTRIBUTEDDATAMNG = 13;
+constexpr int SUBSYSTEM_BIT_NUM = 21;
+constexpr int MODULE_BIT_NUM = 16;
+constexpr int MODULE_PREFERENCES = 6;
+constexpr int DISTRIBUTEDDATAMGR_PREFERENCES_ERR_OFFSET = (SUBSYS_DISTRIBUTEDDATAMNG << SUBSYSTEM_BIT_NUM) |
+                                                          (MODULE_PREFERENCES << MODULE_BIT_NUM);
+
 /**
 * @brief The error code in the correct case.
 */
@@ -29,12 +36,12 @@ constexpr int E_OK = 0;
 /**
 * @brief The base code of the exception error code.
 */
-constexpr int E_BASE = 15500000;
+constexpr int E_BASE = DISTRIBUTEDDATAMGR_PREFERENCES_ERR_OFFSET;
 
 /**
 * @brief The error when the capability not supported.
 */
-constexpr int E_NOT_SUPPORTED = 801;
+constexpr int E_NOT_SUPPORTED = (E_BASE + 801);
 
 /**
 * @brief The error code for common exceptions.

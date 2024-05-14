@@ -16,6 +16,7 @@
 #define PRE_JS_NAPI_ERROR_H
 
 #include <map>
+#include <optional>
 
 #include "log_print.h"
 #include "preferences_errno.h"
@@ -32,14 +33,17 @@ constexpr int E_INVALID_PARAM = 401;
 constexpr int E_INNER_ERROR = 15500000;
 constexpr int E_NOT_STAGE_MODE = 15501001;
 constexpr int E_DATA_GROUP_ID_INVALID = 15501002;
+constexpr int E_NOT_SUPPORTED = 801;
+constexpr int E_GET_DATAOBSMGRCLIENT_FAIL = 15500019;
+constexpr int E_DELETE_FILE_FAIL = 15500010;
 
-const static std::map<int, std::string> ERROR_MAPS = {
-    { E_NOT_STAGE_MODE, "Only supported in stage mode" },
-    { E_DATA_GROUP_ID_INVALID, "The data group id is not valid" },
-    { NativePreferences::E_NOT_SUPPORTED, "Capability not supported" },
-    { NativePreferences::E_GET_DATAOBSMGRCLIENT_FAIL, "Failed to obtain subscription service." },
-    { NativePreferences::E_DELETE_FILE_FAIL, "Failed to delete preferences file." }
+struct JsErrorCode {
+    int32_t nativeCode;
+    int32_t jsCode;
+    const char *message;
 };
+
+const std::optional<JsErrorCode> GetJsErrorCode(int32_t errorCode);
 
 #define PRE_REVT_NOTHING
 
@@ -116,10 +120,11 @@ public:
 
     InnerError(int code)
     {
-        auto iter = ERROR_MAPS.find(code);
-        if (iter != ERROR_MAPS.end()) {
-            code_ = code;
-            msg_ = iter->second;
+        auto errorMsg = GetJsErrorCode(code);
+        if (errorMsg.has_value()) {
+            auto napiError = errorMsg.value();
+            code_ = napiError.jsCode;
+            msg_ = napiError.message;
         } else {
             code_ = E_INNER_ERROR;
             msg_ = "Inner error. Error code " + std::to_string(code);
