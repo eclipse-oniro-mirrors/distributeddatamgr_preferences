@@ -17,7 +17,6 @@ config("native_preferences_config") {
   include_dirs = [
     "include",
     "${preferences_base_path}/frameworks/common/include",
-    "${preferences_native_path}/dfx/include",
     "${preferences_native_path}/include",
     "${preferences_native_path}/platform/include/",
   ]
@@ -27,7 +26,6 @@ config("mock_config") {
   include_dirs = [
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
     "${preferences_native_path}/mock/ability_base/zuri/include",
-    "${preferences_native_path}/mock/hisysevent/include",
   ]
   if (!is_android) {
     include_dirs +=
@@ -45,7 +43,6 @@ config("adaptor_config") {
 }
 
 base_sources = [
-  "${preferences_native_path}/dfx/src/preferences_radar_reporter.cpp",
   "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
   "${preferences_native_path}/platform/src/preferences_thread.cpp",
   "${preferences_native_path}/src/base64_helper.cpp",
@@ -100,7 +97,6 @@ if (is_ohos) {
       "ability_runtime:dataobs_manager",
       "c_utils:utils",
       "hilog:libhilog",
-      "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
     ]
@@ -228,7 +224,6 @@ ohos_static_library("native_preferences_static") {
       "ability_runtime:dataobs_manager",
       "c_utils:utils",
       "hilog:libhilog",
-      "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
     ]

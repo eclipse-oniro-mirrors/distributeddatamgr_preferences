@@ -27,7 +27,6 @@
 #include "preferences_observer_stub.h"
 #include "preferences_value.h"
 #include "preferences_value_parcel.h"
-#include "preferences_radar_reporter.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -51,25 +50,20 @@ int PreferencesEnhanceImpl::Init()
 
 PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const PreferencesValue &defValue)
 {
-    PreferencesRadar radar(SCENE_GET, __FUNCTION__);
-    int errCode = CheckKey(key);
-    if (errCode != E_OK) {
-        radar = errCode;
+    if (CheckKey(key) != E_OK) {
         return defValue;
     }
     std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
-    errCode = db_->Get(oriKey, oriValue);
+    int errCode = db_->Get(oriKey, oriValue);
     if (errCode != E_OK) {
         LOG_ERROR("get key failed, errCode=%d", errCode);
-        radar = errCode;
         return defValue;
     }
     auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
     if (item.first != E_OK) {
         LOG_ERROR("get key failed, errCode=%d", errCode);
-        radar = item.first;
         return defValue;
     }
     return item.second;
@@ -93,15 +87,12 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
 
 int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &value)
 {
-    PreferencesRadar radar(SCENE_PUT, __FUNCTION__);
     int errCode = CheckKey(key);
     if (errCode != E_OK) {
-        radar = errCode;
         return errCode;
     }
     errCode = CheckValue(value);
     if (errCode != E_OK) {
-        radar = errCode;
         return errCode;
     }
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
@@ -111,14 +102,12 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     errCode = PreferencesValueParcel::MarshallingPreferenceValue(value, oriValue);
     if (errCode != E_OK) {
         LOG_ERROR("marshalling value failed, errCode=%d", errCode);
-        radar = errCode;
         return errCode;
     }
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     errCode = db_->Put(oriKey, oriValue);
     if (errCode != E_OK) {
         LOG_ERROR("put data failed, errCode=%d", errCode);
-        radar = errCode;
         return errCode;
     }
     NotifyPreferencesObserver(key, value);

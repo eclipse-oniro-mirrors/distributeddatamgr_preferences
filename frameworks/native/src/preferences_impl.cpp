@@ -29,7 +29,6 @@
 #include "preferences_observer_stub.h"
 #include "preferences_xml_utils.h"
 #include "securec.h"
-#include "preferences_radar_reporter.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -209,10 +208,7 @@ bool PreferencesImpl::CheckRequestValidForStateGeneration(std::shared_ptr<Memory
 
 PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesValue &defValue)
 {
-    PreferencesRadar radar(SCENE_GET, __FUNCTION__);
-    int errCode = CheckKey(key);
-    if (errCode != E_OK) {
-        radar = errCode;
+    if (CheckKey(key) != E_OK) {
         return defValue;
     }
 
@@ -435,15 +431,12 @@ bool PreferencesImpl::HasKey(const std::string &key)
 
 int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
 {
-    PreferencesRadar radar(SCENE_PUT, __FUNCTION__);
     int errCode = CheckKey(key);
     if (errCode != E_OK) {
-        radar = errCode;
         return errCode;
     }
     errCode = CheckValue(value);
     if (errCode != E_OK) {
-        radar = errCode;
         return errCode;
     }
     AwaitLoadFile();
@@ -505,7 +498,6 @@ void PreferencesImpl::Flush()
 
 int PreferencesImpl::FlushSync()
 {
-    PreferencesRadar radar(SCENE_FLUSH, __FUNCTION__);
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = true;
     PreferencesImpl::WriteToDiskFile(shared_from_this(), request);
@@ -514,7 +506,6 @@ int PreferencesImpl::FlushSync()
             request->memoryStateGeneration_);
     }
     NotifyPreferencesObserver(*request);
-    radar = request->writeToDiskResult_;
     return request->writeToDiskResult_;
 }
 
