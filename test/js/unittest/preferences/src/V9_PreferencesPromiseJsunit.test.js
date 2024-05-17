@@ -362,6 +362,7 @@ describe('V9_PreferencesPromiseJsunit', async function () {
         }
     })
 
+    // test on dataChange with an empty array key
     it('testPreferencesDataChange001', 0, async function (done) {
         console.log("testPreferencesDataChange001 begin.")
         await mPreference.clear();
@@ -369,26 +370,28 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             var observer = function (data) {
             };
             mPreference.on('dataChange', [], observer);
-            expect(false).assertTrue()
+            expect().assertFail()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
             done();
         }
     })
 
+    // test off dataChange with non-array key 
     it('testPreferencesDataChange002', 0, async function (done) {
         console.log("testPreferencesDataChange002 begin.")
         await mPreference.clear();
         try {
             var observer = function (data) {}
             mPreference.off('dataChange', {}, observer);
-            expect(false).assertTrue()
+            expect().assertFail()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
             done();
         }
     })
 
+    // test on dataChange with non-array key
     it('testPreferencesDataChange003', 0, async function (done) {
         console.log("testPreferencesDataChange003 begin.")
         await mPreference.clear();
@@ -399,25 +402,27 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             var observer = function (data) {
             };
             mPreference.on('dataChange', obj, observer);
-            expect(false).assertTrue()
+            expect().assertFail()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
             done();
         }
     })
 
+    // test on dataChange without callback
     it('testPreferencesDataChange004', 0, async function (done) {
         console.log("testPreferencesDataChange004 begin.")
         await mPreference.clear();
         try {
             mPreference.on('dataChange', []);
-            expect(false).assertTrue()
+            expect().assertFail()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
             done();
         }
     })
 
+    // test the subscription callback of on dataChange
     it('testPreferencesDataChange005', 0, async function (done) {
         console.log("testPreferencesDataChange005 begin.")
         await mPreference.clear();
@@ -461,7 +466,7 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             await mPreference.flush()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            expect(false).assertTrue()
+            expect().assertFail()
         } finally {
             mPreference.off('dataChange', ['key1'], observer1)
             mPreference.off('dataChange', ['key1', 'key2', 'key4'], observer2)
@@ -470,13 +475,14 @@ describe('V9_PreferencesPromiseJsunit', async function () {
         }
     })
 
+    // test off dataChange with an empty key and callback1
     it('testPreferencesDataChange006', 0, async function (done) {
         console.log("testPreferencesDataChange006 begin.")
         await mPreference.clear();
         try {
             var observer1 = function (data) {
                 console.log("observer1")
-                expect(false).assertTrue()
+                expect().assertFail()
             }
             var observer2 = function (data) {
                 console.log("observer2")
@@ -496,10 +502,11 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             done()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            expect(false).assertTrue()
+            expect().assertFail()
         }
     })
 
+    // test off dataChange with array keys1 and without callback
     it('testPreferencesDataChange007', 0, async function (done) {
         console.log("testPreferencesDataChange007 begin.")
         await mPreference.clear();
@@ -529,27 +536,26 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             done()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            expect(false).assertTrue()
+            expect().assertFail()
         }
     })
 
-
-
+    // test off dataChange with an empty array key without callback
     it('testPreferencesDataChange008', 0, async function (done) {
         console.log("testPreferencesDataChange008 begin.")
         await mPreference.clear();
         try {
             var observer1 = function (data) {
                 console.log("observer1")
-                expect(false).assertTrue()
+                expect().assertFail()
             }
             var observer2 = function (data) {
                 console.log("observer2")
-                expect(false).assertTrue()
+                expect().assertFail()
             }
             var observer3= function (data) {
                 console.log("observer3")
-                expect(false).assertTrue()
+                expect().assertFail()
             }
             let keys = ['key1', 'key2', 'key3']
             mPreference.on('dataChange', keys, observer1);
@@ -562,10 +568,11 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             done()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            expect(false).assertTrue()
+            expect().assertFail()
         }
     })
 
+    // test off dataChange with array keys1, callback1 and array keys2, callback2
     it('testPreferencesDataChange009', 0, async function (done) {
         console.log("testPreferencesDataChange009 begin.")
         await mPreference.clear();
@@ -579,7 +586,7 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             }
             var observer2 = function (data) {
                 console.log("observer2")
-                expect(false).assertTrue()
+                expect().assertFail()
             }
             mPreference.on('dataChange', ['key1', 'key2'], observer1);
             mPreference.on('dataChange', ['key1', 'key3'], observer2);
@@ -591,13 +598,14 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             await mPreference.flush()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            expect(false).assertTrue()
+            expect().assertFail()
         } finally {
             mPreference.off('dataChange', [])
             done()
         }
     })
 
+    // test put then delete and on dataChange subscribe to callback
     it('testPreferencesDataChange010', 0, async function (done) {
         console.log("testPreferencesDataChange010 begin.")
         await mPreference.clear();
@@ -624,14 +632,14 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             await mPreference.delete("key2", (err) => {
                 if (err) {
                     console.log("delete err =" + err + ", code =" + err.code +", message =" + err.message)
-                    expect(false).assertTrue()
+                    expect().assertFail()
                 }
                 console.log("delete err")
             });
             await mPreference.flush()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
-            expect(false).assertTrue()
+            expect().assertFail()
         } finally {
             mPreference.off('dataChange', [])
             done()
