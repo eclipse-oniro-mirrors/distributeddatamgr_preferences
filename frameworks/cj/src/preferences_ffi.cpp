@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <map>
+#include <cinttypes>
 
 #include "preferences_ffi.h"
 #include "preferences_impl.h"
@@ -50,7 +51,7 @@ ValueType FfiOHOSPreferencesGet(int64_t id, const char* key, ValueType defValue)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ValueType{0};
     }
     return instance->Get(key, defValue);
@@ -60,7 +61,7 @@ int32_t FfiOHOSPreferencesPut(int64_t id, const char* key, ValueType value)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ERR_INVALID_INSTANCE_CODE;
     }
     return instance->Put(key, value);
@@ -70,7 +71,7 @@ ValueTypes FfiOHOSPreferencesGetAll(int64_t id)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ValueTypes{0};
     }
     return instance->GetAll();
@@ -80,7 +81,7 @@ void FfiOHOSPreferencesFlush(int64_t id)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return;
     }
     instance->Flush();
@@ -91,7 +92,7 @@ void FfiOHOSPreferencesClear(int64_t id)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return;
     }
     instance->Clear();
@@ -102,7 +103,7 @@ bool FfiOHOSPreferencesHas(int64_t id, const char* key)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return false;
     }
     return instance->HasKey(key);
@@ -112,7 +113,7 @@ int32_t FfiOHOSPreferencesDelete(int64_t id, const char* key)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ERR_INVALID_INSTANCE_CODE;
     }
     return instance->Delete(key);
@@ -123,7 +124,7 @@ int32_t FfiOHOSPreferencesOn(int64_t id, const char* mode,
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ERR_INVALID_INSTANCE_CODE;
     }
     auto onChange = [lambda = CJLambda::Create(callbackRef)](const std::string& valueRef) ->
@@ -138,7 +139,7 @@ int32_t FfiOHOSPreferencesOff(int64_t id, const char* mode, void (*callback)(con
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ERR_INVALID_INSTANCE_CODE;
     }
     auto onChange = [lambda = CJLambda::Create(callback)](const std::string& value) -> void { lambda(value.c_str()); };
@@ -152,7 +153,7 @@ int32_t FfiOHOSPreferencesOffAll(int64_t id, const char* mode)
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
-        LOGE("[Preferences] instance not exist. %{public}lld", id);
+        LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ERR_INVALID_INSTANCE_CODE;
     }
     return instance->UnRegisteredAllObservers(mode);
