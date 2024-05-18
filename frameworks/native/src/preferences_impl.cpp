@@ -22,6 +22,8 @@
 #include <functional>
 #include <sstream>
 #include <thread>
+#include <chrono>
+#include <cinttypes>
 
 #include "base64_helper.h"
 #include "executor_pool.h"
@@ -32,6 +34,8 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+using namespace std::chrono;
 
 constexpr int32_t WAIT_TIME = 2;
 
@@ -159,7 +163,8 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     }
     bool loadResult = pref->ReadSettingXml(pref);
     if (!loadResult) {
-        LOG_ERROR("The settingXml load failed.");
+        auto time = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+        LOG_ERROR("The settingXml load failed. times %{public}" PRIu64 ".", time);
     }
     pref->loaded_ = true;
     pref->cond_.notify_all();

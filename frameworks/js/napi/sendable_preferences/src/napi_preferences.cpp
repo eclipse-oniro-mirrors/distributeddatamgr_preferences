@@ -429,7 +429,7 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     PRE_NAPI_ASSERT(env, obj != nullptr && obj->GetInstance() != nullptr,
         std::make_shared<InnerError>("Failed to unwrap when register callback"));
     int errCode = obj->RegisteredObserver(env, args[funIndex], mode, keys);
-    LOG_INFO("The observer subscribe %{public}d.", errCode);
+    LOG_DEBUG("The observer subscribe %{public}d.", errCode);
     PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
     return nullptr;
 }
@@ -477,7 +477,7 @@ napi_value PreferencesProxy::UnregisterObserver(napi_env env, napi_callback_info
     PRE_NAPI_ASSERT(env, obj != nullptr, std::make_shared<InnerError>("Failed to unwrap when unregister callback"));
 
     int errCode = obj->UnregisteredObserver(env, callback, mode, keys);
-    LOG_INFO("The observer unsubscribe 0x%{public}x.", errCode);
+    LOG_DEBUG("The observer unsubscribe 0x%{public}x.", errCode);
     PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
     return nullptr;
 }

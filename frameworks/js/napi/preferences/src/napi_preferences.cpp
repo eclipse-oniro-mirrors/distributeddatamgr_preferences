@@ -448,7 +448,7 @@ bool PreferencesProxy::HasRegisteredObserver(napi_value callback, RegisterMode m
         (mode == RegisterMode::MULTI_PRECESS_CHANGE) ? multiProcessObservers_ : dataObservers_;
     for (auto &it : observers) {
         if (JSUtils::Equals(env_, callback, it->GetCallback())) {
-            LOG_INFO("The observer has already subscribed.");
+            LOG_DEBUG("The observer has already subscribed.");
             return true;
         }
     }
@@ -478,7 +478,7 @@ int PreferencesProxy::RegisteredObserver(napi_value callback, RegisterMode mode)
         }
         observers.push_back(observer);
     }
-    LOG_INFO("The observer subscribed success.");
+    LOG_DEBUG("The observer subscribed success.");
     return E_OK;
 }
 
@@ -495,7 +495,7 @@ int PreferencesProxy::UnRegisteredObserver(napi_value callback, RegisterMode mod
             }
             (*it)->ClearCallback();
             it = observers.erase(it);
-            LOG_INFO("The observer unsubscribed success.");
+            LOG_DEBUG("The observer unsubscribed success.");
             break; // specified observer is current iterator
         }
         ++it;
@@ -564,7 +564,7 @@ int PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &key
         }
         observers.push_back(observer);
     }
-    LOG_INFO("The dataChange observer subscribed success.");
+    LOG_DEBUG("The dataChange observer subscribed success.");
     return E_OK;
 }
 
@@ -621,7 +621,7 @@ int PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &k
             ++it;
         }
     }
-    LOG_INFO("The dataChange observer unsubscribed success.");
+    LOG_DEBUG("The dataChange observer unsubscribed success.");
     return E_OK;
 }
 } // namespace PreferencesJsKit
