@@ -487,7 +487,7 @@ napi_value StorageProxy::DeleteSync(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_unwrap(env, thiz, reinterpret_cast<void **>(&obj)));
     int result = obj->value_->Delete(key);
     NAPI_ASSERT(env, result == E_OK, "call Delete failed");
-    LOG_INFO("Delete");
+    LOG_DEBUG("Delete");
     return nullptr;
 }
 
@@ -704,7 +704,7 @@ void StorageProxy::RegisterObserver(napi_value callback)
         auto observer = std::make_shared<JSPreferencesObserver>(uvQueue_, callback);
         value_->RegisterObserver(observer);
         dataObserver_.push_back(observer);
-        LOG_INFO("The observer subscribed success.");
+        LOG_DEBUG("The observer subscribed success.");
     }
 }
 
@@ -719,7 +719,7 @@ void StorageProxy::UnRegisterObserver(napi_value callback)
         }
         value_->UnRegisterObserver(*it);
         it = dataObserver_.erase(it);
-        LOG_INFO("The observer unsubscribed success.");
+        LOG_DEBUG("The observer unsubscribed success.");
     }
 }
 } // namespace StorageJsKit
