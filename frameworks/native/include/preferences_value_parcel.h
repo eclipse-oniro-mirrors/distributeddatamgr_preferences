@@ -34,18 +34,19 @@ public:
 
 private:
     enum ParcelTypeIndex {
-        INT_TYPE = 0,
-        LONG_TYPE = 1,
-        FLOAT_TYPE = 2,
-        DOUBLE_TYPE = 3,
-        BOOL_TYPE = 4,
-        STRING_TYPE = 5,
-        STRING_ARRAY_TYPE = 6,
-        BOOL_ARRAY_TYPE = 7,
-        DOUBLE_ARRAY_TYPE = 8,
-        UINT8_ARRAY_TYPE = 9,
-        OBJECT_TYPE = 10,
-        BIG_INT_TYPE = 11
+        MONO_TYPE = 0,
+        INT_TYPE = 1,
+        LONG_TYPE = 2,
+        FLOAT_TYPE = 3,
+        DOUBLE_TYPE = 4,
+        BOOL_TYPE = 5,
+        STRING_TYPE = 6,
+        STRING_ARRAY_TYPE = 7,
+        BOOL_ARRAY_TYPE = 8,
+        DOUBLE_ARRAY_TYPE = 9,
+        UINT8_ARRAY_TYPE = 10,
+        OBJECT_TYPE = 11,
+        BIG_INT_TYPE = 12
     };
     static int MarshallingBasicValue(const PreferencesValue &value, const uint8_t type, std::vector<uint8_t> &data);
     static int MarshallingStringValue(const PreferencesValue &value, const uint8_t type, std::vector<uint8_t> &data);

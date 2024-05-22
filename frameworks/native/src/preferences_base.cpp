@@ -23,12 +23,16 @@
 #include <sstream>
 
 #include "base64_helper.h"
+#include "executor_pool.h"
 #include "log_print.h"
 #include "preferences_observer_stub.h"
 #include "securec.h"
 
 namespace OHOS {
 namespace NativePreferences {
+
+ExecutorPool PreferencesBase::executorPool_ = ExecutorPool(1, 0);
+
 PreferencesBase::PreferencesBase(const Options &options) : options_(options)
 {
 }

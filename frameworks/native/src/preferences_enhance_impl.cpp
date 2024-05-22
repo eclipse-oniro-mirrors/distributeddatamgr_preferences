@@ -23,6 +23,7 @@
 #include <sstream>
 #include <thread>
 
+#include "executor_pool.h"
 #include "log_print.h"
 #include "preferences_observer_stub.h"
 #include "preferences_value.h"
@@ -58,12 +59,12 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
     if (errCode != E_OK) {
-        LOG_ERROR("get key failed, errCode=%d", errCode);
+        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return defValue;
     }
     auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
     if (item.first != E_OK) {
-        LOG_ERROR("get key failed, errCode=%d", errCode);
+        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return defValue;
     }
     return item.second;
@@ -79,7 +80,7 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
     if (errCode != E_OK) {
-        LOG_ERROR("get key failed, errCode=%d", errCode);
+        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return false;
     }
     return true;
@@ -101,16 +102,18 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     oriValue.resize(oriValueLen);
     errCode = PreferencesValueParcel::MarshallingPreferenceValue(value, oriValue);
     if (errCode != E_OK) {
-        LOG_ERROR("marshalling value failed, errCode=%d", errCode);
+        LOG_ERROR("marshalling value failed, errCode=%{public}d", errCode);
         return errCode;
     }
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     errCode = db_->Put(oriKey, oriValue);
     if (errCode != E_OK) {
-        LOG_ERROR("put data failed, errCode=%d", errCode);
+        LOG_ERROR("put data failed, errCode=%{public}d", errCode);
         return errCode;
     }
-    NotifyPreferencesObserver(key, value);
+    ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
+        value);
+    executorPool_.Execute(std::move(task));
     return E_OK;
 }
 
@@ -124,11 +127,13 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     errCode = db_->Delete(oriKey);
     if (errCode != E_OK) {
-        LOG_ERROR("delete data failed, errCode=%d", errCode);
+        LOG_ERROR("delete data failed, errCode=%{public}d", errCode);
         return errCode;
     }
     PreferencesValue value;
-    NotifyPreferencesObserver(key, value);
+    ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
+        value);
+    executorPool_.Execute(std::move(task));
     return E_OK;
 }
 
@@ -139,7 +144,7 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
     std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> data;
     int errCode = db_->GetAll(data);
     if (errCode != E_OK) {
-        LOG_ERROR("get all failed, errCode=%d", errCode);
+        LOG_ERROR("get all failed, errCode=%{public}d", errCode);
         return {};
     }
     for (auto it = data.begin(); it != data.end(); it++) {
@@ -147,17 +152,19 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
         auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(it->second);
         result.insert({key, item.second});
         if (item.first != E_OK) {
-            LOG_ERROR("get key failed, errCode=%d", errCode);
+            LOG_ERROR("get key failed, errCode=%{public}d", errCode);
             return {};
         }
     }
     return result;
 }
 
-void PreferencesEnhanceImpl::NotifyPreferencesObserver(const std::string &key, const PreferencesValue &value)
+void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref,
+    const std::string &key, const PreferencesValue &value)
 {
-    LOG_DEBUG("notify observer size:%{public}zu", dataObserversMap_.size());
-    for (const auto &[weakPrt, keys] : dataObserversMap_) {
+    std::lock_guard<std::mutex> lock(pref->observerMapMutex_);
+    LOG_DEBUG("notify observer size:%{public}zu", pref->dataObserversMap_.size());
+    for (const auto &[weakPrt, keys] : pref->dataObserversMap_) {
         std::map<std::string, PreferencesValue> records = {{key, value}};
         if (std::shared_ptr<PreferencesObserver> sharedPtr = weakPrt.lock()) {
             LOG_DEBUG("dataChange observer call, resultSize:%{public}zu", records.size());
@@ -165,14 +172,14 @@ void PreferencesEnhanceImpl::NotifyPreferencesObserver(const std::string &key, c
         }
     }
     auto dataObsMgrClient = DataObsMgrClient::GetInstance();
-    for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
+    for (auto it = pref->localObservers_.begin(); it != pref->localObservers_.end(); ++it) {
         std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
         if (std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock()) {
             sharedPreferencesObserver->OnChange(key);
         }
     }
     if (dataObsMgrClient != nullptr) {
-        dataObsMgrClient->NotifyChange(MakeUri(key));
+        dataObsMgrClient->NotifyChange(pref->MakeUri(key));
     }
 }
 } // End of namespace NativePreferences

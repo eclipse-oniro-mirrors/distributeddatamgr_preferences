@@ -28,7 +28,6 @@
 
 namespace OHOS {
 namespace NativePreferences {
-class ExecutorPool;
 class PreferencesImpl : public PreferencesBase, public std::enable_shared_from_this<PreferencesImpl> {
 public:
     static std::shared_ptr<PreferencesImpl> GetPreferences(const Options &options)
@@ -97,8 +96,6 @@ private:
     int64_t diskStateGeneration_;
 
     std::list<std::string> modifiedKeys_;
-
-    static ExecutorPool executorPool_;
 
     std::map<std::string, PreferencesValue> map_;
 };

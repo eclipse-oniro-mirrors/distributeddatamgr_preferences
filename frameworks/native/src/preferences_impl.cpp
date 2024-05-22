@@ -123,8 +123,6 @@ std::string GetTypeName<BigInt>()
     return "BigInt";
 }
 
-ExecutorPool PreferencesImpl::executorPool_ = ExecutorPool(1, 0);
-
 PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options), loaded_(false)
 {
     currentMemoryStateGeneration_ = 0;

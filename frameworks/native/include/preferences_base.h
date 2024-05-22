@@ -34,6 +34,7 @@ namespace OHOS {
 template <typename T> class sptr;
 class Uri;
 namespace NativePreferences {
+class ExecutorPool;
 class DataPreferencesObserverStub;
 /**
  * The function class of the preference. Various operations on preferences instances are provided in this class.
@@ -113,6 +114,8 @@ protected:
     DataObserverMap dataObserversMap_;
 
     const Options options_;
+
+    static ExecutorPool executorPool_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

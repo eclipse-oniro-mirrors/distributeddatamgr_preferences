@@ -46,8 +46,10 @@ uint8_t PreferencesValueParcel::GetTypeIndex(const PreferencesValue &value)
         return UINT8_ARRAY_TYPE;
     } else if (value.IsObject()) {
         return OBJECT_TYPE;
-    } else {
+    } else if (value.IsBigInt()) {
         return BIG_INT_TYPE;
+    } else {
+        return MONO_TYPE;
     }
 }
 
@@ -105,7 +107,7 @@ int PreferencesValueParcel::MarshallingBasicValueInner(const PreferencesValue &v
     uint8_t *startAddr = data.data();
     size_t basicDataLen = 0;
     if (data.size() <= sizeof(uint8_t)) {
-        LOG_ERROR("memcpy error when marshalling basic value, type: %d", type);
+        LOG_ERROR("memcpy error when marshalling basic value, type: %{public}d", type);
         return E_ERROR;
     }
     size_t memLen = data.size() - sizeof(uint8_t);
@@ -146,7 +148,7 @@ int PreferencesValueParcel::MarshallingBasicValueInner(const PreferencesValue &v
     }
     
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling basic value, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling basic value, %{public}d", errCode);
         return E_ERROR;
     }
     return E_OK;
@@ -164,7 +166,7 @@ int PreferencesValueParcel::MarshallingBasicValue(const PreferencesValue &value,
     uint8_t *startAddr = data.data();
     int errCode = memcpy_s(startAddr, data.size(), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling basic value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling basic value's type, %{public}d", errCode);
         return E_NOT_SUPPORTED;
     }
     return MarshallingBasicValueInner(value, type, data);
@@ -190,19 +192,19 @@ int PreferencesValueParcel::MarshallingStringValue(const PreferencesValue &value
     uint8_t *startAddr = data.data();
     int errCode = memcpy_s(startAddr, sizeof(uint8_t), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling string value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string value's type, %{public}d", errCode);
         return -E_ERROR;
     }
     size_t strLen = stringValue.size();
     errCode = memcpy_s(startAddr + sizeof(uint8_t), sizeof(size_t), &strLen, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling string value's str len, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string value's str len, %{public}d", errCode);
         return -E_ERROR;
     }
     errCode = memcpy_s(startAddr + sizeof(uint8_t) + sizeof(size_t), strLen,
         stringValue.c_str(), strLen);
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling string value's str data, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string value's str data, %{public}d", errCode);
         return -E_ERROR;
     }
     return E_OK;
@@ -222,7 +224,7 @@ int PreferencesValueParcel::MarshallingStringArrayValue(const PreferencesValue &
     // write type into data
     int errCode = memcpy_s(startAddr, sizeof(uint8_t), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling string array value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string array value's type, %{public}d", errCode);
         return -E_ERROR;
     }
     startAddr += sizeof(uint8_t);
@@ -231,7 +233,7 @@ int PreferencesValueParcel::MarshallingStringArrayValue(const PreferencesValue &
     size_t vecNum = strVec.size();
     errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling string array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling string array value's vector num, %{public}d", errCode);
         return -E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -241,14 +243,14 @@ int PreferencesValueParcel::MarshallingStringArrayValue(const PreferencesValue &
         size_t strLen = strVec[i].size();
         errCode = memcpy_s(startAddr, sizeof(size_t), &strLen, sizeof(size_t));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when marshalling string array value's str len, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling string array value's str len, %{public}d", errCode);
             return -E_ERROR;
         }
         startAddr += sizeof(size_t);
 
         errCode = memcpy_s(startAddr, strLen, strVec[i].c_str(), strLen);
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when marshalling string array value's str data, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling string array value's str data, %{public}d", errCode);
             return -E_ERROR;
         }
         startAddr += strLen;
@@ -263,13 +265,13 @@ int PreferencesValueParcel::MarshallingVecUInt8AfterType(const PreferencesValue 
     // write vec num
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling uint8 array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling uint8 array value's vector num, %{public}d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
     errCode = memcpy_s(startAddr, vecNum * sizeof(uint8_t), vec.data(), vecNum * sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling uint8 array value's data, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling uint8 array value's data, %{public}d", errCode);
         return E_ERROR;
     }
     return errCode;
@@ -291,7 +293,7 @@ int PreferencesValueParcel::MarshallingVecBigIntAfterType(const PreferencesValue
     size_t vecNum = words.size();
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling bigInt array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling bigInt array value's vector num, %{public}d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -299,7 +301,7 @@ int PreferencesValueParcel::MarshallingVecBigIntAfterType(const PreferencesValue
     // write sign
     errCode = memcpy_s(startAddr, sizeof(int64_t), &sign, sizeof(int64_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling bigInt array value's sign, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling bigInt array value's sign, %{public}d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(int64_t);
@@ -309,7 +311,7 @@ int PreferencesValueParcel::MarshallingVecBigIntAfterType(const PreferencesValue
         uint64_t item = words[i];
         errCode = memcpy_s(startAddr, sizeof(uint64_t), &item, sizeof(uint64_t));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when marshalling bigInt array value's words, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling bigInt array value's words, %{public}d", errCode);
             return E_ERROR;
         }
         startAddr += sizeof(uint64_t);
@@ -324,7 +326,7 @@ int PreferencesValueParcel::MarshallingVecDoubleAfterType(const PreferencesValue
     // write vec num
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling double array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling double array value's vector num, %{public}d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -334,7 +336,7 @@ int PreferencesValueParcel::MarshallingVecDoubleAfterType(const PreferencesValue
         double item = vec[i];
         errCode = memcpy_s(startAddr, sizeof(double), &item, sizeof(double));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when marshalling double array value's vector data, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling double array value's vector data, %{public}d", errCode);
             return E_ERROR;
         }
         startAddr += sizeof(double);
@@ -349,7 +351,7 @@ int PreferencesValueParcel::MarshallingVecBoolAfterType(const PreferencesValue &
     // write vec num
     int errCode = memcpy_s(startAddr, sizeof(size_t), &vecNum, sizeof(size_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling bool array value's vector num, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling bool array value's vector num, %{public}d", errCode);
         return E_ERROR;
     }
     startAddr += sizeof(size_t);
@@ -359,7 +361,7 @@ int PreferencesValueParcel::MarshallingVecBoolAfterType(const PreferencesValue &
         bool item = vec[i];
         errCode = memcpy_s(startAddr, sizeof(bool), &item, sizeof(bool));
         if (errCode != E_OK) {
-            LOG_ERROR("memcpy failed when marshalling bool array value's vector data, %d", errCode);
+            LOG_ERROR("memcpy failed when marshalling bool array value's vector data, %{public}d", errCode);
             return E_ERROR;
         }
         startAddr += sizeof(bool);
@@ -379,7 +381,7 @@ int PreferencesValueParcel::MarshallingBasicArrayValue(const PreferencesValue &v
     uint8_t *startAddr = data.data();
     int errCode = memcpy_s(startAddr, sizeof(uint8_t), &type, sizeof(uint8_t));
     if (errCode != E_OK) {
-        LOG_ERROR("memcpy failed when marshalling basic array value's type, %d", errCode);
+        LOG_ERROR("memcpy failed when marshalling basic array value's type, %{public}d", errCode);
         return E_ERROR;
     }
     // write type
@@ -432,7 +434,7 @@ int PreferencesValueParcel::MarshallingPreferenceValue(const PreferencesValue &v
             break;
         default:
             errCode = E_INVALID_ARGS;
-            LOG_ERROR("MarshallingPreferenceValue failed, type invalid, %d", errCode);
+            LOG_ERROR("MarshallingPreferenceValue failed, type invalid, %{public}d", errCode);
             break;
     }
     return errCode;
@@ -608,7 +610,7 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingPreference
 {
     PreferencesValue value(0);
     if (data.empty()) {
-        LOG_ERROR("UnmarshallingPreferenceValue failed, data empty, %d", E_INVALID_ARGS);
+        LOG_ERROR("UnmarshallingPreferenceValue failed, data empty, %{public}d", E_INVALID_ARGS);
         return std::make_pair(E_INVALID_ARGS, value);
     }
     uint8_t type = data[0];
