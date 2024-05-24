@@ -132,19 +132,19 @@ int PreferencesDb::Init(const std::string &dbPath)
     int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath.c_str(), configStr.c_str(),
         GRD_DB_OPEN_CREATE, &db_));
     if (errCode != E_OK) {
-        LOG_ERROR("rd open failed:%d", errCode);
+        LOG_ERROR("rd open failed:%{public}d", errCode);
         return errCode;
     }
     errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi(db_, TABLENAME, TABLE_MODE,
         0));
     if (errCode != E_OK) {
-        LOG_ERROR("rd create table failed:%d", errCode);
+        LOG_ERROR("rd create table failed:%{public}d", errCode);
         return errCode;
     }
 
     errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbIndexPreloadApi(db_, TABLENAME));
     if (errCode != E_OK) {
-        LOG_ERROR("[RdSingleVerStorageEngine] GRD_IndexPreload FAILED %d", errCode);
+        LOG_ERROR("[RdSingleVerStorageEngine] GRD_IndexPreload FAILED %{public}d", errCode);
         return errCode;
     }
     return errCode;
@@ -160,7 +160,7 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
     GRD_KVItemT innerVal = BlobToKvItem(value);
     int ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbKvPutApi(db_, TABLENAME, &innerKey, &innerVal));
     if (ret != E_OK) {
-        LOG_ERROR("rd put failed:%d", ret);
+        LOG_ERROR("rd put failed:%{public}d", ret);
     }
     return ret;
 }
@@ -174,7 +174,7 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
     GRD_KVItemT innerKey = BlobToKvItem(key);
     int ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbKvDelApi(db_, TABLENAME, &innerKey));
     if (ret != E_OK) {
-        LOG_ERROR("rd put failed:%d", ret);
+        LOG_ERROR("rd put failed:%{public}d", ret);
     }
     return ret;
 }
@@ -188,7 +188,7 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
     GRD_KVItemT innerVal = { NULL, 0 };
     int ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbKvGetApi(db_, TABLENAME, &innerKey, &innerVal));
     if (ret != E_OK) {
-        LOG_ERROR("[rdUtils][GetKvData] Cannot get the data %d", ret);
+        LOG_ERROR("[rdUtils][GetKvData] Cannot get the data %{public}d", ret);
         return ret;
     }
     value.resize(innerVal.dataLen);
@@ -208,7 +208,7 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
     GRD_ResultSet *resultSet = nullptr;
     int ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbKvFilterApi(db_, TABLENAME, &param, &resultSet));
     if (ret != E_OK) {
-        LOG_ERROR("ger reulstSet failed %d", ret);
+        LOG_ERROR("ger reulstSet failed %{public}d", ret);
         return ret;
     }
     while (TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().NextApi(resultSet)) == E_OK) {
@@ -217,7 +217,7 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
         uint32_t valueSize = 0;
         ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().GetItemSizeApi(resultSet, &keySize, &valueSize));
         if (ret != E_OK) {
-            LOG_ERROR("ger reulstSet kv size failed %d", ret);
+            LOG_ERROR("ger reulstSet kv size failed %{public}d", ret);
             PreferenceDbAdapter::GetApiInstance().FreeResultSetApi(resultSet);
             return ret;
         }
@@ -226,7 +226,7 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
         ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().GetItemApi(resultSet, dataItem.first.data(),
             dataItem.second.data()));
         if (ret != E_OK) {
-            LOG_ERROR("ger reulstSet failed %d", ret);
+            LOG_ERROR("ger reulstSet failed %{public}d", ret);
             PreferenceDbAdapter::GetApiInstance().FreeResultSetApi(resultSet);
             return ret;
         }
