@@ -358,11 +358,11 @@ describe('StorageCallBackJsunit', function () {
     /**
      * @tc.name test put interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0123
-     * @tc.desc test put interface input parameter value exceed 8192byte.
+     * @tc.desc test put interface input parameter value exceed 16 * 1024 * 1024byte.
      */
     it('testPutIllegal003', 0, async function (done) {
         let phoneStr = "1";
-        phoneStr = phoneStr.repeat(8193);
+        phoneStr = phoneStr.repeat(16 * 1024 * 1024 + 1);
         try {
             mPref.put("phoneNum", phoneStr, (ret) => {
                 done();
@@ -381,7 +381,7 @@ describe('StorageCallBackJsunit', function () {
      */
     it('testPutIllegal004', 0, async function (done) {
         let phoneStr = "1";
-        phoneStr = phoneStr.repeat(8192);
+        phoneStr = phoneStr.repeat(16 * 1024 * 1024);
         try {
             mPref.put("phoneNum", phoneStr, (ret) => {
                 done();
@@ -396,11 +396,11 @@ describe('StorageCallBackJsunit', function () {
     /**
      * @tc.name test put interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0125
-     * @tc.desc test put interface input parameter key exceed 80byte.
+     * @tc.desc test put interface input parameter key exceed 1024 byte.
      */
     it('testPutIllegal005', 0, async function (done) {
         let phoneNum = "1";
-        phoneNum = phoneNum.repeat(81);
+        phoneNum = phoneNum.repeat(1025);
         try {
             mPref.put(phoneNum, "123456", (ret) => {
                 done();
@@ -419,7 +419,7 @@ describe('StorageCallBackJsunit', function () {
      */
     it('testPutIllegal006', 0, async function (done) {
         let phoneNum = "1";
-        phoneNum = phoneNum.repeat(80);
+        phoneNum = phoneNum.repeat(1024);
         try {
             mPref.put(phoneNum, "123456", (ret) => {
                 done();
@@ -470,11 +470,11 @@ describe('StorageCallBackJsunit', function () {
     /**
      * @tc.name test get interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_CallBack_0128
-     * @tc.desc test get interface input parameter key exceed 80byte.
+     * @tc.desc test get interface input parameter key exceed 1024 byte.
      */
     it('testGetIllegal003', 0, async function (done) {
         let illegalKey = "1";
-        illegalKey = illegalKey.repeat(81);
+        illegalKey = illegalKey.repeat(1025);
         try {
             mPref.get(illegalKey, "defaultValue", (ret) => {
                 done();
@@ -493,7 +493,7 @@ describe('StorageCallBackJsunit', function () {
      */
     it('testGetIllegal004', 0, async function (done) {
         let legalKey = "1";
-        legalKey = legalKey.repeat(80);
+        legalKey = legalKey.repeat(1024);
         try {
             mPref.get(legalKey, "defaultValue", (ret) => {
                 done();

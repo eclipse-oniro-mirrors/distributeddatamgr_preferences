@@ -16,7 +16,7 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from
 import data_preferences from '@ohos.data.preferences'
 import featureAbility from '@ohos.ability.featureAbility';
 
-const NAME = 'test_preferences';
+const NAME = 'test_taskpool_preferences';
 const KEY_TEST_INT_ELEMENT = 'key_test_int';
 const KEY_TEST_LONG_ELEMENT = 'key_test_long';
 const KEY_TEST_FLOAT_ELEMENT = 'key_test_float';

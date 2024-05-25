@@ -301,11 +301,11 @@ describe('StorageSyncJsunit', function () {
     /**
      * @tc.name test putSync interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0170
-     * @tc.desc test put interface input parameter key exceed 80byte.
+     * @tc.desc test put interface input parameter key exceed 1024 bytes.
      */
     it('testputSyncIllegal001', 0, function () {
         let illegalKey = "1";
-        illegalKey = illegalKey.repeat(81);
+        illegalKey = illegalKey.repeat(1025);
         try {
             mPref.putSync(illegalKey, "123456");
             expect(false).assertTrue();
@@ -321,7 +321,7 @@ describe('StorageSyncJsunit', function () {
      */
     it('testputSyncIllegal002', 0, function () {
         let legalKey = "1";
-        legalKey = legalKey.repeat(80);
+        legalKey = legalKey.repeat(1024);
         try {
             mPref.putSync(legalKey, "123456");
         } catch (err) {
@@ -333,11 +333,11 @@ describe('StorageSyncJsunit', function () {
     /**
      * @tc.name test putSync interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0180
-     * @tc.desc test put interface input parameter value exceed 8192byte.
+     * @tc.desc test put interface input parameter value exceed 16 * 1024 * 1024byte.
      */
     it('testputSyncIllegal003', 0, function () {
         let illegalValue = "1";
-        illegalValue = illegalValue.repeat(8193);
+        illegalValue = illegalValue.repeat(16 * 1024 * 1024 + 1);
         try {
             mPref.putSync("test", illegalValue);
             expect(false).assertTrue();
@@ -353,7 +353,7 @@ describe('StorageSyncJsunit', function () {
      */
     it('testputSyncIllegal004', 0, function () {
         let legalValue = "1";
-        legalValue = legalValue.repeat(8192);
+        legalValue = legalValue.repeat(16 * 1024 * 1024);
         try {
             mPref.putSync("test", legalValue);
         } catch (err) {
@@ -365,11 +365,11 @@ describe('StorageSyncJsunit', function () {
     /**
      * @tc.name test getSync interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0190
-     * @tc.desc test getSync interface input parameter key exceed 80byte.
+     * @tc.desc test getSync interface input parameter key exceed 1024 bytes.
      */
     it('testgetSyncIllegal001', 0, function () {
         let illegalkey = "1";
-        illegalkey = illegalkey.repeat(81);
+        illegalkey = illegalkey.repeat(1025);
         try {
             mPref.getSync(illegalkey, "defaultValue");
             expect(false).assertTrue();
@@ -385,7 +385,7 @@ describe('StorageSyncJsunit', function () {
      */
     it('testgetSyncIllegal002', 0, function () {
         let legalkey = "1";
-        legalkey = legalkey.repeat(80);
+        legalkey = legalkey.repeat(1024);
         try {
             mPref.getSync(legalkey, "defaultValue");
         } catch (err) {
@@ -397,11 +397,11 @@ describe('StorageSyncJsunit', function () {
     /**
      * @tc.name test deleteSync interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0200
-     * @tc.desc test deleteSync interface input parameter key exceed 80byte.
+     * @tc.desc test deleteSync interface input parameter key exceed 1024 bytes.
      */
     it('testdeleteSyncIllegal001', 0, function () {
         let illegalkey = "1";
-        illegalkey = illegalkey.repeat(81);
+        illegalkey = illegalkey.repeat(1025);
         try {
             mPref.deleteSync(illegalkey);
             expect(false).assertTrue();
@@ -417,7 +417,7 @@ describe('StorageSyncJsunit', function () {
      */
     it('testdeleteSyncIllegal002', 0, function () {
         let legalkey = "1";
-        legalkey = legalkey.repeat(80);
+        legalkey = legalkey.repeat(1024);
         try {
             mPref.deleteSync(legalkey);
         } catch (err) {
@@ -429,11 +429,11 @@ describe('StorageSyncJsunit', function () {
     /**
      * @tc.name test hasSync interface
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Sync_0210
-     * @tc.desc test hasSync interface input parameter key exceed 80byte.
+     * @tc.desc test hasSync interface input parameter key exceed 1024 bytes.
      */
     it('testhasSyncIllegal001', 0, function () {
         let illegalkey = "1";
-        illegalkey = illegalkey.repeat(81);
+        illegalkey = illegalkey.repeat(1025);
         try {
             mPref.hasSync(illegalkey);
             expect(false).assertTrue();
@@ -449,7 +449,7 @@ describe('StorageSyncJsunit', function () {
      */
     it('testhasSyncIllegal002', 0, function () {
         let legalkey = "1";
-        legalkey = legalkey.repeat(80);
+        legalkey = legalkey.repeat(1024);
         try {
             mPref.hasSync(legalkey);
         } catch (err) {

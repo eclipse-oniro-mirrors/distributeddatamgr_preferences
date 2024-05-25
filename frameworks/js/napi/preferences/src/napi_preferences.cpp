@@ -148,13 +148,17 @@ int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysn
     int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
     PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("The key must be string."));
     PRE_CHECK_RETURN_ERR_SET(context->key.length() <= MAX_KEY_LENGTH,
-        std::make_shared<ParamTypeError>("The key must be less than 80 bytes."));
+        std::make_shared<ParamTypeError>("The key must be less than 1024 bytes."));
     return OK;
 }
 
 int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
+    if (rc == EXCEED_MAX_LENGTH) {
+        PRE_CHECK_RETURN_ERR_SET(rc == napi_ok,
+            std::make_shared<ParamTypeError>("The type of value mast be less then 16 * 1024 * 1024 btyes."));
+    }
     PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("The type of value mast be ValueType."));
     return OK;
 }

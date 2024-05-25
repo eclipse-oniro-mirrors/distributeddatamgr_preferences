@@ -17,7 +17,7 @@ import data_preferences from '@ohos.data.preferences';
 import featureAbility from '@ohos.ability.featureAbility';
 import taskpool from '@ohos.taskpool'
 
-const NAME = 'test_preferences';
+const NAME = 'test_taskpool_preferences';
 const KEY_TEST_STRING_ELEMENT = 'key_test_string';
 var context;
 

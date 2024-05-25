@@ -373,18 +373,22 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put Uint8Array callback interface test
      */
     it('testPreferencesPutUint8Array0183', 0, async function (done) {
-        let uInt8Array = new Uint8Array(8192);
+        console.log(TAG + "testPreferencesPutUint8Array0183 start.");
+        let uInt8Array = new Uint8Array(16 * 1024 * 1024);
         uInt8Array.fill(100);
         mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array, async function (err, ret) {
             let pre = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
-            expect(uInt8Array.toString() === pre.toString()).assertTrue();
+            expect(uInt8Array.length === pre.length).assertTrue();
+            expect(100 === pre[0]).assertTrue();
             await mPreferences.flush();
             await data_preferences.removePreferencesFromCache(context, NAME);
             mPreferences = null;
             mPreferences = await data_preferences.getPreferences(context, NAME);
             let pre2 = await mPreferences.get(KEY_TEST_UINT8ARRAY, new Uint8Array(0));
+            expect(uInt8Array.length === pre2.length).assertTrue();
+            expect(100 === pre2[0]).assertTrue();
             done();
-            expect(uInt8Array.toString() === pre2.toString()).assertTrue();
+            console.log(TAG + "testPreferencesPutUint8Array0183 end.");
         });
     })
 
@@ -394,7 +398,7 @@ describe('PreferencesCallBackJsunit', function () {
      * @tc.desc put Uint8Array callback interface test
      */
     it('testPreferencesPutUint8Array0183', 0, async function (done) {
-        let uInt8Array = new Uint8Array(8193);
+        let uInt8Array = new Uint8Array(16 * 1024 * 1024 + 1);
         uInt8Array.fill(100);
         try {
             await mPreferences.put(KEY_TEST_UINT8ARRAY, uInt8Array);

@@ -28,11 +28,11 @@ const KEY_TEST_BOOL_ARRAY_ELEMENT = 'key_test_bool_array'
 var mPreference = undefined
 var context
 
-const ILLEGAL_CHAR_10 = '1234567890'
-const ILLEGAL_CHAR_80 = ILLEGAL_CHAR_10.repeat(8);
-const ILLEGAL_CHAR_81 = ILLEGAL_CHAR_80 + '1';
-const ILLEGAL_CHAR_8192 = ILLEGAL_CHAR_80.repeat(102) + '1'.repeat(32);
-const ILLEGAL_CHAR_8193 = ILLEGAL_CHAR_8192 + '1';
+const ILLEGAL_CHAR_8 = '12345678'
+const ILLEGAL_CHAR_1024 = ILLEGAL_CHAR_8.repeat(128);
+const ILLEGAL_CHAR_1025 = ILLEGAL_CHAR_1024 + '1';
+const ILLEGAL_CHAR_LARGEST = ILLEGAL_CHAR_1024.repeat(16 * 1024);
+const ILLEGAL_CHAR_INVALID = ILLEGAL_CHAR_LARGEST + '1';
 
 describe('V9_PreferencesCallBackJsunit', async function () {
     beforeAll(async function () {
@@ -336,11 +336,11 @@ describe('V9_PreferencesCallBackJsunit', async function () {
 
     /**
      * @tc.name test put interface
-     * @tc.desc test put interface input parameter key exceed 80bytes.
+     * @tc.desc test put interface input parameter key exceed 1024 bytes.
      */
     it('testPreferencesPutIllegal0003', 0, async function (done) {
         try {
-            mPreference.put(ILLEGAL_CHAR_81, "123456", (ret) => {
+            mPreference.put(ILLEGAL_CHAR_1025, "123456", (ret) => {
                 done();
             });
         } catch (err) {
@@ -356,7 +356,7 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      */
     it('testPreferencesPutIllegal0004', 0, async function (done) {
         try {
-            mPreference.put(ILLEGAL_CHAR_80, "123456", (ret) => {
+            mPreference.put(ILLEGAL_CHAR_1024, "123456", (ret) => {
                 done();
             });
         } catch (err) {
@@ -368,11 +368,11 @@ describe('V9_PreferencesCallBackJsunit', async function () {
 
     /**
      * @tc.name test put interface
-     * @tc.desc test put interface input parameter value exceed 8192bytes.
+     * @tc.desc test put interface input parameter value exceed 16 * 1024 * 1024 bytes.
      */
     it('testPreferencesPutIllegal0005', 0, async function (done) {
         try {
-            mPreference.put("test", ILLEGAL_CHAR_8193, (ret) => {
+            mPreference.put("test", ILLEGAL_CHAR_INVALID, (ret) => {
                 done();
             });
         } catch (err) {
@@ -388,7 +388,7 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      */
     it('testPreferencesPutIllegal0006', 0, async function (done) {
         try {
-            mPreference.put("test", ILLEGAL_CHAR_8192, (ret) => {
+            mPreference.put("test", ILLEGAL_CHAR_LARGEST, (ret) => {
                 done();
             });
         } catch (err) {
@@ -434,11 +434,11 @@ describe('V9_PreferencesCallBackJsunit', async function () {
 
     /**
      * @tc.name test get interface
-     * @tc.desc test get interface input parameter key exceed 80bytes.
+     * @tc.desc test get interface input parameter key exceed 1024 bytes.
      */
     it('testPreferencesGetIllegal0003', 0, async function (done) {
         try {
-            mPreference.get(ILLEGAL_CHAR_81, "defaultValue", (ret) => {
+            mPreference.get(ILLEGAL_CHAR_1025, "defaultValue", (ret) => {
                 done();
             });
         } catch (err) {
@@ -454,7 +454,7 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      */
     it('testPreferencesGetIllegal0004', 0, async function (done) {
         try {
-            mPreference.get(ILLEGAL_CHAR_80, "defaultValue", (ret) => {
+            mPreference.get(ILLEGAL_CHAR_1024, "defaultValue", (ret) => {
                 done();
             });
         } catch (err) {
@@ -500,11 +500,11 @@ describe('V9_PreferencesCallBackJsunit', async function () {
 
     /**
      * @tc.name test delete interface
-     * @tc.desc test delete interface input parameter key exceed 80bytes.
+     * @tc.desc test delete interface input parameter key exceed 1024 bytes.
      */
     it('testPreferencesDeleteIllegal0003', 0, async function (done) {
         try {
-            mPreference.delete(ILLEGAL_CHAR_81, (ret) => {
+            mPreference.delete(ILLEGAL_CHAR_1025, (ret) => {
                 done();
             });
         } catch (err) {
@@ -520,7 +520,7 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      */
     it('testPreferencesDeleteIllegal0004', 0, async function (done) {
         try {
-            mPreference.delete(ILLEGAL_CHAR_80, (ret) => {
+            mPreference.delete(ILLEGAL_CHAR_1024, (ret) => {
                 done();
             });
         } catch (err) {
@@ -566,11 +566,11 @@ describe('V9_PreferencesCallBackJsunit', async function () {
 
     /**
      * @tc.name test has interface
-     * @tc.desc test has interface input parameter key exceed 80bytes.
+     * @tc.desc test has interface input parameter key exceed 1024 bytes.
      */
     it('testPreferencesHasIllegal0003', 0, async function (done) {
         try {
-            mPreference.has(ILLEGAL_CHAR_81, (ret) => {
+            mPreference.has(ILLEGAL_CHAR_1025, (ret) => {
                 done();
             });
         } catch (err) {
@@ -586,7 +586,7 @@ describe('V9_PreferencesCallBackJsunit', async function () {
      */
     it('testPreferencesHasIllegal0004', 0, async function (done) {
         try {
-            mPreference.has(ILLEGAL_CHAR_80, (ret) => {
+            mPreference.has(ILLEGAL_CHAR_1024, (ret) => {
                 done();
             });
         } catch (err) {
