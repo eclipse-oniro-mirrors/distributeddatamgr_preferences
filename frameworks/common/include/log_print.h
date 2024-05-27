@@ -40,6 +40,13 @@ static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
     return { LOG_CORE, 0xD001653, "StorageJsKit" };
 }
 }
+namespace Sendable::JSPreferences {
+static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
+{
+    return { LOG_CORE, 0xD001653, "JSPreferences" };
+}
+}
+
 } // namespace OHOS
 #define LOG_DEBUG(fmt, ...)                                                             \
     do {                                                                                \

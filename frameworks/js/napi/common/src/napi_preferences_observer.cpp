@@ -15,37 +15,37 @@
 #include "napi_preferences_observer.h"
 
 #include "js_utils.h"
+#include "js_sendable_utils.h"
 
 using namespace OHOS::NativePreferences;
-
+using namespace OHOS::Sendable::JSPreferences;
 namespace OHOS {
 namespace PreferencesJsKit {
-JSPreferencesObserver::JSPreferencesObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback)
-    : JSObserver(uvQueue, callback)
+JSPreferencesObserver::JSPreferencesObserver(std::shared_ptr<UvQueue> uvQueue, napi_value callback, bool sendabel)
+    : JSObserver(uvQueue, callback, sendabel)
 {
 }
 
 void JSPreferencesObserver::OnChange(const std::string &key)
 {
-    AsyncCall([key](napi_env env, int &argc, napi_value *argv) {
+    AsyncCall([key](napi_env env, bool sendable, int &argc, napi_value *argv) {
         argc = 1;
-        argv[0] = JSUtils::Convert2JSValue(env, key);
+        argv[0] = sendable ? Utils::ConvertToSendable(env, key) : JSUtils::Convert2JSValue(env, key);
     });
     LOG_DEBUG("OnChange key end");
 }
 
 void JSPreferencesObserver::OnChange(const std::map<std::string, PreferencesValue> &records)
 {
-    AsyncCall([records](napi_env env, int &argc, napi_value *argv) {
+    AsyncCall([records](napi_env env, bool sendable, int &argc, napi_value *argv) {
         napi_value result;
-        int errCode = napi_create_object(env, &result);
-        if (errCode != napi_ok) {
-            LOG_ERROR("napi_create_object failed, onChange return.");
-            return;
-        }
+        std::vector<napi_property_descriptor> descriptors;
         for (const auto &[key, value] : records) {
-            napi_set_named_property(env, result, key.c_str(), JSUtils::Convert2JSValue(env, value.value_));
+            descriptors.push_back(napi_property_descriptor(
+                DECLARE_NAPI_DEFAULT_PROPERTY(key.c_str(), Utils::ConvertToSendable(env, value.value_))));
         }
+        sendable ? napi_create_sendable_object_with_properties(env, descriptors.size(), descriptors.data(), &result)
+                 : napi_create_object_with_properties(env, &result, descriptors.size(), descriptors.data());
         argc = 1;
         argv[0] = result;
     });

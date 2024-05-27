@@ -34,7 +34,7 @@ UvQueue::~UvQueue()
     env_ = nullptr;
 }
 
-void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs)
+void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bool sendable)
 {
     if (loop_ == nullptr || !getter) {
         LOG_ERROR("loop_ or callback is nullptr");
@@ -45,7 +45,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs)
     if (work == nullptr) {
         return;
     }
-    work->data = new (std::nothrow) UvEntry{ env_, getter, std::move(genArgs) };
+    work->data = new (std::nothrow) UvEntry{ env_, getter, std::move(genArgs), sendable };
     if (work->data == nullptr) {
         delete work;
         return;
@@ -79,7 +79,7 @@ void UvQueue::Work(uv_work_t* work, int uvstatus)
     napi_value argv[MAX_CALLBACK_ARG_NUM] = { nullptr };
     if (entry->args) {
         argc = MAX_CALLBACK_ARG_NUM;
-        entry->args(entry->env, argc, argv);
+        entry->args(entry->env, entry->sendable, argc, argv);
     }
     LOG_DEBUG("queue uv_after_work_cb");
     napi_value global = nullptr;
