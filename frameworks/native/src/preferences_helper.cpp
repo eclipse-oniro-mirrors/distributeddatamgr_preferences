@@ -28,7 +28,6 @@
 #include "preferences_file_operation.h"
 #include "preferences_impl.h"
 #include "preferences_enhance_impl.h"
-#include "securec.h"
 namespace OHOS {
 namespace NativePreferences {
 std::map<std::string, std::shared_ptr<Preferences>> PreferencesHelper::prefsCache_;
