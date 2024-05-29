@@ -26,9 +26,6 @@ namespace NativePreferences {
 
 typedef struct GRD_DB GRD_DB;
 
-const char * const TABLENAME = "preferences_data";
-const char * const TABLE_MODE = "{\"mode\" : \"kv\", \"indextype\" : \"hash\"}";
-
 #define GRD_DB_OPEN_CREATE 0x01
 #define GRD_DB_CLOSE_IGNORE_ERROR 0x01
 
@@ -114,10 +111,14 @@ public:
     int Delete(const std::vector<uint8_t> &key);
     int Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &value);
     int GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data);
+    int DropCollection(const std::string &dbPath);
+    int CreateCollection();
+    int GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data, GRD_ResultSet *resultSet);
 private:
     GRD_KVItemT BlobToKvItem(const std::vector<uint8_t> &blob);
     std::vector<uint8_t> KvItemToBlob(GRD_KVItemT &item);
     GRD_DB *db_ = nullptr;
+    bool isOpen_ = false;
 };
 
 // grd errcode
@@ -128,6 +129,7 @@ private:
 #define GRD_FAILED_MEMORY_ALLOCATE (-13000)
 #define GRD_FAILED_MEMORY_RELEASE (-14000)
 #define GRD_PERMISSION_DENIED (-43000)
+#define GRD_UNDEFINED_TABLE (-23000)
 
 } // End of namespace NativePreferences
 } // End of namespace OHOS

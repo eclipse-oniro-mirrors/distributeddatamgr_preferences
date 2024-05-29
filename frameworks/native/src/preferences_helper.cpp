@@ -30,7 +30,7 @@
 #include "preferences_enhance_impl.h"
 namespace OHOS {
 namespace NativePreferences {
-std::map<std::string, std::shared_ptr<Preferences>> PreferencesHelper::prefsCache_;
+std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
 
 static bool IsFileExist(const std::string &path)
@@ -41,32 +41,33 @@ static bool IsFileExist(const std::string &path)
 
 static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
 {
-    if (IsFileExist(filePath.c_str()) && std::remove(filePath.c_str()) != 0) {
-        LOG_ERROR("remove filePath failed.");
+    std::string dbFilePath = filePath + ".db";
+    if (IsFileExist(dbFilePath) && std::remove(dbFilePath.c_str()) != 0) {
+        LOG_ERROR("remove dbFilePath failed.");
         return E_DELETE_FILE_FAIL;
     }
-    std::string tmpFilePath = filePath + ".ctrl";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
+    std::string tmpFilePath = dbFilePath + ".ctrl";
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
-    tmpFilePath = filePath + ".redo";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
+    tmpFilePath = dbFilePath + ".redo";
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
-    tmpFilePath = filePath + ".undo";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
+    tmpFilePath = dbFilePath + ".undo";
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
-    tmpFilePath = filePath + ".safe";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
+    tmpFilePath = dbFilePath + ".safe";
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
-    tmpFilePath = filePath + ".map";
-    if (IsFileExist(tmpFilePath.c_str()) && std::remove(tmpFilePath.c_str()) != 0) {
+    tmpFilePath = dbFilePath + ".map";
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
@@ -121,10 +122,13 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 }
 
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
-static bool IsUseEnhanceDb(std::string bundleName)
+static bool IsUseEnhanceDb(const Options &options)
 {
+    if (IsFileExist(options.filePath)) {
+        return false;
+    }
     PreferenceDbAdapter::ApiInit();
-    return (bundleName.find("uttest") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
+    return (options.bundleName.find("uttest") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
 }
 #endif
 
@@ -136,18 +140,24 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     }
 
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-    std::map<std::string, std::shared_ptr<Preferences>>::iterator it = prefsCache_.find(realPath);
-    if (it != prefsCache_.end()) {
-        return it->second;
+    auto it = prefsCache_.find(realPath);
+    if (it != prefsCache_.end() && !((it->second).first.expired())) {
+        auto pre = (it->second).first.lock();
+        if (pre != nullptr) {
+            return pre;
+        }
+        prefsCache_.erase(it);
     }
 
     const_cast<Options &>(options).filePath = realPath;
     std::shared_ptr<Preferences> pref = nullptr;
+    bool isEnhancePreferences = false;
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) &&!defined(IOS_PLATFORM)
-    if (IsUseEnhanceDb(options.bundleName)) {
+    if (IsUseEnhanceDb(options)) {
         LOG_DEBUG("PreferencesHelper::GetPreferences using enhance db.");
         pref = PreferencesEnhanceImpl::GetPreferences(options);
         errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
+        isEnhancePreferences = true;
     } else {
         pref = PreferencesImpl::GetPreferences(options);
         errCode = std::static_pointer_cast<PreferencesImpl>(pref)->Init();
@@ -159,7 +169,8 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     if (errCode != E_OK) {
         return nullptr;
     }
-    prefsCache_.insert(make_pair(realPath, pref));
+    auto weakPref = std::weak_ptr<Preferences> { pref };
+    prefsCache_.insert(make_pair(realPath, make_pair(weakPref, isEnhancePreferences)));
     return pref;
 }
 
@@ -174,9 +185,12 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string dataGroupId = "";
     {
         std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-        std::map<std::string, std::shared_ptr<Preferences>>::iterator it = prefsCache_.find(realPath);
+        std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
         if (it != prefsCache_.end()) {
-            dataGroupId = it->second->GetGroupId();
+            auto pref = ((it->second).first).lock();
+            if (pref != nullptr) {
+                dataGroupId = pref->GetGroupId();
+            }
             prefsCache_.erase(it);
         }
     }
@@ -213,8 +227,12 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
     }
 
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-    std::map<std::string, std::shared_ptr<Preferences>>::iterator it = prefsCache_.find(realPath);
+    std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
     if (it == prefsCache_.end()) {
+        return E_OK;
+    }
+    if ((it->second).second) {
+        // for enhance preferences, remove preferences from cache do nothing actually
         return E_OK;
     }
     prefsCache_.erase(it);
