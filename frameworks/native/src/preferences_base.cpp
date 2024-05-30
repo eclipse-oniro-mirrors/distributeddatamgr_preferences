@@ -26,6 +26,7 @@
 #include "executor_pool.h"
 #include "log_print.h"
 #include "preferences_observer_stub.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace NativePreferences {
