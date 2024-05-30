@@ -26,8 +26,9 @@ base_sources = [
 ohos_shared_library("cj_preferences_ffi") {
   include_dirs = base_include
   sources = base_sources
-
   sanitize = {
+    boundary_sanitize = true
+    ubsan = true
     cfi = true
     cfi_cross_dso = true
     debug = false
