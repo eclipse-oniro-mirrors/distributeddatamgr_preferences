@@ -71,6 +71,8 @@ if (is_ohos) {
   ohos_shared_library("native_preferences") {
     branch_protector_ret = "pac_ret"
     sanitize = {
+      boundary_sanitize = true
+      ubsan = true
       cfi = true
       cfi_cross_dso = true
       debug = false
@@ -208,6 +210,8 @@ ohos_static_library("native_preferences_static") {
     if (is_ohos) {
       branch_protector_ret = "pac_ret"
       sanitize = {
+        boundary_sanitize = true
+        ubsan = true
         cfi = true
         cfi_cross_dso = true
         debug = false
