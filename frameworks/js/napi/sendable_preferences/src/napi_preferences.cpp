@@ -120,7 +120,7 @@ napi_status PreferencesProxy::NewInstance(
         return napi_invalid_arg;
     }
     obj->SetInstance(value);
-    status = napi_wrap_sendable(env, *instance, obj, PreferencesProxy::Destructor, nullptr, nullptr);
+    status = napi_wrap_sendable(env, *instance, obj, PreferencesProxy::Destructor, nullptr);
     if (status != napi_ok) {
         delete obj;
         return status;
