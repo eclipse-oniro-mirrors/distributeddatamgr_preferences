@@ -129,9 +129,6 @@ int32_t FfiOHOSPreferencesOn(int64_t id, const char* mode,
     }
     auto onChange = [lambda = CJLambda::Create(callbackRef)](const std::string& valueRef) ->
         void { lambda(valueRef.c_str()); };
-    if (!instance) {
-        return ERR_INVALID_INSTANCE_CODE;
-    }
     return instance->RegisterObserver(mode, (std::function<void(std::string)>*)(callback), onChange);
 }
 
@@ -143,9 +140,6 @@ int32_t FfiOHOSPreferencesOff(int64_t id, const char* mode, void (*callback)(con
         return ERR_INVALID_INSTANCE_CODE;
     }
     auto onChange = [lambda = CJLambda::Create(callback)](const std::string& value) -> void { lambda(value.c_str()); };
-    if (!instance) {
-        return ERR_INVALID_INSTANCE_CODE;
-    }
     return instance->UnRegisterObserver(mode, (std::function<void(std::string)>*)(callback));
 }
 

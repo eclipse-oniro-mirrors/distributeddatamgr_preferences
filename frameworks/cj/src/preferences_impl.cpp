@@ -34,12 +34,6 @@ using namespace OHOS::FFI;
 using namespace OHOS::NativePreferences;
 
 namespace OHOS::Preferences {
-
-struct ContextInfo {
-    std::string bundleName;
-    std::string preferencesDir;
-};
-
 std::tuple<int32_t, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* context, const std::string &name,
     const std::string &dataGroupId)
 {
@@ -52,12 +46,12 @@ std::tuple<int32_t, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* 
     auto tempContext = std::make_shared<HelperAysncContext>();
     tempContext->bundleName = context->GetBundleName();
     tempContext->name = name;
-    ContextInfo contextInfo;
-    errcode = context->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
+    std::string preferencesDir;
+    errcode = context->GetSystemPreferencesDir(dataGroupId, false, preferencesDir);
     if (errcode != 0) {
         return {errcode, path};
     }
-    tempContext->path = contextInfo.preferencesDir.append("/").append(tempContext->name);
+    tempContext->path = preferencesDir.append("/").append(tempContext->name);
     return {E_OK, tempContext->path};
 }
 
@@ -176,13 +170,10 @@ bool isSameFunction(const std::function<void(std::string)> *f1, const std::funct
 
 bool PreferencesImpl::HasRegisteredObserver(std::function<void(std::string)> *callback, RegisterMode mode)
 {
-    auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
-    for (auto &it : observers) {
-        if (isSameFunction(callback, it->m_callback)) {
-            return true;
-        }
-    }
-    return false;
+    const auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
+    return std::any_of(observers.begin(), observers.end(), [callback](const auto& it) {
+        return isSameFunction(callback, it->m_callback);
+    });
 }
 
 RegisterMode PreferencesImpl::ConvertToRegisterMode(const std::string &mode)
@@ -270,7 +261,7 @@ void freeValueType(ValueType v)
 
 CArrDouble vectorToDoubleArray(const std::vector<double> &doubles)
 {
-    double* head = (double*)malloc(doubles.size() * sizeof(double));
+    double* head = static_cast<double*>(malloc(doubles.size() * sizeof(double)));
     if (head == nullptr) {
         return CArrDouble{0};
     }
@@ -283,7 +274,7 @@ CArrDouble vectorToDoubleArray(const std::vector<double> &doubles)
 
 CArrBool vectorToBoolArray(std::vector<bool> bools)
 {
-    bool* head = (bool*)malloc(bools.size() * sizeof(bool));
+    bool* head = static_cast<bool*>(malloc(bools.size() * sizeof(bool)));
     if (head == nullptr) {
         return CArrBool{0};
     }
@@ -298,12 +289,12 @@ CArrStr vectorToStringArray(std::vector<std::string> strings)
 {
     CArrStr strArray;
     strArray.size = static_cast<int64_t>(strings.size());
-    strArray.head = (char**)malloc(strArray.size * sizeof(char*));
+    strArray.head = static_cast<char**>(malloc(strArray.size * sizeof(char*)));
     if (strArray.head == nullptr) {
         return strArray;
     }
     for (int64_t i = 0; i < strArray.size; i++) {
-        strArray.head[i] = (char*)malloc((strings[i].length() + 1) * sizeof(char));
+        strArray.head[i] = static_cast<char*>(malloc((strings[i].length() + 1) * sizeof(char)));
         if (strArray.head[i] == nullptr) {
             return strArray;
         }
@@ -358,13 +349,13 @@ ValueType PreferencesValueToValueType(const PreferencesValue &pValue)
 
 ValueTypes PreferencesValuesToValueTypes(const std::map<std::string, PreferencesValue> &objects)
 {
-    ValueTypes valueTypes;
+    ValueTypes valueTypes = {0};
     valueTypes.size = static_cast<int64_t>(objects.size());
-    valueTypes.key = (char**)malloc(valueTypes.size * sizeof(char*));
+    valueTypes.key = static_cast<char**>(malloc(valueTypes.size * sizeof(char*)));
     if (valueTypes.key == nullptr) {
         return valueTypes;
     }
-    valueTypes.head = (ValueType*)malloc(valueTypes.size * sizeof(ValueType));
+    valueTypes.head = static_cast<ValueType*>(malloc(valueTypes.size * sizeof(ValueType)));
     if (valueTypes.head == nullptr) {
         free(valueTypes.key);
         return valueTypes;
@@ -372,7 +363,7 @@ ValueTypes PreferencesValuesToValueTypes(const std::map<std::string, Preferences
     int i = 0;
     for (auto const& [key, value] : objects) {
         // 将键转换成 char*
-        valueTypes.key[i] = (char*)malloc((key.length() + 1) * sizeof(char));
+        valueTypes.key[i] = static_cast<char*>(malloc((key.length() + 1) * sizeof(char)));
         if (valueTypes.key[i] == nullptr) {
             for (int j = i - 1; j >= 0; j--) {
                 free(valueTypes.key[j]);
@@ -431,8 +422,6 @@ int32_t PreferencesImpl::RegisterObserver(const std::string &mode, std::function
     const std::function<void(std::string)>& callbackRef)
 {
     std::lock_guard<std::mutex> lck(listMutex_);
-    auto &observers = (ConvertToRegisterMode(mode) == RegisterMode::LOCAL_CHANGE) ?
-                        localObservers_ : multiProcessObservers_;
     if (!HasRegisteredObserver(callback, ConvertToRegisterMode(mode))) {
         auto observer = std::make_shared<CJPreferencesObserver>(callback, callbackRef);
         if (preferences == nullptr) {
@@ -443,6 +432,8 @@ int32_t PreferencesImpl::RegisterObserver(const std::string &mode, std::function
         if (errCode != E_OK) {
             return errCode;
         }
+        auto &observers = (ConvertToRegisterMode(mode) == RegisterMode::LOCAL_CHANGE) ?
+                            localObservers_ : multiProcessObservers_;
         observers.push_back(observer);
     }
     return E_OK;
@@ -478,7 +469,7 @@ int32_t PreferencesImpl::UnRegisteredAllObservers(const std::string &mode)
     auto &observers = (ConvertToRegisterMode(mode) == RegisterMode::LOCAL_CHANGE) ?
                         localObservers_ : multiProcessObservers_;
     bool hasFailed = false;
-    int errCode = E_OK;
+    int errCode;
     if (preferences == nullptr) {
         LOGE("The preferences is nullptr.");
         return E_ERROR;
