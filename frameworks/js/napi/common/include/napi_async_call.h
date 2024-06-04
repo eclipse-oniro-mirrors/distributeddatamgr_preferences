@@ -18,7 +18,7 @@
 #include <functional>
 #include <memory>
 
-#include "js_utils.h"
+#include "js_common_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"

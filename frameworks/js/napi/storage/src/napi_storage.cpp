@@ -19,7 +19,7 @@
 #include <cmath>
 #include <limits>
 
-#include "js_utils.h"
+#include "js_common_utils.h"
 #include "napi_async_call.h"
 #include "preferences.h"
 #include "preferences_errno.h"
