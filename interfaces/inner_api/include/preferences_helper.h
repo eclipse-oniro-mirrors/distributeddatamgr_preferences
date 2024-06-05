@@ -69,7 +69,8 @@ public:
     PREF_API_EXPORT static int RemovePreferencesFromCache(const std::string &path);
 
 private:
-    static std::map<std::string, std::shared_ptr<Preferences>> prefsCache_;
+    // use bool to mark whether Preferences is EnhancePreferences or not
+    static std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>> prefsCache_;
     static std::mutex prefsCacheMutex_;
 
     static std::string GetRealPath(const std::string &path, int &errorCode);

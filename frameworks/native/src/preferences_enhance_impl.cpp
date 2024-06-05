@@ -96,7 +96,7 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     if (errCode != E_OK) {
         return errCode;
     }
-    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+
     std::vector<uint8_t> oriValue;
     uint32_t oriValueLen = PreferencesValueParcel::CalSize(value);
     oriValue.resize(oriValueLen);
@@ -106,10 +106,13 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
         return errCode;
     }
     std::vector<uint8_t> oriKey(key.begin(), key.end());
-    errCode = db_->Put(oriKey, oriValue);
-    if (errCode != E_OK) {
-        LOG_ERROR("put data failed, errCode=%{public}d", errCode);
-        return errCode;
+    {
+        std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+        errCode = db_->Put(oriKey, oriValue);
+        if (errCode != E_OK) {
+            LOG_ERROR("put data failed, errCode=%{public}d", errCode);
+            return errCode;
+        }
     }
     ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
         value);
@@ -123,12 +126,15 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     if (errCode != E_OK) {
         return errCode;
     }
-    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+
     std::vector<uint8_t> oriKey(key.begin(), key.end());
-    errCode = db_->Delete(oriKey);
-    if (errCode != E_OK) {
-        LOG_ERROR("delete data failed, errCode=%{public}d", errCode);
-        return errCode;
+    {
+        std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+        errCode = db_->Delete(oriKey);
+        if (errCode != E_OK) {
+            LOG_ERROR("delete data failed, errCode=%{public}d", errCode);
+            return errCode;
+        }
     }
     PreferencesValue value;
     ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
@@ -162,7 +168,7 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
 void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref,
     const std::string &key, const PreferencesValue &value)
 {
-    std::lock_guard<std::mutex> lock(pref->observerMapMutex_);
+    std::shared_lock<std::shared_mutex> readLock(pref->mapSharedMutex_);
     LOG_DEBUG("notify observer size:%{public}zu", pref->dataObserversMap_.size());
     for (const auto &[weakPrt, keys] : pref->dataObserversMap_) {
         std::map<std::string, PreferencesValue> records = {{key, value}};
@@ -181,6 +187,21 @@ void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<Preferenc
     if (dataObsMgrClient != nullptr) {
         dataObsMgrClient->NotifyChange(pref->MakeUri(key));
     }
+}
+
+int PreferencesEnhanceImpl::Clear()
+{
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    int errCode = db_->DropCollection(options_.filePath);
+    if (errCode != E_OK) {
+        LOG_ERROR("drop collection failed when clear, errCode=%{public}d", errCode);
+        return errCode;
+    }
+    errCode = db_->CreateCollection();
+    if (errCode != E_OK) {
+        LOG_ERROR("create collection failed when clear, errCode=%{public}d", errCode);
+    }
+    return errCode;
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

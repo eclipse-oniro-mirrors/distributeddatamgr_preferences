@@ -49,13 +49,15 @@ public:
     std::map<std::string, PreferencesValue> GetAll() override;
 
     int Delete(const std::string &key) override;
+
+    int Clear() override;
 private:
     explicit PreferencesEnhanceImpl(const Options &options);
     static void NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref, const std::string &key,
         const PreferencesValue &value);
     std::shared_mutex dbMutex_;
     std::shared_ptr<PreferencesDb> db_;
-    std::mutex observerMapMutex_;
+    std::shared_mutex mapSharedMutex_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
