@@ -392,12 +392,7 @@ ValueType PreferencesImpl::Get(const std::string &key, const ValueType &defValue
         LOGE("The preferences is nullptr.");
         return ValueType{0};
     }
-    auto result = PreferencesValueToValueType(preferences->Get(key, ValueTypeToPreferencesValue(defValue)));
-    if (result.tag == defValue.tag) {
-        return result;
-    } else {
-        return defValue;
-    }
+    return PreferencesValueToValueType(preferences->Get(key, ValueTypeToPreferencesValue(defValue)));
 }
 
 int32_t PreferencesImpl::Put(const std::string &key, const ValueType &value)
