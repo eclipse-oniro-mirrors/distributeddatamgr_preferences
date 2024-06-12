@@ -463,6 +463,7 @@ int PreferencesImpl::Delete(const std::string &key)
     if (errCode != E_OK) {
         return errCode;
     }
+    AwaitLoadFile();
 
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -477,6 +478,7 @@ int PreferencesImpl::Delete(const std::string &key)
 
 int PreferencesImpl::Clear()
 {
+    AwaitLoadFile();
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (!map_.empty()) {

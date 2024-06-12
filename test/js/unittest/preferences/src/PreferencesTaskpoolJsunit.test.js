@@ -77,7 +77,7 @@ describe('PreferencesTaskpoolJsunit', function () {
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Taskpool_0002
      * @tc.desc clear taskpool interface test
      */
-    it('testPreferencesTaskpoolClear0001', 0, async function (done) {
+    it('testPreferencesTaskpoolClear0002', 0, async function (done) {
         async function PreferencesPut() {
             for (let index = 0; index < 100; index++) {
                 let mPreferences = await data_preferences.getPreferences(context, NAME);

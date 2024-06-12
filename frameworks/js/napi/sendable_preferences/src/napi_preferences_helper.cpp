@@ -18,7 +18,7 @@
 
 #include "js_ability.h"
 #include "js_sendable_utils.h"
-#include "js_utils.h"
+#include "js_common_utils.h"
 #include "napi_async_call.h"
 #include "napi_preferences.h"
 #include "preferences.h"

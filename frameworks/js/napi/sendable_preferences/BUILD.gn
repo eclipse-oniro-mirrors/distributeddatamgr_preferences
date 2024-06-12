@@ -15,19 +15,11 @@ import("//build/ohos/ace/ace.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
 
 base_include = [
-  "${preferences_napi_path}/common/include",
   "${preferences_napi_path}/sendable_preferences/include",
   "${preferences_base_path}/frameworks/common/include",
 ]
 
 base_sources = [
-  "${preferences_napi_path}/common/src/js_observer.cpp",
-  "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
-  "${preferences_napi_path}/common/src/js_utils.cpp",
-  "${preferences_napi_path}/common/src/napi_async_call.cpp",
-  "${preferences_napi_path}/common/src/napi_preferences_error.cpp",
-  "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
-  "${preferences_napi_path}/common/src/uv_queue.cpp",
   "${preferences_napi_path}/sendable_preferences/src/entry_point.cpp",
   "${preferences_napi_path}/sendable_preferences/src/napi_preferences.cpp",
   "${preferences_napi_path}/sendable_preferences/src/napi_preferences_helper.cpp",
@@ -54,10 +46,15 @@ if (is_ohos) {
     }
     include_dirs = base_include
     sources = base_sources
-    sources += [ "${preferences_napi_path}/common/src/js_ability.cpp" ]
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+    ]
 
-    deps =
-        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
+    deps = [
+      "${preferences_base_path}/interfaces/inner_api:native_preferences",
+      "${preferences_napi_path}/common:preferences_jscommon",
+    ]
 
     external_deps = [
       "ability_runtime:abilitykit_native",

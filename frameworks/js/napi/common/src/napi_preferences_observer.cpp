@@ -14,7 +14,7 @@
  */
 #include "napi_preferences_observer.h"
 
-#include "js_utils.h"
+#include "js_common_utils.h"
 #include "js_sendable_utils.h"
 
 using namespace OHOS::NativePreferences;
