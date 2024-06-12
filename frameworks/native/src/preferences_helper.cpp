@@ -30,7 +30,7 @@
 #include "preferences_enhance_impl.h"
 namespace OHOS {
 namespace NativePreferences {
-std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
+std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
 
 static bool IsFileExist(const std::string &path)
@@ -141,8 +141,8 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
 
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
     auto it = prefsCache_.find(realPath);
-    if (it != prefsCache_.end() && !((it->second).first.expired())) {
-        auto pre = (it->second).first.lock();
+    if (it != prefsCache_.end()) {
+        auto pre = it->second.first;
         if (pre != nullptr) {
             return pre;
         }
@@ -169,8 +169,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     if (errCode != E_OK) {
         return nullptr;
     }
-    auto weakPref = std::weak_ptr<Preferences> { pref };
-    prefsCache_.insert(make_pair(realPath, make_pair(weakPref, isEnhancePreferences)));
+    prefsCache_.insert({realPath, {pref, isEnhancePreferences}});
     return pref;
 }
 
@@ -185,9 +184,9 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string dataGroupId = "";
     {
         std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-        std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
+        std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
         if (it != prefsCache_.end()) {
-            auto pref = ((it->second).first).lock();
+            auto pref = it->second.first;
             if (pref != nullptr) {
                 dataGroupId = pref->GetGroupId();
             }
@@ -227,7 +226,7 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
     }
 
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-    std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
+    std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
     if (it == prefsCache_.end()) {
         return E_OK;
     }

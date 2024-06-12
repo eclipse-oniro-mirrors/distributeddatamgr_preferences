@@ -70,7 +70,7 @@ public:
 
 private:
     // use bool to mark whether Preferences is EnhancePreferences or not
-    static std::map<std::string, std::pair<std::weak_ptr<Preferences>, bool>> prefsCache_;
+    static std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> prefsCache_;
     static std::mutex prefsCacheMutex_;
 
     static std::string GetRealPath(const std::string &path, int &errorCode);
