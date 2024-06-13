@@ -356,6 +356,11 @@ public:
         return "";
     }
 
+    virtual int CloseDb()
+    {
+        return E_OK;
+    }
+
     /**
      * @brief  Registers a data observer.
      *

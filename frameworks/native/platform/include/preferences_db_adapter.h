@@ -111,14 +111,16 @@ public:
     int Delete(const std::vector<uint8_t> &key);
     int Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &value);
     int GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data);
-    int DropCollection(const std::string &dbPath);
+    int DropCollection();
     int CreateCollection();
     int GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data, GRD_ResultSet *resultSet);
+    int OpenDb();
+    int CloseDb();
 private:
     GRD_KVItemT BlobToKvItem(const std::vector<uint8_t> &blob);
     std::vector<uint8_t> KvItemToBlob(GRD_KVItemT &item);
     GRD_DB *db_ = nullptr;
-    bool isOpen_ = false;
+    std::string dbPath_ = "";
 };
 
 // grd errcode

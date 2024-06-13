@@ -97,6 +97,8 @@ public:
         const std::vector<std::string> &keys = {}) override;
 
     std::string GetGroupId() const override;
+
+    int CloseDb() override;
 protected:
     Uri MakeUri(const std::string &key = "");
     struct WeakPtrCompare {

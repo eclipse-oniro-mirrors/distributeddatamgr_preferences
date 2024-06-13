@@ -55,6 +55,11 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
         return defValue;
     }
     std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
+    if (db_ == nullptr) {
+        LOG_ERROR("PreferencesEnhanceImpl:Get failed, db has been closed.");
+        return defValue;
+    }
+
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
@@ -76,6 +81,11 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
         return false;
     }
     std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
+    if (db_ == nullptr) {
+        LOG_ERROR("PreferencesEnhanceImpl:HasKey failed, db has been closed.");
+        return E_ERROR;
+    }
+
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
@@ -96,6 +106,11 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     if (errCode != E_OK) {
         return errCode;
     }
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    if (db_ == nullptr) {
+        LOG_ERROR("PreferencesEnhanceImpl:Put failed, db has been closed.");
+        return E_ERROR;
+    }
 
     std::vector<uint8_t> oriValue;
     uint32_t oriValueLen = PreferencesValueParcel::CalSize(value);
@@ -106,14 +121,12 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
         return errCode;
     }
     std::vector<uint8_t> oriKey(key.begin(), key.end());
-    {
-        std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
-        errCode = db_->Put(oriKey, oriValue);
-        if (errCode != E_OK) {
-            LOG_ERROR("put data failed, errCode=%{public}d", errCode);
-            return errCode;
-        }
+    errCode = db_->Put(oriKey, oriValue);
+    if (errCode != E_OK) {
+        LOG_ERROR("put data failed, errCode=%{public}d", errCode);
+        return errCode;
     }
+
     ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
         value);
     executorPool_.Execute(std::move(task));
@@ -126,16 +139,19 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     if (errCode != E_OK) {
         return errCode;
     }
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    if (db_ == nullptr) {
+        LOG_ERROR("PreferencesEnhanceImpl:Delete failed, db has been closed.");
+        return E_ERROR;
+    }
 
     std::vector<uint8_t> oriKey(key.begin(), key.end());
-    {
-        std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
-        errCode = db_->Delete(oriKey);
-        if (errCode != E_OK) {
-            LOG_ERROR("delete data failed, errCode=%{public}d", errCode);
-            return errCode;
-        }
+    errCode = db_->Delete(oriKey);
+    if (errCode != E_OK) {
+        LOG_ERROR("delete data failed, errCode=%{public}d", errCode);
+        return errCode;
     }
+
     PreferencesValue value;
     ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
         value);
@@ -146,6 +162,11 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
 std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
 {
     std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
+    if (db_ == nullptr) {
+        LOG_ERROR("PreferencesEnhanceImpl:GetAll failed, db has been closed.");
+        return {};
+    }
+
     std::map<std::string, PreferencesValue> result;
     std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> data;
     int errCode = db_->GetAll(data);
@@ -192,7 +213,12 @@ void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<Preferenc
 int PreferencesEnhanceImpl::Clear()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
-    int errCode = db_->DropCollection(options_.filePath);
+    if (db_ == nullptr) {
+        LOG_ERROR("PreferencesEnhanceImpl:Clear failed, db has been closed.");
+        return E_ERROR;
+    }
+
+    int errCode = db_->DropCollection();
     if (errCode != E_OK) {
         LOG_ERROR("drop collection failed when clear, errCode=%{public}d", errCode);
         return errCode;
@@ -203,5 +229,22 @@ int PreferencesEnhanceImpl::Clear()
     }
     return errCode;
 }
+
+int PreferencesEnhanceImpl::CloseDb()
+{
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    if (db_ == nullptr) {
+        LOG_WARN("PreferencesEnhanceImpl:CloseDb failed, db has been closed, no need to close again.");
+        return E_OK;
+    }
+    int errCode = db_->CloseDb();
+    if (errCode != E_OK) {
+        LOG_ERROR("PreferencesEnhanceImpl:CloseDb failed.");
+        return errCode;
+    }
+    db_ = nullptr;
+    return E_OK;
+}
+
 } // End of namespace NativePreferences
 } // End of namespace OHOS

@@ -51,6 +51,8 @@ public:
     int Delete(const std::string &key) override;
 
     int Clear() override;
+
+    int CloseDb() override;
 private:
     explicit PreferencesEnhanceImpl(const Options &options);
     static void NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref, const std::string &key,
