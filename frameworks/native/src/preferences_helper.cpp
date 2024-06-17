@@ -51,6 +51,11 @@ static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
+    tmpFilePath = dbFilePath + ".ctrl.dwr";
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
+        LOG_ERROR("remove ctrl dwr File failed.");
+        return E_DELETE_FILE_FAIL;
+    }
     tmpFilePath = dbFilePath + ".redo";
     if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
