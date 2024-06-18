@@ -213,6 +213,11 @@ std::string PreferencesBase::GetGroupId() const
     return options_.dataGroupId;
 }
 
+int PreferencesBase::CloseDb()
+{
+    return E_OK;
+}
+
 int PreferencesBase::RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
     const std::vector<std::string> &keys)
 {

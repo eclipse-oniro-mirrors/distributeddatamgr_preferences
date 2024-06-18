@@ -121,11 +121,33 @@ void PreferenceDbAdapter::ApiInit()
 PreferencesDb::PreferencesDb()
 {
 }
+
 PreferencesDb::~PreferencesDb()
 {
     if (db_ != nullptr) {
         PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_, GRD_DB_CLOSE_IGNORE_ERROR);
+        db_ = nullptr;
+        LOG_DEBUG("destructor: calling close db.");
+    } else {
+        LOG_DEBUG("destructor: db closed before.");
     }
+}
+
+int PreferencesDb::CloseDb()
+{
+    if (db_ != nullptr) {
+        int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_,
+            GRD_DB_CLOSE_IGNORE_ERROR));
+        if (errCode != E_OK) {
+            LOG_ERROR("close db failed, errcode=%{public}d", errCode);
+            return errCode;
+        }
+        LOG_INFO("db has been closed.");
+        db_ = nullptr;
+        return E_OK;
+    }
+    LOG_INFO("CloseDb: DB closed before.");
+    return E_OK;
 }
 
 int PreferencesDb::CreateCollection()
@@ -138,29 +160,34 @@ int PreferencesDb::CreateCollection()
     return errCode;
 }
 
+int PreferencesDb::OpenDb()
+{
+    return TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(),
+        CONFIG_STR, GRD_DB_OPEN_CREATE, &db_));
+}
+
 int PreferencesDb::Init(const std::string &dbPath)
 {
     if (db_ != nullptr) {
-        LOG_DEBUG("db handle is already inited");
+        LOG_DEBUG("Init: already init.");
         return E_OK;
     }
-    const std::string realDbPath = dbPath + ".db";
-    int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbOpenApi(realDbPath.c_str(),
-        CONFIG_STR, GRD_DB_OPEN_CREATE, &db_));
+    dbPath_ = dbPath + ".db";
+    int errCode = OpenDb();
     if (errCode != E_OK) {
         LOG_ERROR("rd open failed:%{public}d", errCode);
         return errCode;
     }
-    isOpen_ = true;
+
     errCode = CreateCollection();
     if (errCode != E_OK) {
-        LOG_ERROR("create collection failed when init.");
-        return errCode;
+        LOG_ERROR("create collection failed when init, but ignored.");
+        // ignore create collection error
     }
 
     errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbIndexPreloadApi(db_, TABLENAME));
     if (errCode != E_OK) {
-        LOG_ERROR("Index preload FAILED %{public}d", errCode);
+        LOG_ERROR("Init: Index preload FAILED %{public}d", errCode);
         return errCode;
     }
     return errCode;
@@ -169,9 +196,10 @@ int PreferencesDb::Init(const std::string &dbPath)
 int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_t> &value)
 {
     if (db_ == nullptr) {
-        LOG_DEBUG("db handle is nullptr");
+        LOG_ERROR("Put failed, db has been closed.");
         return E_ERROR;
     }
+
     GRD_KVItemT innerKey = BlobToKvItem(key);
     GRD_KVItemT innerVal = BlobToKvItem(value);
 
@@ -200,9 +228,10 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
 int PreferencesDb::Delete(const std::vector<uint8_t> &key)
 {
     if (db_ == nullptr) {
-        LOG_DEBUG("db handle is nullptr");
+        LOG_ERROR("Delete failed, db has been closed.");
         return E_ERROR;
     }
+
     GRD_KVItemT innerKey = BlobToKvItem(key);
 
     int retryTimes = CREATE_COLLECTION_RETRY_TIMES;
@@ -226,12 +255,14 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
     LOG_ERROR("rd delete over retry times, errcode: :%{public}d", ret);
     return ret;
 }
+
 int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &value)
 {
     if (db_ == nullptr) {
-        LOG_DEBUG("db handle is nullptr");
+        LOG_ERROR("Get failed, db has been closed.");
         return E_ERROR;
     }
+
     GRD_KVItemT innerKey = BlobToKvItem(key);
     GRD_KVItemT innerVal = { NULL, 0 };
 
@@ -294,9 +325,10 @@ int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::ve
 int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data)
 {
     if (db_ == nullptr) {
-        LOG_DEBUG("db handle is nullptr");
+        LOG_ERROR("GetAll failed, db has been closed.");
         return E_ERROR;
     }
+
     GRD_FilterOptionT param;
     param.mode = KV_SCAN_ALL;
     GRD_ResultSet *resultSet = nullptr;
@@ -327,23 +359,14 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
     return GetAllInner(data, resultSet);
 }
 
-int PreferencesDb::DropCollection(const std::string &dbPath)
+int PreferencesDb::DropCollection()
 {
     if (db_ == nullptr) {
-        LOG_DEBUG("db handle is nullptr");
+        LOG_ERROR("DropCollection failed, db has been closed.");
         return E_ERROR;
     }
-    int errCode = E_OK;
-    if (!isOpen_) {
-        const std::string realDbPath = dbPath + ".db";
-        errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbOpenApi(realDbPath.c_str(),
-            CONFIG_STR, GRD_DB_OPEN_CREATE, &db_));
-        if (errCode != E_OK) {
-            LOG_ERROR("rd open failed when drop collection:%{public}d", errCode);
-            return errCode;
-        }
-    }
-    errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0));
+
+    int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0));
     if (errCode != E_OK) {
         LOG_ERROR("rd drop collection failed:%{public}d", errCode);
     }

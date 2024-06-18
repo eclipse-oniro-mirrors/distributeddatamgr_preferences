@@ -71,6 +71,7 @@ static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
+    LOG_DEBUG("db files has been removed.");
     return E_OK;
 }
 
@@ -148,8 +149,10 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     if (it != prefsCache_.end()) {
         auto pre = it->second.first;
         if (pre != nullptr) {
+            LOG_INFO("GetPreferences: found preferences in cache");
             return pre;
         }
+        LOG_INFO("GetPreferences: found preferences in cache but it's null, erase it.");
         prefsCache_.erase(it);
     }
 
@@ -193,8 +196,17 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
             auto pref = it->second.first;
             if (pref != nullptr) {
                 dataGroupId = pref->GetGroupId();
+                errCode = pref->CloseDb();
+                if (errCode != E_OK) {
+                    LOG_ERROR("failed to close db when delete preferences.");
+                    return errCode;
+                }
             }
+            pref = nullptr;
             prefsCache_.erase(it);
+            LOG_INFO("DeletePreferences: found preferences in cache, erase it.");
+        } else {
+            LOG_INFO("DeletePreferences: cache not found, just delete files.");
         }
     }
 
@@ -232,12 +244,19 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
     std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
     if (it == prefsCache_.end()) {
+        LOG_INFO("RemovePreferencesFromCache: preferences not in cache, just return");
         return E_OK;
     }
-    if ((it->second).second) {
-        // for enhance preferences, remove preferences from cache do nothing actually
-        return E_OK;
+
+    if (it->second.second) {
+        auto pref = it->second.first;
+        errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();
+        if (errCode != E_OK) {
+            LOG_ERROR("RemovePreferencesFromCache: failed to close db.");
+            return E_ERROR;
+        }
     }
+
     prefsCache_.erase(it);
     return E_OK;
 }
