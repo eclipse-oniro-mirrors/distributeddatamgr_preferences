@@ -128,7 +128,11 @@ static bool IsUseEnhanceDb(const Options &options)
         return false;
     }
     PreferenceDbAdapter::ApiInit();
-    return (options.bundleName.find("uttest") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
+    return (options.bundleName.find("uttest") != std::string::npos ||
+        options.bundleName.find("alipay") != std::string::npos ||
+        options.bundleName.find("com.jd.") != std::string::npos ||
+        options.bundleName.find("cmblife") != std::string::npos ||
+        options.bundleName.find("meetimeservice") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
 }
 #endif
 
