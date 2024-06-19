@@ -133,6 +133,7 @@ static bool IsUseEnhanceDb(const Options &options)
         options.bundleName.find("alipay") != std::string::npos ||
         options.bundleName.find("com.jd.") != std::string::npos ||
         options.bundleName.find("cmblife") != std::string::npos ||
+        options.bundleName.find("os.mms") != std::string::npos ||
         options.bundleName.find("meetimeservice") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
 }
 #endif
