@@ -157,8 +157,8 @@ if (is_ohos) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_android",
       "//commonlibrary/c_utils/base:utilsbase",
+      "//third_party/libxml2:libxml2",
     ]
-    external_deps = [ "libxml2:libxml2" ]
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
@@ -176,8 +176,8 @@ if (is_ohos) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//commonlibrary/c_utils/base:utilsbase",
+      "//third_party/libxml2:libxml2",
     ]
-    external_deps = [ "libxml2:libxml2" ]
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
