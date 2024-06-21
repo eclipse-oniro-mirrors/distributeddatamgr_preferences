@@ -150,10 +150,10 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     if (it != prefsCache_.end()) {
         auto pre = it->second.first;
         if (pre != nullptr) {
-            LOG_INFO("GetPreferences: found preferences in cache");
+            LOG_DEBUG("GetPreferences: found preferences in cache");
             return pre;
         }
-        LOG_INFO("GetPreferences: found preferences in cache but it's null, erase it.");
+        LOG_DEBUG("GetPreferences: found preferences in cache but it's null, erase it.");
         prefsCache_.erase(it);
     }
 
