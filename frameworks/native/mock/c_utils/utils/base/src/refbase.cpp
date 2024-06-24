@@ -229,7 +229,9 @@ ATTEMPT_SUCCESS:
 RefBase::RefBase() : refs_(new RefCounter())
 {
     refs_->IncRefCount();
-    refs_->SetCallback(std::bind(&RefBase::RefPtrCallback, this));
+    refs_->SetCallback([this] {
+        this->RefPtrCallback();
+    });
 }
 
 RefBase::RefBase(const RefBase &other)
@@ -237,7 +239,9 @@ RefBase::RefBase(const RefBase &other)
     refs_ = new RefCounter();
     if (refs_ != nullptr) {
         refs_->IncRefCount();
-        refs_->SetCallback(std::bind(&RefBase::RefPtrCallback, this));
+        refs_->SetCallback([this] {
+            this->RefPtrCallback();
+        });
     }
 }
 
@@ -256,7 +260,9 @@ RefBase &RefBase::operator=(const RefBase &other)
     refs_ = new RefCounter();
     if (refs_ != nullptr) {
         refs_->IncRefCount();
-        refs_->SetCallback(std::bind(&RefBase::RefPtrCallback, this));
+        refs_->SetCallback([this] {
+            this->RefPtrCallback();
+        });
     }
 
     return *this;

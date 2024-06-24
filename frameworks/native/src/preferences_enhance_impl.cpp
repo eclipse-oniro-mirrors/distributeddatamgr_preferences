@@ -127,8 +127,9 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
         return errCode;
     }
 
-    ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
-        value);
+    ExecutorPool::Task task = [pref = shared_from_this(), key, value] {
+        PreferencesEnhanceImpl::NotifyPreferencesObserver(pref, key, value);
+    };
     executorPool_.Execute(std::move(task));
     return E_OK;
 }
@@ -153,8 +154,9 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     }
 
     PreferencesValue value;
-    ExecutorPool::Task task = std::bind(PreferencesEnhanceImpl::NotifyPreferencesObserver, shared_from_this(), key,
-        value);
+    ExecutorPool::Task task = [pref = shared_from_this(), key, value] {
+        PreferencesEnhanceImpl::NotifyPreferencesObserver(pref, key, value);
+    };
     executorPool_.Execute(std::move(task));
     return E_OK;
 }
