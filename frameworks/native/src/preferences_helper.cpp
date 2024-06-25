@@ -210,9 +210,9 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
             }
             pref = nullptr;
             prefsCache_.erase(it);
-            LOG_INFO("DeletePreferences: found preferences in cache, erase it.");
+            LOG_DEBUG("DeletePreferences: found preferences in cache, erase it.");
         } else {
-            LOG_INFO("DeletePreferences: cache not found, just delete files.");
+            LOG_DEBUG("DeletePreferences: cache not found, just delete files.");
         }
     }
 
