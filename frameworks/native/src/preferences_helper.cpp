@@ -250,7 +250,7 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
     std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
     if (it == prefsCache_.end()) {
-        LOG_INFO("RemovePreferencesFromCache: preferences not in cache, just return");
+        LOG_DEBUG("RemovePreferencesFromCache: preferences not in cache, just return");
         return E_OK;
     }
 
