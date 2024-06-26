@@ -147,7 +147,7 @@ bool PreferencesImpl::StartLoadFromDisk()
         loaded_ = false;
     }
 
-    ExecutorPool::Task task = std::bind(PreferencesImpl::LoadFromDisk, shared_from_this());
+    ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
     return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
 }
 
@@ -494,7 +494,7 @@ void PreferencesImpl::Flush()
 {
     std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
     request->isSyncRequest_ = false;
-    ExecutorPool::Task task = std::bind(PreferencesImpl::WriteToDiskFile, shared_from_this(), request);
+    ExecutorPool::Task task = [pref = shared_from_this(), request] { PreferencesImpl::WriteToDiskFile(pref, request); };
     executorPool_.Execute(std::move(task));
 
     NotifyPreferencesObserver(*request);
