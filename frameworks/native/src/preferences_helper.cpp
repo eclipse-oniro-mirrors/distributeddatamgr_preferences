@@ -210,9 +210,9 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
             }
             pref = nullptr;
             prefsCache_.erase(it);
-            LOG_INFO("DeletePreferences: found preferences in cache, erase it.");
+            LOG_DEBUG("DeletePreferences: found preferences in cache, erase it.");
         } else {
-            LOG_INFO("DeletePreferences: cache not found, just delete files.");
+            LOG_DEBUG("DeletePreferences: cache not found, just delete files.");
         }
     }
 
@@ -250,7 +250,7 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
     std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
     if (it == prefsCache_.end()) {
-        LOG_INFO("RemovePreferencesFromCache: preferences not in cache, just return");
+        LOG_DEBUG("RemovePreferencesFromCache: preferences not in cache, just return");
         return E_OK;
     }
 

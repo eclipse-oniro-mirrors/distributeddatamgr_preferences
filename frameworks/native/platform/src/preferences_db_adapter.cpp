@@ -197,7 +197,7 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
 {
     if (db_ == nullptr) {
         LOG_ERROR("Put failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     GRD_KVItemT innerKey = BlobToKvItem(key);
@@ -229,7 +229,7 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
 {
     if (db_ == nullptr) {
         LOG_ERROR("Delete failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     GRD_KVItemT innerKey = BlobToKvItem(key);
@@ -260,7 +260,7 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
 {
     if (db_ == nullptr) {
         LOG_ERROR("Get failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     GRD_KVItemT innerKey = BlobToKvItem(key);
@@ -326,7 +326,7 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
 {
     if (db_ == nullptr) {
         LOG_ERROR("GetAll failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     GRD_FilterOptionT param;
@@ -363,7 +363,7 @@ int PreferencesDb::DropCollection()
 {
     if (db_ == nullptr) {
         LOG_ERROR("DropCollection failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0));
