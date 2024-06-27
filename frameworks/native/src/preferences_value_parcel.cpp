@@ -201,6 +201,9 @@ int PreferencesValueParcel::MarshallingStringValue(const PreferencesValue &value
         LOG_ERROR("memcpy failed when marshalling string value's str len, %{public}d", errCode);
         return -E_ERROR;
     }
+    if (strLen == 0) {
+        return E_OK;
+    }
     errCode = memcpy_s(startAddr + sizeof(uint8_t) + sizeof(size_t), strLen,
         stringValue.c_str(), strLen);
     if (errCode != E_OK) {
@@ -247,7 +250,9 @@ int PreferencesValueParcel::MarshallingStringArrayValue(const PreferencesValue &
             return -E_ERROR;
         }
         startAddr += sizeof(size_t);
-
+        if (strLen == 0) {
+            continue;
+        }
         errCode = memcpy_s(startAddr, strLen, strVec[i].c_str(), strLen);
         if (errCode != E_OK) {
             LOG_ERROR("memcpy failed when marshalling string array value's str data, %{public}d", errCode);
@@ -267,6 +272,9 @@ int PreferencesValueParcel::MarshallingVecUInt8AfterType(const PreferencesValue 
     if (errCode != E_OK) {
         LOG_ERROR("memcpy failed when marshalling uint8 array value's vector num, %{public}d", errCode);
         return E_ERROR;
+    }
+    if (vecNum == 0) {
+        return E_OK;
     }
     startAddr += sizeof(size_t);
     errCode = memcpy_s(startAddr, vecNum * sizeof(uint8_t), vec.data(), vecNum * sizeof(uint8_t));
@@ -477,9 +485,13 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingStringValu
     const uint8_t *startAddr = data.data();
     std::string strValue;
     size_t strLen = *(reinterpret_cast<const size_t *>(startAddr + sizeof(uint8_t)));
-    strValue.resize(strLen);
-    strValue.assign(startAddr + sizeof(uint8_t) + sizeof(size_t), startAddr + sizeof(uint8_t) + sizeof(size_t) +
-        strLen);
+    if (strLen == 0) {
+        strValue = "";
+    } else {
+        strValue.resize(strLen);
+        strValue.assign(startAddr + sizeof(uint8_t) + sizeof(size_t), startAddr + sizeof(uint8_t) + sizeof(size_t) +
+            strLen);
+    }
 
     if (type == OBJECT_TYPE) {
         Object obj;
@@ -508,8 +520,12 @@ std::pair<int, PreferencesValue> PreferencesValueParcel::UnmarshallingStringArra
         size_t strLen = *(reinterpret_cast<const size_t *>(startAddr));
         startAddr += sizeof(size_t);
         std::string strValue;
-        strValue.resize(strLen);
-        strValue.assign(startAddr, startAddr + strLen);
+        if (strLen == 0) {
+            strValue = "";
+        } else {
+            strValue.resize(strLen);
+            strValue.assign(startAddr, startAddr + strLen);
+        }
         strVec[i] = strValue;
         startAddr += strLen;
     }
