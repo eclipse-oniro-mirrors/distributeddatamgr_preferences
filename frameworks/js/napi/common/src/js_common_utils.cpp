@@ -22,11 +22,6 @@
 #include "js_native_api_types.h"
 #include "log_print.h"
 
-#ifndef MAC_PLATFORM
-#include "securec.h"
-#endif
-
-
 namespace OHOS {
 namespace PreferencesJsKit {
 using namespace OHOS::NativePreferences;

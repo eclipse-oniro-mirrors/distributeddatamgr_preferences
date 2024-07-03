@@ -23,7 +23,6 @@
 #include "napi_preferences.h"
 #include "preferences.h"
 #include "preferences_errno.h"
-#include "securec.h"
 
 using namespace OHOS::NativePreferences;
 using namespace OHOS::PreferencesJsKit;

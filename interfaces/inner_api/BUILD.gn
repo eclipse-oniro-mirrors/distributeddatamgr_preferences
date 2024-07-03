@@ -100,6 +100,7 @@ if (is_ohos) {
     external_deps = [
       "ability_base:zuri",
       "ability_runtime:dataobs_manager",
+      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
@@ -137,7 +138,10 @@ if (is_ohos) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
     ]
-    external_deps = [ "libxml2:static_libxml2" ]
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "libxml2:static_libxml2",
+    ]
     public_configs = [ ":native_preferences_public_config" ]
 
     subsystem_name = "distributeddatamgr"
@@ -157,6 +161,7 @@ if (is_ohos) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_android",
       "//commonlibrary/c_utils/base:utilsbase",
+      "//third_party/bounds_checking_function:libsec_static",
       "//third_party/libxml2:libxml2",
     ]
     public_configs = [ ":native_preferences_public_config" ]
@@ -176,6 +181,7 @@ if (is_ohos) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//commonlibrary/c_utils/base:utilsbase",
+      "//third_party/bounds_checking_function:libsec_static",
       "//third_party/libxml2:libxml2",
     ]
     public_configs = [ ":native_preferences_public_config" ]
@@ -185,7 +191,6 @@ if (is_ohos) {
 }
 
 ohos_static_library("native_preferences_static") {
-  all_dependent_configs = [ ":native_preferences_public_config" ]
   sources = base_sources
   configs = [ ":native_preferences_config" ]
 
@@ -209,7 +214,10 @@ ohos_static_library("native_preferences_static") {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
     ]
-    external_deps = [ "libxml2:static_libxml2" ]
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "libxml2:static_libxml2",
+    ]
   } else {
     if (is_ohos) {
       branch_protector_ret = "pac_ret"
@@ -229,6 +237,7 @@ ohos_static_library("native_preferences_static") {
     external_deps = [
       "ability_base:zuri",
       "ability_runtime:dataobs_manager",
+      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
