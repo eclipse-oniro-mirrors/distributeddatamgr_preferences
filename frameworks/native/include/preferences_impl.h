@@ -23,6 +23,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <shared_mutex>
 
 #include "preferences_base.h"
 
@@ -88,7 +89,7 @@ private:
     bool ReadSettingXml(std::shared_ptr<PreferencesImpl> pref);
     bool WriteSettingXml(std::shared_ptr<PreferencesImpl> pref, const std::map<std::string, PreferencesValue> &prefMap);
 
-    bool loaded_;
+    std::atomic<bool> loaded_;
 
     /* Current memory state (always increasing) */
     int64_t currentMemoryStateGeneration_;
@@ -98,6 +99,8 @@ private:
     std::list<std::string> modifiedKeys_;
 
     std::map<std::string, PreferencesValue> map_;
+
+    std::shared_mutex dataMetux_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
