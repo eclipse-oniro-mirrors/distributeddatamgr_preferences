@@ -142,10 +142,7 @@ int PreferencesImpl::Init()
 
 bool PreferencesImpl::StartLoadFromDisk()
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        loaded_ = false;
-    }
+    loaded_.store(false);
 
     ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
     return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
@@ -154,27 +151,33 @@ bool PreferencesImpl::StartLoadFromDisk()
 /* static */
 void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
 {
-    std::lock_guard<std::mutex> lock(pref->mutex_);
-    if (pref->loaded_) {
+    if (pref->loaded_.load()) {
         return;
     }
-    bool loadResult = pref->ReadSettingXml(pref);
-    if (!loadResult) {
-        auto time = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-        LOG_ERROR("The settingXml load failed. times %{public}" PRIu64 ".", time);
+    std::lock_guard<std::mutex> lock(pref->mutex_);
+    if (!pref->loaded_.load()) {
+        bool loadResult = pref->ReadSettingXml(pref);
+        if (!loadResult) {
+            auto time = static_cast<uint64_t>(
+                duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+            LOG_ERROR("The settingXml load failed. times %{public}" PRIu64 ".", time);
+        }
+        pref->loaded_ = true;
+        pref->cond_.notify_all();
     }
-    pref->loaded_ = true;
-    pref->cond_.notify_all();
 }
 
 void PreferencesImpl::AwaitLoadFile()
 {
+    if (loaded_.load()) {
+        return;
+    }
     std::unique_lock<std::mutex> lock(mutex_);
-    if (!loaded_) {
-        cond_.wait_for(lock, std::chrono::seconds(WAIT_TIME), [this] { return loaded_; });
+    if (!loaded_.load()) {
+        cond_.wait_for(lock, std::chrono::seconds(WAIT_TIME), [this] { return loaded_.load(); });
     }
 
-    if (!loaded_) {
+    if (!loaded_.load()) {
         LOG_ERROR("The settingXml load timeout.");
     }
 }
@@ -215,7 +218,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
     }
 
     AwaitLoadFile();
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
     auto iter = map_.find(key);
     if (iter != map_.end()) {
         return iter->second;
@@ -226,7 +229,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
 std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
 {
     AwaitLoadFile();
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
     return map_;
 }
 
@@ -427,7 +430,7 @@ bool PreferencesImpl::HasKey(const std::string &key)
 
     AwaitLoadFile();
 
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
     return (map_.find(key) != map_.end());
 }
 
@@ -443,7 +446,7 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     }
     AwaitLoadFile();
 
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> writeLock(dataMetux_);
 
     auto iter = map_.find(key);
     if (iter != map_.end()) {
@@ -465,7 +468,7 @@ int PreferencesImpl::Delete(const std::string &key)
     }
     AwaitLoadFile();
 
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> writeLock(dataMetux_);
 
     auto pos = map_.find(key);
     if (pos != map_.end()) {
@@ -479,7 +482,7 @@ int PreferencesImpl::Delete(const std::string &key)
 int PreferencesImpl::Clear()
 {
     AwaitLoadFile();
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> writeLock(dataMetux_);
 
     if (!map_.empty()) {
         for (auto &kv : map_) {
@@ -520,11 +523,14 @@ std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> PreferencesImpl::commitToM
     std::list<std::string> keysModified;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
     std::map<std::string, PreferencesValue> writeToDiskMap;
-    writeToDiskMap = map_;
-    if (!modifiedKeys_.empty()) {
-        currentMemoryStateGeneration_++;
-        keysModified = modifiedKeys_;
-        modifiedKeys_.clear();
+    {
+        std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
+        writeToDiskMap = map_;
+        if (!modifiedKeys_.empty()) {
+            currentMemoryStateGeneration_++;
+            keysModified = modifiedKeys_;
+            modifiedKeys_.clear();
+        }
     }
     memoryStateGeneration = currentMemoryStateGeneration_;
     preferencesObservers = localObservers_;
