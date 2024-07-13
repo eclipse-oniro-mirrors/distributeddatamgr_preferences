@@ -166,6 +166,39 @@ int PreferencesDb::OpenDb()
         CONFIG_STR, GRD_DB_OPEN_CREATE, &db_));
 }
 
+size_t PreferencesDb::CheckDbFiles(const std::vector<std::string> &dbFiles)
+{
+    size_t filesCount = 0;
+    bool dbExist = IsFileExist(dbFiles[0]);
+    if (dbExist) {
+        filesCount++;
+    }
+    for (size_t i = 1; i < dbFiles.size(); i++) {
+        if (IsFileExist(dbFiles[i])) {
+            filesCount++;
+        } else if (dbExist) {
+            LOG_ERROR("missing dbFiles %{public}zu", i);
+        }
+    }
+    return filesCount;
+}
+
+int PreferencesDb::RebuildDb(const std::vector<std::string> &dbFiles)
+{
+    for (size_t i = 0; i < dbFiles.size(); i++) {
+        if (IsFileExist(dbFiles[i]) && std::remove(dbFiles[i].c_str()) != 0) {
+            LOG_ERROR("remove dbFile %{public}zu failed.", i);
+            return E_DELETE_FILE_FAIL;
+        }
+    }
+    int errCode = OpenDb();
+    if (errCode != E_OK) {
+        LOG_ERROR("rd rebuild failed:%{public}d", errCode);
+        return errCode;
+    }
+    return E_OK;
+}
+
 int PreferencesDb::Init(const std::string &dbPath)
 {
     if (db_ != nullptr) {
@@ -173,8 +206,25 @@ int PreferencesDb::Init(const std::string &dbPath)
         return E_OK;
     }
     dbPath_ = dbPath + ".db";
-    int errCode = OpenDb();
-    if (errCode != E_OK) {
+    const std::vector<std::string> dbNecessaryFiles{dbPath_, dbPath_ + ".ctrl", dbPath_ + ".ctrl.dwr",
+        dbPath_ + ".redo", dbPath_ + ".undo"};
+
+    int errCode = E_OK;
+    size_t dbFilesCount = CheckDbFiles(dbNecessaryFiles);
+    bool dbFilesCheck = (dbFilesCount == 0 || dbFilesCount == dbNecessaryFiles.size());
+    if (dbFilesCheck) {
+        errCode = OpenDb();
+    }
+
+    if (errCode == GRD_DATA_CORRUPTED || !dbFilesCheck) {
+        LOG_ERROR("data corrupted or incomplete, errCode: %{public}d, necessary files count: %{public}zu", errCode,
+            dbFilesCount);
+        int innerErr = RebuildDb(dbNecessaryFiles);
+        if (innerErr != E_OK) {
+            LOG_ERROR("rebuild database failed, %{public}d", innerErr);
+            return innerErr;
+        }
+    } else if (errCode != E_OK) {
         LOG_ERROR("rd open failed:%{public}d", errCode);
         return errCode;
     }

@@ -116,6 +116,8 @@ public:
     int GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data, GRD_ResultSet *resultSet);
     int OpenDb();
     int CloseDb();
+    size_t CheckDbFiles(const std::vector<std::string> &dbFiles);
+    int RebuildDb(const std::vector<std::string> &dbFiles);
 private:
     GRD_KVItemT BlobToKvItem(const std::vector<uint8_t> &blob);
     std::vector<uint8_t> KvItemToBlob(GRD_KVItemT &item);
@@ -132,6 +134,7 @@ private:
 #define GRD_FAILED_MEMORY_RELEASE (-14000)
 #define GRD_PERMISSION_DENIED (-43000)
 #define GRD_UNDEFINED_TABLE (-23000)
+#define GRD_DATA_CORRUPTED (-45000)
 
 } // End of namespace NativePreferences
 } // End of namespace OHOS

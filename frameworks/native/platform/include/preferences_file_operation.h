@@ -109,6 +109,15 @@ static UNUSED_FUNCTION bool Fsync(const std::string &filePath)
 #endif
     return true;
 }
+
+static UNUSED_FUNCTION bool IsFileExist(const std::string &inputPath)
+{
+    if (inputPath.length() > PATH_MAX) {
+        return false;
+    }
+    struct stat buffer;
+    return (stat(inputPath.c_str(), &buffer) == 0);
+}
 } // namespace NativePreferences
 } // namespace OHOS
 #endif // PREFERENCES_FILE_OPERATION_H
