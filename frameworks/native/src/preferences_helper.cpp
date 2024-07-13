@@ -133,13 +133,17 @@ static bool IsUseEnhanceDb(const Options &options)
     if (IsFileExist(options.filePath)) {
         return false;
     }
-    PreferenceDbAdapter::ApiInit();
-    return (options.bundleName.find("uttest") != std::string::npos ||
+    bool bundleCheck = (options.bundleName.find("uttest") != std::string::npos ||
         options.bundleName.find("alipay") != std::string::npos ||
         options.bundleName.find("com.jd.") != std::string::npos ||
         options.bundleName.find("cmblife") != std::string::npos ||
         options.bundleName.find("os.mms") != std::string::npos ||
-        options.bundleName.find("meetimeservice") != std::string::npos) && PreferenceDbAdapter::IsEnhandceDbEnable();
+        options.bundleName.find("meetimeservice") != std::string::npos);
+    if (!bundleCheck) {
+        return false;
+    }
+    PreferenceDbAdapter::ApiInit();
+    return PreferenceDbAdapter::IsEnhandceDbEnable();
 }
 #endif
 

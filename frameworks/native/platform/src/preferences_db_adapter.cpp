@@ -33,7 +33,7 @@ std::atomic<bool> PreferenceDbAdapter::isInit_ = false;
 const char * const TABLENAME = "preferences_data";
 const char * const TABLE_MODE = "{\"mode\" : \"kv\", \"indextype\" : \"hash\"}";
 const char * const CONFIG_STR =
-    "{\"pageSize\": 4, \"redoFlushByTrx\": 1, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
+    "{\"pageSize\": 4, \"redoFlushByTrx\": 2, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
     "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", "
     "\"sharedModeEnable\" : 1, \"MetaInfoBak\": 1}";
 const int CREATE_COLLECTION_RETRY_TIMES = 2;
