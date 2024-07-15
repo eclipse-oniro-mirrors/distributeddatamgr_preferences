@@ -138,6 +138,7 @@ static bool IsUseEnhanceDb(const Options &options)
         options.bundleName.find("com.jd.") != std::string::npos ||
         options.bundleName.find("cmblife") != std::string::npos ||
         options.bundleName.find("os.mms") != std::string::npos ||
+        options.bundleName.find("os.ouc") != std::string::npos ||
         options.bundleName.find("meetimeservice") != std::string::npos);
     if (!bundleCheck) {
         return false;
