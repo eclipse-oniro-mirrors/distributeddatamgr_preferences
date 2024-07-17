@@ -39,10 +39,9 @@ extern "C" {
 
     FFI_EXPORT bool FfiOHOSPreferencesHas(int64_t id, const char* key);
 
-    FFI_EXPORT int32_t FfiOHOSPreferencesOn(int64_t id, const char* mode, void (*callback)(const char* value),
-        void (*callbackRef)(const char* valueRef));
+    FFI_EXPORT int32_t FfiOHOSPreferencesOn(int64_t id, const char* mode, void (*callbackRef)(const char* valueRef));
 
-    FFI_EXPORT int32_t FfiOHOSPreferencesOff(int64_t id, const char* mode, void (*callback)(const char* value));
+    FFI_EXPORT int32_t FfiOHOSPreferencesOff(int64_t id, const char* mode, void (*callbackRef)(const char* valueRef));
 
     FFI_EXPORT int32_t FfiOHOSPreferencesOffAll(int64_t id, const char* mode);
 

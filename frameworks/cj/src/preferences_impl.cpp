@@ -163,17 +163,9 @@ OHOS::FFI::RuntimeType* PreferencesImpl::GetClassType()
     return &runtimeType;
 }
 
-bool isSameFunction(const std::function<void(std::string)> *f1, const std::function<void(std::string)> *f2)
+static bool IsSameFunction(const std::function<void(std::string)> *f1, const std::function<void(std::string)> *f2)
 {
     return f1 == f2;
-}
-
-bool PreferencesImpl::HasRegisteredObserver(std::function<void(std::string)> *callback, RegisterMode mode)
-{
-    const auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
-    return std::any_of(observers.begin(), observers.end(), [callback](const auto& it) {
-        return isSameFunction(callback, it->m_callback);
-    });
 }
 
 RegisterMode PreferencesImpl::ConvertToRegisterMode(const std::string &mode)
@@ -181,7 +173,7 @@ RegisterMode PreferencesImpl::ConvertToRegisterMode(const std::string &mode)
     return (mode == strChange) ? RegisterMode::LOCAL_CHANGE : RegisterMode::MULTI_PRECESS_CHANGE;
 }
 
-PreferencesValue ValueTypeToPreferencesValue(const ValueType &value)
+static PreferencesValue CValueTypeToNativeValue(const ValueType &value)
 {
     NativePreferences::PreferencesValue preferencesValue = NativePreferences::PreferencesValue(-1);
     switch (value.tag) {
@@ -232,7 +224,7 @@ PreferencesValue ValueTypeToPreferencesValue(const ValueType &value)
     return preferencesValue;
 }
 
-void freeValueType(ValueType v)
+static void FreeValueType(ValueType &v)
 {
     switch (v.tag) {
         case TYPE_STR: {
@@ -259,10 +251,21 @@ void freeValueType(ValueType v)
     }
 }
 
-CArrDouble vectorToDoubleArray(const std::vector<double> &doubles)
+static void FreeValueTypes(ValueType *v, int count)
 {
+    for (int i = 0; i < count; i++) {
+        FreeValueType(v[i]);
+    }
+}
+
+static CArrDouble VectorToDoubleArray(const std::vector<double> &doubles, int32_t &code)
+{
+    if (doubles.size() == 0) {
+        return CArrDouble{0};
+    }
     double* head = static_cast<double*>(malloc(doubles.size() * sizeof(double)));
     if (head == nullptr) {
+        code = E_ERROR;
         return CArrDouble{0};
     }
     for (unsigned long i = 0; i < doubles.size(); i++) {
@@ -272,10 +275,14 @@ CArrDouble vectorToDoubleArray(const std::vector<double> &doubles)
     return doubleArray;
 }
 
-CArrBool vectorToBoolArray(std::vector<bool> bools)
+static CArrBool VectorToBoolArray(std::vector<bool> &bools, int32_t &code)
 {
+    if (bools.size() == 0) {
+        return CArrBool{0};
+    }
     bool* head = static_cast<bool*>(malloc(bools.size() * sizeof(bool)));
     if (head == nullptr) {
+        code = E_ERROR;
         return CArrBool{0};
     }
     for (unsigned long i = 0; i < bools.size(); i++) {
@@ -285,28 +292,47 @@ CArrBool vectorToBoolArray(std::vector<bool> bools)
     return boolArray;
 }
 
-CArrStr vectorToStringArray(std::vector<std::string> strings)
+static void FreeCharPointer(char** ptr, int count)
+{
+    for (int i = 0; i < count; i++) {
+        free(ptr[i]);
+    }
+}
+
+static char** VectorToCharPointer(std::vector<std::string> &vec, int32_t &code)
+{
+    if (vec.size() == 0) {
+        return nullptr;
+    }
+    char** result = static_cast<char**>(malloc(sizeof(char*) * vec.size()));
+    if (result == nullptr) {
+        code = E_ERROR;
+        return nullptr;
+    }
+    for (size_t i = 0; i < vec.size(); i++) {
+        result[i] = MallocCString(vec[i]);
+        if (result[i] == nullptr) {
+            FreeCharPointer(result, i);
+            free(result);
+            code = E_ERROR;
+            return nullptr;
+        }
+    }
+    return result;
+}
+
+static CArrStr VectorToStringArray(std::vector<std::string> &strings, int32_t &code)
 {
     CArrStr strArray;
     strArray.size = static_cast<int64_t>(strings.size());
-    strArray.head = static_cast<char**>(malloc(strArray.size * sizeof(char*)));
-    if (strArray.head == nullptr) {
-        return strArray;
-    }
-    for (int64_t i = 0; i < strArray.size; i++) {
-        strArray.head[i] = static_cast<char*>(malloc((strings[i].length() + 1) * sizeof(char)));
-        if (strArray.head[i] == nullptr) {
-            return strArray;
-        }
-        errno_t ret = strcpy_s(strArray.head[i], (strings[i].length() + 1) * sizeof(char), strings[i].c_str());
-        if (ret != EOK) {
-            return strArray;
-        }
+    strArray.head = VectorToCharPointer(strings, code);
+    if (code != E_OK) {
+        return CArrStr{0};
     }
     return strArray;
 }
 
-ValueType PreferencesValueToValueType(const PreferencesValue &pValue)
+static ValueType NativeValueToCValueType(const PreferencesValue &pValue, int32_t &code)
 {
     ValueType v = {0};
     if (pValue.IsInt()) {
@@ -331,15 +357,15 @@ ValueType PreferencesValueToValueType(const PreferencesValue &pValue)
         v.tag = TYPE_BOOL;
     } else if (pValue.IsBoolArray()) {
         auto boolVector = std::get<std::vector<bool>>(pValue.value_);
-        v.boolArray = vectorToBoolArray(boolVector);
+        v.boolArray = VectorToBoolArray(boolVector, code);
         v.tag = TYPE_BOOLARR;
     } else if (pValue.IsDoubleArray()) {
         auto doubleVector = std::get<std::vector<double>>(pValue.value_);
-        v.doubleArray = vectorToDoubleArray(doubleVector);
+        v.doubleArray = VectorToDoubleArray(doubleVector, code);
         v.tag = TYPE_DOUARR;
     } else if (pValue.IsStringArray()) {
         auto stringVector = std::get<std::vector<std::string>>(pValue.value_);
-        v.stringArray = vectorToStringArray(stringVector);
+        v.stringArray = VectorToStringArray(stringVector, code);
         v.tag = TYPE_STRARR;
     } else {
         v.tag = -1;
@@ -347,40 +373,42 @@ ValueType PreferencesValueToValueType(const PreferencesValue &pValue)
     return v;
 }
 
-ValueTypes PreferencesValuesToValueTypes(const std::map<std::string, PreferencesValue> &objects)
+static ValueTypes NativeValuesToCValueTypes(const std::map<std::string, PreferencesValue> &objects, int32_t &code)
 {
     ValueTypes valueTypes = {0};
     valueTypes.size = static_cast<int64_t>(objects.size());
     valueTypes.key = static_cast<char**>(malloc(valueTypes.size * sizeof(char*)));
     if (valueTypes.key == nullptr) {
+        code = E_ERROR;
         return valueTypes;
     }
     valueTypes.head = static_cast<ValueType*>(malloc(valueTypes.size * sizeof(ValueType)));
     if (valueTypes.head == nullptr) {
         free(valueTypes.key);
+        code = E_ERROR;
         return valueTypes;
     }
     int i = 0;
     for (auto const& [key, value] : objects) {
-        // 将键转换成 char*
-        valueTypes.key[i] = static_cast<char*>(malloc((key.length() + 1) * sizeof(char)));
+        valueTypes.key[i] = MallocCString(key);
         if (valueTypes.key[i] == nullptr) {
-            for (int j = i - 1; j >= 0; j--) {
-                free(valueTypes.key[j]);
-                freeValueType(valueTypes.head[i]);
-            }
+            FreeCharPointer(valueTypes.key, i);
+            FreeValueTypes(valueTypes.head, i);
+            free(valueTypes.key);
+            free(valueTypes.head);
+            code = E_ERROR;
             return valueTypes;
         }
-        errno_t ret = strcpy_s(valueTypes.key[i], (key.length() + 1) * sizeof(char), key.c_str());
-        if (ret != EOK) {
-            for (int j = i - 1; j >= 0; j--) {
-                free(valueTypes.key[j]);
-                freeValueType(valueTypes.head[i]);
-            }
+        valueTypes.head[i] = NativeValueToCValueType(value, code);
+        if (code != E_OK) {
+            free(valueTypes.key[i]);
+            FreeCharPointer(valueTypes.key, i);
+            FreeValueTypes(valueTypes.head, i);
+            free(valueTypes.key);
+            free(valueTypes.head);
+            code = E_ERROR;
             return valueTypes;
         }
-        // 将值转换成 ValueType
-        valueTypes.head[i] = PreferencesValueToValueType(value);
         i++;
     }
     return valueTypes;
@@ -392,7 +420,13 @@ ValueType PreferencesImpl::Get(const std::string &key, const ValueType &defValue
         LOGE("The preferences is nullptr.");
         return ValueType{0};
     }
-    return PreferencesValueToValueType(preferences->Get(key, ValueTypeToPreferencesValue(defValue)));
+    PreferencesValue p = CValueTypeToNativeValue(defValue);
+    int32_t err = E_OK;
+    ValueType v = NativeValueToCValueType(preferences->Get(key, p), err);
+    if (err != E_OK) {
+        return ValueType{0};
+    }
+    return v;
 }
 
 int32_t PreferencesImpl::Put(const std::string &key, const ValueType &value)
@@ -401,7 +435,7 @@ int32_t PreferencesImpl::Put(const std::string &key, const ValueType &value)
         LOGE("The preferences is nullptr.");
         return E_ERROR;
     }
-    return preferences->Put(key, ValueTypeToPreferencesValue(value));
+    return preferences->Put(key, CValueTypeToNativeValue(value));
 }
 
 ValueTypes PreferencesImpl::GetAll()
@@ -410,27 +444,30 @@ ValueTypes PreferencesImpl::GetAll()
         LOGE("The preferences is nullptr.");
         return ValueTypes{0};
     }
-    return PreferencesValuesToValueTypes(preferences->GetAll());
+    int32_t err = E_OK;
+    ValueTypes vs = NativeValuesToCValueTypes(preferences->GetAll(), err);
+    if (err != E_OK) {
+        return ValueTypes{0};
+    }
+    return vs;
 }
 
 int32_t PreferencesImpl::RegisterObserver(const std::string &mode, std::function<void(std::string)> *callback,
     const std::function<void(std::string)>& callbackRef)
 {
     std::lock_guard<std::mutex> lck(listMutex_);
-    if (!HasRegisteredObserver(callback, ConvertToRegisterMode(mode))) {
-        auto observer = std::make_shared<CJPreferencesObserver>(callback, callbackRef);
-        if (preferences == nullptr) {
-            LOGE("The preferences is nullptr.");
-            return E_ERROR;
-        }
-        int errCode = preferences->RegisterObserver(observer, ConvertToRegisterMode(mode));
-        if (errCode != E_OK) {
-            return errCode;
-        }
-        auto &observers = (ConvertToRegisterMode(mode) == RegisterMode::LOCAL_CHANGE) ?
-                            localObservers_ : multiProcessObservers_;
-        observers.push_back(observer);
+    auto observer = std::make_shared<CJPreferencesObserver>(callback, callbackRef);
+    if (preferences == nullptr) {
+        LOGE("The preferences is nullptr.");
+        return E_ERROR;
     }
+    int errCode = preferences->RegisterObserver(observer, ConvertToRegisterMode(mode));
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    auto &observers = (ConvertToRegisterMode(mode) == RegisterMode::LOCAL_CHANGE) ?
+                        localObservers_ : multiProcessObservers_;
+    observers.push_back(observer);
     return E_OK;
 }
 
@@ -445,7 +482,7 @@ int32_t PreferencesImpl::UnRegisterObserver(const std::string &mode, std::functi
         return E_ERROR;
     }
     while (it != observers.end()) {
-        if (isSameFunction(callback, (*it)->m_callback)) {
+        if (IsSameFunction(callback, (*it)->m_callback)) {
             int errCode = preferences->UnRegisterObserver(*it, ConvertToRegisterMode(mode));
             if (errCode != E_OK) {
                 return errCode;
