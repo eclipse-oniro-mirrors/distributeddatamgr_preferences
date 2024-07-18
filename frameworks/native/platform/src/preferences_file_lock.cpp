@@ -14,6 +14,7 @@
  */
 
 #include "preferences_file_lock.h"
+#include "preferences_file_operation.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -27,16 +28,6 @@
 #include "visibility.h"
 namespace OHOS {
 namespace NativePreferences {
-
-static UNUSED_FUNCTION std::string ExtractFileName(const std::string &path)
-{
-    auto pos = path.rfind('/');
-    if (pos == std::string::npos) {
-        return path;
-    }
-    return path.substr(pos + 1);
-}
-
 std::map<std::string, std::shared_ptr<std::mutex>> PreferencesLockManager::inProcessMutexs_;
 std::mutex PreferencesLockManager::mapMutex_;
 

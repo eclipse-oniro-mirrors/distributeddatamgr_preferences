@@ -27,6 +27,7 @@ namespace NativePreferences {
 typedef struct GRD_DB GRD_DB;
 
 #define GRD_DB_OPEN_CREATE 0x01
+#define GRD_DB_OPEN_CHECK 0x04
 #define GRD_DB_CLOSE_IGNORE_ERROR 0x01
 
 typedef struct GRD_KVItem {
@@ -69,6 +70,7 @@ typedef int32_t (*GetItemSize)(GRD_ResultSet *resultSet, uint32_t *keySize, uint
 typedef int32_t (*Fetch)(GRD_ResultSet *resultSet, GRD_KVItemT *key, GRD_KVItemT *value);
 typedef int32_t (*KVFreeItem)(GRD_KVItemT *item);
 typedef int32_t (*FreeResultSet)(GRD_ResultSet *resultSet);
+typedef int32_t (*DBRepair)(const char *dbFile, const char *configStr);
 
 struct GRD_APIInfo {
     DBOpen DbOpenApi = nullptr;
@@ -87,6 +89,7 @@ struct GRD_APIInfo {
     Fetch FetchApi = nullptr;
     KVFreeItem FreeItemApi = nullptr;
     FreeResultSet FreeResultSetApi = nullptr;
+    DBRepair DbRepairApi = nullptr;
 };
 
 class PreferenceDbAdapter {
@@ -101,7 +104,6 @@ public:
     static std::atomic<bool> isInit_;
 };
 
-
 class PreferencesDb {
 public:
     PreferencesDb();
@@ -114,10 +116,10 @@ public:
     int DropCollection();
     int CreateCollection();
     int GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data, GRD_ResultSet *resultSet);
-    int OpenDb();
+    int OpenDb(bool isNeedRebuild);
     int CloseDb();
-    size_t CheckDbFiles(const std::vector<std::string> &dbFiles);
-    int RebuildDb(const std::vector<std::string> &dbFiles);
+    int RepairDb();
+    int TryRepairAndRebuild(int openCode);
 private:
     GRD_KVItemT BlobToKvItem(const std::vector<uint8_t> &blob);
     std::vector<uint8_t> KvItemToBlob(GRD_KVItemT &item);
@@ -130,11 +132,15 @@ private:
 #define GRD_NOT_SUPPORT (-1000)
 #define GRD_OVER_LIMIT (-2000)
 #define GRD_INVALID_ARGS (-3000)
+#define GRD_FAILED_FILE_OPERATION (-5000)
+#define GRD_INNER_ERR (-8000)
 #define GRD_FAILED_MEMORY_ALLOCATE (-13000)
 #define GRD_FAILED_MEMORY_RELEASE (-14000)
-#define GRD_PERMISSION_DENIED (-43000)
 #define GRD_UNDEFINED_TABLE (-23000)
+#define GRD_REBUILD_DATABASE (-38000)
+#define GRD_PERMISSION_DENIED (-43000)
 #define GRD_DATA_CORRUPTED (-45000)
+#define GRD_DB_BUSY (-46000)
 
 } // End of namespace NativePreferences
 } // End of namespace OHOS
