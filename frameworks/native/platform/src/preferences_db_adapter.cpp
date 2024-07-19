@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <map>
-
+#include <thread>
 #include "preferences_db_adapter.h"
 #include "log_print.h"
 #include "preferences_errno.h"
@@ -30,6 +30,10 @@ GRD_APIInfo PreferenceDbAdapter::api_;
 
 std::atomic<bool> PreferenceDbAdapter::isInit_ = false;
 
+#if !defined(WINDOWS_PLATFORM)
+static const std::chrono::milliseconds WAIT_REPAIRE_TIMEOUT(5);
+#endif
+
 const char * const TABLENAME = "preferences_data";
 const char * const TABLE_MODE = "{\"mode\" : \"kv\", \"indextype\" : \"hash\"}";
 const char * const CONFIG_STR =
@@ -37,6 +41,7 @@ const char * const CONFIG_STR =
     "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", "
     "\"sharedModeEnable\" : 1, \"MetaInfoBak\": 1}";
 const int CREATE_COLLECTION_RETRY_TIMES = 2;
+const int DB_REPAIR_RETRY_TIMES = 3;
 
 void GRDDBApiInitEnhance(GRD_APIInfo &GRD_DBApiInfo)
 {
@@ -58,6 +63,7 @@ void GRDDBApiInitEnhance(GRD_APIInfo &GRD_DBApiInfo)
     GRD_DBApiInfo.FetchApi = (Fetch)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_Fetch");
     GRD_DBApiInfo.FreeItemApi = (KVFreeItem)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_KVFreeItem");
     GRD_DBApiInfo.FreeResultSetApi = (FreeResultSet)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_FreeResultSet");
+    GRD_DBApiInfo.DbRepairApi = (DBRepair)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_DBRepair");
 #endif
 }
 
@@ -124,18 +130,23 @@ PreferencesDb::PreferencesDb()
 
 PreferencesDb::~PreferencesDb()
 {
-    if (db_ != nullptr) {
+    if (db_ != nullptr || PreferenceDbAdapter::GetApiInstance().DbCloseApi != nullptr) {
         PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_, GRD_DB_CLOSE_IGNORE_ERROR);
         db_ = nullptr;
         LOG_DEBUG("destructor: calling close db.");
     } else {
-        LOG_DEBUG("destructor: db closed before.");
+        LOG_DEBUG("destructor: db closed before or dbClose api not loaded, db closed before ? %{public}d.",
+            db_ == nullptr);
     }
 }
 
 int PreferencesDb::CloseDb()
 {
     if (db_ != nullptr) {
+        if (PreferenceDbAdapter::GetApiInstance().DbCloseApi == nullptr) {
+            LOG_ERROR("api load failed: DbCloseApi");
+            return E_ERROR;
+        }
         int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_,
             GRD_DB_CLOSE_IGNORE_ERROR));
         if (errCode != E_OK) {
@@ -152,6 +163,10 @@ int PreferencesDb::CloseDb()
 
 int PreferencesDb::CreateCollection()
 {
+    if (PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi == nullptr) {
+        LOG_ERROR("api load failed: DbCreateCollectionApi");
+        return E_ERROR;
+    }
     int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi(db_, TABLENAME,
         TABLE_MODE, 0));
     if (errCode != E_OK) {
@@ -160,43 +175,61 @@ int PreferencesDb::CreateCollection()
     return errCode;
 }
 
-int PreferencesDb::OpenDb()
+int PreferencesDb::OpenDb(bool isNeedRebuild)
 {
-    return TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(),
-        CONFIG_STR, GRD_DB_OPEN_CREATE, &db_));
+    if (PreferenceDbAdapter::GetApiInstance().DbOpenApi == nullptr) {
+        LOG_ERROR("api load failed: DbOpenApi");
+        return E_ERROR;
+    }
+    uint32_t flag = GRD_DB_OPEN_CREATE;
+    if (isNeedRebuild) {
+        flag = GRD_DB_OPEN_CREATE | GRD_DB_OPEN_CHECK;
+    }
+
+    return PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(), CONFIG_STR, flag, &db_);
 }
 
-size_t PreferencesDb::CheckDbFiles(const std::vector<std::string> &dbFiles)
+int PreferencesDb::RepairDb()
 {
-    size_t filesCount = 0;
-    bool dbExist = IsFileExist(dbFiles[0]);
-    if (dbExist) {
-        filesCount++;
+    if (PreferenceDbAdapter::GetApiInstance().DbRepairApi == nullptr) {
+        LOG_ERROR("api load failed: DbRepairApi");
+        return E_ERROR;
     }
-    for (size_t i = 1; i < dbFiles.size(); i++) {
-        if (IsFileExist(dbFiles[i])) {
-            filesCount++;
-        } else if (dbExist) {
-            LOG_ERROR("missing dbFiles %{public}zu", i);
-        }
-    }
-    return filesCount;
+    return PreferenceDbAdapter::GetApiInstance().DbRepairApi(dbPath_.c_str(), CONFIG_STR);
 }
 
-int PreferencesDb::RebuildDb(const std::vector<std::string> &dbFiles)
+int PreferencesDb::TryRepairAndRebuild(int openCode)
 {
-    for (size_t i = 0; i < dbFiles.size(); i++) {
-        if (IsFileExist(dbFiles[i]) && std::remove(dbFiles[i].c_str()) != 0) {
-            LOG_ERROR("remove dbFile %{public}zu failed.", i);
-            return E_DELETE_FILE_FAIL;
+    LOG_ERROR("db corrupted, errCode: %{public}d, begin to rebuild, db: %{public}s", openCode,
+        ExtractFileName(dbPath_).c_str());
+    int retryTimes = DB_REPAIR_RETRY_TIMES;
+    int innerErr = GRD_OK;
+    do {
+        innerErr = RepairDb();
+        if (innerErr == GRD_OK) {
+            LOG_INFO("db repair success");
+            return innerErr;
+        } else if (innerErr == GRD_DB_BUSY) {
+            LOG_ERROR("db repair failed, busy, retry times : %{public}d, errCode: %{public}d",
+                (DB_REPAIR_RETRY_TIMES - retryTimes + 1), innerErr);
+#if !defined(WINDOWS_PLATFORM)
+            std::this_thread::sleep_for(WAIT_REPAIRE_TIMEOUT);
+#endif
+        } else {
+            // other error, break to rebuild
+            LOG_ERROR("db repair failed: %{public}d, begin to rebuild", innerErr);
+            break;
         }
+        retryTimes--;
+    } while (retryTimes > 0);
+
+    innerErr = OpenDb(true);
+    if (innerErr == GRD_OK || innerErr == GRD_REBUILD_DATABASE) {
+        LOG_INFO("rebuild db success, errCode: %{public}d", innerErr);
+        return GRD_OK;
     }
-    int errCode = OpenDb();
-    if (errCode != E_OK) {
-        LOG_ERROR("rd rebuild failed:%{public}d", errCode);
-        return errCode;
-    }
-    return E_OK;
+    LOG_ERROR("rebuild db failed, errCode: %{public}d", innerErr);
+    return innerErr;
 }
 
 int PreferencesDb::Init(const std::string &dbPath)
@@ -205,28 +238,21 @@ int PreferencesDb::Init(const std::string &dbPath)
         LOG_DEBUG("Init: already init.");
         return E_OK;
     }
-    dbPath_ = dbPath + ".db";
-    const std::vector<std::string> dbNecessaryFiles{dbPath_, dbPath_ + ".ctrl", dbPath_ + ".ctrl.dwr",
-        dbPath_ + ".redo", dbPath_ + ".undo"};
-
-    int errCode = E_OK;
-    size_t dbFilesCount = CheckDbFiles(dbNecessaryFiles);
-    bool dbFilesCheck = (dbFilesCount == 0 || dbFilesCount == dbNecessaryFiles.size());
-    if (dbFilesCheck) {
-        errCode = OpenDb();
+    if (PreferenceDbAdapter::GetApiInstance().DbIndexPreloadApi == nullptr) {
+        LOG_ERROR("api load failed: DbIndexPreloadApi");
+        return E_ERROR;
     }
-
-    if (errCode == GRD_DATA_CORRUPTED || !dbFilesCheck) {
-        LOG_ERROR("data corrupted or incomplete, errCode: %{public}d, necessary files count: %{public}zu", errCode,
-            dbFilesCount);
-        int innerErr = RebuildDb(dbNecessaryFiles);
-        if (innerErr != E_OK) {
-            LOG_ERROR("rebuild database failed, %{public}d", innerErr);
-            return innerErr;
+    dbPath_ = dbPath + ".db";
+    int errCode = OpenDb(false);
+    if (errCode == GRD_DATA_CORRUPTED || errCode == GRD_FAILED_FILE_OPERATION || errCode == GRD_INNER_ERR) {
+        int innerErr = TryRepairAndRebuild(errCode);
+        if (innerErr != GRD_OK) {
+            // log inside
+            return TransferGrdErrno(innerErr);
         }
-    } else if (errCode != E_OK) {
-        LOG_ERROR("rd open failed:%{public}d", errCode);
-        return errCode;
+    } else if (errCode != GRD_OK) {
+        LOG_ERROR("db open failed, errCode: %{public}d", errCode);
+        return TransferGrdErrno(errCode);
     }
 
     errCode = CreateCollection();
@@ -248,6 +274,9 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
     if (db_ == nullptr) {
         LOG_ERROR("Put failed, db has been closed.");
         return E_ALREADY_CLOSED;
+    } else if (PreferenceDbAdapter::GetApiInstance().DbKvPutApi == nullptr) {
+        LOG_ERROR("api load failed: DbKvPutApi");
+        return E_ERROR;
     }
 
     GRD_KVItemT innerKey = BlobToKvItem(key);
@@ -259,6 +288,13 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
         ret = PreferenceDbAdapter::GetApiInstance().DbKvPutApi(db_, TABLENAME, &innerKey, &innerVal);
         if (ret == GRD_UNDEFINED_TABLE) {
             (void)CreateCollection();
+        } else if (ret == GRD_DATA_CORRUPTED || ret == GRD_FAILED_FILE_OPERATION || ret == GRD_INNER_ERR) {
+            LOG_ERROR("find db corrupted when put, try to repair and rebuild");
+            int innerErr = TryRepairAndRebuild(ret);
+            if (innerErr != GRD_OK) {
+                // more log inside
+                return TransferGrdErrno(innerErr);
+            }
         } else {
             ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
@@ -280,6 +316,9 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
     if (db_ == nullptr) {
         LOG_ERROR("Delete failed, db has been closed.");
         return E_ALREADY_CLOSED;
+    } else if (PreferenceDbAdapter::GetApiInstance().DbKvDelApi == nullptr) {
+        LOG_ERROR("api load failed: DbKvDelApi");
+        return E_ERROR;
     }
 
     GRD_KVItemT innerKey = BlobToKvItem(key);
@@ -290,6 +329,13 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
         ret = PreferenceDbAdapter::GetApiInstance().DbKvDelApi(db_, TABLENAME, &innerKey);
         if (ret == GRD_UNDEFINED_TABLE) {
             (void)CreateCollection();
+        } else if (ret == GRD_DATA_CORRUPTED || ret == GRD_FAILED_FILE_OPERATION || ret == GRD_INNER_ERR) {
+            LOG_ERROR("find db corrupted when delete, try to repair and rebuild");
+            int innerErr = TryRepairAndRebuild(ret);
+            if (innerErr != GRD_OK) {
+                // more log inside
+                return TransferGrdErrno(innerErr);
+            }
         } else {
             ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
@@ -311,6 +357,10 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
     if (db_ == nullptr) {
         LOG_ERROR("Get failed, db has been closed.");
         return E_ALREADY_CLOSED;
+    } else if (PreferenceDbAdapter::GetApiInstance().DbKvGetApi == nullptr ||
+        PreferenceDbAdapter::GetApiInstance().FreeItemApi == nullptr) {
+        LOG_ERROR("api load failed: DbKvGetApi or FreeItemApi");
+        return E_ERROR;
     }
 
     GRD_KVItemT innerKey = BlobToKvItem(key);
@@ -322,6 +372,13 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
         ret = PreferenceDbAdapter::GetApiInstance().DbKvGetApi(db_, TABLENAME, &innerKey, &innerVal);
         if (ret == GRD_UNDEFINED_TABLE) {
             (void)CreateCollection();
+        } else if (ret == GRD_DATA_CORRUPTED || ret == GRD_FAILED_FILE_OPERATION || ret == GRD_INNER_ERR) {
+            LOG_ERROR("find db corrupted when get, try to repair and rebuild");
+            int innerErr = TryRepairAndRebuild(ret);
+            if (innerErr != GRD_OK) {
+                // more log inside
+                return TransferGrdErrno(innerErr);
+            }
         } else {
             ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
@@ -347,6 +404,13 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
 int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data,
     GRD_ResultSet *resultSet)
 {
+    if (PreferenceDbAdapter::GetApiInstance().NextApi == nullptr ||
+        PreferenceDbAdapter::GetApiInstance().GetItemSizeApi == nullptr ||
+        PreferenceDbAdapter::GetApiInstance().FreeResultSetApi == nullptr ||
+        PreferenceDbAdapter::GetApiInstance().GetItemApi == nullptr) {
+        LOG_ERROR("api load failed: NextApi or GetItemSizeApi or FreeResultSetApi or GetItemApi");
+        return E_ERROR;
+    }
     int ret = E_OK;
     while (TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().NextApi(resultSet)) == E_OK) {
         std::pair<std::vector<uint8_t>, std::vector<uint8_t>> dataItem;
@@ -377,6 +441,9 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
     if (db_ == nullptr) {
         LOG_ERROR("GetAll failed, db has been closed.");
         return E_ALREADY_CLOSED;
+    } else if (PreferenceDbAdapter::GetApiInstance().DbKvFilterApi == nullptr) {
+        LOG_ERROR("api load failed: DbKvFilterApi");
+        return E_ERROR;
     }
 
     GRD_FilterOptionT param;
@@ -414,6 +481,9 @@ int PreferencesDb::DropCollection()
     if (db_ == nullptr) {
         LOG_ERROR("DropCollection failed, db has been closed.");
         return E_ALREADY_CLOSED;
+    } else if (PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi == nullptr) {
+        LOG_ERROR("api load failed: DbDropCollectionApi");
+        return E_ERROR;
     }
 
     int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0));

@@ -110,13 +110,13 @@ static UNUSED_FUNCTION bool Fsync(const std::string &filePath)
     return true;
 }
 
-static UNUSED_FUNCTION bool IsFileExist(const std::string &inputPath)
+static UNUSED_FUNCTION std::string ExtractFileName(const std::string &path)
 {
-    if (inputPath.length() > PATH_MAX) {
-        return false;
+    auto pos = path.rfind('/');
+    if (pos == std::string::npos) {
+        return path;
     }
-    struct stat buffer;
-    return (stat(inputPath.c_str(), &buffer) == 0);
+    return path.substr(pos + 1);
 }
 } // namespace NativePreferences
 } // namespace OHOS

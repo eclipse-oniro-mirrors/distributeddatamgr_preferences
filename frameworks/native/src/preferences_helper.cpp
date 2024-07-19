@@ -33,7 +33,7 @@ namespace NativePreferences {
 std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
 
-static bool IsFileExistWithoutLenCheck(const std::string &path)
+static bool IsFileExist(const std::string &path)
 {
     struct stat buffer;
     return (stat(path.c_str(), &buffer) == 0);
@@ -42,37 +42,37 @@ static bool IsFileExistWithoutLenCheck(const std::string &path)
 static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
 {
     std::string dbFilePath = filePath + ".db";
-    if (IsFileExistWithoutLenCheck(dbFilePath) && std::remove(dbFilePath.c_str()) != 0) {
+    if (IsFileExist(dbFilePath) && std::remove(dbFilePath.c_str()) != 0) {
         LOG_ERROR("remove dbFilePath failed.");
         return E_DELETE_FILE_FAIL;
     }
     std::string tmpFilePath = dbFilePath + ".ctrl";
-    if (IsFileExistWithoutLenCheck(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
     tmpFilePath = dbFilePath + ".ctrl.dwr";
-    if (IsFileExistWithoutLenCheck(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrl dwr File failed.");
         return E_DELETE_FILE_FAIL;
     }
     tmpFilePath = dbFilePath + ".redo";
-    if (IsFileExistWithoutLenCheck(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
     tmpFilePath = dbFilePath + ".undo";
-    if (IsFileExistWithoutLenCheck(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
     tmpFilePath = dbFilePath + ".safe";
-    if (IsFileExistWithoutLenCheck(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
     tmpFilePath = dbFilePath + ".map";
-    if (IsFileExistWithoutLenCheck(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
+    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
         LOG_ERROR("remove ctrlFile failed.");
         return E_DELETE_FILE_FAIL;
     }
@@ -130,7 +130,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 static bool IsUseEnhanceDb(const Options &options)
 {
-    if (IsFileExistWithoutLenCheck(options.filePath)) {
+    if (IsFileExist(options.filePath)) {
         return false;
     }
     bool bundleCheck = (options.bundleName.find("uttest") != std::string::npos ||
@@ -206,6 +206,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         if (it != prefsCache_.end()) {
             auto pref = it->second.first;
             if (pref != nullptr) {
+                LOG_INFO("Begin to Delete Preferences: %{public}s", ExtractFileName(path).c_str());
                 dataGroupId = pref->GetGroupId();
                 errCode = pref->CloseDb();
                 if (errCode != E_OK) {
@@ -238,8 +239,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         std::remove(lockFilePath.c_str());
     }
 
-    if (IsFileExistWithoutLenCheck(filePath) || IsFileExistWithoutLenCheck(backupPath) ||
-        IsFileExistWithoutLenCheck(brokenPath)) {
+    if (IsFileExist(filePath) || IsFileExist(backupPath) || IsFileExist(brokenPath)) {
         return E_DELETE_FILE_FAIL;
     }
     return E_OK;

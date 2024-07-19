@@ -36,6 +36,15 @@ static xmlNode *CreatePrimitiveNode(Element &element);
 static xmlNode *CreateStringNode(Element &element);
 static xmlNode *CreateArrayNode(Element &element);
 
+static bool IsFileExist(const std::string &inputPath)
+{
+    if (inputPath.length() > PATH_MAX) {
+        return false;
+    }
+    struct stat buffer;
+    return (stat(inputPath.c_str(), &buffer) == 0);
+}
+
 static void RemoveBackupFile(const std::string &fileName)
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
