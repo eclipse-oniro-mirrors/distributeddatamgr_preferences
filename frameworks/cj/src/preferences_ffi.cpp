@@ -32,6 +32,9 @@ int64_t FfiOHOSPreferencesGetPreferences(OHOS::AbilityRuntime::Context* context,
     const char* dataGroupId, int32_t* errCode)
 {
     auto nativePreferences = FFIData::Create<PreferencesImpl>(context, name, dataGroupId, errCode);
+    if (!nativePreferences) {
+        return 0;
+    }
     return nativePreferences->GetID();
 }
 
@@ -119,8 +122,7 @@ int32_t FfiOHOSPreferencesDelete(int64_t id, const char* key)
     return instance->Delete(key);
 }
     
-int32_t FfiOHOSPreferencesOn(int64_t id, const char* mode,
-    void (*callback)(const char* value), void (*callbackRef)(const char* valueRef))
+int32_t FfiOHOSPreferencesOn(int64_t id, const char* mode, void (*callbackRef)(const char* valueRef))
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
@@ -129,18 +131,17 @@ int32_t FfiOHOSPreferencesOn(int64_t id, const char* mode,
     }
     auto onChange = [lambda = CJLambda::Create(callbackRef)](const std::string& valueRef) ->
         void { lambda(valueRef.c_str()); };
-    return instance->RegisterObserver(mode, (std::function<void(std::string)>*)(callback), onChange);
+    return instance->RegisterObserver(mode, (std::function<void(std::string)>*)(callbackRef), onChange);
 }
 
-int32_t FfiOHOSPreferencesOff(int64_t id, const char* mode, void (*callback)(const char* value))
+int32_t FfiOHOSPreferencesOff(int64_t id, const char* mode, void (*callbackRef)(const char* value))
 {
     auto instance = FFIData::GetData<PreferencesImpl>(id);
     if (!instance) {
         LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ERR_INVALID_INSTANCE_CODE;
     }
-    auto onChange = [lambda = CJLambda::Create(callback)](const std::string& value) -> void { lambda(value.c_str()); };
-    return instance->UnRegisterObserver(mode, (std::function<void(std::string)>*)(callback));
+    return instance->UnRegisterObserver(mode, (std::function<void(std::string)>*)(callbackRef));
 }
 
 int32_t FfiOHOSPreferencesOffAll(int64_t id, const char* mode)
