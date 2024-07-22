@@ -53,6 +53,36 @@ typedef struct GRD_FilterOption {
 
 typedef struct GRD_ResultSet GRD_ResultSet;
 
+typedef enum GRD_ConfigType {
+    GRD_CONFIG_USER_VERSION,
+    GRD_CONFIG_DATA_VERSION,
+    GRD_CONFIG_BOTTOM,
+} GRD_ConfigTypeE;
+
+typedef enum GRD_DbDataType {
+    GRD_DB_DATATYPE_INTEGER = 0,
+    GRD_DB_DATATYPE_FLOAT,
+    GRD_DB_DATATYPE_TEXT,
+    GRD_DB_DATATYPE_BLOB,
+    GRD_DB_DATATYPE_FLOATVECTOR,
+    GRD_DB_DATATYPE_NULL,
+} GRD_DbDataTypeE;
+
+typedef struct GRD_DbValueT {
+    GRD_DbDataTypeE type;
+    union {
+        int64_t longValue;
+        double doubleValue;
+        struct {
+            union {
+                const void *strAddr;
+                void *freeAddr;
+            };
+            uint32_t length;
+        };
+    } value;
+} GRD_DbValueT;
+
 typedef int32_t (*DBOpen)(const char *dbPath, const char *configStr, uint32_t flags, GRD_DB **db);
 typedef int32_t (*DBClose)(GRD_DB *db, uint32_t flags);
 typedef int32_t (*DBCreateCollection)(GRD_DB *db, const char *tableName, const char *optionStr, uint32_t flags);
@@ -72,6 +102,7 @@ typedef int32_t (*Fetch)(GRD_ResultSet *resultSet, GRD_KVItemT *key, GRD_KVItemT
 typedef int32_t (*KVFreeItem)(GRD_KVItemT *item);
 typedef int32_t (*FreeResultSet)(GRD_ResultSet *resultSet);
 typedef int32_t (*DBRepair)(const char *dbFile, const char *configStr);
+typedef GRD_DbValueT (*DBGetConfig)(GRD_DB *db, GRD_ConfigTypeE type);
 
 struct GRD_APIInfo {
     DBOpen DbOpenApi = nullptr;
@@ -91,6 +122,7 @@ struct GRD_APIInfo {
     KVFreeItem FreeItemApi = nullptr;
     FreeResultSet FreeResultSetApi = nullptr;
     DBRepair DbRepairApi = nullptr;
+    DBGetConfig DbGetConfigApi = nullptr;
 };
 
 class PreferenceDbAdapter {
@@ -121,6 +153,7 @@ public:
     int CloseDb();
     int RepairDb();
     int TryRepairAndRebuild(int openCode);
+    int GetKernelDataVersion(int64_t &dataVersion);
 private:
     GRD_KVItemT BlobToKvItem(const std::vector<uint8_t> &blob);
     std::vector<uint8_t> KvItemToBlob(GRD_KVItemT &item);
