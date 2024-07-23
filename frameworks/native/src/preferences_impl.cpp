@@ -30,6 +30,7 @@
 #include "log_print.h"
 #include "preferences_observer_stub.h"
 #include "preferences_xml_utils.h"
+#include "preferences_file_operation.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -37,6 +38,7 @@ namespace NativePreferences {
 using namespace std::chrono;
 
 constexpr int32_t WAIT_TIME = 2;
+constexpr int32_t TASK_EXEC_TIME = 100;
 
 template<typename T>
 std::string GetTypeName()
@@ -122,10 +124,12 @@ std::string GetTypeName<BigInt>()
     return "BigInt";
 }
 
-PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options), loaded_(false)
+PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options)
 {
+    loaded_.store(false);
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
+    queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
 }
 
 PreferencesImpl::~PreferencesImpl()
@@ -156,13 +160,11 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     }
     std::lock_guard<std::mutex> lock(pref->mutex_);
     if (!pref->loaded_.load()) {
-        bool loadResult = pref->ReadSettingXml(pref);
+        bool loadResult = PreferencesImpl::ReadSettingXml(pref);
         if (!loadResult) {
-            auto time = static_cast<uint64_t>(
-                duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-            LOG_ERROR("The settingXml load failed. times %{public}" PRIu64 ".", time);
+            LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
         }
-        pref->loaded_ = true;
+        pref->loaded_.store(true);
         pref->cond_.notify_all();
     }
 }
@@ -182,35 +184,6 @@ void PreferencesImpl::AwaitLoadFile()
     }
 }
 
-void PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr)
-{
-    std::unique_lock<std::mutex> lock(pref->mutex_);
-    if (!pref->CheckRequestValidForStateGeneration(mcr)) {
-        mcr->SetDiskWriteResult(true, E_OK);
-        return;
-    }
-
-    if (pref->WriteSettingXml(pref, mcr->writeToDiskMap_)) {
-        pref->diskStateGeneration_ = mcr->memoryStateGeneration_;
-        mcr->SetDiskWriteResult(true, E_OK);
-    } else {
-        mcr->SetDiskWriteResult(false, E_ERROR);
-    }
-}
-
-bool PreferencesImpl::CheckRequestValidForStateGeneration(std::shared_ptr<MemoryToDiskRequest> mcr)
-{
-    if (diskStateGeneration_ >= mcr->memoryStateGeneration_) {
-        LOG_DEBUG("DiskStateGeneration should be less than memoryStateGeneration.");
-        return false;
-    }
-
-    if (mcr->isSyncRequest_ || currentMemoryStateGeneration_ == mcr->memoryStateGeneration_) {
-        return true;
-    }
-    return false;
-}
-
 PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesValue &defValue)
 {
     if (CheckKey(key) != E_OK) {
@@ -218,10 +191,10 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
     }
 
     AwaitLoadFile();
-    std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
-    auto iter = map_.find(key);
-    if (iter != map_.end()) {
-        return iter->second;
+
+    auto it = valuesCache_.Find(key);
+    if (it.first) {
+        return it.second;
     }
     return defValue;
 }
@@ -229,8 +202,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
 std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
 {
     AwaitLoadFile();
-    std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
-    return map_;
+    return valuesCache_.Clone();
 }
 
 template<typename T>
@@ -325,9 +297,11 @@ bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
         return false;
     }
 
+    std::map<std::string, PreferencesValue> values;
     for (const auto &element : settings) {
-        ReadXmlElement(element, pref->map_);
+        ReadXmlElement(element, values);
     }
+    pref->valuesCache_ = std::move(values);
     return true;
 }
 
@@ -407,11 +381,11 @@ void WriteXmlElement(Element &elem, const PreferencesValue &value)
     Convert2Element(elem, value.value_);
 }
 
-bool PreferencesImpl::WriteSettingXml(
-    std::shared_ptr<PreferencesImpl> pref, const std::map<std::string, PreferencesValue> &prefMap)
+bool PreferencesImpl::WriteSettingXml(const std::string &filePath, const std::string &dataGroupId,
+    const std::map<std::string, PreferencesValue> &writeToDiskMap)
 {
     std::vector<Element> settings;
-    for (auto it = prefMap.begin(); it != prefMap.end(); it++) {
+    for (auto it = writeToDiskMap.begin(); it != writeToDiskMap.end(); it++) {
         Element elem;
         elem.key_ = it->first;
         PreferencesValue value = it->second;
@@ -419,8 +393,9 @@ bool PreferencesImpl::WriteSettingXml(
         settings.push_back(elem);
     }
 
-    return PreferencesXmlUtils::WriteSettingXml(pref->options_.filePath, pref->options_.dataGroupId, settings);
+    return PreferencesXmlUtils::WriteSettingXml(filePath, dataGroupId, settings);
 }
+
 
 bool PreferencesImpl::HasKey(const std::string &key)
 {
@@ -429,9 +404,7 @@ bool PreferencesImpl::HasKey(const std::string &key)
     }
 
     AwaitLoadFile();
-
-    std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
-    return (map_.find(key) != map_.end());
+    return valuesCache_.Contains(key);
 }
 
 int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
@@ -446,17 +419,14 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     }
     AwaitLoadFile();
 
-    std::unique_lock<std::shared_mutex> writeLock(dataMetux_);
-
-    auto iter = map_.find(key);
-    if (iter != map_.end()) {
-        PreferencesValue &val = iter->second;
+    valuesCache_.Compute(key, [this, &value](auto &key, PreferencesValue &val) {
         if (val == value) {
-            return E_OK;
+            return true;
         }
-    }
-    map_.insert_or_assign(key, value);
-    modifiedKeys_.push_back(key);
+        val = value;
+        modifiedKeys_.push_back(key);
+        return true;
+    });
     return E_OK;
 }
 
@@ -468,92 +438,100 @@ int PreferencesImpl::Delete(const std::string &key)
     }
     AwaitLoadFile();
 
-    std::unique_lock<std::shared_mutex> writeLock(dataMetux_);
-
-    auto pos = map_.find(key);
-    if (pos != map_.end()) {
-        map_.erase(pos);
+    valuesCache_.EraseIf(key, [this](auto &key, PreferencesValue &val) {
         modifiedKeys_.push_back(key);
-    }
-
+        return true;
+    });
     return E_OK;
 }
 
 int PreferencesImpl::Clear()
 {
     AwaitLoadFile();
-    std::unique_lock<std::shared_mutex> writeLock(dataMetux_);
+    valuesCache_.EraseIf([this](auto &key, PreferencesValue &val) {
+        modifiedKeys_.push_back(key);
+        return true;
+    });
+    return E_OK;
+}
 
-    if (!map_.empty()) {
-        for (auto &kv : map_) {
-            modifiedKeys_.push_back(kv.first);
+int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
+{
+    std::list<std::string> keysModified;
+    std::map<std::string, PreferencesValue> writeToDiskMap;
+    pref->valuesCache_.DoActionWhenClone(
+        [pref, &writeToDiskMap, &keysModified](const std::map<std::string, PreferencesValue> &map) {
+        if (!pref->modifiedKeys_.empty()) {
+            keysModified = std::move(pref->modifiedKeys_);
         }
-        map_.clear();
+        writeToDiskMap = std::move(map);
+    });
+    if (!pref->WriteSettingXml(pref->options_.filePath, pref->options_.dataGroupId, writeToDiskMap)) {
+        return E_ERROR;
     }
+    pref->NotifyPreferencesObserver(keysModified, writeToDiskMap);
     return E_OK;
 }
 
 void PreferencesImpl::Flush()
 {
-    std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
-    request->isSyncRequest_ = false;
-    ExecutorPool::Task task = [pref = shared_from_this(), request] { PreferencesImpl::WriteToDiskFile(pref, request); };
-    executorPool_.Execute(std::move(task));
-
-    NotifyPreferencesObserver(*request);
+    auto success = queue_->PushNoWait(1);
+    if (success) {
+        std::weak_ptr<SafeBlockQueue<uint64_t>> queue = queue_;
+        ExecutorPool::Task task = [queue, self = weak_from_this()] {
+            auto realQueue = queue.lock();
+            auto realThis = self.lock();
+            if (realQueue == nullptr || realThis == nullptr) {
+                return ;
+            }
+            uint64_t value = 0;
+            std::lock_guard<std::mutex> lock(realThis->mutex_);
+            auto has = realQueue->PopNotWait(value);
+            if (has && value == 1) {
+                PreferencesImpl::WriteToDiskFile(realThis);
+            }
+        };
+        executorPool_.Schedule(std::chrono::milliseconds(TASK_EXEC_TIME), std::move(task));
+    }
 }
 
 int PreferencesImpl::FlushSync()
 {
-    std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> request = commitToMemory();
-    request->isSyncRequest_ = true;
-    PreferencesImpl::WriteToDiskFile(shared_from_this(), request);
-    if (request->wasWritten_) {
-        LOG_DEBUG("Successfully written to disk file, memory state generation is %{public}" PRId64 "",
-            request->memoryStateGeneration_);
-    }
-    NotifyPreferencesObserver(*request);
-    return request->writeToDiskResult_;
-}
-
-std::shared_ptr<PreferencesImpl::MemoryToDiskRequest> PreferencesImpl::commitToMemory()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    int64_t memoryStateGeneration = -1;
-    std::list<std::string> keysModified;
-    std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
-    std::map<std::string, PreferencesValue> writeToDiskMap;
-    {
-        std::shared_lock<std::shared_mutex> autoLock(dataMetux_);
-        writeToDiskMap = map_;
-        if (!modifiedKeys_.empty()) {
-            currentMemoryStateGeneration_++;
-            keysModified = modifiedKeys_;
-            modifiedKeys_.clear();
+    auto success = queue_->PushNoWait(1);
+    if (success) {
+        std::weak_ptr<SafeBlockQueue<uint64_t>> queue = queue_;
+        auto realQueue = queue.lock();
+        if (realQueue == nullptr) {
+            return E_ERROR;
+        }
+        uint64_t value = 0;
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto has = realQueue->PopNotWait(value);
+        if (has && value == 1) {
+            return PreferencesImpl::WriteToDiskFile(shared_from_this());
         }
     }
-    memoryStateGeneration = currentMemoryStateGeneration_;
-    preferencesObservers = localObservers_;
-    return std::make_shared<MemoryToDiskRequest>(
-        writeToDiskMap, keysModified, preferencesObservers, memoryStateGeneration, dataObserversMap_);
+    return E_OK;
 }
 
-void PreferencesImpl::NotifyPreferencesObserver(const PreferencesImpl::MemoryToDiskRequest &request)
+void PreferencesImpl::NotifyPreferencesObserver(const std::list<std::string> &keysModified,
+    const std::map<std::string, PreferencesValue> &writeToDiskMap)
 {
-    if (request.keysModified_.empty()) {
+    if (keysModified.empty()) {
         return;
     }
-    LOG_DEBUG("notify observer size:%{public}zu", request.dataObserversMap_.size());
-    for (const auto &[weakPrt, keys] : request.dataObserversMap_) {
+    LOG_DEBUG("notify observer size:%{public}zu", dataObserversMap_.size());
+    std::shared_lock<std::shared_mutex> autoLock(obseverMetux_);
+    for (const auto &[weakPrt, keys] : dataObserversMap_) {
         std::map<std::string, PreferencesValue> records;
-        for (auto key = request.keysModified_.begin(); key != request.keysModified_.end(); ++key) {
+        for (auto key = keysModified.begin(); key != keysModified.end(); ++key) {
             auto itKey = keys.find(*key);
             if (itKey == keys.end()) {
                 continue;
             }
             PreferencesValue value;
-            auto dataIt = request.writeToDiskMap_.find(*key);
-            if (dataIt != request.writeToDiskMap_.end()) {
+            auto dataIt = writeToDiskMap.find(*key);
+            if (dataIt != writeToDiskMap.end()) {
                 value = dataIt->second;
             }
             records.insert({*key, value});
@@ -568,8 +546,8 @@ void PreferencesImpl::NotifyPreferencesObserver(const PreferencesImpl::MemoryToD
     }
 
     auto dataObsMgrClient = DataObsMgrClient::GetInstance();
-    for (auto key = request.keysModified_.begin(); key != request.keysModified_.end(); ++key) {
-        for (auto it = request.localObservers_.begin(); it != request.localObservers_.end(); ++it) {
+    for (auto key = keysModified.begin(); key != keysModified.end(); ++key) {
+        for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
             std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
             if (std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock()) {
                 sharedPreferencesObserver->OnChange(*key);
@@ -581,28 +559,6 @@ void PreferencesImpl::NotifyPreferencesObserver(const PreferencesImpl::MemoryToD
         }
         dataObsMgrClient->NotifyChange(MakeUri(*key));
     }
-}
-
-PreferencesImpl::MemoryToDiskRequest::MemoryToDiskRequest(
-    const std::map<std::string, PreferencesValue> &writeToDiskMap, const std::list<std::string> &keysModified,
-    const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration,
-    const DataObserverMap preferencesDataObservers)
-{
-    writeToDiskMap_ = writeToDiskMap;
-    keysModified_ = keysModified;
-    localObservers_ = preferencesObservers;
-    memoryStateGeneration_ = memStataGeneration;
-    isSyncRequest_ = false;
-    wasWritten_ = false;
-    writeToDiskResult_ = E_ERROR;
-    dataObserversMap_ = preferencesDataObservers;
-}
-
-void PreferencesImpl::MemoryToDiskRequest::SetDiskWriteResult(bool wasWritten, int result)
-{
-    writeToDiskResult_ = result;
-    wasWritten_ = wasWritten;
-    reqCond_.notify_one();
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS
