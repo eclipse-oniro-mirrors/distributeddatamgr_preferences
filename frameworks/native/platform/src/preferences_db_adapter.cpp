@@ -183,7 +183,7 @@ int PreferencesDb::OpenDb(bool isNeedRebuild)
     }
     uint32_t flag = GRD_DB_OPEN_CREATE;
     if (isNeedRebuild) {
-        flag = GRD_DB_OPEN_CREATE | GRD_DB_OPEN_CHECK;
+        flag |= GRD_DB_OPEN_CHECK;
     }
 
     return PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(), CONFIG_STR, flag, &db_);
@@ -288,13 +288,6 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
         ret = PreferenceDbAdapter::GetApiInstance().DbKvPutApi(db_, TABLENAME, &innerKey, &innerVal);
         if (ret == GRD_UNDEFINED_TABLE) {
             (void)CreateCollection();
-        } else if (ret == GRD_DATA_CORRUPTED || ret == GRD_FAILED_FILE_OPERATION || ret == GRD_INNER_ERR) {
-            LOG_ERROR("find db corrupted when put, try to repair and rebuild");
-            int innerErr = TryRepairAndRebuild(ret);
-            if (innerErr != GRD_OK) {
-                // more log inside
-                return TransferGrdErrno(innerErr);
-            }
         } else {
             ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
@@ -329,13 +322,6 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
         ret = PreferenceDbAdapter::GetApiInstance().DbKvDelApi(db_, TABLENAME, &innerKey);
         if (ret == GRD_UNDEFINED_TABLE) {
             (void)CreateCollection();
-        } else if (ret == GRD_DATA_CORRUPTED || ret == GRD_FAILED_FILE_OPERATION || ret == GRD_INNER_ERR) {
-            LOG_ERROR("find db corrupted when delete, try to repair and rebuild");
-            int innerErr = TryRepairAndRebuild(ret);
-            if (innerErr != GRD_OK) {
-                // more log inside
-                return TransferGrdErrno(innerErr);
-            }
         } else {
             ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
@@ -372,13 +358,6 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
         ret = PreferenceDbAdapter::GetApiInstance().DbKvGetApi(db_, TABLENAME, &innerKey, &innerVal);
         if (ret == GRD_UNDEFINED_TABLE) {
             (void)CreateCollection();
-        } else if (ret == GRD_DATA_CORRUPTED || ret == GRD_FAILED_FILE_OPERATION || ret == GRD_INNER_ERR) {
-            LOG_ERROR("find db corrupted when get, try to repair and rebuild");
-            int innerErr = TryRepairAndRebuild(ret);
-            if (innerErr != GRD_OK) {
-                // more log inside
-                return TransferGrdErrno(innerErr);
-            }
         } else {
             ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
