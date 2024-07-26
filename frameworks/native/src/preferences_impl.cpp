@@ -499,14 +499,12 @@ int PreferencesImpl::FlushSync()
 {
     auto success = queue_->PushNoWait(1);
     if (success) {
-        std::weak_ptr<SafeBlockQueue<uint64_t>> queue = queue_;
-        auto realQueue = queue.lock();
-        if (realQueue == nullptr) {
+        if (queue_ == nullptr) {
             return E_ERROR;
         }
         uint64_t value = 0;
         std::lock_guard<std::mutex> lock(mutex_);
-        auto has = realQueue->PopNotWait(value);
+        auto has = queue_->PopNotWait(value);
         if (has && value == 1) {
             return PreferencesImpl::WriteToDiskFile(shared_from_this());
         }
