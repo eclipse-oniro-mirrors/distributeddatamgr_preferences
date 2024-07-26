@@ -25,6 +25,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <shared_mutex>
 
 #include "preferences.h"
 #include "preferences_observer.h"
@@ -109,6 +110,7 @@ protected:
     };
     using DataObserverMap = std::map<std::weak_ptr<PreferencesObserver>, std::set<std::string>, WeakPtrCompare>;
     std::mutex mutex_;
+    std::shared_mutex obseverMetux_;
     std::condition_variable cond_;
 
     std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;

@@ -24,7 +24,8 @@
 #include <string>
 #include <vector>
 #include <shared_mutex>
-
+#include "safe_block_queue.h"
+#include "concurrent_map.h"
 #include "preferences_base.h"
 
 namespace OHOS {
@@ -56,38 +57,18 @@ public:
     int FlushSync() override;
 private:
     explicit PreferencesImpl(const Options &options);
-    class MemoryToDiskRequest {
-    public:
-        MemoryToDiskRequest(const std::map<std::string, PreferencesValue> &writeToDiskMap,
-            const std::list<std::string> &keysModified,
-            const std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers, int64_t memStataGeneration,
-            const DataObserverMap preferencesDataObservers);
-        ~MemoryToDiskRequest() {}
-        void SetDiskWriteResult(bool wasWritten, int result);
-
-        bool isSyncRequest_;
-        int64_t memoryStateGeneration_;
-        std::map<std::string, PreferencesValue> writeToDiskMap_;
-        std::condition_variable reqCond_;
-        std::list<std::string> keysModified_;
-        std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;
-        DataObserverMap dataObserversMap_;
-
-        int writeToDiskResult_;
-        bool wasWritten_;
-    };
-
-    std::shared_ptr<MemoryToDiskRequest> commitToMemory();
-    void NotifyPreferencesObserver(const MemoryToDiskRequest &request);
+    
+    void NotifyPreferencesObserver(const std::list<std::string> &keysModified,
+        const std::map<std::string, PreferencesValue> &writeToDiskMap);
     bool StartLoadFromDisk();
 
     /* thread function */
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     void AwaitLoadFile();
-    static void WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref, std::shared_ptr<MemoryToDiskRequest> mcr);
-    bool CheckRequestValidForStateGeneration(std::shared_ptr<MemoryToDiskRequest> mcr);
-    bool ReadSettingXml(std::shared_ptr<PreferencesImpl> pref);
-    bool WriteSettingXml(std::shared_ptr<PreferencesImpl> pref, const std::map<std::string, PreferencesValue> &prefMap);
+    bool WriteSettingXml(const std::string &filePath, const std::string &dataGroupId,
+        const std::map<std::string, PreferencesValue> &writeToDiskMap);
+    static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
+    static bool ReadSettingXml(std::shared_ptr<PreferencesImpl> pref);
 
     std::atomic<bool> loaded_;
 
@@ -98,9 +79,9 @@ private:
 
     std::list<std::string> modifiedKeys_;
 
-    std::map<std::string, PreferencesValue> map_;
+    ConcurrentMap<std::string, PreferencesValue> valuesCache_;
 
-    std::shared_mutex dataMetux_;
+    std::shared_ptr<SafeBlockQueue<uint64_t>> queue_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
