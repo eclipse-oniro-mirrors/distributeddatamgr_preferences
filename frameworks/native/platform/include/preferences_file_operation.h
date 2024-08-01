@@ -101,7 +101,10 @@ static UNUSED_FUNCTION bool Fsync(const std::string &filePath)
     _close(fd);
 #else
     int fd = open(filePath.c_str(), O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1 || fsync(fd) == -1) {
+    if (fd == -1) {
+        return false;
+    }
+    if (fsync(fd) == -1) {
         close(fd);
         return false;
     }

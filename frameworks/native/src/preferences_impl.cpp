@@ -180,7 +180,7 @@ void PreferencesImpl::AwaitLoadFile()
     }
 
     if (!loaded_.load()) {
-        LOG_ERROR("The settingXml load timeout.");
+        LOG_ERROR("The settingXml %{public}s load timeout.", ExtractFileName(options_.filePath).c_str());
     }
 }
 
@@ -466,6 +466,12 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
         }
         writeToDiskMap = std::move(map);
     });
+
+    // Cache has not changed, Not need to write persistent files.
+    if (keysModified.empty()) {
+        LOG_INFO("No data to update persistent file");
+        return E_OK;
+    }
     if (!pref->WriteSettingXml(pref->options_.filePath, pref->options_.dataGroupId, writeToDiskMap)) {
         return E_ERROR;
     }
@@ -545,6 +551,7 @@ void PreferencesImpl::NotifyPreferencesObserver(const std::list<std::string> &ke
 
     auto dataObsMgrClient = DataObsMgrClient::GetInstance();
     for (auto key = keysModified.begin(); key != keysModified.end(); ++key) {
+        LOG_INFO("The %{public}s is changed, the observer needs to be triggered.", key->c_str());
         for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
             std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
             if (std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock()) {
