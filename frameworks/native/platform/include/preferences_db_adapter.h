@@ -19,8 +19,9 @@
 #include <vector>
 #include <shared_mutex>
 #include <list>
-
 #include <string>
+#include "preferences_dfx_adapter.h"
+
 namespace OHOS {
 namespace NativePreferences {
 
@@ -108,7 +109,7 @@ class PreferencesDb {
 public:
     PreferencesDb();
     ~PreferencesDb();
-    int Init(const std::string &dbPath);
+    int Init(const std::string &dbPath, const std::string &bundleName);
     int Put(const std::vector<uint8_t> &key, const std::vector<uint8_t> &value);
     int Delete(const std::vector<uint8_t> &key);
     int Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &value);
@@ -123,8 +124,10 @@ public:
 private:
     GRD_KVItemT BlobToKvItem(const std::vector<uint8_t> &blob);
     std::vector<uint8_t> KvItemToBlob(GRD_KVItemT &item);
+    ReportParam GetReportParam(const std::string &info, uint32_t errCode);
     GRD_DB *db_ = nullptr;
     std::string dbPath_ = "";
+    std::string bundleName_ = "";
 };
 
 // grd errcode
