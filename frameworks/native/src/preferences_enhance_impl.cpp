@@ -24,6 +24,7 @@
 #include <thread>
 
 #include "executor_pool.h"
+#include "preferences_file_operation.h"
 #include "log_print.h"
 #include "preferences_observer_stub.h"
 #include "preferences_value.h"
@@ -46,7 +47,7 @@ int PreferencesEnhanceImpl::Init()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     db_ = std::make_shared<PreferencesDb>();
-    return db_->Init(options_.filePath);
+    return db_->Init(options_.filePath, options_.bundleName);
 }
 
 PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const PreferencesValue &defValue)
@@ -215,6 +216,7 @@ void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<Preferenc
 int PreferencesEnhanceImpl::Clear()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    LOG_INFO("Clear called, file: %{public}s", ExtractFileName(options_.filePath).c_str());
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:Clear failed, db has been closed.");
         return E_ERROR;

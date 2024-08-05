@@ -31,7 +31,8 @@
 
 namespace OHOS {
 namespace NativePreferences {
-std::string getCurrentTime()
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
+std::string GetCurrentTime()
 {
     auto now = std::chrono::system_clock::now();
     auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(now);
@@ -53,7 +54,6 @@ std::string getCurrentTime()
 std::string PreferencesDfxManager::GetModuleName()
 {
     std::string moduleName = "";
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
     if ((tokenType == Security::AccessToken::TOKEN_NATIVE) || (tokenType == Security::AccessToken::TOKEN_SHELL)) {
@@ -62,15 +62,13 @@ std::string PreferencesDfxManager::GetModuleName()
             moduleName = tokenInfo.processName;
         }
     }
-#endif
     return moduleName;
 }
 
 void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
 {
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
     std::thread thread([reportParam]() {
-        std::string nowTime = getCurrentTime();
+        std::string nowTime = GetCurrentTime();
         HiSysEventParam params[] = {
             { .name = "BUNDLE_NAME",
                 .t = HISYSEVENT_STRING,
@@ -78,7 +76,7 @@ void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
                 .arraySize = 0 },
             { .name = "MODULE_NAME",
                 .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(reportParam.moduleName.c_str()) },
+                .v = { .s = const_cast<char *>(GetModuleName().c_str()) },
                 .arraySize = 0 },
             { .name = "STORE_TYPE",
                 .t = HISYSEVENT_STRING,
@@ -86,7 +84,7 @@ void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
                 .arraySize = 0 },
             { .name = "STORE_NAME",
                 .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(reportParam.store_name.c_str()) },
+                .v = { .s = const_cast<char *>(reportParam.storeName.c_str()) },
                 .arraySize = 0 },
             { .name = "SECURITY_LEVEL", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
             { .name = "PATH_AREA", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
@@ -104,10 +102,24 @@ void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
                 .arraySize = 0 },
         };
         size_t len = sizeof(params) / sizeof(params[0]);
-        OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, EVENT_NAME, HISYSEVENT_FAULT, params, len);
+        OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, EVENT_NAME_DB_CORRUPTED, HISYSEVENT_FAULT, params, len);
     });
     thread.detach();
-#endif
 }
+#else
+std::string GetCurrentTime()
+{
+    return "";
+}
+
+std::string PreferencesDfxManager::GetModuleName()
+{
+    return "";
+}
+
+void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
+{
+}
+#endif
 } // End of namespace NativePreferences
 } // End of namespace OHOS

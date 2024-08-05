@@ -108,7 +108,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to read XML format file: %{public}s, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errMessage.c_str());
-        ReportParam reportParam = { bundleName, PreferencesDfxManager::GetModuleName(), NORMAL_DB,
+        ReportParam reportParam = { bundleName, NORMAL_DB,
             ExtractFileName(fileName), E_ERROR, errno, "operation: failed to read XML format file." };
         if (!RenameToBrokenFile(fileName, reportParam)) {
             return doc;
@@ -297,7 +297,7 @@ bool XmlSaveFormatFileEnc(
         LOG_ERROR("failed to save XML format file: %{public}s, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errMessage.c_str());
         if (IsFileExist(fileName)) {
-            ReportParam reportParam = { bundleName, PreferencesDfxManager::GetModuleName(), NORMAL_DB,
+            ReportParam reportParam = { bundleName, NORMAL_DB,
                 ExtractFileName(fileName), E_ERROR, errno, "operation: failed to save XML format file." };
             RenameToBrokenFile(fileName, reportParam);
         }

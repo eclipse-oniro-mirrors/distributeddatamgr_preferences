@@ -140,6 +140,18 @@ PreferencesDb::~PreferencesDb()
     }
 }
 
+ReportParam PreferencesDb::GetReportParam(const std::string &info, uint32_t errCode)
+{
+    ReportParam reportParam = {
+        bundleName_,
+        ENHANCE_DB,
+        ExtractFileName(dbPath_),
+        errCode,
+        errno,
+        info};
+    return reportParam;
+}
+
 int PreferencesDb::CloseDb()
 {
     if (db_ != nullptr) {
@@ -147,11 +159,12 @@ int PreferencesDb::CloseDb()
             LOG_ERROR("api load failed: DbCloseApi");
             return E_ERROR;
         }
-        int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_,
-            GRD_DB_CLOSE_IGNORE_ERROR));
+        int errCode = PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_, GRD_DB_CLOSE_IGNORE_ERROR);
         if (errCode != E_OK) {
-            LOG_ERROR("close db failed, errcode=%{public}d", errCode);
-            return errCode;
+            LOG_ERROR("close db failed, errcode=%{public}d, file: %{public}s", errCode,
+                ExtractFileName(dbPath_).c_str());
+            PreferencesDfxManager::ReportDbFault(GetReportParam("close db failed", errCode));
+            return TransferGrdErrno(errCode);
         }
         LOG_INFO("db has been closed.");
         db_ = nullptr;
@@ -167,12 +180,13 @@ int PreferencesDb::CreateCollection()
         LOG_ERROR("api load failed: DbCreateCollectionApi");
         return E_ERROR;
     }
-    int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi(db_, TABLENAME,
-        TABLE_MODE, 0));
-    if (errCode != E_OK) {
+    int errCode = PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi(db_, TABLENAME,
+        TABLE_MODE, 0);
+    if (errCode != GRD_OK) {
         LOG_ERROR("rd create table failed:%{public}d", errCode);
+        PreferencesDfxManager::ReportDbFault(GetReportParam("create table failed", errCode));
     }
-    return errCode;
+    return TransferGrdErrno(errCode);
 }
 
 int PreferencesDb::OpenDb(bool isNeedRebuild)
@@ -185,8 +199,15 @@ int PreferencesDb::OpenDb(bool isNeedRebuild)
     if (isNeedRebuild) {
         flag |= GRD_DB_OPEN_CHECK;
     }
-
-    return PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(), CONFIG_STR, flag, &db_);
+    int errCode = PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(), CONFIG_STR, flag, &db_);
+    if (errCode != GRD_OK) {
+        // log outside
+        std::string errMsg = isNeedRebuild ? "open db failed with open_create | open_check" :
+                "open db failed with open_create";
+        LOG_ERROR("%{public}s, errCode: %{public}d, isRebuild:%{public}d", errMsg.c_str(), errCode, isNeedRebuild);
+        PreferencesDfxManager::ReportDbFault(GetReportParam(errMsg, errCode));
+    }
+    return errCode;
 }
 
 int PreferencesDb::RepairDb()
@@ -195,7 +216,13 @@ int PreferencesDb::RepairDb()
         LOG_ERROR("api load failed: DbRepairApi");
         return E_ERROR;
     }
-    return PreferenceDbAdapter::GetApiInstance().DbRepairApi(dbPath_.c_str(), CONFIG_STR);
+    int errCode = PreferenceDbAdapter::GetApiInstance().DbRepairApi(dbPath_.c_str(), CONFIG_STR);
+    if (errCode != GRD_OK) {
+        std::string errMsg = "db repair failed";
+        LOG_ERROR("repair db failed, errCode: %{public}d", errCode);
+        PreferencesDfxManager::ReportDbFault(GetReportParam(errMsg, errCode));
+    }
+    return errCode;
 }
 
 int PreferencesDb::TryRepairAndRebuild(int openCode)
@@ -228,11 +255,11 @@ int PreferencesDb::TryRepairAndRebuild(int openCode)
         LOG_INFO("rebuild db success, errCode: %{public}d", innerErr);
         return GRD_OK;
     }
-    LOG_ERROR("rebuild db failed, errCode: %{public}d", innerErr);
+    LOG_ERROR("rebuild db failed, errCode: %{public}d, file: %{public}s", innerErr, ExtractFileName(dbPath_).c_str());
     return innerErr;
 }
 
-int PreferencesDb::Init(const std::string &dbPath)
+int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName)
 {
     if (db_ != nullptr) {
         LOG_DEBUG("Init: already init.");
@@ -243,6 +270,7 @@ int PreferencesDb::Init(const std::string &dbPath)
         return E_ERROR;
     }
     dbPath_ = dbPath + ".db";
+    bundleName_ = bundleName;
     int errCode = OpenDb(false);
     if (errCode == GRD_DATA_CORRUPTED || errCode == GRD_FAILED_FILE_OPERATION || errCode == GRD_INNER_ERR) {
         int innerErr = TryRepairAndRebuild(errCode);
@@ -257,7 +285,7 @@ int PreferencesDb::Init(const std::string &dbPath)
 
     errCode = CreateCollection();
     if (errCode != E_OK) {
-        LOG_ERROR("create collection failed when init, but ignored.");
+        LOG_ERROR("create collection failed when init: %{public}d, but ignored.", errCode);
         // ignore create collection error
     }
 
@@ -287,21 +315,22 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvPutApi(db_, TABLENAME, &innerKey, &innerVal);
         if (ret == GRD_UNDEFINED_TABLE) {
+            LOG_INFO("CreateCollection called when Put, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
-            ret = TransferGrdErrno(ret);
-            if (ret == E_OK) {
-                return ret;
+            if (ret == GRD_OK) {
+                return TransferGrdErrno(ret);
             } else {
                 LOG_ERROR("rd put failed:%{public}d", ret);
-                return ret;
+                PreferencesDfxManager::ReportDbFault(GetReportParam("rd put failed", ret));
+                return TransferGrdErrno(ret);
             }
         }
         retryTimes--;
     } while (retryTimes > 0);
 
     LOG_ERROR("rd put over retry times, errcode: :%{public}d", ret);
-    return ret;
+    return TransferGrdErrno(ret);
 }
 
 int PreferencesDb::Delete(const std::vector<uint8_t> &key)
@@ -321,21 +350,22 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvDelApi(db_, TABLENAME, &innerKey);
         if (ret == GRD_UNDEFINED_TABLE) {
+            LOG_INFO("CreateCollection called when Delete, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
-            ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
-                return ret;
+                return TransferGrdErrno(ret);
             } else {
                 LOG_ERROR("rd delete failed:%{public}d", ret);
-                return ret;
+                PreferencesDfxManager::ReportDbFault(GetReportParam("rd delete failed", ret));
+                return TransferGrdErrno(ret);
             }
         }
         retryTimes--;
     } while (retryTimes > 0);
 
     LOG_ERROR("rd delete over retry times, errcode: :%{public}d", ret);
-    return ret;
+    return TransferGrdErrno(ret);
 }
 
 int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &value)
@@ -357,14 +387,14 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvGetApi(db_, TABLENAME, &innerKey, &innerVal);
         if (ret == GRD_UNDEFINED_TABLE) {
+            LOG_INFO("CreateCollection called when Get, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
-            ret = TransferGrdErrno(ret);
             if (ret == E_OK) {
                 break;
             } else {
                 LOG_ERROR("rd get failed:%{public}d", ret);
-                return ret;
+                return TransferGrdErrno(ret);
             }
         }
         retryTimes--;
@@ -372,12 +402,12 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
 
     if (retryTimes == 0) {
         LOG_ERROR("rd get over retry times, errcode: :%{public}d", ret);
-        return ret;
+        return TransferGrdErrno(ret);
     }
     value.resize(innerVal.dataLen);
     value = KvItemToBlob(innerVal);
     (void)PreferenceDbAdapter::GetApiInstance().FreeItemApi(&innerVal);
-    return E_OK;
+    return TransferGrdErrno(ret);
 }
 
 int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data,
@@ -395,24 +425,24 @@ int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::ve
         std::pair<std::vector<uint8_t>, std::vector<uint8_t>> dataItem;
         uint32_t keySize = 0;
         uint32_t valueSize = 0;
-        ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().GetItemSizeApi(resultSet, &keySize, &valueSize));
-        if (ret != E_OK) {
+        ret = PreferenceDbAdapter::GetApiInstance().GetItemSizeApi(resultSet, &keySize, &valueSize);
+        if (ret != GRD_OK) {
             LOG_ERROR("ger reulstSet kv size failed %{public}d", ret);
             PreferenceDbAdapter::GetApiInstance().FreeResultSetApi(resultSet);
-            return ret;
+            return TransferGrdErrno(ret);
         }
         dataItem.first.resize(keySize);
         dataItem.second.resize(valueSize);
-        ret = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().GetItemApi(resultSet, dataItem.first.data(),
-            dataItem.second.data()));
+        ret = PreferenceDbAdapter::GetApiInstance().GetItemApi(resultSet, dataItem.first.data(),
+            dataItem.second.data());
         if (ret != E_OK) {
             LOG_ERROR("ger reulstSet failed %{public}d", ret);
             PreferenceDbAdapter::GetApiInstance().FreeResultSetApi(resultSet);
-            return ret;
+            return TransferGrdErrno(ret);
         }
         data.emplace_back(std::move(dataItem));
     }
-    return ret;
+    return TransferGrdErrno(ret);
 }
 
 int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data)
@@ -434,14 +464,14 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvFilterApi(db_, TABLENAME, &param, &resultSet);
         if (ret == GRD_UNDEFINED_TABLE) {
+            LOG_INFO("CreateCollection called when GetAll, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
-            ret = TransferGrdErrno(ret);
-            if (ret == E_OK) {
+            if (ret == GRD_OK) {
                 break;
             } else {
                 LOG_ERROR("rd kv filter failed:%{public}d", ret);
-                return ret;
+                return TransferGrdErrno(ret);
             }
         }
         retryTimes--;
@@ -449,7 +479,7 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
 
     if (retryTimes == 0) {
         LOG_ERROR("rd get over retry times, errcode: :%{public}d", ret);
-        return ret;
+        return TransferGrdErrno(ret);
     }
 
     return GetAllInner(data, resultSet);
@@ -465,11 +495,12 @@ int PreferencesDb::DropCollection()
         return E_ERROR;
     }
 
-    int errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0));
+    int errCode = PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0);
     if (errCode != E_OK) {
         LOG_ERROR("rd drop collection failed:%{public}d", errCode);
+        PreferencesDfxManager::ReportDbFault(GetReportParam("rd drop collection failed", errCode));
     }
-    return errCode;
+    return TransferGrdErrno(errCode);
 }
 
 GRD_KVItemT PreferencesDb::BlobToKvItem(const std::vector<uint8_t> &blob)
