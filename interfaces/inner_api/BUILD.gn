@@ -43,6 +43,7 @@ config("adaptor_config") {
 }
 
 base_sources = [
+  "${preferences_native_path}/platform/src/preferences_dfx_adapter.cpp",
   "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
   "${preferences_native_path}/platform/src/preferences_thread.cpp",
   "${preferences_native_path}/src/base64_helper.cpp",
@@ -100,9 +101,11 @@ if (is_ohos) {
     external_deps = [
       "ability_base:zuri",
       "ability_runtime:dataobs_manager",
+      "access_token:libaccesstoken_sdk",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
+      "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
       "libxml2:libxml2",
@@ -237,9 +240,11 @@ ohos_static_library("native_preferences_static") {
     external_deps = [
       "ability_base:zuri",
       "ability_runtime:dataobs_manager",
+      "access_token:libaccesstoken_sdk",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
+      "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
       "libxml2:libxml2",
