@@ -293,7 +293,8 @@ void ReadXmlElement(const Element &element, std::map<std::string, PreferencesVal
 bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
 {
     std::vector<Element> settings;
-    if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.dataGroupId, settings)) {
+    if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.bundleName,
+        pref->options_.dataGroupId, settings)) {
         return false;
     }
 
@@ -381,8 +382,8 @@ void WriteXmlElement(Element &elem, const PreferencesValue &value)
     Convert2Element(elem, value.value_);
 }
 
-bool PreferencesImpl::WriteSettingXml(const std::string &filePath, const std::string &dataGroupId,
-    const std::map<std::string, PreferencesValue> &writeToDiskMap)
+bool PreferencesImpl::WriteSettingXml(
+    const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap)
 {
     std::vector<Element> settings;
     for (auto it = writeToDiskMap.begin(); it != writeToDiskMap.end(); it++) {
@@ -393,7 +394,7 @@ bool PreferencesImpl::WriteSettingXml(const std::string &filePath, const std::st
         settings.push_back(elem);
     }
 
-    return PreferencesXmlUtils::WriteSettingXml(filePath, dataGroupId, settings);
+    return PreferencesXmlUtils::WriteSettingXml(options.filePath, options.bundleName, options.dataGroupId, settings);
 }
 
 
@@ -472,7 +473,7 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
         LOG_INFO("No data to update persistent file");
         return E_OK;
     }
-    if (!pref->WriteSettingXml(pref->options_.filePath, pref->options_.dataGroupId, writeToDiskMap)) {
+    if (!pref->WriteSettingXml(pref->options_, writeToDiskMap)) {
         return E_ERROR;
     }
     pref->NotifyPreferencesObserver(keysModified, writeToDiskMap);
@@ -551,7 +552,6 @@ void PreferencesImpl::NotifyPreferencesObserver(const std::list<std::string> &ke
 
     auto dataObsMgrClient = DataObsMgrClient::GetInstance();
     for (auto key = keysModified.begin(); key != keysModified.end(); ++key) {
-        LOG_INFO("The %{public}s is changed, the observer needs to be triggered.", key->c_str());
         for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
             std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
             if (std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock()) {
@@ -562,6 +562,7 @@ void PreferencesImpl::NotifyPreferencesObserver(const std::list<std::string> &ke
         if (dataObsMgrClient == nullptr) {
             continue;
         }
+        LOG_INFO("The %{public}s is changed, the observer needs to be triggered.", key->c_str());
         dataObsMgrClient->NotifyChange(MakeUri(*key));
     }
 }

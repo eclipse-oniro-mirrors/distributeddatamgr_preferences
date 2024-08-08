@@ -50,11 +50,13 @@
         "deps": {
             "components": [
                 "ability_runtime",
+                "access_token",
                 "napi",
                 "hilog",
                 "c_utils",
                 "ability_base",
                 "common_event_service",
+                "hisysevent",
                 "hitrace",
                 "ipc",
                 "bounds_checking_function",

@@ -22,9 +22,11 @@
 
 #include "libxml/parser.h"
 #include "log_print.h"
+#include "preferences_dfx_adapter.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
 #include "preferences_impl.h"
+
 namespace OHOS {
 namespace NativePreferences {
 static bool ParseNodeElement(const xmlNode *node, Element &element);
@@ -82,8 +84,9 @@ static bool RenameToBackupFile(const std::string &fileName)
     return RenameFile(fileName, STR_BACKUP);
 }
 
-static bool RenameToBrokenFile(const std::string &fileName)
+static bool RenameToBrokenFile(const std::string &fileName, const ReportParam &reportParam)
 {
+    PreferencesDfxManager::ReportDbFault(reportParam);
     return RenameFile(fileName, STR_BROKEN);
 }
 
@@ -92,7 +95,7 @@ static xmlDoc *ReadFile(const std::string &fileName)
     return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS | XML_PARSE_HUGE);
 }
 
-static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataGroupId)
+static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId)
 {
     xmlDoc *doc = nullptr;
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
@@ -103,8 +106,11 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataG
         }
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-        LOG_ERROR("failed to read XML format file, error is %{public}s.", errMessage.c_str());
-        if (!RenameToBrokenFile(fileName)) {
+        LOG_ERROR("failed to read XML format file: %{public}s, error is %{public}s.",
+            ExtractFileName(fileName).c_str(), errMessage.c_str());
+        ReportParam reportParam = { bundleName, PreferencesDfxManager::GetModuleName(), NORMAL_DB,
+            ExtractFileName(fileName), E_ERROR, errno, "operation: failed to read XML format file." };
+        if (!RenameToBrokenFile(fileName, reportParam)) {
             return doc;
         }
     }
@@ -115,15 +121,16 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &dataG
 }
 
 /* static */
-bool PreferencesXmlUtils::ReadSettingXml(
-    const std::string &fileName, const std::string &dataGroupId, std::vector<Element> &settings)
+bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, const std::string &bundleName,
+    const std::string &dataGroupId, std::vector<Element> &settings)
 {
     LOG_RECORD_FILE_NAME("Read setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
     }
-    auto doc = std::shared_ptr<xmlDoc>(XmlReadFile(fileName, dataGroupId), [](xmlDoc *doc) { xmlFreeDoc(doc); });
+    auto doc =
+        std::shared_ptr<xmlDoc>(XmlReadFile(fileName, bundleName, dataGroupId), [](xmlDoc *doc) { xmlFreeDoc(doc); });
     if (doc == nullptr) {
         return false;
     }
@@ -276,7 +283,8 @@ static bool SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
     return xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0;
 }
 
-bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &dataGroupId, xmlDoc *doc)
+bool XmlSaveFormatFileEnc(
+    const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId, xmlDoc *doc)
 {
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
@@ -286,9 +294,12 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &dataGr
     if (!SaveFormatFileEnc(fileName, doc)) {
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-        LOG_ERROR("failed to save XML format file, error is %{public}s.", errMessage.c_str());
+        LOG_ERROR("failed to save XML format file: %{public}s, error is %{public}s.",
+            ExtractFileName(fileName).c_str(), errMessage.c_str());
         if (IsFileExist(fileName)) {
-            RenameToBrokenFile(fileName);
+            ReportParam reportParam = { bundleName, PreferencesDfxManager::GetModuleName(), NORMAL_DB,
+                ExtractFileName(fileName), E_ERROR, errno, "operation: failed to save XML format file." };
+            RenameToBrokenFile(fileName, reportParam);
         }
         RenameFromBackupFile(fileName);
         return false;
@@ -305,8 +316,8 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &dataGr
 }
 
 /* static */
-bool PreferencesXmlUtils::WriteSettingXml(
-    const std::string &fileName, const std::string &dataGroupId, const std::vector<Element> &settings)
+bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std::string &bundleName,
+    const std::string &dataGroupId, const std::vector<Element> &settings)
 {
     LOG_RECORD_FILE_NAME("Write setting xml start.");
     if (fileName.size() == 0) {
@@ -346,7 +357,7 @@ bool PreferencesXmlUtils::WriteSettingXml(
     }
 
     /* 1: formatting spaces are added. */
-    bool result = XmlSaveFormatFileEnc(fileName, dataGroupId, doc.get());
+    bool result = XmlSaveFormatFileEnc(fileName, bundleName, dataGroupId, doc.get());
     LOG_RECORD_FILE_NAME("Write setting xml end.");
     return result;
 }
