@@ -26,12 +26,15 @@
 #include "preferences_errno.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
+#include "preferences_dfx_adapter.h"
 #include "preferences_impl.h"
 #include "preferences_enhance_impl.h"
 namespace OHOS {
 namespace NativePreferences {
 std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
+static constexpr const int DB_SUFFIX_NUM = 6;
+static constexpr const char *DB_SUFFIX[DB_SUFFIX_NUM] = { ".ctrl", ".ctrl.dwr", ".redo", ".undo", ".safe", ".map" };
 
 static bool IsFileExist(const std::string &path)
 {
@@ -39,42 +42,43 @@ static bool IsFileExist(const std::string &path)
     return (stat(path.c_str(), &buffer) == 0);
 }
 
+static int RemoveEnhanceDb(const std::string &filePath)
+{
+    SetFileControlFlag(filePath, FlagControlType::CLEAR_FLAG);
+    if (std::remove(filePath.c_str()) != 0) {
+        SetFileControlFlag(filePath, FlagControlType::SET_FLAG);
+        LOG_ERROR("remove %{public}s failed.", ExtractFileName(filePath).c_str());
+        return E_DELETE_FILE_FAIL;
+    }
+    return E_OK;
+}
+
+static void DbFileAddControlFlag(const std::string &filePath)
+{
+    std::string dbFilePath = filePath + ".db";
+    if (IsFileExist(dbFilePath)) {
+        SetFileControlFlag(dbFilePath, FlagControlType::SET_FLAG);
+    }
+    for (int index = 0; index < DB_SUFFIX_NUM; index++) {
+        std::string tmpFilePath = dbFilePath.append(DB_SUFFIX[index]);
+        if (IsFileExist(tmpFilePath)) {
+            SetFileControlFlag(dbFilePath, FlagControlType::SET_FLAG);
+        }
+    }
+}
+
 static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
 {
     std::string dbFilePath = filePath + ".db";
-    if (IsFileExist(dbFilePath) && std::remove(dbFilePath.c_str()) != 0) {
+    if (IsFileExist(dbFilePath) && RemoveEnhanceDb(dbFilePath) != E_OK) {
         LOG_ERROR("remove dbFilePath failed.");
         return E_DELETE_FILE_FAIL;
     }
-    std::string tmpFilePath = dbFilePath + ".ctrl";
-    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = dbFilePath + ".ctrl.dwr";
-    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrl dwr File failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = dbFilePath + ".redo";
-    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = dbFilePath + ".undo";
-    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = dbFilePath + ".safe";
-    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
-    }
-    tmpFilePath = dbFilePath + ".map";
-    if (IsFileExist(tmpFilePath) && std::remove(tmpFilePath.c_str()) != 0) {
-        LOG_ERROR("remove ctrlFile failed.");
-        return E_DELETE_FILE_FAIL;
+    for (int index = 0; index < DB_SUFFIX_NUM; index++) {
+        std::string tmpFilePath = dbFilePath.append(DB_SUFFIX[index]);
+        if (IsFileExist(tmpFilePath) && RemoveEnhanceDb(tmpFilePath) != E_OK) {
+            return E_DELETE_FILE_FAIL;
+        }
     }
     LOG_DEBUG("db files has been removed.");
     return E_OK;
@@ -187,6 +191,9 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     if (errCode != E_OK) {
         return nullptr;
     }
+    if (isEnhancePreferences) {
+        DbFileAddControlFlag(realPath);
+    }
     prefsCache_.insert({realPath, {pref, isEnhancePreferences}});
     return pref;
 }
@@ -228,6 +235,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string lockFilePath = MakeFilePath(filePath, STR_LOCK);
 
     PreferencesFileLock fileLock(lockFilePath, dataGroupId);
+    SetFileControlFlag(filePath, FlagControlType::CLEAR_FLAG);
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());

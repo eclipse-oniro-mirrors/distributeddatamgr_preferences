@@ -14,6 +14,7 @@
  */
 
 #include "preferences_dfx_adapter.h"
+#include "preferences_file_operation.h"
 
 #include <chrono>
 #include <ctime>
@@ -23,6 +24,10 @@
 #include "log_print.h"
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 #include <thread>
+#include <fstream>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
 
 #include "accesstoken_kit.h"
 #include "hisysevent_c.h"
@@ -31,6 +36,11 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+#define HMFS_MONITOR_FL 0x00000002
+#define HMFS_IOCTL_HW_GET_FLAGS _IOR(0xf5, 70, unsigned int)
+#define HMFS_IOCTL_HW_SET_FLAGS _IOR(0xf5, 71, unsigned int)
+
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 std::string GetCurrentTime()
 {
@@ -63,6 +73,44 @@ std::string PreferencesDfxManager::GetModuleName()
         }
     }
     return moduleName;
+}
+
+void SetFileControlFlag(const std::string &fileName, FlagControlType flagControlType)
+{
+    int fd = open(fileName.c_str(), O_RDONLY, S_IRWXU | S_IRWXG);
+    if (fd == -1) {
+        LOG_ERROR("Couldn't open file %{public}s errno %{public}d.", ExtractFileName(fileName).c_str(), errno);
+        return;
+    }
+    unsigned int flags = 0;
+    int ret = ioctl(fd, HMFS_IOCTL_HW_GET_FLAGS, &flags);
+    if (ret < 0) {
+        LOG_DEBUG("Failed to get control flag, errno: %{public}d.", errno);
+        close(fd);
+        return;
+    }
+
+    if ((flagControlType == FlagControlType::SET_FLAG && (flags & HMFS_MONITOR_FL)) ||
+        (flagControlType == FlagControlType::CLEAR_FLAG && !(flags & HMFS_MONITOR_FL))) {
+        close(fd);
+        return;
+    }
+
+    if (flagControlType == FlagControlType::SET_FLAG) {
+        flags |= HMFS_MONITOR_FL;
+    } else if (flagControlType == FlagControlType::CLEAR_FLAG) {
+        flags &= ~HMFS_MONITOR_FL;
+    }
+ 
+    ret = ioctl(fd, HMFS_IOCTL_HW_SET_FLAGS, &flags);
+    if (ret < 0) {
+        LOG_DEBUG("Failed to set flags:%{public}d, errno: %{public}d.", flagControlType, errno);
+        close(fd);
+        return;
+    }
+
+    LOG_DEBUG("Flag control operation success type: %{public}d.", flagControlType);
+    close(fd);
 }
 
 void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
@@ -115,6 +163,10 @@ std::string GetCurrentTime()
 std::string PreferencesDfxManager::GetModuleName()
 {
     return "";
+}
+
+void SetFileControlFlag(const std::string &fileName, FlagControlType flagControlType)
+{
 }
 
 void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
