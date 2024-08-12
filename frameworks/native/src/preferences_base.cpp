@@ -164,7 +164,6 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
     std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
     if (mode == RegisterMode::LOCAL_CHANGE) {
         std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
-        LOG_INFO("The local observer subscribed succeeded.");
         localObservers_.push_back(weakPreferencesObserver);
     } else if (mode == RegisterMode::MULTI_PRECESS_CHANGE) {
         auto dataObsMgrClient = DataObsMgrClient::GetInstance();
@@ -177,9 +176,9 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
             LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
             return errcode;
         }
-        LOG_INFO("The Cross-process observer subscribed succeeded.");
         multiProcessObservers_.push_back(observer);
     }
+    LOG_INFO("The local observer subscribed succeeded.");
     return E_OK;
 }
 
@@ -243,7 +242,6 @@ int PreferencesBase::UnRegisterObserver(std::shared_ptr<PreferencesObserver> pre
             std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
             std::shared_ptr<PreferencesObserver> sharedObserver = weakPreferencesObserver.lock();
             if (!sharedObserver || sharedObserver == preferencesObserver) {
-                LOG_INFO("The local observer unsubscribed succeeded.");
                 localObservers_.erase(it);
                 break;
             }
@@ -262,11 +260,11 @@ int PreferencesBase::UnRegisterObserver(std::shared_ptr<PreferencesObserver> pre
                 LOG_ERROR("UnRegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
                 return errcode;
             }
-            LOG_INFO("The Cross-process observer unsubscribed succeeded.");
             multiProcessObservers_.erase(it);
             break;
         }
     }
+    LOG_INFO("The observer unsubscribed succeeded.");
     return E_OK;
 }
 
