@@ -287,8 +287,13 @@ bool XmlSaveFormatFileEnc(
     const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId, xmlDoc *doc)
 {
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
-    if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
-        return false;
+
+    if (IsFileExist(fileName)) {
+        SetFileControlFlag(fileName, FlagControlType::CLEAR_FLAG);
+        if (!RenameToBackupFile(fileName)) {
+            SetFileControlFlag(fileName, FlagControlType::SET_FLAG);
+            return false;
+        }
     }
 
     if (!SaveFormatFileEnc(fileName, doc)) {
@@ -311,6 +316,7 @@ bool XmlSaveFormatFileEnc(
     if (!Fsync(fileName)) {
         LOG_WARN("failed to write the file to the disk.");
     }
+    SetFileControlFlag(fileName, FlagControlType::SET_FLAG);
     LOG_DEBUG("successfully saved the XML format file");
     return true;
 }
