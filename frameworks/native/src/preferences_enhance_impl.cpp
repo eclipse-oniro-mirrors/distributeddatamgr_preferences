@@ -33,6 +33,8 @@
 namespace OHOS {
 namespace NativePreferences {
 
+constexpr int32_t CACHED_THRESHOLDS = 512 * 1024; // we will cached big obj(len >= 512k)
+
 PreferencesEnhanceImpl::PreferencesEnhanceImpl(const Options &options): PreferencesBase(options)
 {
 }
@@ -47,6 +49,7 @@ int PreferencesEnhanceImpl::Init()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     db_ = std::make_shared<PreferencesDb>();
+    cachedDataVersion_ = 0;
     return db_->Init(options_.filePath, options_.bundleName);
 }
 
@@ -61,6 +64,18 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
         return defValue;
     }
 
+    int64_t kernelDataVersion = 0;
+    if (db_->GetKernelDataVersion(kernelDataVersion) != E_OK) {
+        LOG_ERROR("PreferencesEnhanceImpl:Get failed, get kernel data version failed.");
+        return defValue;
+    }
+    if (kernelDataVersion == cachedDataVersion_) {
+        auto it = largeCachedData_.find(key);
+        if (it != largeCachedData_.end()) {
+            return it->second;
+        }
+    }
+
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
@@ -70,8 +85,12 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
     }
     auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
     if (item.first != E_OK) {
-        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
+        LOG_ERROR("get key failed, errCode=%{public}d", item.first);
         return defValue;
+    }
+    if (oriValue.size() >= CACHED_THRESHOLDS) {
+        largeCachedData_.insert_or_assign(key, item.second);
+        cachedDataVersion_ = kernelDataVersion;
     }
     return item.second;
 }
@@ -87,12 +106,33 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
         return E_ERROR;
     }
 
+    int64_t kernelDataVersion = 0;
+    if (db_->GetKernelDataVersion(kernelDataVersion) != E_OK) {
+        LOG_ERROR("PreferencesEnhanceImpl:HasKey failed, get kernel data version failed.");
+        return false;
+    }
+    if (kernelDataVersion == cachedDataVersion_) {
+        auto it = largeCachedData_.find(key);
+        if (it != largeCachedData_.end()) {
+            return true;
+        }
+    }
+
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
     if (errCode != E_OK) {
         LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return false;
+    }
+    if (oriValue.size() >= CACHED_THRESHOLDS) {
+        auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
+        if (item.first != E_OK) {
+            LOG_WARN("haskey unmarshall failed, haskey return true, errCode=%{public}d", item.first);
+            return true;
+        }
+        largeCachedData_.insert_or_assign(key, item.second);
+        cachedDataVersion_ = kernelDataVersion;
     }
     return true;
 }
@@ -128,6 +168,17 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
         return errCode;
     }
 
+    // update cached and version
+    if (oriValueLen >= CACHED_THRESHOLDS) {
+        largeCachedData_.insert_or_assign(key, value);
+        cachedDataVersion_ = cachedDataVersion_ == INT64_MAX ? 0 : cachedDataVersion_ + 1;
+    } else {
+        auto pos = largeCachedData_.find(key);
+        if (pos != largeCachedData_.end()) {
+            largeCachedData_.erase(pos);
+        }
+    }
+
     ExecutorPool::Task task = [pref = shared_from_this(), key, value] {
         PreferencesEnhanceImpl::NotifyPreferencesObserver(pref, key, value);
     };
@@ -154,6 +205,13 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
         return errCode;
     }
 
+    // update cached and version
+    auto it = largeCachedData_.find(key);
+    if (it != largeCachedData_.end()) {
+        largeCachedData_.erase(it);
+        cachedDataVersion_ = cachedDataVersion_ == INT64_MAX ? 0 : cachedDataVersion_ + 1;
+    }
+
     PreferencesValue value;
     ExecutorPool::Task task = [pref = shared_from_this(), key, value] {
         PreferencesEnhanceImpl::NotifyPreferencesObserver(pref, key, value);
@@ -167,6 +225,12 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
     std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:GetAll failed, db has been closed.");
+        return {};
+    }
+
+    int64_t kernelDataVersion = 0;
+    if (db_->GetKernelDataVersion(kernelDataVersion) != E_OK) {
+        LOG_ERROR("PreferencesEnhanceImpl:GetAll failed, get kernel data version failed.");
         return {};
     }
 
@@ -185,7 +249,11 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
             LOG_ERROR("get key failed, errCode=%{public}d", errCode);
             return {};
         }
+        if (it->second.size() >= CACHED_THRESHOLDS) {
+            largeCachedData_.insert_or_assign(key, item.second);
+        }
     }
+    cachedDataVersion_ = kernelDataVersion;
     return result;
 }
 
@@ -230,8 +298,11 @@ int PreferencesEnhanceImpl::Clear()
     errCode = db_->CreateCollection();
     if (errCode != E_OK) {
         LOG_ERROR("create collection failed when clear, errCode=%{public}d", errCode);
+        return errCode;
     }
-    return errCode;
+    largeCachedData_.clear();
+    cachedDataVersion_ = cachedDataVersion_ == INT64_MAX ? 0 : cachedDataVersion_ + 1;
+    return E_OK;
 }
 
 int PreferencesEnhanceImpl::CloseDb()
@@ -246,6 +317,7 @@ int PreferencesEnhanceImpl::CloseDb()
         LOG_ERROR("PreferencesEnhanceImpl:CloseDb failed.");
         return errCode;
     }
+    largeCachedData_.clear();
     db_ = nullptr;
     return E_OK;
 }

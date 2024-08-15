@@ -64,6 +64,7 @@ void GRDDBApiInitEnhance(GRD_APIInfo &GRD_DBApiInfo)
     GRD_DBApiInfo.FreeItemApi = (KVFreeItem)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_KVFreeItem");
     GRD_DBApiInfo.FreeResultSetApi = (FreeResultSet)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_FreeResultSet");
     GRD_DBApiInfo.DbRepairApi = (DBRepair)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_DBRepair");
+    GRD_DBApiInfo.DbGetConfigApi = (DBGetConfig)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_GetConfig");
 #endif
 }
 
@@ -515,6 +516,27 @@ std::vector<uint8_t> PreferencesDb::KvItemToBlob(GRD_KVItemT &item)
 {
     return std::vector<uint8_t>(static_cast<uint8_t *>(item.data),
         static_cast<uint8_t *>(item.data) + item.dataLen);
+}
+
+int PreferencesDb::GetKernelDataVersion(int64_t &dataVersion)
+{
+    if (db_ == nullptr) {
+        LOG_ERROR("Get kernel data version failed, db has been closed.");
+        return E_ALREADY_CLOSED;
+    } else if (PreferenceDbAdapter::GetApiInstance().DbGetConfigApi == nullptr) {
+        LOG_ERROR("api load failed: DbGetConfigApi");
+        return E_ERROR;
+    }
+
+    GRD_DbValueT kernelDataVersion = PreferenceDbAdapter::GetApiInstance().DbGetConfigApi(db_,
+        GRD_ConfigTypeE::GRD_CONFIG_DATA_VERSION);
+    if (kernelDataVersion.type != GRD_DbDataTypeE::GRD_DB_DATATYPE_INTEGER) {
+        LOG_ERROR("get wrong data version type: %d", kernelDataVersion.type);
+        return E_ERROR;
+    }
+
+    dataVersion = kernelDataVersion.value.longValue;
+    return E_OK;
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

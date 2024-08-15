@@ -60,6 +60,8 @@ private:
     std::shared_mutex dbMutex_;
     std::shared_ptr<PreferencesDb> db_;
     std::shared_mutex mapSharedMutex_;
+    int64_t cachedDataVersion_ = 0;
+    std::map<std::string, PreferencesValue> largeCachedData_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
