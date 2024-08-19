@@ -51,12 +51,15 @@ std::string GetCurrentTime()
     auto timestamp = value.count();
 
     std::time_t tt = std::chrono::system_clock::to_time_t(now);
-    std::tm tm = *std::localtime(&tt);
+    std::tm *tm = std::localtime(&tt);
+    if (tm == nullptr) {
+        return "";
+    }
 
     const int offset = 1000;
     const int width = 3;
     std::stringstream oss;
-    oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S.") << std::setfill('0') << std::setw(width)
+    oss << std::put_time(tm, "%Y-%m-%d %H:%M:%S.") << std::setfill('0') << std::setw(width)
         << ((timestamp / offset) % offset) << "." << std::setfill('0') << std::setw(width) << (timestamp % offset);
     return oss.str();
 }
@@ -117,6 +120,7 @@ void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
 {
     std::thread thread([reportParam]() {
         std::string nowTime = GetCurrentTime();
+        std::string moudleName = GetModuleName();
         HiSysEventParam params[] = {
             { .name = "BUNDLE_NAME",
                 .t = HISYSEVENT_STRING,
@@ -124,7 +128,7 @@ void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
                 .arraySize = 0 },
             { .name = "MODULE_NAME",
                 .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(GetModuleName().c_str()) },
+                .v = { .s = const_cast<char *>(moudleName.c_str()) },
                 .arraySize = 0 },
             { .name = "STORE_TYPE",
                 .t = HISYSEVENT_STRING,
