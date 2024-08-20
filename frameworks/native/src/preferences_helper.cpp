@@ -60,7 +60,7 @@ static void DbFileAddControlFlag(const std::string &filePath)
         SetFileControlFlag(dbFilePath, FlagControlType::SET_FLAG);
     }
     for (int index = 0; index < DB_SUFFIX_NUM; index++) {
-        std::string tmpFilePath = dbFilePath.append(DB_SUFFIX[index]);
+        std::string tmpFilePath = dbFilePath + DB_SUFFIX[index];
         if (IsFileExist(tmpFilePath)) {
             SetFileControlFlag(dbFilePath, FlagControlType::SET_FLAG);
         }
@@ -75,7 +75,7 @@ static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
         return E_DELETE_FILE_FAIL;
     }
     for (int index = 0; index < DB_SUFFIX_NUM; index++) {
-        std::string tmpFilePath = dbFilePath.append(DB_SUFFIX[index]);
+        std::string tmpFilePath = dbFilePath + DB_SUFFIX[index];
         if (IsFileExist(tmpFilePath) && RemoveEnhanceDb(tmpFilePath) != E_OK) {
             return E_DELETE_FILE_FAIL;
         }
