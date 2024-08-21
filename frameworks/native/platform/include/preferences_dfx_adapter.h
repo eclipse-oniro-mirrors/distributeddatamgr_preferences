@@ -18,7 +18,6 @@
 
 #include <string>
 
-#include "visibility.h"
 #include "preferences_errno.h"
 namespace OHOS {
 namespace NativePreferences {
@@ -27,11 +26,6 @@ static constexpr const char *NORMAL_DB = "XMLDB";
 static constexpr const char *ENHANCE_DB = "ENHANCEDB";
 static constexpr const char *EVENT_NAME_DB_CORRUPTED = "DATABASE_CORRUPTED";
 static constexpr const char *DISTRIBUTED_DATAMGR = "DISTDATAMGR";
-
-enum class FlagControlType {
-    SET_FLAG,
-    CLEAR_FLAG
-};
 
 struct ReportParam {
     std::string bundleName; // bundleName
@@ -42,8 +36,6 @@ struct ReportParam {
     // additional info, "operation: reason", such as "read failed"
     std::string appendix; // additional info
 };
-
-void SetFileControlFlag(const std::string &fileName, FlagControlType flagControlType);
 
 class PreferencesDfxManager {
 public:

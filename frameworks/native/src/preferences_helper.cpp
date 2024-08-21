@@ -26,7 +26,6 @@
 #include "preferences_errno.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
-#include "preferences_dfx_adapter.h"
 #include "preferences_impl.h"
 #include "preferences_enhance_impl.h"
 namespace OHOS {
@@ -44,27 +43,11 @@ static bool IsFileExist(const std::string &path)
 
 static int RemoveEnhanceDb(const std::string &filePath)
 {
-    SetFileControlFlag(filePath, FlagControlType::CLEAR_FLAG);
     if (std::remove(filePath.c_str()) != 0) {
-        SetFileControlFlag(filePath, FlagControlType::SET_FLAG);
         LOG_ERROR("remove %{public}s failed.", ExtractFileName(filePath).c_str());
         return E_DELETE_FILE_FAIL;
     }
     return E_OK;
-}
-
-static void DbFileAddControlFlag(const std::string &filePath)
-{
-    std::string dbFilePath = filePath + ".db";
-    if (IsFileExist(dbFilePath)) {
-        SetFileControlFlag(dbFilePath, FlagControlType::SET_FLAG);
-    }
-    for (int index = 0; index < DB_SUFFIX_NUM; index++) {
-        std::string tmpFilePath = dbFilePath + DB_SUFFIX[index];
-        if (IsFileExist(tmpFilePath)) {
-            SetFileControlFlag(dbFilePath, FlagControlType::SET_FLAG);
-        }
-    }
 }
 
 static int RemoveEnhanceDbFileIfNeed(const std::string &filePath)
@@ -191,9 +174,6 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     if (errCode != E_OK) {
         return nullptr;
     }
-    if (isEnhancePreferences) {
-        DbFileAddControlFlag(realPath);
-    }
     prefsCache_.insert({realPath, {pref, isEnhancePreferences}});
     return pref;
 }
@@ -235,7 +215,6 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string lockFilePath = MakeFilePath(filePath, STR_LOCK);
 
     PreferencesFileLock fileLock(lockFilePath, dataGroupId);
-    SetFileControlFlag(filePath, FlagControlType::CLEAR_FLAG);
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());
