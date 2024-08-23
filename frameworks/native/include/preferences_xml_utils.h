@@ -31,10 +31,10 @@ public:
 
 class PreferencesXmlUtils {
 public:
-    static bool ReadSettingXml(
-        const std::string &fileName, const std::string &dataGroupId, std::vector<Element> &settings);
-    static bool WriteSettingXml(
-        const std::string &fileName, const std::string &dataGroupId, const std::vector<Element> &settings);
+    static bool ReadSettingXml(const std::string &fileName, const std::string &bundleName,
+        const std::string &dataGroupId, std::vector<Element> &settings);
+    static bool WriteSettingXml(const std::string &fileName, const std::string &bundleName,
+        const std::string &dataGroupId, const std::vector<Element> &settings);
     static void LimitXmlPermission(const std::string &fileName);
 
 private:
