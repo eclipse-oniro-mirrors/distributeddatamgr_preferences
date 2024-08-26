@@ -31,6 +31,7 @@
 #include "preferences_observer_stub.h"
 #include "preferences_xml_utils.h"
 #include "preferences_file_operation.h"
+#include "preferences_anonymous.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -248,7 +249,7 @@ static void Convert2PrefValue(const Element &element, BigInt &value)
 template<typename T>
 bool GetPrefValue(const Element &element, T &value)
 {
-    LOG_WARN("unknown element type. the key is %{public}s", element.key_.c_str());
+    LOG_WARN("unknown element type. the key is %{public}s", Anonymous::ToBeAnonymous(element.key_).c_str());
     return false;
 }
 
@@ -360,7 +361,7 @@ void Convert2Element(Element &elem, const BigInt &value)
 
 template<typename T> void GetElement(Element &elem, const T &value)
 {
-    LOG_WARN("unknown element type. the key is %{public}s", elem.key_.c_str());
+    LOG_WARN("unknown element type. the key is %{public}s", Anonymous::ToBeAnonymous(elem.key_).c_str());
 }
 
 template<typename T, typename First, typename... Types> void GetElement(Element &elem, const T &value)
@@ -562,7 +563,8 @@ void PreferencesImpl::NotifyPreferencesObserver(const std::list<std::string> &ke
         if (dataObsMgrClient == nullptr) {
             continue;
         }
-        LOG_INFO("The %{public}s is changed, the observer needs to be triggered.", key->c_str());
+        LOG_INFO("The %{public}s is changed, the observer needs to be triggered.",
+            Anonymous::ToBeAnonymous(*key).c_str());
         dataObsMgrClient->NotifyChange(MakeUri(*key));
     }
 }
