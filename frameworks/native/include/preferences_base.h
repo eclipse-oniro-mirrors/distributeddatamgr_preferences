@@ -100,6 +100,11 @@ public:
     std::string GetGroupId() const override;
 
     int CloseDb() override;
+
+    std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
+
+    std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
+
 protected:
     Uri MakeUri(const std::string &key = "");
     struct WeakPtrCompare {

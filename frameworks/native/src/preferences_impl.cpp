@@ -439,7 +439,6 @@ int PreferencesImpl::Delete(const std::string &key)
         return errCode;
     }
     AwaitLoadFile();
-
     valuesCache_.EraseIf(key, [this](auto &key, PreferencesValue &val) {
         modifiedKeys_.push_back(key);
         return true;
@@ -518,6 +517,29 @@ int PreferencesImpl::FlushSync()
         }
     }
     return E_OK;
+}
+
+std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &key, const PreferencesValue &defValue)
+{
+    int errCode = CheckKey(key);
+    if (errCode != E_OK) {
+        return std::make_pair(errCode, defValue);
+    }
+
+    AwaitLoadFile();
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = valuesCache_.Find(key);
+    if (iter.first) {
+        return std::make_pair(E_OK, iter.second);
+    }
+    return std::make_pair(E_ERROR, defValue);
+}
+    
+std::pair<int, std::map<std::string, PreferencesValue>> PreferencesImpl::GetAllData()
+{
+    AwaitLoadFile();
+    std::lock_guard<std::mutex> lock(mutex_);
+    return std::make_pair(E_OK, valuesCache_.Clone());
 }
 
 void PreferencesImpl::NotifyPreferencesObserver(const std::list<std::string> &keysModified,
