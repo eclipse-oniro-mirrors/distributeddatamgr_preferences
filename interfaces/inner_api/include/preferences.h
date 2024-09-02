@@ -44,10 +44,17 @@ public:
     {
     }
 
+    Options(const std::string &inputFilePath, const std::string &inputbundleName, const std::string &inputdataGroupId,
+        bool inputIsEnhance) : filePath(inputFilePath), bundleName(inputbundleName), dataGroupId(inputdataGroupId),
+        isEnhance(inputIsEnhance)
+    {
+    }
+
 public:
     std::string filePath{ "" };
     std::string bundleName{ "" };
     std::string dataGroupId{ "" };
+    bool isEnhance = false;
 };
 /**
  * The function class of the preference. Various operations on preferences instances are provided in this class.
@@ -385,6 +392,33 @@ public:
         std::shared_ptr<PreferencesObserver> preferencesObserver, const std::vector<std::string> &keys = {})
     {
         return E_OK;
+    }
+    
+    /**
+     * @brief Obtains the value of a preferences.
+     *
+     * This function is used to get the value of the corresponding key in the preference.
+     *
+     * @param key Indicates the key of the preferences. It cannot be empty.
+     * @param defValue Indicates the default value of the preferences.
+     *
+     * @return Returns a pair, the first is 0 for success, others for failure.
+     */
+    virtual std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue)
+    {
+        return {E_OK, defValue};
+    }
+
+    /**
+     * @brief Obtains all the keys and values of a preferences.
+     *
+     * This function is used to get all keys and values in an object.
+     *
+     * @return Returns a pair, the first is 0 for success, others for failure.
+     */
+    virtual std::pair<int, std::map<std::string, PreferencesValue>> GetAllData()
+    {
+        return {E_OK, {}};
     }
 };
 } // End of namespace NativePreferences

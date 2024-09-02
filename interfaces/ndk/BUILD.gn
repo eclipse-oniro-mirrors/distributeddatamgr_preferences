@@ -1,0 +1,95 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//build/ohos.gni")
+import("//foundation/distributeddatamgr/preferences/preferences.gni")
+
+config("ndk_preferences_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "include",
+    "${preferences_base_path}/frameworks/common/include",
+    "${preferences_base_path}/frameworks/ndk/include",
+    "${preferences_native_path}/include",
+    "${preferences_native_path}/platform/include/",
+  ]
+}
+
+config("ndk_preferences_public_config") {
+  visibility = [ ":*" ]
+  include_dirs = [ "include" ]
+}
+
+if (is_ohos) {
+  base_sources = [
+    "${preferences_ndk_path}/src/convertor_error_code.cpp",
+    "${preferences_ndk_path}/src/oh_preferences.cpp",
+    "${preferences_ndk_path}/src/oh_preferences_option.cpp",
+    "${preferences_ndk_path}/src/oh_preferences_value.cpp",
+  ]
+  ohos_shared_library("ohpreferences") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+    ]
+    deps =
+        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
+
+    sources = base_sources
+
+    defines = [ "API_EXPORT=__attribute__((visibility (\"default\")))" ]
+
+    configs = [ ":ndk_preferences_config" ]
+
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
+    public_configs = [ ":ndk_preferences_public_config" ]
+    relative_install_dir = "ndk"
+    part_name = "preferences"
+    subsystem_name = "distributeddatamgr"
+    output_extension = "so"
+  }
+
+  ohos_static_library("ohpreferences_static") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      boundary_sanitize = true
+      ubsan = true
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+    deps =
+        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
+    sources = base_sources
+
+    configs = [ ":ndk_preferences_config" ]
+
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
+    public_configs = [ ":ndk_preferences_public_config" ]
+    part_name = "preferences"
+    subsystem_name = "distributeddatamgr"
+  }
+}

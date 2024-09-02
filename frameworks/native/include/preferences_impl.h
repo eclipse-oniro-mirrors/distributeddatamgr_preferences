@@ -55,6 +55,10 @@ public:
     void Flush() override;
 
     int FlushSync() override;
+
+    std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
+
+    std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
 private:
     explicit PreferencesImpl(const Options &options);
     

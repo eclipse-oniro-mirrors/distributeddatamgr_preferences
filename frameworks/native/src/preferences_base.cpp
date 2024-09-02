@@ -219,6 +219,17 @@ int PreferencesBase::CloseDb()
     return E_OK;
 }
 
+std::pair<int, PreferencesValue> PreferencesBase::GetValue(const std::string &key, const PreferencesValue &defValue)
+{
+    return std::make_pair(E_OK, defValue);
+}
+
+std::pair<int, std::map<std::string, PreferencesValue>> PreferencesBase::GetAllData()
+{
+    std::map<std::string, PreferencesValue> map;
+    return std::make_pair(E_OK, map);
+}
+
 int PreferencesBase::RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
     const std::vector<std::string> &keys)
 {

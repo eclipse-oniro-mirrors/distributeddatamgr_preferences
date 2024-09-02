@@ -20,3 +20,5 @@ preferences_cj_path = "${preferences_base_path}/frameworks/cj/src"
 preferences_native_path = "${preferences_base_path}/frameworks/native"
 
 preferences_innerapi_path = "${preferences_base_path}/interfaces/inner_api"
+
+preferences_ndk_path = "${preferences_base_path}/frameworks/ndk"
