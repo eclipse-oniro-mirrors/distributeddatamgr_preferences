@@ -26,6 +26,7 @@
 #include "preferences_errno.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
+#include "preferences_dfx_adapter.h"
 #include "preferences_impl.h"
 #include "preferences_enhance_impl.h"
 namespace OHOS {
@@ -127,7 +128,7 @@ static bool IsUseEnhanceDb(const Options &options)
         options.bundleName.find("os.mms") != std::string::npos ||
         options.bundleName.find("os.ouc") != std::string::npos ||
         options.bundleName.find("meetimeservice") != std::string::npos);
-    if (!bundleCheck) {
+    if (!options.isEnhance && !bundleCheck) {
         return false;
     }
     PreferenceDbAdapter::ApiInit();
