@@ -110,7 +110,7 @@ int OH_Preferences_Close(OH_Preferences *preference);
  *         {@link PREFERENCES_ERROR_INVALID_PARAM} indicates invalid args are passed in.
  *         {@link PREFERENCES_ERROR_STORAGE} indicates an storage error.
  *         {@link PREFERENCES_ERROR_MALLOC} indicates an malloc memory error.
- *         {@link PREFERENCES_ERROR_KEY_NOT_FOUND} indicates key is not exist.
+ *         {@link PREFERENCES_ERROR_KEY_NOT_FOUND} indicates the key does not exist.
  * @see OH_Preferences.
  * @since 13
  */
@@ -127,7 +127,7 @@ int OH_Preferences_GetInt(OH_Preferences *preference, const char *key, int *valu
  *         {@link PREFERENCES_ERROR_INVALID_PARAM} indicates invalid args are passed in.
  *         {@link PREFERENCES_ERROR_STORAGE} indicates an storage error.
  *         {@link PREFERENCES_ERROR_MALLOC} indicates an malloc memory error.
- *         {@link PREFERENCES_ERROR_KEY_NOT_FOUND} indicates key is not exist.
+ *         {@link PREFERENCES_ERROR_KEY_NOT_FOUND} indicates the key does not exist.
  * @see OH_Preferences.
  * @since 13
  */
@@ -146,7 +146,7 @@ int OH_Preferences_GetBool(OH_Preferences *preference, const char *key, bool *va
  *         {@link PREFERENCES_ERROR_INVALID_PARAM} indicates invalid args are passed in.
  *         {@link PREFERENCES_ERROR_STORAGE} indicates an storage error.
  *         {@link PREFERENCES_ERROR_MALLOC} indicates an malloc memory error.
- *         {@link PREFERENCES_ERROR_KEY_NOT_FOUND} indicates key is not exist.
+ *         {@link PREFERENCES_ERROR_KEY_NOT_FOUND} indicates the key does not exist.
  * @see OH_Preferences.
  * @since 13
  */

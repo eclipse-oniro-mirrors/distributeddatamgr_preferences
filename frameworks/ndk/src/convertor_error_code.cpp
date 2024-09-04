@@ -27,10 +27,15 @@ struct NdkErrCode {
 const std::map<int, int> ERROR_CODE_MAP = {
     { OHOS::NativePreferences::E_OK, OH_Preferences_ErrCode::PREFERENCES_OK },
     { OHOS::NativePreferences::E_INVALID_ARGS, OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM },
+    { OHOS::NativePreferences::E_KEY_EMPTY, OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM },
+    { OHOS::NativePreferences::E_KEY_EXCEED_MAX_LENGTH, OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM },
+    { OHOS::NativePreferences::E_VALUE_EXCEED_MAX_LENGTH, OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM },
     { OHOS::NativePreferences::E_NOT_SUPPORTED, OH_Preferences_ErrCode::PREFERENCES_ERROR_NOT_SUPPORTED },
     { OHOS::NativePreferences::E_DELETE_FILE_FAIL, OH_Preferences_ErrCode::PREFERENCES_ERROR_DELETE_FILE },
     { OHOS::NativePreferences::E_GET_DATAOBSMGRCLIENT_FAIL,
-        OH_Preferences_ErrCode::PREFERENCES_ERROR_GET_DATAOBSMGRCLIENT }
+        OH_Preferences_ErrCode::PREFERENCES_ERROR_GET_DATAOBSMGRCLIENT },
+    { OHOS::NativePreferences::E_NO_DATA, OH_PREFERENCES_ERR_CODE_H::PREFERENCES_ERROR_KEY_NOT_FOUND },
+    { OHOS::NativePreferences::E_OBSERVER_RESERVE, OH_Preferences_ErrCode::PREFERENCES_OK }
 };
 
 int ConvertorErrorCode::NativeErrToNdk(int nativeCode)

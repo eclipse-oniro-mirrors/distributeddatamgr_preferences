@@ -17,29 +17,23 @@
 #define OH_PREFERENCES_VALUE_IMPL_H
 
 #include "oh_preferences_value.h"
+#include "oh_preferences_impl.h"
 #include "preferences.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct OH_PreferencesValue {
-    int id;
+    int64_t cid;
 };
 
 struct OH_PreferencesPair {
+    int64_t cid;
     const char *key;
     const OH_PreferencesValue *value;
+    uint32_t maxIndex;
 };
 
 
 class OH_PreferencesValueImpl : public OH_PreferencesValue {
 public:
     OHOS::NativePreferences::PreferencesValue value_;
-    Preference_ValueType type_;
 };
-
-#ifdef __cplusplus
-}
-#endif
 #endif // OH_PREFERENCES_VALUE_IMPL_H
