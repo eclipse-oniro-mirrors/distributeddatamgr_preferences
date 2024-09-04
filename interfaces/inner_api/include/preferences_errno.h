@@ -154,6 +154,10 @@ constexpr int E_OBSERVER_RESERVE = (E_BASE + 20);
 */
 constexpr int E_ALREADY_CLOSED = (E_BASE + 21);
 
+/**
+* @brief The error code is used to indicate that database has been closed.
+*/
+constexpr int E_NO_DATA = (E_BASE + 22);
 } // namespace NativePreferences
 } // namespace OHOS
 #endif // PREFERENCES_ERRNO_H

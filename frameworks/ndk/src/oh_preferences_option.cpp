@@ -21,31 +21,105 @@
 
 using namespace OHOS::PreferencesNdk;
 
+int OH_PreferencesOption::SetFilePath(const std::string &str)
+{
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
+    if (str.empty()) {
+        LOG_ERROR("Set file path failed, str is empty");
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    filePath = str;
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+void OH_PreferencesOption::SetBundleName(const std::string &str)
+{
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
+    bundleName = str;
+}
+
+void OH_PreferencesOption::SetDataGroupId(const std::string &str)
+{
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
+    dataGroupId = str;
+}
+
+std::string OH_PreferencesOption::GetFilePath()
+{
+    return filePath;
+}
+
+std::string OH_PreferencesOption::GetBundleName()
+{
+    return bundleName;
+}
+
+std::string OH_PreferencesOption::GetDataGroupId()
+{
+    return dataGroupId;
+}
+
 OH_PreferencesOption* OH_PreferencesOption_Create(void)
 {
-    return new (std::nothrow) OH_PreferencesOption();
+    OH_PreferencesOption* option = new (std::nothrow) OH_PreferencesOption();
+    if (option == nullptr) {
+        LOG_ERROR("new option object failed");
+        return nullptr;
+    }
+    option->cid = PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID;
+    return option;
 }
 
 int OH_PreferencesOption_SetFilePath(OH_PreferencesOption *option, const char *filePath)
 {
-    option->filePath = std::string(filePath);
-    return OH_Preferences_ErrCode::PREFERENCES_OK;
+    if (option == nullptr || filePath == nullptr ||
+        !NDKPreferencesUtils::PreferencesStructValidCheck(
+            option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("set option's file path failed, option is null: %{public}d, filePath is null: %{public}d, "
+            "err: %{public}d", (option == nullptr), (filePath == nullptr),
+            OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    return option->SetFilePath(std::string(filePath));
 }
 
 int OH_PreferencesOption_SetBundleName(OH_PreferencesOption *option, const char *bundleName)
 {
-    option->bundleName = std::string(bundleName);
+    if (option == nullptr || bundleName == nullptr ||
+        !NDKPreferencesUtils::PreferencesStructValidCheck(
+            option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("set option's bundleName failed, option is null: %{public}d, "
+            "bundleName is null: %{public}d, errCode: %{public}d", (option == nullptr),
+            (bundleName == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    option->SetBundleName(std::string(bundleName));
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 
 int OH_PreferencesOption_SetDataGroupId(OH_PreferencesOption *option, const char *dataGroupId)
 {
-    option->dataGroupId = std::string(dataGroupId);
+    if (option == nullptr || dataGroupId == nullptr ||
+        !NDKPreferencesUtils::PreferencesStructValidCheck(
+            option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("set option's dataGroupId failed, option is null: %{public}d, "
+            "dataGroupId is null: %{public}d, errCode: %{public}d", (option == nullptr),
+            (dataGroupId == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    option->SetDataGroupId(std::string(dataGroupId));
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 
 int OH_PreferencesOption_Destroy(OH_PreferencesOption* option)
 {
+    if (option == nullptr ||
+        !NDKPreferencesUtils::PreferencesStructValidCheck(
+            option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("destroy option failed, option is null: %{public}d, errCode: %{public}d",
+            (option == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
     delete option;
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }

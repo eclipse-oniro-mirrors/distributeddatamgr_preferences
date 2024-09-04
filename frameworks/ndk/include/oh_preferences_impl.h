@@ -21,10 +21,14 @@
 #include "oh_preferences.h"
 #include "preferences_observer.h"
 #include "preferences.h"
+#include "log_print.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+enum PreferencesNdkStructId : std::int64_t {
+    PREFERENCES_OH_OPTION_CID = 1002931,
+    PREFERENCES_OH_PREFERENCES_CID,
+    PREFERENCES_OH_VALUE_CID,
+    PREFERENCES_OH_PAIR_CID
+};
 
 class NDKPreferencesObserver : public OHOS::NativePreferences::PreferencesObserver {
 public:
@@ -42,7 +46,7 @@ private:
 };
 
 struct OH_Preferences {
-    int id;
+    int64_t cid;
 };
 
 class OH_PreferencesImpl : public OH_Preferences {
@@ -59,7 +63,8 @@ public:
 
     int RegisterDataObserver(
         const OH_PreferencesDataObserver *observer, void *context, const std::vector<std::string> &keys = {});
-    int UnRegisterDataObserver(const OH_PreferencesDataObserver *observer, const std::vector<std::string> &keys = {});
+    int UnregisterDataObserver(const OH_PreferencesDataObserver *observer, void *context,
+        const std::vector<std::string> &keys = {});
 
     void SetPreferencesStoreFilePath(const std::string &filePath);
     std::string GetPreferencesStoreFilePath();
@@ -69,16 +74,26 @@ private:
     std::shared_mutex mutex_;
     std::string filePath_ = "";
     std::shared_mutex obsMutex_;
-    std::vector<std::shared_ptr<NDKPreferencesObserver>> dataObservers_;
+    std::vector<std::pair<std::shared_ptr<NDKPreferencesObserver>, void *>> dataObservers_;
 };
 
 struct OH_PreferencesOption {
-    std::string filePath;
-    std::string bundleName;
-    std::string dataGroupId;
+    int64_t cid;
+    std::string filePath = "";
+    std::string bundleName = "";
+    std::string dataGroupId = "";
+    std::shared_mutex opMutex_;
+    int SetFilePath(const std::string &str);
+    void SetBundleName(const std::string &str);
+    void SetDataGroupId(const std::string &str);
+    std::string GetFilePath();
+    std::string GetBundleName();
+    std::string GetDataGroupId();
 };
 
-#ifdef __cplusplus
-}
-#endif
+class NDKPreferencesUtils {
+public:
+    static bool PreferencesStructValidCheck(int64_t cid, int64_t structCid);
+};
+
 #endif // PREFERENCES_STORE_IMPL_H

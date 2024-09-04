@@ -47,7 +47,11 @@ int PreferencesEnhanceImpl::Init()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     db_ = std::make_shared<PreferencesDb>();
-    return db_->Init(options_.filePath, options_.bundleName);
+    int errCode = db_->Init(options_.filePath, options_.bundleName);
+    if (errCode != E_OK) {
+        db_ = nullptr;
+    }
+    return errCode;
 }
 
 PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const PreferencesValue &defValue)
