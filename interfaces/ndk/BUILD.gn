@@ -36,7 +36,7 @@ if (is_ohos) {
     "${preferences_ndk_path}/src/oh_preferences_option.cpp",
     "${preferences_ndk_path}/src/oh_preferences_value.cpp",
   ]
-  ohos_shared_library("ohpreferences") {
+  ohos_shared_library("libohpreferences") {
     branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
@@ -57,13 +57,13 @@ if (is_ohos) {
     configs = [ ":ndk_preferences_config" ]
 
     external_deps = [
-      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
     ]
     public_configs = [ ":ndk_preferences_public_config" ]
     relative_install_dir = "ndk"
     part_name = "preferences"
+    output_name = "ohpreferences"
     subsystem_name = "distributeddatamgr"
     output_extension = "so"
   }
