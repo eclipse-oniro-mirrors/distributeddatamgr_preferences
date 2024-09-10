@@ -39,7 +39,8 @@
 #ifndef OH_PREFERENCES_VALUE_H
 #define OH_PREFERENCES_VALUE_H
 
-#include <cstdint>
+#include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

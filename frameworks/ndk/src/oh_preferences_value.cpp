@@ -141,11 +141,13 @@ int OH_PreferencesValue_GetString(const OH_PreferencesValue *object, char **valu
         if (sysErr != EOK) {
             LOG_ERROR("memset failed when get string, errCode: %{public}d", sysErr);
         }
-        sysErr = memcpy_s(*value, strLen, str.c_str(), strLen);
-        if (sysErr != EOK) {
-            LOG_ERROR("memcpy failed when get string, errCode: %{public}d", sysErr);
-            free(ptr);
-            return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
+        if (strLen > 0) {
+            sysErr = memcpy_s(*value, strLen, str.c_str(), strLen);
+            if (sysErr != EOK) {
+                LOG_ERROR("memcpy failed when value get string, errCode: %{public}d", sysErr);
+                free(ptr);
+                return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
+            }
         }
         *valueLen = strLen + 1;
         return OH_Preferences_ErrCode::PREFERENCES_OK;

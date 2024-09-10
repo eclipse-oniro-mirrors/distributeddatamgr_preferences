@@ -286,4 +286,31 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_005, TestSize.Level1)
     EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/test.db"),
         OHOS::NativePreferences::E_OK);
 }
+
+/**
+ * @tc.name: NDKPreferencesTestEmptyValueTest001
+ * @tc.desc: test key and value
+ * @tc.type: FUNC
+ * @tc.require: NA
+ * @tc.author: Lirui
+ */
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestEmptyValueTest001, TestSize.Level1)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption *option = GetCommonOption();
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(option);
+
+    uint32_t len = 0;
+    char *valueGet = nullptr;
+    EXPECT_EQ(OH_Preferences_SetString(pref, "abc", ""), PREFERENCES_OK);
+    errCode = OH_Preferences_GetString(pref, "abc", &valueGet, &len);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    EXPECT_EQ(strcmp(valueGet, ""), 0);
+    EXPECT_EQ(len, 1);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/test.db"),
+        OHOS::NativePreferences::E_OK);
+}
 }
