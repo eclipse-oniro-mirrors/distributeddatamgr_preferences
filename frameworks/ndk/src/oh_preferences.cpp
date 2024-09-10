@@ -242,11 +242,13 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
         if (sysErr != EOK) {
             LOG_ERROR("memset failed when get string, errCode: %{public}d", sysErr);
         }
-        sysErr = memcpy_s(*value, strLen, str.c_str(), strLen);
-        if (sysErr != EOK) {
-            LOG_ERROR("memcpy failed when get string, errCode: %{public}d", sysErr);
-            free(ptr);
-            return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
+        if (strLen > 0) {
+            sysErr = memcpy_s(*value, strLen, str.c_str(), strLen);
+            if (sysErr != EOK) {
+                LOG_ERROR("memcpy failed when get string, errCode: %{public}d", sysErr);
+                free(ptr);
+                return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
+            }
         }
         *valueLen = strLen + 1;
     } else {
@@ -380,7 +382,6 @@ int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *cont
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
     std::vector<std::string> keysVec;
-    keysVec.resize(keyCount);
     for (uint32_t i = 0; i < keyCount; i++) {
         keysVec.push_back(keys[i]);
     }

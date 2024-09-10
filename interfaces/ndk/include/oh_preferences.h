@@ -39,7 +39,8 @@
 #ifndef OH_PREFERENCES_H
 #define OH_PREFERENCES_H
 
-#include <cstdint>
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "oh_preferences_value.h"
 #include "oh_preferences_option.h"
