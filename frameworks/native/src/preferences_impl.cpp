@@ -527,7 +527,6 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
     }
 
     AwaitLoadFile();
-    std::lock_guard<std::mutex> lock(mutex_);
     auto iter = valuesCache_.Find(key);
     if (iter.first) {
         return std::make_pair(E_OK, iter.second);
@@ -538,7 +537,6 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
 std::pair<int, std::map<std::string, PreferencesValue>> PreferencesImpl::GetAllData()
 {
     AwaitLoadFile();
-    std::lock_guard<std::mutex> lock(mutex_);
     return std::make_pair(E_OK, valuesCache_.Clone());
 }
 
