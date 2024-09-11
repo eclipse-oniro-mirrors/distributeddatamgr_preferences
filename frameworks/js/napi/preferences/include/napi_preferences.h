@@ -22,6 +22,7 @@
 #include <set>
 
 #include "js_observer.h"
+#include "js_proxy.h"
 #include "js_common_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -33,12 +34,14 @@
 namespace OHOS {
 namespace PreferencesJsKit {
 using RegisterMode = NativePreferences::PreferencesObserver::RegisterMode;
-class PreferencesProxy {
+using Preferences = NativePreferences::Preferences;
+template<typename T>
+using JSProxy = OHOS::JSProxy::JSProxy<T>;
+class PreferencesProxy : public JSProxy<Preferences> {
 public:
     static void Init(napi_env env, napi_value exports);
     static napi_value New(napi_env env, napi_callback_info info);
-    static napi_status NewInstance(
-        napi_env env, std::shared_ptr<OHOS::NativePreferences::Preferences> value, napi_value *instance);
+    static napi_status NewInstance(napi_env env, std::shared_ptr<Preferences> value, napi_value *instance);
     static void Destructor(napi_env env, void *nativeObject, void *finalize_hint);
 
 private:
@@ -57,14 +60,8 @@ private:
     static napi_value RegisterObserver(napi_env env, napi_callback_info info);
     static napi_value UnRegisterObserver(napi_env env, napi_callback_info info);
     static napi_value GetAll(napi_env env, napi_callback_info info);
-    static napi_value GetValueSync(napi_env env, napi_callback_info info);
-    static napi_value SetValueSync(napi_env env, napi_callback_info info);
-    static napi_value HasKeySync(napi_env env, napi_callback_info info);
-    static napi_value DeleteSync(napi_env env, napi_callback_info info);
-    static napi_value FlushSync(napi_env env, napi_callback_info info);
-    static napi_value ClearSync(napi_env env, napi_callback_info info);
-    static napi_value GetAllSync(napi_env env, napi_callback_info info);
 
+    static std::pair<PreferencesProxy *, std::weak_ptr<Preferences>> GetSelfInstance(napi_env env, napi_value self);
     static RegisterMode ConvertToRegisterMode(const std::string &mode);
     static napi_value RegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self);
     static napi_value UnRegisterDataObserver(napi_env env, size_t argc, napi_value *argv, napi_value self);
@@ -74,7 +71,6 @@ private:
     int UnRegisteredAllObservers(RegisterMode mode, const std::vector<std::string> &keys = {});
     int RegisteredDataObserver(const std::vector<std::string> &keys, napi_value callback);
     int UnRegisteredDataObserver(const std::vector<std::string> &keys, napi_value callback);
-    std::shared_ptr<OHOS::NativePreferences::Preferences> value_;
     napi_env env_;
 
     std::mutex listMutex_ {};
