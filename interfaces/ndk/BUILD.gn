@@ -57,6 +57,7 @@ if (is_ohos) {
     configs = [ ":ndk_preferences_config" ]
 
     external_deps = [
+      "ability_runtime:app_context",
       "c_utils:utils",
       "hilog:libhilog",
     ]
@@ -84,6 +85,7 @@ if (is_ohos) {
     configs = [ ":ndk_preferences_config" ]
 
     external_deps = [
+      "ability_runtime:app_context",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",

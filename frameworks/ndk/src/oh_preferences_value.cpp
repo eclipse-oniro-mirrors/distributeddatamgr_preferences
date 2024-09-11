@@ -69,16 +69,16 @@ Preference_ValueType OH_PreferencesValue_GetValueType(const OH_PreferencesValue 
     auto self = GetSelf(object);
     if (self == nullptr) {
         LOG_ERROR("Preferences GetValueType failed, object is null");
-        return Preference_ValueType::TYPE_NULL;
+        return Preference_ValueType::PREFERENCE_TYPE_NULL;
     }
     if (self->value_.IsInt()) {
-        return Preference_ValueType::TYPE_INT;
+        return Preference_ValueType::PREFERENCE_TYPE_INT;
     } else if (self->value_.IsBool()) {
-        return Preference_ValueType::TYPE_BOOL;
+        return Preference_ValueType::PREFERENCE_TYPE_BOOL;
     } else if (self->value_.IsString()) {
-        return Preference_ValueType::TYPE_STRING;
+        return Preference_ValueType::PREFERENCE_TYPE_STRING;
     }
-    return Preference_ValueType::TYPE_NULL;
+    return Preference_ValueType::PREFERENCE_TYPE_NULL;
 }
 
 int OH_PreferencesValue_GetInt(const OH_PreferencesValue *object, int *value)
@@ -94,8 +94,8 @@ int OH_PreferencesValue_GetInt(const OH_PreferencesValue *object, int *value)
         return OH_Preferences_ErrCode::PREFERENCES_OK;
     }
     LOG_ERROR("Preferences GetInt failed, type error, err: %{public}d",
-        OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
-    return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+        OH_Preferences_ErrCode::PREFERENCES_ERROR_KEY_NOT_FOUND);
+    return OH_Preferences_ErrCode::PREFERENCES_ERROR_KEY_NOT_FOUND;
 }
 
 int OH_PreferencesValue_GetBool(const OH_PreferencesValue *object, bool *value)
@@ -111,8 +111,8 @@ int OH_PreferencesValue_GetBool(const OH_PreferencesValue *object, bool *value)
         return OH_Preferences_ErrCode::PREFERENCES_OK;
     }
     LOG_ERROR("Preferences GetBool failed, type error, err: %{public}d",
-        OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
-    return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+        OH_Preferences_ErrCode::PREFERENCES_ERROR_KEY_NOT_FOUND);
+    return OH_Preferences_ErrCode::PREFERENCES_ERROR_KEY_NOT_FOUND;
 }
 
 int OH_PreferencesValue_GetString(const OH_PreferencesValue *object, char **value, uint32_t *valueLen)
@@ -153,6 +153,6 @@ int OH_PreferencesValue_GetString(const OH_PreferencesValue *object, char **valu
         return OH_Preferences_ErrCode::PREFERENCES_OK;
     }
     LOG_ERROR("Preferences GetString failed, type error, err: %{public}d",
-        OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
-    return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+        OH_Preferences_ErrCode::PREFERENCES_ERROR_KEY_NOT_FOUND);
+    return OH_Preferences_ErrCode::PREFERENCES_ERROR_KEY_NOT_FOUND;
 }

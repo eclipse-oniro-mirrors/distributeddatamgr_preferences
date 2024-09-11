@@ -32,16 +32,15 @@ enum PreferencesNdkStructId : std::int64_t {
 
 class NDKPreferencesObserver : public OHOS::NativePreferences::PreferencesObserver {
 public:
-    NDKPreferencesObserver(const OH_PreferencesDataObserver *observer, void *context);
+    NDKPreferencesObserver(OH_PreferencesDataObserver observer, void *context);
     ~NDKPreferencesObserver() noexcept override = default;
 
     void OnChange(const std::string &key) override;
     void OnChange(const std::map<std::string, OHOS::NativePreferences::PreferencesValue> &records) override;
 
-    bool operator==(const OH_PreferencesDataObserver *other);
+    bool ObserverCompare(OH_PreferencesDataObserver other);
 
-private:
-    const OH_PreferencesDataObserver *dataObserver_;
+    OH_PreferencesDataObserver dataObserver_;
     void *context_;
 };
 
@@ -62,8 +61,8 @@ public:
     }
 
     int RegisterDataObserver(
-        const OH_PreferencesDataObserver *observer, void *context, const std::vector<std::string> &keys = {});
-    int UnregisterDataObserver(const OH_PreferencesDataObserver *observer, void *context,
+        OH_PreferencesDataObserver observer, void *context, const std::vector<std::string> &keys = {});
+    int UnregisterDataObserver(OH_PreferencesDataObserver observer, void *context,
         const std::vector<std::string> &keys = {});
 
     void SetPreferencesStoreFilePath(const std::string &filePath);
@@ -79,14 +78,14 @@ private:
 
 struct OH_PreferencesOption {
     int64_t cid;
-    std::string filePath = "";
+    std::string fileName = "";
     std::string bundleName = "";
     std::string dataGroupId = "";
     std::shared_mutex opMutex_;
-    int SetFilePath(const std::string &str);
+    int SetFileName(const std::string &str);
     void SetBundleName(const std::string &str);
     void SetDataGroupId(const std::string &str);
-    std::string GetFilePath();
+    std::string GetFileName();
     std::string GetBundleName();
     std::string GetDataGroupId();
 };

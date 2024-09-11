@@ -230,7 +230,7 @@ int OH_Preferences_Delete(OH_Preferences *preference, const char *key);
  *
  * @param preference Pointer to the target {@Link OH_Preferences} instance.
  * @param context Pointer to the context of the data observer.
- * @param observer Pointer to the {@Link OH_PreferencesDataObserver} to register.
+ * @param observer the {@Link OH_PreferencesDataObserver} to register.
  * @param keys Pointer to the keys to observe.
  * @param keyCount Number of keys to observe.
  * @return Returns the status code of the execution.
@@ -243,14 +243,14 @@ int OH_Preferences_Delete(OH_Preferences *preference, const char *key);
  * @since 13
  */
 int OH_Preferences_RegisterDataObserver(OH_Preferences *preference, void *context,
-    const OH_PreferencesDataObserver *observer, const char *keys[], uint32_t keyCount);
+    OH_PreferencesDataObserver observer, const char *keys[], uint32_t keyCount);
 
 /**
  * @brief Unregisters a data observer for a Preferences object.
  *
  * @param preference Pointer to the target {@Link OH_Preferences} instance.
  * @param context Pointer to the context of the data observer.
- * @param observer Pointer to the {@Link OH_PreferencesDataObserver} to unregister.
+ * @param observer the {@Link OH_PreferencesDataObserver} to unregister.
  * @param keys Pointer to the keys observed. If this parameter is null, this API unregisters the listening for all keys.
  * @param keyCount Number of the keys.
  * @return Returns the status code of the execution.
@@ -262,7 +262,7 @@ int OH_Preferences_RegisterDataObserver(OH_Preferences *preference, void *contex
  * @since 13
  */
 int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *context,
-    const OH_PreferencesDataObserver *observer, const char *keys[], uint32_t keyCount);
+    OH_PreferencesDataObserver observer, const char *keys[], uint32_t keyCount);
 
 #ifdef __cplusplus
 };

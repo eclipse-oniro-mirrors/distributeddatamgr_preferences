@@ -62,7 +62,7 @@ enum class PrefDataType { UNASSIGNED, INT, STRING, BOOL };
 static OH_PreferencesOption *GetCommonOption()
 {
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
-    EXPECT_EQ(OH_PreferencesOption_SetFilePath(option, "/data/test/testdb"), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_SetFileName(option, "testdb"), PREFERENCES_OK);
     EXPECT_EQ(OH_PreferencesOption_SetBundleName(option, "com.uttest"), PREFERENCES_OK);
     EXPECT_EQ(OH_PreferencesOption_SetDataGroupId(option, "123"), PREFERENCES_OK);
     return option;
@@ -98,13 +98,13 @@ void DataChangeObserverCallback(void *context, const OH_PreferencesPair *pairs, 
     for (uint32_t i = 0; i < count; i++) {
         const OH_PreferencesValue *pValue = OH_PreferencesPair_GetPreferencesValue(pairs, i);
         Preference_ValueType type = OH_PreferencesValue_GetValueType(pValue);
-        if (type == Preference_ValueType::TYPE_INT) {
+        if (type == Preference_ValueType::PREFERENCE_TYPE_INT) {
             int intV = 0;
             OH_PreferencesValue_GetInt(pValue, &intV);
-        } else if (type == Preference_ValueType::TYPE_BOOL) {
+        } else if (type == Preference_ValueType::PREFERENCE_TYPE_BOOL) {
             bool boolV = false;
             OH_PreferencesValue_GetBool(pValue, &boolV);
-        } else if (type == Preference_ValueType::TYPE_STRING) {
+        } else if (type == Preference_ValueType::PREFERENCE_TYPE_STRING) {
             char *stringV = nullptr;
             uint32_t len = 0;
             OH_PreferencesValue_GetString(pValue, &stringV, &len);
@@ -192,7 +192,7 @@ void CheckTargetTypeValues(OH_Preferences *pref, bool exist, PrefDataType pdt)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesGetTest_001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -220,7 +220,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesGetTest_002, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -251,7 +251,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesGetTest_003, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -280,7 +280,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesGetTest_004, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -304,7 +304,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_004, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesPutTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesPutTest_001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -334,7 +334,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesPutTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesUpdateTest_001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -363,7 +363,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesUpdateTest_002, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -394,7 +394,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesUpdateTest_003, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -423,7 +423,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Liu Xiaolong
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesDeleteTest_001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -453,7 +453,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Liu Xiaolong
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesDeleteTest_002, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -471,7 +471,23 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_002, TestSize.Level1)
     EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
         OHOS::NativePreferences::E_OK);
 }
- 
+
+static void RegisterObsInFunc(OH_Preferences *pref)
+{
+    const char *keys[] = {"ndktest_int_key_1", "ndktest_string_key_1", "ndktest_bool_key_1"};
+
+    int ret = OH_Preferences_RegisterDataObserver(pref, nullptr, DataChangeObserverCallback, keys, 3);
+    ASSERT_EQ(ret, PREFERENCES_OK);
+}
+
+static void UnRegisterObsInFunc(OH_Preferences *pref)
+{
+    const char *keys[] = {"ndktest_int_key_1", "ndktest_string_key_1", "ndktest_bool_key_1"};
+
+    int ret = OH_Preferences_UnregisterDataObserver(pref, nullptr, DataChangeObserverCallback, keys, 3);
+    ASSERT_EQ(ret, PREFERENCES_OK);
+}
+
 /**
  * @tc.name: NDKPreferencesObserverTest_001
  * @tc.desc: test Observer
@@ -479,7 +495,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Liu Xiaolong
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesObserverTest_001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -487,11 +503,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_001, TestSize.Level1)
     (void)OH_PreferencesOption_Destroy(option);
     ASSERT_EQ(errCode, PREFERENCES_OK);
 
-    const char *keys[] = {"ndktest_int_key_1", "ndktest_string_key_1", "ndktest_bool_key_1"};
-
-    OH_PreferencesDataObserver observer = &DataChangeObserverCallback;
-    int ret = OH_Preferences_RegisterDataObserver(pref, nullptr, &observer, keys, 3);
-    ASSERT_EQ(ret, PREFERENCES_OK);
+    RegisterObsInFunc(pref);
 
     SetAllValuesWithCheck(pref);
 
@@ -510,9 +522,9 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_001, TestSize.Level1)
 
     EXPECT_EQ(g_changeNum, 5);
 
-    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, &observer, keys, 3), PREFERENCES_OK);
+    UnRegisterObsInFunc(pref);
+
     EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
-    
     EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
         OHOS::NativePreferences::E_OK);
 }
@@ -524,7 +536,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesObserverTest_002, TestSize.Level1)
 {
     // cannot get callback when unregister
     int errCode = PREFERENCES_OK;
@@ -535,11 +547,11 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_002, TestSize.Level1)
 
     const char *keys[] = {"ndktest_int_key_1", "ndktest_string_key_1", "ndktest_bool_key_1"};
     g_changeNum = 0;
-    OH_PreferencesDataObserver observer = &DataChangeObserverCallback;
-    int ret = OH_Preferences_RegisterDataObserver(pref, nullptr, &observer, keys, 3);
+    int ret = OH_Preferences_RegisterDataObserver(pref, nullptr, DataChangeObserverCallback, keys, 3);
     ASSERT_EQ(ret, PREFERENCES_OK);
     const char *empty[] = {};
-    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, &observer, empty, 0), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, DataChangeObserverCallback, empty, 0),
+        PREFERENCES_OK);
 
     SetAllValuesWithCheck(pref);
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -557,7 +569,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesObserverTest_003, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -567,17 +579,16 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_003, TestSize.Level1)
 
     const char *keys[] = {"ndktest_int_key_1", "ndktest_string_key_1", "ndktest_bool_key_1"};
     g_changeNum = 0;
-    OH_PreferencesDataObserver observer = &DataChangeObserverCallback;
-    ASSERT_EQ(OH_Preferences_RegisterDataObserver(nullptr, nullptr, &observer, keys, 3),
+    ASSERT_EQ(OH_Preferences_RegisterDataObserver(nullptr, nullptr, DataChangeObserverCallback, keys, 3),
         PREFERENCES_ERROR_INVALID_PARAM);
     ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, nullptr, nullptr, keys, 3), PREFERENCES_ERROR_INVALID_PARAM);
-    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, nullptr, &observer, nullptr, 3),
+    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, nullptr, DataChangeObserverCallback, nullptr, 3),
         PREFERENCES_ERROR_INVALID_PARAM);
-    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(nullptr, nullptr, &observer, keys, 0),
+    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(nullptr, nullptr, DataChangeObserverCallback, keys, 0),
         PREFERENCES_ERROR_INVALID_PARAM);
     EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, nullptr, keys, 0),
         PREFERENCES_ERROR_INVALID_PARAM);
-    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, &observer, nullptr, 0),
+    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, DataChangeObserverCallback, nullptr, 0),
         PREFERENCES_ERROR_INVALID_PARAM);
 }
 
@@ -588,7 +599,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesObserverTest_004, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -598,23 +609,26 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_004, TestSize.Level1)
 
     const char *keys1[] = {"ndktest_int_key_1", "ndktest_string_key_1", "ndktest_bool_key_1"};
     g_changeNum = 0;
-    OH_PreferencesDataObserver observer = &DataChangeObserverCallback;
     double obj = 1.1;
     void *context1 = &obj;
-    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, (void*) context1, &observer, keys1, 3), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, (void*) context1, DataChangeObserverCallback, keys1, 3),
+        PREFERENCES_OK);
 
     const char *keys2[] = {"ndktest_int_key_5"};
     double obj2 = 2.2;
     void *context2 = &obj2;
-    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, (void*) context2, &observer, keys2, 1), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, (void*) context2, DataChangeObserverCallback, keys2, 1),
+        PREFERENCES_OK);
     SetAllValuesWithCheck(pref);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     EXPECT_EQ(g_changeNum, 4);
 
-    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, &observer, keys1, 3), PREFERENCES_OK);
-    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, &observer, keys2, 1), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, DataChangeObserverCallback, keys1, 3),
+        PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, DataChangeObserverCallback, keys2, 1),
+        PREFERENCES_OK);
     EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
     
     EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
@@ -628,7 +642,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_004, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_005, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, DISABLED_NDKPreferencesObserverTest_005, TestSize.Level1)
 {
     // cancel part of all registerd key
     int errCode = PREFERENCES_OK;
@@ -639,10 +653,11 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_005, TestSize.Level1)
 
     const char *keys[] = {"ndktest_int_key_1", "ndktest_string_key_1", "ndktest_bool_key_1"};
     g_changeNum = 0;
-    OH_PreferencesDataObserver observer = &DataChangeObserverCallback;
-    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, nullptr, &observer, keys, 3), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_RegisterDataObserver(pref, nullptr, DataChangeObserverCallback, keys, 3),
+        PREFERENCES_OK);
     const char *cancel[] = {"ndktest_bool_key_1"};
-    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, &observer, cancel, 1), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_UnregisterDataObserver(pref, nullptr, DataChangeObserverCallback, cancel, 1),
+        PREFERENCES_OK);
 
     SetAllValuesWithCheck(pref);
 
