@@ -66,14 +66,14 @@ OH_PreferencesOption *OH_PreferencesOption_Create(void);
  * @brief Sets the file path in an {@Link OH_PreferencesOption} instance.
  *
  * @param option Pointer to the target {@Link OH_PreferencesOption} instance.
- * @param filePath Pointer to the file path to set.
+ * @param fileName Pointer to the file name to set.
  * @return Returns the status code of the execution.
  *         {@link PREFERENCES_OK} success.
  *         {@link PREFERENCES_ERROR_INVALID_PARAM} indicates invalid args are passed in.
  * @see OH_PreferencesOption.
  * @since 13
  */
-int OH_PreferencesOption_SetFilePath(OH_PreferencesOption *option, const char *filePath);
+int OH_PreferencesOption_SetFileName(OH_PreferencesOption *option, const char *fileName);
 
 /**
  * @brief Sets the bundle name in an {@Link OH_PreferencesOption} instance.

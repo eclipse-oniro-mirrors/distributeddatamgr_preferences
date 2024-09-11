@@ -55,23 +55,23 @@ typedef enum Preference_ValueType {
     /**
      * @brief Null.
      */
-    TYPE_NULL = 0,
+    PREFERENCE_TYPE_NULL = 0,
     /**
      * @brief Int.
      */
-    TYPE_INT,
+    PREFERENCE_TYPE_INT,
     /**
      * @brief boolean.
      */
-    TYPE_BOOL,
+    PREFERENCE_TYPE_BOOL,
     /**
      * @brief String.
      */
-    TYPE_STRING,
+    PREFERENCE_TYPE_STRING,
     /**
      * @brief end butt.
      */
-    TYPE_BUTT
+    PREFERENCE_TYPE_BUTT
 } Preference_ValueType;
 
 /**
@@ -117,7 +117,7 @@ const OH_PreferencesValue *OH_PreferencesPair_GetPreferencesValue(const OH_Prefe
  *
  * @param object Pointer to the target {@Link OH_PreferencesValue} instance.
  * @return Returns the value type obtained.
- *         {@link TYPE_NULL} indicates invalid args are passed in.
+ *         {@link PREFERENCE_TYPE_NULL} indicates invalid args are passed in.
  * @see OH_PreferencesValue.
  * @since 13
  */

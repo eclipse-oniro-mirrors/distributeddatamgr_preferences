@@ -21,14 +21,14 @@
 
 using namespace OHOS::PreferencesNdk;
 
-int OH_PreferencesOption::SetFilePath(const std::string &str)
+int OH_PreferencesOption::SetFileName(const std::string &str)
 {
     std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     if (str.empty()) {
         LOG_ERROR("Set file path failed, str is empty");
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
-    filePath = str;
+    fileName = str;
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 
@@ -44,9 +44,9 @@ void OH_PreferencesOption::SetDataGroupId(const std::string &str)
     dataGroupId = str;
 }
 
-std::string OH_PreferencesOption::GetFilePath()
+std::string OH_PreferencesOption::GetFileName()
 {
-    return filePath;
+    return fileName;
 }
 
 std::string OH_PreferencesOption::GetBundleName()
@@ -70,17 +70,17 @@ OH_PreferencesOption* OH_PreferencesOption_Create(void)
     return option;
 }
 
-int OH_PreferencesOption_SetFilePath(OH_PreferencesOption *option, const char *filePath)
+int OH_PreferencesOption_SetFileName(OH_PreferencesOption *option, const char *fileName)
 {
-    if (option == nullptr || filePath == nullptr ||
+    if (option == nullptr || fileName == nullptr ||
         !NDKPreferencesUtils::PreferencesStructValidCheck(
             option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
-        LOG_ERROR("set option's file path failed, option is null: %{public}d, filePath is null: %{public}d, "
-            "err: %{public}d", (option == nullptr), (filePath == nullptr),
+        LOG_ERROR("set option's file path failed, option is null: %{public}d, fileName is null: %{public}d, "
+            "err: %{public}d", (option == nullptr), (fileName == nullptr),
             OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
-    return option->SetFilePath(std::string(filePath));
+    return option->SetFileName(std::string(fileName));
 }
 
 int OH_PreferencesOption_SetBundleName(OH_PreferencesOption *option, const char *bundleName)
