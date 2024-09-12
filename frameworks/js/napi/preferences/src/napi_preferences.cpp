@@ -191,7 +191,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
-        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->boundObj->GetInstance() != nullptr,
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->instance_.lock() != nullptr,
             std::make_shared<InnerError>("Failed to unwrap when getting all."));
     };
     auto exec = [context]() -> int {
@@ -221,7 +221,7 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_create_reference(env, argv[1], 1, &context->inputValueRef);
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
-        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->boundObj->GetInstance() != nullptr,
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->instance_.lock() != nullptr,
             std::make_shared<InnerError>("Failed to unwrap when getting value."));
     };
     auto exec = [context]() -> int {
@@ -259,7 +259,7 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         PRE_CHECK_RETURN_VOID(ParseDefValue(env, argv[1], context) == OK);
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
-        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->boundObj->GetInstance() != nullptr,
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->instance_.lock() != nullptr,
             std::make_shared<InnerError>("Failed to unwrap when setting value."));
     };
     auto exec = [context]() -> int {
@@ -290,7 +290,7 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
-        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->boundObj->GetInstance() != nullptr,
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->instance_.lock() != nullptr,
             std::make_shared<InnerError>("Failed to unwrap when deleting value."));
     };
     auto exec = [context]() -> int {
@@ -321,7 +321,7 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
-        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->boundObj->GetInstance() != nullptr,
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->instance_.lock() != nullptr,
             std::make_shared<InnerError>("Failed to unwrap when having key."));
     };
     auto exec = [context]() -> int {
@@ -352,7 +352,7 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
-        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->boundObj->GetInstance() != nullptr,
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->instance_.lock() != nullptr,
             std::make_shared<InnerError>("Failed to unwrap when flushing."));
     };
     auto exec = [context]() -> int {
@@ -382,7 +382,7 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
-        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->boundObj->GetInstance() != nullptr,
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr && context->instance_.lock() != nullptr,
             std::make_shared<InnerError>("Failed to unwrap unwrap when clearing."));
     };
     auto exec = [context]() -> int {
@@ -434,7 +434,7 @@ napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info i
     PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("The callback must be function."));
 
     auto [obj, instance] = GetSelfInstance(env, thiz);
-    PRE_NAPI_ASSERT(env, obj != nullptr && obj->GetInstance() != nullptr,
+    PRE_NAPI_ASSERT(env, obj != nullptr && instance.lock() != nullptr,
         std::make_shared<InnerError>("Failed to unwrap when register callback"));
     int errCode = obj->RegisteredObserver(args[1], ConvertToRegisterMode(registerMode));
     PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
@@ -476,7 +476,7 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     }
 
     auto [obj, instance] = GetSelfInstance(env, thiz);
-    PRE_NAPI_ASSERT(env, obj != nullptr && obj->GetInstance() != nullptr,
+    PRE_NAPI_ASSERT(env, obj != nullptr && instance.lock() != nullptr,
         std::make_shared<InnerError>("Failed to unwrap when register callback"));
     int errCode;
     if (type == napi_function) {
@@ -606,7 +606,7 @@ napi_value PreferencesProxy::RegisterDataObserver(napi_env env, size_t argc, nap
     PRE_NAPI_ASSERT(env, type == napi_function, std::make_shared<ParamTypeError>("The callback must be function."));
 
     auto [obj, instance] = GetSelfInstance(env, self);
-    PRE_NAPI_ASSERT(env, obj != nullptr && obj->GetInstance() != nullptr,
+    PRE_NAPI_ASSERT(env, obj != nullptr && instance.lock() != nullptr,
         std::make_shared<InnerError>("Failed to unwrap when register callback"));
     errCode = obj->RegisteredDataObserver(keys, argv[funcIndex]);
     PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
@@ -654,7 +654,7 @@ napi_value PreferencesProxy::UnRegisterDataObserver(napi_env env, size_t argc, n
             std::make_shared<ParamTypeError>("The callback must be function."));
     }
     auto [obj, instance] = GetSelfInstance(env, self);
-    PRE_NAPI_ASSERT(env, obj != nullptr && obj->GetInstance() != nullptr,
+    PRE_NAPI_ASSERT(env, obj != nullptr && instance.lock() != nullptr,
         std::make_shared<InnerError>("Failed to unwrap when unregister callback"));
     if (type == napi_function) {
         errCode = obj->UnRegisteredDataObserver(keys, argv[funcIndex]);
