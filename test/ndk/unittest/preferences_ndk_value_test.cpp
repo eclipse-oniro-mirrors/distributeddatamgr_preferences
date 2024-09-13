@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "log_print.h"
+#include "preferences_test_utils.h"
 #include "oh_preferences_impl.h"
 #include "oh_preferences.h"
 #include "oh_preferences_err_code.h"
@@ -50,10 +51,16 @@ public:
     void TearDown();
 };
  
-void PreferencesNdkValueTest::SetUpTestCase(void) {}
+void PreferencesNdkValueTest::SetUpTestCase(void)
+{
+    NdkTestUtils::CreateDirectoryRecursively("/data/test/");
+}
 void PreferencesNdkValueTest::TearDownTestCase(void) {}
 
-void PreferencesNdkValueTest::SetUp(void) {}
+void PreferencesNdkValueTest::SetUp(void)
+{
+    NdkTestUtils::CreateDirectoryRecursively("/data/test/");
+}
 
 void PreferencesNdkValueTest::TearDown(void) {}
 
@@ -71,6 +78,7 @@ static OH_PreferencesOption *GetCommonOption()
 int PreferencesFlush(OH_Preferences *store)
 {
     if (store == nullptr) {
+        printf("preferences flush failed, store is null\n");
         return PREFERENCES_ERROR_BASE;
     }
     OH_PreferencesImpl *pref = static_cast<OH_PreferencesImpl *>(store);
@@ -85,7 +93,7 @@ int PreferencesFlush(OH_Preferences *store)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string intKey = "ndktest_int_key";
@@ -125,7 +133,7 @@ HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_001, TestSize.Leve
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_002, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string stringKey = "ndktest_int_key";
@@ -178,7 +186,7 @@ HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_002, TestSize.Leve
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_003, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -222,7 +230,7 @@ HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_003, TestSize.Leve
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_004, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -259,7 +267,7 @@ HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_004, TestSize.Leve
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_005, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_005, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -294,7 +302,7 @@ HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_005, TestSize.Leve
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTestEmptyValueTest001, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestEmptyValueTest001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -321,7 +329,7 @@ HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTestEmptyValueTest001, 
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTestTypeTest001, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestTypeTest001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
