@@ -87,7 +87,15 @@ static bool RenameToBackupFile(const std::string &fileName)
 static bool RenameToBrokenFile(const std::string &fileName, const ReportParam &reportParam)
 {
     PreferencesDfxManager::ReportDbFault(reportParam);
-    return RenameFile(fileName, STR_BROKEN);
+    bool ret = RenameFile(fileName, STR_BROKEN);
+    if (ret) {
+        ReportParam succreportParam = reportParam;
+        succreportParam.errCode = E_OK;
+        succreportParam.errnoCode = 0;
+        succreportParam.appendix = "operation: restore success";
+        PreferencesDfxManager::ReportDbFault(succreportParam);
+    }
+    return ret;
 }
 
 static xmlDoc *ReadFile(const std::string &fileName)
