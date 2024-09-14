@@ -534,7 +534,7 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
     }
     return std::make_pair(E_NO_DATA, defValue);
 }
-    
+
 std::pair<int, std::map<std::string, PreferencesValue>> PreferencesImpl::GetAllData()
 {
     AwaitLoadFile();

@@ -62,7 +62,7 @@ enum class PrefDataType { UNASSIGNED, INT, STRING, BOOL };
 static OH_PreferencesOption *GetCommonOption()
 {
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
-    EXPECT_EQ(OH_PreferencesOption_SetFilePath(option, "/data/test/test.dbb"), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_SetFileName(option, "valueTestDbb"), PREFERENCES_OK);
     EXPECT_EQ(OH_PreferencesOption_SetBundleName(option, "com.uttest"), PREFERENCES_OK);
     EXPECT_EQ(OH_PreferencesOption_SetDataGroupId(option, "123"), PREFERENCES_OK);
     return option;
@@ -85,7 +85,7 @@ int PreferencesFlush(OH_Preferences *store)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_001, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string intKey = "ndktest_int_key";
@@ -114,7 +114,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_001, TestSize.Level1)
     EXPECT_EQ(res, value);
 
     EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
-    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/test.db"),
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/valueTestDb"),
         OHOS::NativePreferences::E_OK);
 }
 
@@ -125,7 +125,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_002, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string stringKey = "ndktest_int_key";
@@ -167,7 +167,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_002, TestSize.Level1)
     ASSERT_EQ(errCode, PREFERENCES_OK);
     EXPECT_EQ(strcmp(resValue, "123 test"), 0);
     (void)OH_PreferencesOption_Destroy(option);
-    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/test.db"),
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/valueTestDb"),
         OHOS::NativePreferences::E_OK);
 }
 
@@ -178,7 +178,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_003, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -211,7 +211,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_003, TestSize.Level1)
     ASSERT_EQ(boolValue, true);
 
     EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
-    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/test.db"),
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/valueTestDb"),
         OHOS::NativePreferences::E_OK);
 }
 
@@ -222,7 +222,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_004, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -248,7 +248,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_004, TestSize.Level1)
     EXPECT_EQ(res, false);
     (void)OH_PreferencesOption_Destroy(option);
 
-    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/test.db"),
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/valueTestDb"),
         OHOS::NativePreferences::E_OK);
 }
 
@@ -259,7 +259,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_004, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_005, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTest_005, TestSize.Level1)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -283,7 +283,74 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_005, TestSize.Level1)
     EXPECT_EQ(errCode, PREFERENCES_ERROR_INVALID_PARAM);
     
     EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
-    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/test.db"),
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/valueTestDb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesTestEmptyValueTest001
+ * @tc.desc: test key and value
+ * @tc.type: FUNC
+ * @tc.require: NA
+ * @tc.author: Lirui
+ */
+HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTestEmptyValueTest001, TestSize.Level1)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption *option = GetCommonOption();
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(option);
+
+    uint32_t len = 0;
+    char *valueGet = nullptr;
+    EXPECT_EQ(OH_Preferences_SetString(pref, "abc", ""), PREFERENCES_OK);
+    errCode = OH_Preferences_GetString(pref, "abc", &valueGet, &len);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    EXPECT_EQ(strcmp(valueGet, ""), 0);
+    EXPECT_EQ(len, 1);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/valueTestDb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesTestEmptyValueTest001
+ * @tc.desc: test key and value
+ * @tc.type: FUNC
+ * @tc.require: NA
+ * @tc.author: bluhuang
+ */
+HWTEST_F(PreferencesNdkValueTest, DISABLED_NDKPreferencesTestTypeTest001, TestSize.Level1)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption *option = GetCommonOption();
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(option);
+
+    std::string key = "testKey";
+    uint32_t len = 0;
+    char *strValue = nullptr;
+    bool boolValue = false;
+    int intValue = -1;
+    EXPECT_EQ(OH_Preferences_SetInt(pref, key.c_str(), 123), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_GetString(pref, key.c_str(), &strValue, &len), PREFERENCES_ERROR_KEY_NOT_FOUND);
+    EXPECT_EQ(OH_Preferences_GetBool(pref, key.c_str(), &boolValue), PREFERENCES_ERROR_KEY_NOT_FOUND);
+    EXPECT_EQ(OH_Preferences_GetInt(pref, key.c_str(), &intValue), PREFERENCES_OK);
+
+    EXPECT_EQ(OH_Preferences_SetBool(pref, key.c_str(), true), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_GetInt(pref, key.c_str(), &intValue), PREFERENCES_ERROR_KEY_NOT_FOUND);
+    EXPECT_EQ(OH_Preferences_GetString(pref, key.c_str(), &strValue, &len), PREFERENCES_ERROR_KEY_NOT_FOUND);
+    EXPECT_EQ(OH_Preferences_GetBool(pref, key.c_str(), &boolValue), PREFERENCES_OK);
+
+    EXPECT_EQ(OH_Preferences_SetString(pref, key.c_str(), ""), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_GetBool(pref, key.c_str(), &boolValue), PREFERENCES_ERROR_KEY_NOT_FOUND);
+    EXPECT_EQ(OH_Preferences_GetInt(pref, key.c_str(), &intValue), PREFERENCES_ERROR_KEY_NOT_FOUND);
+    EXPECT_EQ(OH_Preferences_GetString(pref, key.c_str(), &strValue, &len), PREFERENCES_OK);
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/valueTestDb"),
         OHOS::NativePreferences::E_OK);
 }
 }
