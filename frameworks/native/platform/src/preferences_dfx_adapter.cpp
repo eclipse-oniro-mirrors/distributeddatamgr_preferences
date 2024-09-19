@@ -73,10 +73,11 @@ void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
     std::thread thread([reportParam]() {
         std::string nowTime = GetCurrentTime();
         std::string moudleName = GetModuleName();
+        std::string bundleName = reportParam.bundleName.empty() ? moudleName : reportParam.bundleName;
         HiSysEventParam params[] = {
             { .name = "BUNDLE_NAME",
                 .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(reportParam.bundleName.c_str()) },
+                .v = { .s = const_cast<char *>(bundleName.c_str()) },
                 .arraySize = 0 },
             { .name = "MODULE_NAME",
                 .t = HISYSEVENT_STRING,
