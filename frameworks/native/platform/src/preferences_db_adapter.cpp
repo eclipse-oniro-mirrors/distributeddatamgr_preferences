@@ -165,7 +165,6 @@ int PreferencesDb::CloseDb()
         if (errCode != E_OK) {
             LOG_ERROR("close db failed, errcode=%{public}d, file: %{public}s", errCode,
                 ExtractFileName(dbPath_).c_str());
-            PreferencesDfxManager::ReportDbFault(GetReportParam("close db failed", errCode));
             return TransferGrdErrno(errCode);
         }
         LOG_INFO("db has been closed.");
@@ -186,7 +185,6 @@ int PreferencesDb::CreateCollection()
         TABLE_MODE, 0);
     if (errCode != GRD_OK) {
         LOG_ERROR("rd create table failed:%{public}d", errCode);
-        PreferencesDfxManager::ReportDbFault(GetReportParam("create table failed", errCode));
     }
     return TransferGrdErrno(errCode);
 }
@@ -207,7 +205,6 @@ int PreferencesDb::OpenDb(bool isNeedRebuild)
         std::string errMsg = isNeedRebuild ? "open db failed with open_create | open_check" :
                 "open db failed with open_create";
         LOG_ERROR("%{public}s, errCode: %{public}d, isRebuild:%{public}d", errMsg.c_str(), errCode, isNeedRebuild);
-        PreferencesDfxManager::ReportDbFault(GetReportParam(errMsg, errCode));
     }
     return errCode;
 }
@@ -222,7 +219,6 @@ int PreferencesDb::RepairDb()
     if (errCode != GRD_OK) {
         std::string errMsg = "db repair failed";
         LOG_ERROR("repair db failed, errCode: %{public}d", errCode);
-        PreferencesDfxManager::ReportDbFault(GetReportParam(errMsg, errCode));
     }
     return errCode;
 }
@@ -274,7 +270,10 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
     dbPath_ = dbPath + ".db";
     bundleName_ = bundleName;
     int errCode = OpenDb(false);
-    if (errCode == GRD_DATA_CORRUPTED || errCode == GRD_FAILED_FILE_OPERATION || errCode == GRD_INNER_ERR) {
+    if (errCode == GRD_DATA_CORRUPTED) {
+        PreferencesDfxManager::ReportDbFault(GetReportParam("db corrupted", errCode));
+    }
+    if (errCode == GRD_DATA_CORRUPTED || errCode == GRD_INNER_ERR) {
         int innerErr = TryRepairAndRebuild(errCode);
         if (innerErr != GRD_OK) {
             // log inside
@@ -324,7 +323,6 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
                 return TransferGrdErrno(ret);
             } else {
                 LOG_ERROR("rd put failed:%{public}d", ret);
-                PreferencesDfxManager::ReportDbFault(GetReportParam("rd put failed", ret));
                 return TransferGrdErrno(ret);
             }
         }
@@ -359,7 +357,6 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
                 return TransferGrdErrno(ret);
             } else {
                 LOG_ERROR("rd delete failed:%{public}d", ret);
-                PreferencesDfxManager::ReportDbFault(GetReportParam("rd delete failed", ret));
                 return TransferGrdErrno(ret);
             }
         }
@@ -500,7 +497,6 @@ int PreferencesDb::DropCollection()
     int errCode = PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0);
     if (errCode != E_OK) {
         LOG_ERROR("rd drop collection failed:%{public}d", errCode);
-        PreferencesDfxManager::ReportDbFault(GetReportParam("rd drop collection failed", errCode));
     }
     return TransferGrdErrno(errCode);
 }
