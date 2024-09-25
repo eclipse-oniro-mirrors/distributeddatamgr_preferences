@@ -55,6 +55,11 @@ static void RemoveBackupFile(const std::string &fileName)
     }
 }
 
+static xmlDoc *ReadFile(const std::string &fileName)
+{
+    return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS | XML_PARSE_HUGE);
+}
+
 static bool RenameFromBackupFile(const std::string &fileName)
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
@@ -62,10 +67,26 @@ static bool RenameFromBackupFile(const std::string &fileName)
         LOG_DEBUG("the backup file does not exist.");
         return false;
     }
+    xmlResetLastError();
+    auto bakDoc = std::shared_ptr<xmlDoc>(ReadFile(backupFileName), [](xmlDoc *bakDoc) { xmlFreeDoc(bakDoc); });
+    if (bakDoc == nullptr) {
+        LOG_ERROR("failed to read backup file:%{public}s, errno %{public}d.",
+            ExtractFileName(backupFileName).c_str(), errno);
+        std::remove(backupFileName.c_str());
+        return false;
+    }
+    xmlErrorPtr xmlErr = xmlGetLastError();
+    if (xmlErr != nullptr) { // need to report hisysevent
+        LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
+            ExtractFileName(backupFileName).c_str(), errno, xmlErr->message);
+        std::remove(backupFileName.c_str());
+        return false;
+    }
     if (std::rename(backupFileName.c_str(), fileName.c_str())) {
         LOG_ERROR("failed to restore backup errno %{public}d.", errno);
         return false;
     }
+    LOG_INFO("restore XML file %{public}s successfully.", ExtractFileName(fileName).c_str());
     return true;
 }
 
@@ -90,11 +111,6 @@ static bool RenameToBrokenFile(const std::string &fileName, const ReportParam &r
     return RenameFile(fileName, STR_BROKEN);
 }
 
-static xmlDoc *ReadFile(const std::string &fileName)
-{
-    return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS | XML_PARSE_HUGE);
-}
-
 static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId)
 {
     xmlDoc *doc = nullptr;
@@ -106,8 +122,8 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         }
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-        LOG_ERROR("failed to read XML format file: %{public}s, error is %{public}s.",
-            ExtractFileName(fileName).c_str(), errMessage.c_str());
+        LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
+            ExtractFileName(fileName).c_str(), errno, errMessage.c_str());
         ReportParam reportParam = { bundleName, NORMAL_DB,
             ExtractFileName(fileName), E_ERROR, errno, "operation: failed to read XML format file." };
         if (!RenameToBrokenFile(fileName, reportParam)) {
@@ -287,6 +303,7 @@ bool XmlSaveFormatFileEnc(
     const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId, xmlDoc *doc)
 {
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    LOG_INFO("save xml file:%{public}s.", ExtractFileName(fileName).c_str());
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
@@ -294,8 +311,8 @@ bool XmlSaveFormatFileEnc(
     if (!SaveFormatFileEnc(fileName, doc)) {
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-        LOG_ERROR("failed to save XML format file: %{public}s, error is %{public}s.",
-            ExtractFileName(fileName).c_str(), errMessage.c_str());
+        LOG_ERROR("failed to save XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
+            ExtractFileName(fileName).c_str(), errno, errMessage.c_str());
         if (IsFileExist(fileName)) {
             ReportParam reportParam = { bundleName, NORMAL_DB,
                 ExtractFileName(fileName), E_ERROR, errno, "operation: failed to save XML format file." };
