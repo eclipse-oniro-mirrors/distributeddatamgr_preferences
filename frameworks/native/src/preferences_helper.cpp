@@ -143,14 +143,6 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
         return nullptr;
     }
 
-    std::string::size_type pos = realPath.find_last_of('/');
-    std::string filePath = realPath.substr(0, pos);
-    if (!IsFileExist(filePath)) {
-        LOG_ERROR("The path is invalid, prefName is %{public}s.", ExtractFileName(realPath).c_str());
-        errCode = E_INVALID_FILE_PATH;
-        return nullptr;
-    }
-
     std::lock_guard<std::mutex> lock(prefsCacheMutex_);
     auto it = prefsCache_.find(realPath);
     if (it != prefsCache_.end()) {
@@ -164,6 +156,13 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     }
 
     const_cast<Options &>(options).filePath = realPath;
+    std::string::size_type pos = realPath.find_last_of('/');
+    std::string filePath = realPath.substr(0, pos);
+    if (access(filePath.c_str(), F_OK) != 0) {
+        LOG_ERROR("The path is invalid, prefName is %{public}s.", ExtractFileName(realPath).c_str());
+        errCode = E_INVALID_FILE_PATH;
+        return nullptr;
+    }
     std::shared_ptr<Preferences> pref = nullptr;
     bool isEnhancePreferences = false;
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) &&!defined(IOS_PLATFORM)
