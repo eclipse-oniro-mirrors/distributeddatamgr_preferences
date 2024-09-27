@@ -28,7 +28,8 @@ config("mock_config") {
     "${preferences_native_path}/mock/ability_base/zuri/include",
   ]
   if (!is_android) {
-    include_dirs += [ "${preferences_native_path}/mock/ /utils/base/include" ]
+    include_dirs +=
+        [ "${preferences_native_path}/mock/c_utils/utils/base/include" ]
   }
 }
 
