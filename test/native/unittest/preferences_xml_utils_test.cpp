@@ -421,4 +421,49 @@ HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level1)
     int ret = PreferencesHelper::DeletePreferences(fileName);
     EXPECT_EQ(ret, E_OK);
 }
+
+/**
+* @tc.name: ReadSettingXmlTest_004
+* @tc.desc: RenameToBrokenFile testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_004, TestSize.Level1)
+{
+    std::string fileName = "/data/test/test01";
+    // construct an unreadable file
+    std::ofstream oss(fileName);
+    oss << "corrupted";
+
+    std::ofstream ossBak(MakeFilePath(fileName, STR_BACKUP));
+    ossBak << "corruptedBak";
+
+    std::vector<Element> settings;
+    bool res = PreferencesXmlUtils::ReadSettingXml(fileName, "", "", settings);
+    EXPECT_EQ(res, false);
+
+    int ret = PreferencesHelper::DeletePreferences(fileName);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+* @tc.name: WriteSettingXmlWhenFileIsNotExistTest_001
+* @tc.desc: RenameToBrokenFile testcase of PreferencesXmlUtils
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, WriteSettingXmlWhenFileIsNotExistTest_001, TestSize.Level1)
+{
+    std::string fileName = "/data/test/test01";
+    std::vector<Element> settings;
+    Element elem;
+    elem.key_ = "stringKey";
+    elem.tag_ = "string";
+    elem.value_ = "";
+
+    settings.push_back(elem);
+    bool result = PreferencesXmlUtils::WriteSettingXml("/data/test/preferences/test01", "", "", settings);
+    EXPECT_EQ(result, false);
+
+    result = PreferencesXmlUtils::WriteSettingXml(fileName, "", "", settings);
+    EXPECT_EQ(result, true);
+}
 }

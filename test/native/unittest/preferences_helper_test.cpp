@@ -134,4 +134,32 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level1
     pref = PreferencesHelper::RemovePreferencesFromCache("");
     EXPECT_EQ(pref, E_EMPTY_FILE_PATH);
 }
+
+/**
+ * @tc.name: NativePreferencesHelperTest_005
+ * @tc.desc: error testcase of GetRealPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level1)
+{
+    Options option = Options("test300", "com.hmos.uttest", "");
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(option, errCode);
+    EXPECT_EQ(preferences, nullptr);
+    preferences = nullptr;
+}
+
+/**
+ * @tc.name: NativePreferencesHelperTest_006
+ * @tc.desc: error testcase of GetRealPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level1)
+{
+    Options option = Options("/data/test/preferences/test01", "", "");
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(option, errCode);
+    EXPECT_EQ(preferences, nullptr);
+    preferences = nullptr;
+}
 }
