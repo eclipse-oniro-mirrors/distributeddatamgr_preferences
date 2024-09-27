@@ -68,30 +68,4 @@ if (is_ohos) {
     subsystem_name = "distributeddatamgr"
     output_extension = "so"
   }
-
-  ohos_static_library("ohpreferences_static") {
-    branch_protector_ret = "pac_ret"
-    sanitize = {
-      boundary_sanitize = true
-      ubsan = true
-      cfi = true
-      cfi_cross_dso = true
-      debug = false
-    }
-    deps =
-        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
-    sources = base_sources
-
-    configs = [ ":ndk_preferences_config" ]
-
-    external_deps = [
-      "ability_runtime:app_context",
-      "bounds_checking_function:libsec_shared",
-      "c_utils:utils",
-      "hilog:libhilog",
-    ]
-    public_configs = [ ":ndk_preferences_public_config" ]
-    part_name = "preferences"
-    subsystem_name = "distributeddatamgr"
-  }
 }

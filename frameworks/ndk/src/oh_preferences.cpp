@@ -187,6 +187,11 @@ int OH_Preferences_GetInt(OH_Preferences *preference, const char *key, int *valu
     }
 
     auto res = innerPreferences->GetValue(key, OHOS::NativePreferences::PreferencesValue());
+    if (res.first != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("Get Int failed, %{public}d", res.first);
+        return ConvertorErrorCode::NativeErrToNdk(res.first);
+    }
+
     if (res.second.IsInt()) {
         *value = (int)(res.second);
     } else {
@@ -212,6 +217,11 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
     }
 
     auto res = innerPreferences->GetValue(key, OHOS::NativePreferences::PreferencesValue());
+    if (res.first != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("Get string failed, %{public}d", res.first);
+        return ConvertorErrorCode::NativeErrToNdk(res.first);
+    }
+
     if (res.second.IsString()) {
         std::string str = (std::string)(res.second);
         size_t strLen = str.size();
@@ -268,6 +278,11 @@ int OH_Preferences_GetBool(OH_Preferences *preference, const char *key, bool *va
     }
 
     auto res = innerPreferences->GetValue(key, OHOS::NativePreferences::PreferencesValue());
+    if (res.first != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("Get bool failed, %{public}d", res.first);
+        return ConvertorErrorCode::NativeErrToNdk(res.first);
+    }
+
     if (res.second.IsBool()) {
         *value = (bool)(res.second);
     } else {
