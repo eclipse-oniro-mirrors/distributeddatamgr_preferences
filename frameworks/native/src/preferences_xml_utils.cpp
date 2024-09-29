@@ -153,7 +153,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     }
     if (isReport) {
         const std::string operationMsg = "operation: failed to read XML format file.";
-        ReportXmlFileIsBroken(fileName, bundleName,, operationMsg, errCode);
+        ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
     }
     return doc;
 }
