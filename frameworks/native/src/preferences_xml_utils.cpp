@@ -29,6 +29,7 @@
 
 namespace OHOS {
 namespace NativePreferences {
+constexpr int REQUIRED_KEY_NOT_AVAILABLE = 126;
 static bool ParseNodeElement(const xmlNode *node, Element &element);
 static bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element);
 static bool ParseStringNodeElement(const xmlNode *node, Element &element);
@@ -55,12 +56,26 @@ static void RemoveBackupFile(const std::string &fileName)
     }
 }
 
-static xmlDoc *ReadFile(const std::string &fileName)
+static xmlDoc *ReadFile(const std::string &fileName, int &errCode)
 {
-    return xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS | XML_PARSE_HUGE);
+    xmlDoc *doc = xmlReadFile(fileName.c_str(), "UTF-8", XML_PARSE_NOBLANKS | XML_PARSE_HUGE);
+    errCode = errno;
+    return doc;
 }
 
-static bool RenameFromBackupFile(const std::string &fileName)
+static void ReportXmlFileIsBroken(const std::string &fileName, const std::string &bundleName,
+    const std::string &operationMsg, int errCode)
+{
+    ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName), E_ERROR, errCode, operationMsg };
+    PreferencesDfxManager::ReportDbFault(reportParam);
+    ReportParam succreportParam = reportParam;
+    succreportParam.errCode = E_OK;
+    succreportParam.errnoCode = 0;
+    succreportParam.appendix = "operation: restore success";
+    PreferencesDfxManager::ReportDbFault(succreportParam);
+}
+
+static bool RenameFromBackupFile(const std::string &fileName, const std::string &bundleName, bool &isReportCorrupt)
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
@@ -68,24 +83,23 @@ static bool RenameFromBackupFile(const std::string &fileName)
         return false;
     }
     xmlResetLastError();
-    auto bakDoc = std::shared_ptr<xmlDoc>(ReadFile(backupFileName), [](xmlDoc *bakDoc) { xmlFreeDoc(bakDoc); });
+    int errCode = 0;
+    auto bakDoc = std::shared_ptr<xmlDoc>(ReadFile(backupFileName, errCode),
+        [](xmlDoc *bakDoc) { xmlFreeDoc(bakDoc); });
     if (bakDoc == nullptr) {
-        LOG_ERROR("failed to read backup file:%{public}s, errno %{public}d.",
-            ExtractFileName(backupFileName).c_str(), errno);
-        std::remove(backupFileName.c_str());
-        return false;
-    }
-    xmlErrorPtr xmlErr = xmlGetLastError();
-    if (xmlErr != nullptr) { // need to report hisysevent
+        xmlErrorPtr xmlErr = xmlGetLastError();
+        std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
-            ExtractFileName(backupFileName).c_str(), errno, xmlErr->message);
+            ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         std::remove(backupFileName.c_str());
+        isReportCorrupt = true;
         return false;
     }
     if (std::rename(backupFileName.c_str(), fileName.c_str())) {
         LOG_ERROR("failed to restore backup errno %{public}d.", errno);
         return false;
     }
+    isReportCorrupt = false;
     LOG_INFO("restore XML file %{public}s successfully.", ExtractFileName(fileName).c_str());
     return true;
 }
@@ -105,43 +119,43 @@ static bool RenameToBackupFile(const std::string &fileName)
     return RenameFile(fileName, STR_BACKUP);
 }
 
-static bool RenameToBrokenFile(const std::string &fileName, const ReportParam &reportParam)
+static bool RenameToBrokenFile(const std::string &fileName)
 {
-    PreferencesDfxManager::ReportDbFault(reportParam);
-    bool ret = RenameFile(fileName, STR_BROKEN);
-    if (ret) {
-        ReportParam succreportParam = reportParam;
-        succreportParam.errCode = E_OK;
-        succreportParam.errnoCode = 0;
-        succreportParam.appendix = "operation: restore success";
-        PreferencesDfxManager::ReportDbFault(succreportParam);
-    }
-    return ret;
+    return RenameFile(fileName, STR_BROKEN);
 }
 
 static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId)
 {
     xmlDoc *doc = nullptr;
+    bool isReport = false;
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    int errCode = 0;
     if (IsFileExist(fileName)) {
-        doc = ReadFile(fileName);
+        doc = ReadFile(fileName, errCode);
         if (doc != nullptr) {
             return doc;
         }
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
-            ExtractFileName(fileName).c_str(), errno, errMessage.c_str());
-        ReportParam reportParam = { bundleName, NORMAL_DB,
-            ExtractFileName(fileName), E_ERROR, errno, "operation: failed to read XML format file." };
-        if (!RenameToBrokenFile(fileName, reportParam)) {
+            ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
+        if (errno == REQUIRED_KEY_NOT_AVAILABLE) {
+            return nullptr;
+        }
+        if (!RenameToBrokenFile(fileName)) {
             return doc;
         }
+        isReport = true;
     }
-    if (RenameFromBackupFile(fileName)) {
-        return ReadFile(fileName);
+
+    if (RenameFromBackupFile(fileName, bundleName, isReport)) {
+        doc = ReadFile(fileName, errCode);
     }
-    return nullptr;
+    if (isReport) {
+        const std::string operationMsg = "operation: failed to read XML format file.";
+        ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
+    }
+    return doc;
 }
 
 /* static */
@@ -302,9 +316,9 @@ bool ParseArrayNodeElement(const xmlNode *node, Element &element)
     return success;
 }
 
-static bool SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
+static std::pair<bool, int> SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
 {
-    return xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0;
+    return {xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0, errno};
 }
 
 bool XmlSaveFormatFileEnc(
@@ -316,17 +330,25 @@ bool XmlSaveFormatFileEnc(
         return false;
     }
 
-    if (!SaveFormatFileEnc(fileName, doc)) {
+    bool isReport = false;
+    auto [ret, errCode] = SaveFormatFileEnc(fileName, doc);
+    if (!ret) {
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to save XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
-            ExtractFileName(fileName).c_str(), errno, errMessage.c_str());
-        if (IsFileExist(fileName)) {
-            ReportParam reportParam = { bundleName, NORMAL_DB,
-                ExtractFileName(fileName), E_ERROR, errno, "operation: failed to save XML format file." };
-            RenameToBrokenFile(fileName, reportParam);
+            ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
+        if (errCode == REQUIRED_KEY_NOT_AVAILABLE) {
+            return false;
         }
-        RenameFromBackupFile(fileName);
+        if (IsFileExist(fileName)) {
+            RenameToBrokenFile(fileName);
+            isReport = true;
+        }
+        RenameFromBackupFile(fileName, bundleName, isReport);
+        if (isReport) {
+            const std::string operationMsg = "operation: failed to save XML format file.";
+            ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
+        }
         return false;
     }
 
