@@ -54,7 +54,7 @@ std::pair<int, std::string> GetPreferencesDir(OH_PreferencesOption *options)
     if (options->GetDataGroupId().empty()) {
         return { OH_Preferences_ErrCode::PREFERENCES_OK, context->GetPreferencesDir() };
     }
-    std::string stagePreferencesDir;
+    std::string stagePreferencesDir = "";
     int err = context->GetSystemPreferencesDir(options->GetDataGroupId(), false, stagePreferencesDir);
     if (err != 0) {
         LOG_ERROR("get system preferences dir failed, err: %{public}d", err);

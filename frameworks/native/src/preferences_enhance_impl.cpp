@@ -191,7 +191,7 @@ std::pair<int, std::map<std::string, PreferencesValue>> PreferencesEnhanceImpl::
             return std::make_pair(item.first, map);
         }
     }
-    return result;
+    return std::make_pair(E_OK, result);
 }
 
 std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
