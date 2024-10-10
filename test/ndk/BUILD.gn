@@ -1,0 +1,90 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//build/test.gni")
+import("//foundation/distributeddatamgr/preferences/preferences.gni")
+
+module_output_path = "preferences/ndk_preferences"
+
+###############################################################################
+
+config("module_private_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "${preferences_base_path}/frameworks/ndk/include",
+    "${preferences_base_path}/frameworks/common/include",
+    "${preferences_native_path}/include",
+    "${preferences_native_path}/platform/include/",
+    "${preferences_interfaces_path}/inner_api/include/",
+    "${preferences_interfaces_path}/ndk/include/",
+    "${preferences_base_path}/test/ndk/mock",
+    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
+    "${preferences_native_path}/mock/ability_base/zuri/include",
+  ]
+}
+
+ohos_unittest("NDKPreferencesTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  sources = [
+    "${preferences_native_path}/mock/ability_base/zuri/src/uri.cpp",
+    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/data_ability_observer_stub.cpp",
+    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/dataobs_mgr_client.cpp",
+    "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
+    "${preferences_native_path}/platform/src/preferences_dfx_adapter.cpp",
+    "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
+    "${preferences_native_path}/platform/src/preferences_thread.cpp",
+    "${preferences_native_path}/src/base64_helper.cpp",
+    "${preferences_native_path}/src/preferences_base.cpp",
+    "${preferences_native_path}/src/preferences_enhance_impl.cpp",
+    "${preferences_native_path}/src/preferences_helper.cpp",
+    "${preferences_native_path}/src/preferences_impl.cpp",
+    "${preferences_native_path}/src/preferences_observer.cpp",
+    "${preferences_native_path}/src/preferences_utils.cpp",
+    "${preferences_native_path}/src/preferences_value.cpp",
+    "${preferences_native_path}/src/preferences_value_parcel.cpp",
+    "${preferences_native_path}/src/preferences_xml_utils.cpp",
+    "${preferences_ndk_path}/src/convertor_error_code.cpp",
+    "${preferences_ndk_path}/src/oh_preferences.cpp",
+    "${preferences_ndk_path}/src/oh_preferences_option.cpp",
+    "${preferences_ndk_path}/src/oh_preferences_value.cpp",
+    "mock/application_context.cpp",
+    "unittest/preferences_ndk_test.cpp",
+    "unittest/preferences_ndk_value_test.cpp",
+    "unittest/preferences_test_utils.cpp",
+  ]
+
+  configs = [ ":module_private_config" ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "libxml2:libxml2",
+  ]
+}
+
+###############################################################################
+group("unittest") {
+  testonly = true
+
+  deps = [ ":NDKPreferencesTest" ]
+}
+###############################################################################

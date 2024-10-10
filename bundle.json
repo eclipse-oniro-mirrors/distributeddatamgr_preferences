@@ -66,6 +66,7 @@
         "build": {
             "sub_component": [
                 "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
+                "//foundation/distributeddatamgr/preferences/interfaces/ndk:libohpreferences",
                 "//foundation/distributeddatamgr/preferences/frameworks/cj:cj_preferences_ffi",
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/common:preferences_jscommon",
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/preferences:preferences",
@@ -86,10 +87,23 @@
                         ],
                         "header_base": "//foundation/distributeddatamgr/preferences/interfaces/inner_api/include"
                     }
+                },
+                {
+                    "name": "//foundation/distributeddatamgr/preferences/interfaces/ndk:libohpreferences",
+                    "header": {
+                        "header_files": [
+                            "oh_preferences.h",
+                            "oh_preferences_value.h",
+                            "oh_preferences_option.h",
+                            "oh_preferences_value.h"
+                        ],
+                        "header_base": "//foundation/distributeddatamgr/preferences/interfaces/ndk/include"
+                    }
                 }
             ],
             "test": [
                 "//foundation/distributeddatamgr/preferences/test/native:unittest",
+                "//foundation/distributeddatamgr/preferences/test/ndk:unittest",
                 "//foundation/distributeddatamgr/preferences/test/js:unittest",
                 "//foundation/distributeddatamgr/preferences/test/js:performancetest",
                 "//foundation/distributeddatamgr/preferences/test/js:stage_unittest",

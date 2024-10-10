@@ -34,6 +34,14 @@ static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
     return { LOG_CORE, 0xD001653, "NativePreferences" };
 }
 }
+
+namespace PreferencesNdk {
+static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
+{
+    return { LOG_CORE, 0xD001653, "PreferencesNdk" };
+}
+}
+
 namespace StorageJsKit {
 static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
 {

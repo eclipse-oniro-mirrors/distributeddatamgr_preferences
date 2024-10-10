@@ -53,10 +53,18 @@ public:
     int Clear() override;
 
     int CloseDb() override;
+
+    std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
+
+    std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
 private:
     explicit PreferencesEnhanceImpl(const Options &options);
     static void NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref, const std::string &key,
         const PreferencesValue &value);
+    static void NotifyPreferencesObserverBatchKeys(std::shared_ptr<PreferencesEnhanceImpl> pref,
+        const std::map<std::string, PreferencesValue> &data);
+    std::pair<int, std::map<std::string, PreferencesValue>> GetAllInner();
+
     std::shared_mutex dbMutex_;
     std::shared_ptr<PreferencesDb> db_;
     std::shared_mutex mapSharedMutex_;

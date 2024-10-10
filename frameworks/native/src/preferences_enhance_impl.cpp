@@ -47,7 +47,11 @@ int PreferencesEnhanceImpl::Init()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     db_ = std::make_shared<PreferencesDb>();
-    return db_->Init(options_.filePath, options_.bundleName);
+    int errCode = db_->Init(options_.filePath, options_.bundleName);
+    if (errCode != E_OK) {
+        db_ = nullptr;
+    }
+    return errCode;
 }
 
 PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const PreferencesValue &defValue)
@@ -55,7 +59,8 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
     if (CheckKey(key) != E_OK) {
         return defValue;
     }
-    std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
+    // write lock here, get not support concurrence
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:Get failed, db has been closed.");
         return defValue;
@@ -81,10 +86,10 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
     if (CheckKey(key) != E_OK) {
         return false;
     }
-    std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:HasKey failed, db has been closed.");
-        return E_ERROR;
+        return false;
     }
 
     std::vector<uint8_t> oriKey(key.begin(), key.end());
@@ -162,12 +167,12 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     return E_OK;
 }
 
-std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
+std::pair<int, std::map<std::string, PreferencesValue>> PreferencesEnhanceImpl::GetAllInner()
 {
-    std::shared_lock<std::shared_mutex> autoLock(dbMutex_);
+    std::map<std::string, PreferencesValue> map;
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:GetAll failed, db has been closed.");
-        return {};
+        return std::make_pair(E_ALREADY_CLOSED, map);
     }
 
     std::map<std::string, PreferencesValue> result;
@@ -175,7 +180,7 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
     int errCode = db_->GetAll(data);
     if (errCode != E_OK) {
         LOG_ERROR("get all failed, errCode=%{public}d", errCode);
-        return {};
+        return std::make_pair(errCode, map);
     }
     for (auto it = data.begin(); it != data.end(); it++) {
         std::string key(it->first.begin(), it->first.end());
@@ -183,10 +188,17 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
         result.insert({key, item.second});
         if (item.first != E_OK) {
             LOG_ERROR("get key failed, errCode=%{public}d", errCode);
-            return {};
+            return std::make_pair(item.first, map);
         }
     }
-    return result;
+    return std::make_pair(E_OK, result);
+}
+
+std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
+{
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    std::pair<int, std::map<std::string, PreferencesValue>> res = GetAllInner();
+    return res.second;
 }
 
 void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref,
@@ -195,6 +207,10 @@ void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<Preferenc
     std::shared_lock<std::shared_mutex> readLock(pref->mapSharedMutex_);
     LOG_DEBUG("notify observer size:%{public}zu", pref->dataObserversMap_.size());
     for (const auto &[weakPrt, keys] : pref->dataObserversMap_) {
+        auto itKey = keys.find(key);
+        if (itKey == keys.end()) {
+            continue;
+        }
         std::map<std::string, PreferencesValue> records = {{key, value}};
         if (std::shared_ptr<PreferencesObserver> sharedPtr = weakPrt.lock()) {
             LOG_DEBUG("dataChange observer call, resultSize:%{public}zu", records.size());
@@ -213,6 +229,14 @@ void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<Preferenc
     }
 }
 
+void PreferencesEnhanceImpl::NotifyPreferencesObserverBatchKeys(std::shared_ptr<PreferencesEnhanceImpl> pref,
+    const std::map<std::string, PreferencesValue> &data)
+{
+    for (const auto &[key, value] : data) {
+        NotifyPreferencesObserver(pref, key, value);
+    }
+}
+
 int PreferencesEnhanceImpl::Clear()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
@@ -222,11 +246,27 @@ int PreferencesEnhanceImpl::Clear()
         return E_ERROR;
     }
 
+    std::pair<int, std::map<std::string, PreferencesValue>> res = GetAllInner();
+    if (res.first != E_OK) {
+        LOG_ERROR("get all failed when clear, errCode=%{public}d", res.first);
+        return res.first;
+    }
+
+    std::map<std::string, PreferencesValue> allData = res.second;
+
     int errCode = db_->DropCollection();
     if (errCode != E_OK) {
         LOG_ERROR("drop collection failed when clear, errCode=%{public}d", errCode);
         return errCode;
     }
+
+    if (!allData.empty()) {
+        ExecutorPool::Task task = [pref = shared_from_this(), allData] {
+            PreferencesEnhanceImpl::NotifyPreferencesObserverBatchKeys(pref, allData);
+        };
+        executorPool_.Execute(std::move(task));
+    }
+
     errCode = db_->CreateCollection();
     if (errCode != E_OK) {
         LOG_ERROR("create collection failed when clear, errCode=%{public}d", errCode);
@@ -250,5 +290,40 @@ int PreferencesEnhanceImpl::CloseDb()
     return E_OK;
 }
 
+std::pair<int, PreferencesValue> PreferencesEnhanceImpl::GetValue(const std::string &key,
+    const PreferencesValue &defValue)
+{
+    int errCode = CheckKey(key);
+    if (errCode != E_OK) {
+        return std::make_pair(errCode, defValue);
+    }
+    // write lock here, get not support concurrence
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    if (db_ == nullptr) {
+        LOG_ERROR("PreferencesEnhanceImpl:Get failed, db has been closed.");
+        return std::make_pair(E_ALREADY_CLOSED, defValue);
+    }
+
+    std::vector<uint8_t> oriKey(key.begin(), key.end());
+    std::vector<uint8_t> oriValue;
+    errCode = db_->Get(oriKey, oriValue);
+    if (errCode != E_OK) {
+        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
+        return std::make_pair(errCode, defValue);
+    }
+    auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
+    if (item.first != E_OK) {
+        LOG_ERROR("get key failed, errCode=%{public}d", item.first);
+        return std::make_pair(item.first, defValue);
+    }
+
+    return std::make_pair(E_OK, item.second);
+}
+    
+std::pair<int, std::map<std::string, PreferencesValue>> PreferencesEnhanceImpl::GetAllData()
+{
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    return GetAllInner();
+}
 } // End of namespace NativePreferences
 } // End of namespace OHOS
