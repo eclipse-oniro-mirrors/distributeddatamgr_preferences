@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace NativePreferences {
 constexpr int REQUIRED_KEY_NOT_AVAILABLE = 126;
+constexpr int REQUIRED_KEY_REVOKED = 128;
 static bool ParseNodeElement(const xmlNode *node, Element &element);
 static bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element);
 static bool ParseStringNodeElement(const xmlNode *node, Element &element);
@@ -139,7 +140,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
-        if (errno == REQUIRED_KEY_NOT_AVAILABLE) {
+        if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             return nullptr;
         }
         if (!RenameToBrokenFile(fileName)) {
