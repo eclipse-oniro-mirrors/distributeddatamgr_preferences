@@ -417,13 +417,6 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
 int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data,
     GRD_ResultSet *resultSet)
 {
-    if (PreferenceDbAdapter::GetApiInstance().NextApi == nullptr ||
-        PreferenceDbAdapter::GetApiInstance().GetItemSizeApi == nullptr ||
-        PreferenceDbAdapter::GetApiInstance().FreeResultSetApi == nullptr ||
-        PreferenceDbAdapter::GetApiInstance().GetItemApi == nullptr) {
-        LOG_ERROR("api load failed: NextApi or GetItemSizeApi or FreeResultSetApi or GetItemApi");
-        return E_ERROR;
-    }
     int ret = E_OK;
     while (TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().NextApi(resultSet)) == E_OK) {
         std::pair<std::vector<uint8_t>, std::vector<uint8_t>> dataItem;
@@ -432,7 +425,6 @@ int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::ve
         ret = PreferenceDbAdapter::GetApiInstance().GetItemSizeApi(resultSet, &keySize, &valueSize);
         if (ret != GRD_OK) {
             LOG_ERROR("ger reulstSet kv size failed %{public}d", ret);
-            PreferenceDbAdapter::GetApiInstance().FreeResultSetApi(resultSet);
             return TransferGrdErrno(ret);
         }
         dataItem.first.resize(keySize);
@@ -441,7 +433,6 @@ int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::ve
             dataItem.second.data());
         if (ret != E_OK) {
             LOG_ERROR("ger reulstSet failed %{public}d", ret);
-            PreferenceDbAdapter::GetApiInstance().FreeResultSetApi(resultSet);
             return TransferGrdErrno(ret);
         }
         data.emplace_back(std::move(dataItem));
@@ -449,13 +440,22 @@ int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::ve
     return TransferGrdErrno(ret);
 }
 
+static inline bool IsApiValid()
+{
+    auto& apiInstance = PreferenceDbAdapter::GetApiInstance();
+    return (apiInstance.DbKvFilterApi != nullptr && apiInstance.NextApi != nullptr &&
+        apiInstance.GetItemSizeApi != nullptr && apiInstance.GetItemApi != nullptr &&
+        apiInstance.FreeResultSetApi != nullptr);
+}
+
 int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data)
 {
     if (db_ == nullptr) {
         LOG_ERROR("GetAll failed, db has been closed.");
         return E_ALREADY_CLOSED;
-    } else if (PreferenceDbAdapter::GetApiInstance().DbKvFilterApi == nullptr) {
-        LOG_ERROR("api load failed: DbKvFilterApi");
+    }
+    if (!IsApiValid()) {
+        LOG_ERROR("api load failed when get all");
         return E_ERROR;
     }
 
@@ -465,28 +465,25 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
 
     int retryTimes = CREATE_COLLECTION_RETRY_TIMES;
     int ret = E_OK;
+
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvFilterApi(db_, TABLENAME, &param, &resultSet);
         if (ret == GRD_UNDEFINED_TABLE) {
             LOG_INFO("CreateCollection called when GetAll, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
+        } else if (ret == GRD_OK) {
+            int innerErr = GetAllInner(data, resultSet); // log inside when failed
+            PreferenceDbAdapter::GetApiInstance().FreeResultSetApi(resultSet);
+            return innerErr;
         } else {
-            if (ret == GRD_OK) {
-                break;
-            } else {
-                LOG_ERROR("rd kv filter failed:%{public}d", ret);
-                return TransferGrdErrno(ret);
-            }
+            LOG_ERROR("rd kv filter failed:%{public}d", ret);
+            return TransferGrdErrno(ret);
         }
         retryTimes--;
     } while (retryTimes > 0);
 
-    if (retryTimes == 0) {
-        LOG_ERROR("rd get over retry times, errcode: :%{public}d", ret);
-        return TransferGrdErrno(ret);
-    }
-
-    return GetAllInner(data, resultSet);
+    LOG_ERROR("rd get over retry times, errcode: :%{public}d", ret);
+    return TransferGrdErrno(ret);
 }
 
 int PreferencesDb::DropCollection()
