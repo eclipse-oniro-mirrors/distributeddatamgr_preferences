@@ -18,12 +18,13 @@ namespace OHOS {
 namespace PreferencesJsKit {
 
 static constexpr JsErrorCode JS_ERROR_MAPS[] = {
-    { E_NOT_STAGE_MODE, E_NOT_STAGE_MODE, "Only supported in stage mode" },
-    { E_DATA_GROUP_ID_INVALID, E_DATA_GROUP_ID_INVALID, "The data group id is not valid" },
-    { NativePreferences::E_DELETE_FILE_FAIL, E_DELETE_FILE_FAIL, "Failed to delete preferences file." },
+    { E_NOT_STAGE_MODE, E_NOT_STAGE_MODE, "The operations is supported in stage mode only." },
+    { E_DATA_GROUP_ID_INVALID, E_DATA_GROUP_ID_INVALID, "Invalid dataGroupId." },
+    { NativePreferences::E_DELETE_FILE_FAIL, E_DELETE_FILE_FAIL,
+        "Failed to delete the user preferences persistence file." },
     { NativePreferences::E_GET_DATAOBSMGRCLIENT_FAIL, E_GET_DATAOBSMGRCLIENT_FAIL,
-        "Failed to obtain subscription service." },
-    { NativePreferences::E_NOT_SUPPORTED, E_NOT_SUPPORTED, "Capability not supported" },
+        "Failed to obtain the subscription service." },
+    { NativePreferences::E_NOT_SUPPORTED, E_NOT_SUPPORTED, "Capability not supported." },
 };
 
 const std::optional<JsErrorCode> GetJsErrorCode(int32_t errorCode)
