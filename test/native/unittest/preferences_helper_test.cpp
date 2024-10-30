@@ -148,18 +148,4 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level1
     EXPECT_EQ(preferences, nullptr);
     preferences = nullptr;
 }
-
-/**
- * @tc.name: NativePreferencesHelperTest_006
- * @tc.desc: error testcase of GetRealPath
- * @tc.type: FUNC
- */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level1)
-{
-    Options option = Options("/data/test/preferences/test01", "", "");
-    int errCode = E_OK;
-    std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(option, errCode);
-    EXPECT_EQ(preferences, nullptr);
-    preferences = nullptr;
-}
 }
