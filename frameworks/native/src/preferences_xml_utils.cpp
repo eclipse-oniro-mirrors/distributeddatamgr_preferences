@@ -77,7 +77,7 @@ static void ReportXmlFileIsBroken(const std::string &fileName, const std::string
 }
 
 static bool RenameFromBackupFile(const std::string &fileName, const std::string &bundleName,
-    bool &isReportCorrupt,std::string &operationMsg)
+    bool &isReportCorrupt, std::string &operationMsg)
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
