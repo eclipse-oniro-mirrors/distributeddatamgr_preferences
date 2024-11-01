@@ -102,7 +102,7 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
     }
     if (std::rename(backupFileName.c_str(), fileName.c_str())) {
         LOG_ERROR("failed to restore backup errno %{public}d.", errno);
-        operationMsg = operationMsg + " rename file from backup file failed";
+        operationMsg = operationMsg + " rename file from backup file failed.";
         return false;
     }
     isReportCorrupt = false;
@@ -358,7 +358,7 @@ bool XmlSaveFormatFileEnc(
         }
         RenameFromBackupFile(fileName, bundleName, isReport, operationMsg);
         if (isReport) {
-            operationMsg = operationMsg + ", save XML file failed.";
+            operationMsg = operationMsg + " XmlSaveFormatFile failed.";
             ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
         }
         return false;
