@@ -351,10 +351,10 @@ bool XmlSaveFormatFileEnc(
             return false;
         }
 
-        operationMsg = "operation: save format file failed."
+        operationMsg = "operation: save format file failed.";
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
-            operationMsg = operationMsg + " original file exist."
+            operationMsg = operationMsg + " original file exist.";
             isReport = true;
         }
         RenameFromBackupFile(fileName, bundleName, isReport, operationMsg);
