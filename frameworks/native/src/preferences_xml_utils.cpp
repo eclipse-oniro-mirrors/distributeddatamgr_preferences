@@ -339,7 +339,7 @@ bool XmlSaveFormatFileEnc(
     }
 
     bool isReport = false;
-    const std::string operationMsg;
+    std::string operationMsg;
     auto [ret, errCode] = SaveFormatFileEnc(fileName, doc);
     if (!ret) {
         xmlErrorPtr xmlErr = xmlGetLastError();
