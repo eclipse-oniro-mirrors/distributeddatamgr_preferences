@@ -94,10 +94,10 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         std::remove(backupFileName.c_str());
-        if (errCode == REQUIRED_KEY_NOT_AVAILABLE) {
+        if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             return false;
         }
-        operationMsg = operationMsg + " backup file empty";
+        operationMsg = operationMsg + " backup file empty.";
         isReportCorrupt = true;
         return false;
     }
