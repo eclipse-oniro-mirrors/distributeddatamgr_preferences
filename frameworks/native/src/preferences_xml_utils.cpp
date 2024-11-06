@@ -137,7 +137,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     bool isReport = false;
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
     int errCode = 0;
-    std::string operationMsg;
+    std::string operationMsg = "XmlReadFile failed: ";
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName, errCode);
         if (doc != nullptr) {
@@ -161,7 +161,6 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         doc = ReadFile(fileName, errCode);
     }
     if (isReport) {
-        operationMsg = operationMsg + ", XmlReadFile failed";
         ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
     }
     return doc;
@@ -340,7 +339,7 @@ bool XmlSaveFormatFileEnc(
     }
 
     bool isReport = false;
-    std::string operationMsg;
+    std::string operationMsg = "XmlSaveFormat failed: ";
     auto [ret, errCode] = SaveFormatFileEnc(fileName, doc);
     if (!ret) {
         xmlErrorPtr xmlErr = xmlGetLastError();
@@ -351,7 +350,6 @@ bool XmlSaveFormatFileEnc(
             return false;
         }
 
-        operationMsg = "operation: save format file failed.";
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
             operationMsg = operationMsg + " original file exist.";
