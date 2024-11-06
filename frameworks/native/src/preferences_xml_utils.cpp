@@ -153,7 +153,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         if (!RenameToBrokenFile(fileName)) {
             return doc;
         }
-        operationMsg = "operation: file exist, but readFile failed.";
+        operationMsg = "original file exist, but readFile failed.";
         isReport = true;
     }
 
@@ -357,7 +357,6 @@ bool XmlSaveFormatFileEnc(
         }
         RenameFromBackupFile(fileName, bundleName, isReport, operationMsg);
         if (isReport) {
-            operationMsg = operationMsg + " XmlSaveFormatFile failed.";
             ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
         }
         return false;
