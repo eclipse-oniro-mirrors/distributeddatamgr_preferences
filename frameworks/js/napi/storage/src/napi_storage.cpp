@@ -154,7 +154,12 @@ napi_value StorageProxy::New(napi_env env, napi_callback_info info)
     obj->env_ = env;
     obj->value_ = std::move(preference);
     obj->uvQueue_ = std::make_shared<UvQueue>(env);
-    NAPI_CALL(env, napi_wrap(env, thiz, obj, StorageProxy::Destructor, nullptr, nullptr));
+    napi_status status = napi_wrap(env, thiz, obj, StorageProxy::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete obj;
+        return nullptr;
+    }
+    NAPI_CALL(env, status);
     return thiz;
 }
 
