@@ -152,6 +152,10 @@ int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysn
 int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<PreferencesAysncContext> context)
 {
     int32_t rc = Utils::ConvertFromSendable(env, jsVal, context->defValue.value_);
+    if (rc == EXCEED_MAX_LENGTH) {
+        PRE_CHECK_RETURN_ERR_SET(rc == napi_ok,
+            std::make_shared<ParamTypeError>("The type of value must be less then 16 * 1024 * 1024 btyes."));
+    }
     PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("The type of value must be ValueType."));
     return OK;
 }
