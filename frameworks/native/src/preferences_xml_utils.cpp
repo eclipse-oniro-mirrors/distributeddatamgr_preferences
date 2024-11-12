@@ -81,7 +81,7 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
-        LOG_DEBUG("the backup file does not exist.");
+        operationMsg.append("backup file not exist.");
         return false;
     }
     xmlResetLastError();
@@ -97,13 +97,13 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             return false;
         }
-        operationMsg = operationMsg + " backup file empty.";
+        operationMsg.append("backup file corrupt.");
         isReportCorrupt = true;
         return false;
     }
     if (std::rename(backupFileName.c_str(), fileName.c_str())) {
         LOG_ERROR("failed to restore backup errno %{public}d.", errno);
-        operationMsg = operationMsg + " rename file from backup file failed.";
+        operationMsg.append("rename file from backup file failed.");
         return false;
     }
     isReportCorrupt = false;
@@ -137,7 +137,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     bool isReport = false;
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
     int errCode = 0;
-    std::string operationMsg = "XmlReadFile failed: ";
+    std::string operationMsg = "read file: ";
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName, errCode);
         if (doc != nullptr) {
@@ -153,7 +153,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         if (!RenameToBrokenFile(fileName)) {
             return doc;
         }
-        operationMsg = "original file exist, but readFile failed.";
+        operationMsg.append("current file corrupt.");
         isReport = true;
     }
 
@@ -339,7 +339,7 @@ bool XmlSaveFormatFileEnc(
     }
 
     bool isReport = false;
-    std::string operationMsg = "XmlSaveFormat failed: ";
+    std::string operationMsg = "write file: ";
     auto [ret, errCode] = SaveFormatFileEnc(fileName, doc);
     if (!ret) {
         xmlErrorPtr xmlErr = xmlGetLastError();
@@ -352,7 +352,7 @@ bool XmlSaveFormatFileEnc(
 
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
-            operationMsg = operationMsg + " original file exist.";
+            operationMsg.append("original file exist.");
             isReport = true;
         }
         RenameFromBackupFile(fileName, bundleName, isReport, operationMsg);
