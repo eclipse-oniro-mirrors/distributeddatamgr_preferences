@@ -115,26 +115,54 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     return path;
 }
 
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
-static bool IsUseEnhanceDb(const Options &options)
+static bool IsInWhiteList(const std::string &bundleName)
 {
-    if (IsFileExist(options.filePath)) {
-        return false;
+    std::vector<std::string> whiteList = {"uttest", "alipay", "com.jd.", "cmblife", "os.mms", "os.ouc",
+        "meetimeservice"};
+    for (size_t i = 0; i < whiteList.size(); i++) {
+        if (bundleName.find(whiteList[i]) != std::string::npos) {
+            return true;
+        }
     }
-    bool bundleCheck = (options.bundleName.find("uttest") != std::string::npos ||
-        options.bundleName.find("alipay") != std::string::npos ||
-        options.bundleName.find("com.jd.") != std::string::npos ||
-        options.bundleName.find("cmblife") != std::string::npos ||
-        options.bundleName.find("os.mms") != std::string::npos ||
-        options.bundleName.find("os.ouc") != std::string::npos ||
-        options.bundleName.find("meetimeservice") != std::string::npos);
-    if (!options.isEnhance && !bundleCheck) {
-        return false;
-    }
-    PreferenceDbAdapter::ApiInit();
-    return PreferenceDbAdapter::IsEnhandceDbEnable();
+    return false;
 }
-#endif
+
+int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhancePreferences,
+    std::shared_ptr<Preferences> &pref)
+{
+    if (IsInWhiteList(options.bundleName)) {
+        if (!IsFileExist(options.filePath) && IsStorageTypeSupported(StorageType::CLKV)) {
+            pref = PreferencesEnhanceImpl::GetPreferences(options);
+            isEnhancePreferences = true;
+            return std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
+        }
+        pref =  PreferencesImpl::GetPreferences(options);
+        isEnhancePreferences = false;
+        return std::static_pointer_cast<PreferencesImpl>(pref)->Init();
+    }
+    if (!options.isEnhance) {
+        // xml
+        if (IsFileExist(options.filePath + ".db")) {
+            LOG_ERROR("CLKV exists, failed to get preferences by XML.");
+            return E_NOT_SUPPORTED;
+        }
+        pref =  PreferencesImpl::GetPreferences(options);
+        isEnhancePreferences = false;
+        return std::static_pointer_cast<PreferencesImpl>(pref)->Init();
+    }
+    // clkv
+    if (IsFileExist(options.filePath)) {
+        LOG_ERROR("XML exists, failed to get preferences by CLKV.");
+        return E_NOT_SUPPORTED;
+    }
+    if (!IsStorageTypeSupported(StorageType::CLKV)) {
+        LOG_ERROR("CLKV load failed, not supported");
+        return E_NOT_SUPPORTED;
+    }
+    pref = PreferencesEnhanceImpl::GetPreferences(options);
+    isEnhancePreferences = true;
+    return std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
+}
 
 std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &options, int &errCode)
 {
@@ -156,22 +184,9 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     }
 
     const_cast<Options &>(options).filePath = realPath;
-    std::shared_ptr<Preferences> pref = nullptr;
     bool isEnhancePreferences = false;
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) &&!defined(IOS_PLATFORM)
-    if (IsUseEnhanceDb(options)) {
-        LOG_DEBUG("PreferencesHelper::GetPreferences using enhance db.");
-        pref = PreferencesEnhanceImpl::GetPreferences(options);
-        errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
-        isEnhancePreferences = true;
-    } else {
-        pref = PreferencesImpl::GetPreferences(options);
-        errCode = std::static_pointer_cast<PreferencesImpl>(pref)->Init();
-    }
-#else
-    pref = PreferencesImpl::GetPreferences(options);
-    errCode = std::static_pointer_cast<PreferencesImpl>(pref)->Init();
-#endif
+    std::shared_ptr<Preferences> pref = nullptr;
+    errCode = GetPreferencesInner(options, isEnhancePreferences, pref);
     if (errCode != E_OK) {
         return nullptr;
     }
@@ -259,6 +274,23 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
 
     prefsCache_.erase(it);
     return E_OK;
+}
+
+bool PreferencesHelper::IsStorageTypeSupported(const StorageType &type)
+{
+    if (type == StorageType::XML) {
+        return true;
+    }
+    if (type == StorageType::CLKV) {
+#if !defined(CROSS_PLATFORM)
+        PreferenceDbAdapter::ApiInit();
+        return PreferenceDbAdapter::IsEnhandceDbEnable();
+#else
+        LOG_ERROR("CLKV not support this platform");
+        return false;
+#endif
+    }
+    return false;
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

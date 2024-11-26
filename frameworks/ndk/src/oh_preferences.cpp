@@ -16,7 +16,7 @@
 #include "oh_preferences.h"
 
 #include "application_context.h"
-#include "convertor_error_code.h"
+#include "oh_convertor.h"
 #include "log_print.h"
 #include "oh_preferences_err_code.h"
 #include "oh_preferences_impl.h"
@@ -65,11 +65,8 @@ std::pair<int, std::string> GetPreferencesDir(OH_PreferencesOption *options)
 
 OH_Preferences *OH_Preferences_Open(OH_PreferencesOption *option, int *errCode)
 {
-    int err = OH_Preferences_ErrCode::PREFERENCES_OK;
-    if (option == nullptr || option->fileName.empty() ||
-        !NDKPreferencesUtils::PreferencesStructValidCheck(
-            option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID) ||
-        errCode == nullptr) {
+    if (option == nullptr || option->fileName.empty() || !NDKPreferencesUtils::PreferencesStructValidCheck(
+        option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID) || errCode == nullptr) {
         LOG_ERROR("open preference cfg error, option is null: %{public}d, fileName is null: %{public}d, "
             "errCode is null: %{public}d, err:%{public}d",
             (option == nullptr), (option == nullptr) ? 1 : option->fileName.empty(), (errCode == nullptr),
@@ -87,16 +84,17 @@ OH_Preferences *OH_Preferences_Open(OH_PreferencesOption *option, int *errCode)
     }
     std::string filePath = dirRes.second + "/" + option->GetFileName();
 
+    Preferences_StorageType type = option->GetStorageType();
     OHOS::NativePreferences::Options nativeOptions(filePath, option->GetBundleName(),
-        option->GetDataGroupId(), true);
+        option->GetDataGroupId(), type == PREFERENCES_STORAGE_CLKV);
 
+    int nativeErr = OHOS::NativePreferences::E_OK;
     std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences=
-        OHOS::NativePreferences::PreferencesHelper::GetPreferences(nativeOptions, err);
-    err = ConvertorErrorCode::NativeErrToNdk(err);
-    *errCode = err;
-    if (innerPreferences== nullptr || err != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        OHOS::NativePreferences::PreferencesHelper::GetPreferences(nativeOptions, nativeErr);
+    *errCode = OHConvertor::NativeErrToNdk(nativeErr);
+    if (innerPreferences == nullptr || *errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
         LOG_ERROR("Get native Preferences failed: %{public}s, errcode: %{public}d",
-            OHOS::NativePreferences::ExtractFileName(nativeOptions.filePath).c_str(), err);
+            OHOS::NativePreferences::ExtractFileName(nativeOptions.filePath).c_str(), *errCode);
         return nullptr;
     }
     OH_PreferencesImpl *preferenceImpl = new (std::nothrow) OH_PreferencesImpl(innerPreferences);
@@ -170,7 +168,7 @@ int OH_Preferences_Close(OH_Preferences *preference)
         preferencesImpl->GetPreferencesStoreFilePath());
     if (errCode != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("preference close failed: %{public}d", errCode);
-        return ConvertorErrorCode::NativeErrToNdk(errCode);
+        return OHConvertor::NativeErrToNdk(errCode);
     }
     delete preferencesImpl;
     return OH_Preferences_ErrCode::PREFERENCES_OK;
@@ -189,7 +187,7 @@ int OH_Preferences_GetInt(OH_Preferences *preference, const char *key, int *valu
     auto res = innerPreferences->GetValue(key, OHOS::NativePreferences::PreferencesValue());
     if (res.first != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("Get Int failed, %{public}d", res.first);
-        return ConvertorErrorCode::NativeErrToNdk(res.first);
+        return OHConvertor::NativeErrToNdk(res.first);
     }
 
     if (res.second.IsInt()) {
@@ -201,7 +199,7 @@ int OH_Preferences_GetInt(OH_Preferences *preference, const char *key, int *valu
         }
     }
 
-    return ConvertorErrorCode::NativeErrToNdk(res.first);
+    return OHConvertor::NativeErrToNdk(res.first);
 }
 
 int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char **value,
@@ -219,7 +217,7 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
     auto res = innerPreferences->GetValue(key, OHOS::NativePreferences::PreferencesValue());
     if (res.first != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("Get string failed, %{public}d", res.first);
-        return ConvertorErrorCode::NativeErrToNdk(res.first);
+        return OHConvertor::NativeErrToNdk(res.first);
     }
 
     if (res.second.IsString()) {
@@ -255,7 +253,7 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
         }
     }
 
-    return ConvertorErrorCode::NativeErrToNdk(res.first);
+    return OHConvertor::NativeErrToNdk(res.first);
 }
 
 void OH_Preferences_FreeString(char *string)
@@ -280,7 +278,7 @@ int OH_Preferences_GetBool(OH_Preferences *preference, const char *key, bool *va
     auto res = innerPreferences->GetValue(key, OHOS::NativePreferences::PreferencesValue());
     if (res.first != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("Get bool failed, %{public}d", res.first);
-        return ConvertorErrorCode::NativeErrToNdk(res.first);
+        return OHConvertor::NativeErrToNdk(res.first);
     }
 
     if (res.second.IsBool()) {
@@ -292,7 +290,7 @@ int OH_Preferences_GetBool(OH_Preferences *preference, const char *key, bool *va
         }
     }
 
-    return ConvertorErrorCode::NativeErrToNdk(res.first);
+    return OHConvertor::NativeErrToNdk(res.first);
 }
 
 int OH_Preferences_SetInt(OH_Preferences *preference, const char *key, int value)
@@ -308,7 +306,7 @@ int OH_Preferences_SetInt(OH_Preferences *preference, const char *key, int value
     if (errCode != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("preference put int failed, err: %{public}d", errCode);
     }
-    return ConvertorErrorCode::NativeErrToNdk(errCode);
+    return OHConvertor::NativeErrToNdk(errCode);
 }
 
 int OH_Preferences_SetBool(OH_Preferences *preference, const char *key, bool value)
@@ -324,7 +322,7 @@ int OH_Preferences_SetBool(OH_Preferences *preference, const char *key, bool val
     if (errCode != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("preference put bool failed, err: %{public}d", errCode);
     }
-    return ConvertorErrorCode::NativeErrToNdk(errCode);
+    return OHConvertor::NativeErrToNdk(errCode);
 }
 
 int OH_Preferences_SetString(OH_Preferences *preference, const char *key, const char *value)
@@ -341,7 +339,7 @@ int OH_Preferences_SetString(OH_Preferences *preference, const char *key, const 
     if (errCode != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("preference put string failed, err: %{public}d", errCode);
     }
-    return ConvertorErrorCode::NativeErrToNdk(errCode);
+    return OHConvertor::NativeErrToNdk(errCode);
 }
 
 int OH_Preferences_Delete(OH_Preferences *preference, const char *key)
@@ -357,7 +355,7 @@ int OH_Preferences_Delete(OH_Preferences *preference, const char *key)
     if (errCode != OHOS::NativePreferences::E_OK) {
         LOG_ERROR("preference delete value failed, err: %{public}d", errCode);
     }
-    return ConvertorErrorCode::NativeErrToNdk(errCode);
+    return OHConvertor::NativeErrToNdk(errCode);
 }
 
 int OH_Preferences_RegisterDataObserver(OH_Preferences *preference, void *context,
@@ -376,7 +374,7 @@ int OH_Preferences_RegisterDataObserver(OH_Preferences *preference, void *contex
         keysVec.push_back(keys[i]);
     }
     
-    return ConvertorErrorCode::NativeErrToNdk(preferencesImpl->RegisterDataObserver(observer, context, keysVec));
+    return OHConvertor::NativeErrToNdk(preferencesImpl->RegisterDataObserver(observer, context, keysVec));
 }
 
 int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *context,
@@ -393,7 +391,24 @@ int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *cont
     for (uint32_t i = 0; i < keyCount; i++) {
         keysVec.push_back(keys[i]);
     }
-    return ConvertorErrorCode::NativeErrToNdk(preferencesImpl->UnregisterDataObserver(observer, context, keysVec));
+    return OHConvertor::NativeErrToNdk(preferencesImpl->UnregisterDataObserver(observer, context, keysVec));
+}
+
+int OH_Preferences_IsStorageTypeSupported(Preferences_StorageType type, bool *isSupported)
+{
+    if (type < Preferences_StorageType::PREFERENCES_STORAGE_XML ||
+        type > Preferences_StorageType::PREFERENCES_STORAGE_CLKV || isSupported == nullptr) {
+        LOG_ERROR("param check failed, type: %{public}d, isSupported is null: %{public}d", static_cast<int>(type),
+            isSupported == nullptr);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    *isSupported = OHOS::NativePreferences::PreferencesHelper::
+        IsStorageTypeSupported(OHConvertor::NdkStorageTypeToNative(type));
+    if (!*isSupported) {
+        LOG_WARN("current type not supported on this platform");
+    }
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 
 int OH_PreferencesImpl::RegisterDataObserver(
@@ -408,7 +423,7 @@ int OH_PreferencesImpl::RegisterDataObserver(
     } else {
         dataObservers_.emplace_back(std::make_pair(std::move(ndkObserver), context));
     }
-    return ConvertorErrorCode::NativeErrToNdk(errCode);
+    return OHConvertor::NativeErrToNdk(errCode);
 }
 
 NDKPreferencesObserver::NDKPreferencesObserver(OH_PreferencesDataObserver observer, void *context)
@@ -444,6 +459,7 @@ void NDKPreferencesObserver::OnChange(const std::map<std::string, OHOS::NativePr
             LOG_ERROR("new value object failed");
             FreePairValue(pairs, i);
             delete []pairs;
+            return;
         }
         valueImpl->cid = PreferencesNdkStructId::PREFERENCES_OH_VALUE_CID;
         valueImpl->value_ = value;
@@ -471,7 +487,7 @@ int OH_PreferencesImpl::UnregisterDataObserver(OH_PreferencesDataObserver observ
         int errCode = preferences_->UnRegisterDataObserver(dataObservers_[i].first, keys);
         if (errCode != OHOS::NativePreferences::E_OK) {
             LOG_ERROR("un register observer failed, err: %{public}d", errCode);
-            return ConvertorErrorCode::NativeErrToNdk(errCode);
+            return OHConvertor::NativeErrToNdk(errCode);
         }
         if (keys.empty()) {
             dataObservers_[i] = { nullptr, nullptr };

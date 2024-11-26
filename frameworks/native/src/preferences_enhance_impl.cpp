@@ -84,6 +84,9 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
+    if (errCode == E_NO_DATA) {
+        return defValue;
+    }
     if (errCode != E_OK) {
         LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return defValue;
@@ -126,6 +129,9 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
     int errCode = db_->Get(oriKey, oriValue);
+    if (errCode == E_NO_DATA) {
+        return false;
+    }
     if (errCode != E_OK) {
         LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return false;
@@ -391,6 +397,9 @@ std::pair<int, PreferencesValue> PreferencesEnhanceImpl::GetValue(const std::str
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     std::vector<uint8_t> oriValue;
     errCode = db_->Get(oriKey, oriValue);
+    if (errCode == E_NO_DATA) {
+        return std::make_pair(errCode, defValue);
+    }
     if (errCode != E_OK) {
         LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return std::make_pair(errCode, defValue);
