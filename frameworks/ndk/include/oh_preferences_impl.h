@@ -81,13 +81,15 @@ struct OH_PreferencesOption {
     std::string fileName = "";
     std::string bundleName = "";
     std::string dataGroupId = "";
-    std::shared_mutex opMutex_;
     int SetFileName(const std::string &str);
     void SetBundleName(const std::string &str);
     void SetDataGroupId(const std::string &str);
     std::string GetFileName();
     std::string GetBundleName();
     std::string GetDataGroupId();
+    Preferences_StorageType storageType = Preferences_StorageType::PREFERENCES_STORAGE_CLKV;
+    void SetStorageType(const Preferences_StorageType &type);
+    Preferences_StorageType GetStorageType();
 };
 
 class NDKPreferencesUtils {

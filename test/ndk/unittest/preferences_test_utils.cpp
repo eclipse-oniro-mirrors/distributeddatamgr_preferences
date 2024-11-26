@@ -15,7 +15,7 @@
 
 #include "preferences_test_utils.h"
 #include "oh_preferences.h"
-#include "convertor_error_code.h"
+#include "oh_convertor.h"
 #include "log_print.h"
 #include "oh_preferences_err_code.h"
 #include "oh_preferences_impl.h"

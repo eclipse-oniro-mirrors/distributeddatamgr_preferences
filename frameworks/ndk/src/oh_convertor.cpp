@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <map>
-#include "convertor_error_code.h"
+#include "oh_convertor.h"
 #include "oh_preferences_err_code.h"
 #include "preferences_errno.h"
 
@@ -38,12 +38,20 @@ const std::map<int, int> ERROR_CODE_MAP = {
     { OHOS::NativePreferences::E_OBSERVER_RESERVE, OH_Preferences_ErrCode::PREFERENCES_OK }
 };
 
-int ConvertorErrorCode::NativeErrToNdk(int nativeCode)
+int OHConvertor::NativeErrToNdk(int nativeCode)
 {
     auto iter = ERROR_CODE_MAP.find(nativeCode);
     if (iter != ERROR_CODE_MAP.end()) {
         return iter->second;
     }
     return PREFERENCES_ERROR_STORAGE;
+}
+
+OHOS::NativePreferences::StorageType OHConvertor::NdkStorageTypeToNative(const Preferences_StorageType &type)
+{
+    if (type == Preferences_StorageType::PREFERENCES_STORAGE_CLKV) {
+        return OHOS::NativePreferences::StorageType::CLKV;
+    }
+    return OHOS::NativePreferences::StorageType::XML;
 }
 }

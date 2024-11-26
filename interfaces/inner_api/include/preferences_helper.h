@@ -68,12 +68,21 @@ public:
      */
     PREF_API_EXPORT static int RemovePreferencesFromCache(const std::string &path);
 
+    /**
+     * @brief Detrmine a {@link StorageType} type is supported or not on current system.
+     * @param { StorageType } type - Indicates the type of storage that user want to check.
+     * @returns { boolean } a boolean value indicates this system support the type or not.
+     */
+    PREF_API_EXPORT static bool IsStorageTypeSupported(const StorageType &type);
+
 private:
     // use bool to mark whether Preferences is EnhancePreferences or not
     static std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> prefsCache_;
     static std::mutex prefsCacheMutex_;
 
     static std::string GetRealPath(const std::string &path, int &errorCode);
+    static int GetPreferencesInner(const Options &options, bool &isEnhancePreferences,
+        std::shared_ptr<Preferences> &pref);
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

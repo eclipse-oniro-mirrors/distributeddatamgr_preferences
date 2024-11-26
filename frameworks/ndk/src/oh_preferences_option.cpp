@@ -16,14 +16,15 @@
 #include "oh_preferences_option.h"
 
 #include "log_print.h"
+#include "oh_convertor.h"
 #include "oh_preferences_impl.h"
 #include "oh_preferences_err_code.h"
+#include "preferences_helper.h"
 
 using namespace OHOS::PreferencesNdk;
 
 int OH_PreferencesOption::SetFileName(const std::string &str)
 {
-    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     if (str.empty()) {
         LOG_ERROR("Set file path failed, str is empty");
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
@@ -34,14 +35,22 @@ int OH_PreferencesOption::SetFileName(const std::string &str)
 
 void OH_PreferencesOption::SetBundleName(const std::string &str)
 {
-    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     bundleName = str;
 }
 
 void OH_PreferencesOption::SetDataGroupId(const std::string &str)
 {
-    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     dataGroupId = str;
+}
+
+void OH_PreferencesOption::SetStorageType(const Preferences_StorageType &type)
+{
+    storageType = type;
+}
+
+Preferences_StorageType OH_PreferencesOption::GetStorageType()
+{
+    return storageType;
 }
 
 std::string OH_PreferencesOption::GetFileName()
@@ -67,6 +76,10 @@ OH_PreferencesOption* OH_PreferencesOption_Create(void)
         return nullptr;
     }
     option->cid = PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID;
+    if (!OHOS::NativePreferences::PreferencesHelper::IsStorageTypeSupported(
+        OHConvertor::NdkStorageTypeToNative(Preferences_StorageType::PREFERENCES_STORAGE_CLKV))) {
+        option->SetStorageType(Preferences_StorageType::PREFERENCES_STORAGE_XML);
+    }
     return option;
 }
 
@@ -108,6 +121,23 @@ int OH_PreferencesOption_SetDataGroupId(OH_PreferencesOption *option, const char
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
     option->SetDataGroupId(std::string(dataGroupId));
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int OH_PreferencesOption_SetStorageType(OH_PreferencesOption *option, Preferences_StorageType type)
+{
+    if (option == nullptr || !NDKPreferencesUtils::PreferencesStructValidCheck(
+        option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("set option's storage type failed, option is null: %{public}d", (option == nullptr));
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    if (type < Preferences_StorageType::PREFERENCES_STORAGE_XML ||
+        type > Preferences_StorageType::PREFERENCES_STORAGE_CLKV) {
+        LOG_ERROR("set option's storage type failed, type invalid: %{public}d", static_cast<int>(type));
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    option->SetStorageType(type);
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 

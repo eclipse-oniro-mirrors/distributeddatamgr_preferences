@@ -53,6 +53,18 @@ extern "C" {
 typedef struct OH_PreferencesOption OH_PreferencesOption;
 
 /**
+ * @brief Enumerates the preferences storage types.
+ *
+ * @since 16
+ */
+typedef enum Preferences_StorageType {
+    /** XML storage*/
+    PREFERENCES_STORAGE_XML = 0,
+    /** CLKV storage */
+    PREFERENCES_STORAGE_CLKV
+} Preferences_StorageType;
+
+/**
  * @brief Creates an {@Link OH_PreferencesOption} instance.
  *
  * @return Returns a pointer to the {@Link OH_PreferencesOption} instance created if the operation is successful;
@@ -102,6 +114,19 @@ int OH_PreferencesOption_SetBundleName(OH_PreferencesOption *option, const char 
 int OH_PreferencesOption_SetDataGroupId(OH_PreferencesOption *option, const char *dataGroupId);
 
 /**
+ * @brief Sets the storage type in an {@Link OH_PreferencesOption} instance.
+ *
+ * @param option Represents a pointer to an {@link OH_PreferencesOption} instance.
+ * @param type Represents preferences storage type.
+ * @return Returns the status code of the execution.
+ *         {@link PREFERENCES_OK} success.
+ *         {@link PREFERENCES_ERROR_INVALID_PARAM} indicates invalid args are passed in.
+ * @see OH_PreferencesOption.
+ * @since 16
+ */
+int OH_PreferencesOption_SetStorageType(OH_PreferencesOption *option, Preferences_StorageType type);
+
+/**
  * @brief Destroys an {@Link OH_PreferencesOption} instance.
  *
  * @param option Pointer to the {@Link OH_PreferencesOption} instance to destroy.
@@ -115,4 +140,5 @@ int OH_PreferencesOption_Destroy(OH_PreferencesOption *option);
 #ifdef __cplusplus
 };
 #endif
+/** @} */
 #endif // OH_PREFERENCES_OPTION_H
