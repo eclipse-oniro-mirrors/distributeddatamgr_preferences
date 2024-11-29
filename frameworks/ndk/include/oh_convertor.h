@@ -13,18 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef CONVERTOR_ERROR_CODE_H
-#define CONVERTOR_ERROR_CODE_H
+#ifndef OH_CONVERTOR_H
+#define OH_CONVERTOR_H
+
+#include "oh_preferences_option.h"
+#include "preferences.h"
 
 namespace OHOS::PreferencesNdk {
-
-class ConvertorErrorCode final {
+class OHConvertor final {
 public:
     static int NativeErrToNdk(int nativeErrCode);
+    static OHOS::NativePreferences::StorageType NdkStorageTypeToNative(const Preferences_StorageType &type);
 private:
-    ConvertorErrorCode() = default;
-    ~ConvertorErrorCode() = default;
+    OHConvertor() = default;
+    ~OHConvertor() = default;
 };
 
 }   // namespace OHOS::PreferencesNdk
-#endif // CONVERTOR_ERROR_CODE_H
+#endif // OH_CONVERTOR_H

@@ -264,6 +264,20 @@ int OH_Preferences_RegisterDataObserver(OH_Preferences *preference, void *contex
 int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *context,
     OH_PreferencesDataObserver observer, const char *keys[], uint32_t keyCount);
 
+/**
+ * @brief Check if a type is supported or not.
+ *
+ * @param type Pointer to a storage type {@Link Preferences_StorageType}.
+ * @param isSupported Pointer to the Boolean value obtained.
+ *      true indicates storage type is supported.
+ *      false indicates storage type is not supported.
+ * @return Returns the status code of the execution.
+ *         {@link PREFERENCES_OK} indicates the operation is successful.
+ *         {@link PREFERENCES_ERROR_INVALID_PARAM} indicates invalid args are passed in.
+ * @since 16
+ */
+int OH_Preferences_IsStorageTypeSupported(Preferences_StorageType type, bool *isSupported);
+
 #ifdef __cplusplus
 };
 #endif
