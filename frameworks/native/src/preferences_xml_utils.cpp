@@ -76,12 +76,11 @@ static void ReportXmlFileIsBroken(const std::string &fileName, const std::string
     PreferencesDfxManager::ReportDbFault(succreportParam);
 }
 
-static bool RenameFromBackupFile(const std::string &fileName, const std::string &bundleName,
-    bool &isReportCorrupt, std::string &operationMsg)
+static bool RenameFromBackupFile(const std::string &fileName, const std::string &bundleName, bool &isReportCorrupt)
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
-        operationMsg.append("backup file not exist.");
+        LOG_DEBUG("the backup file does not exist.");
         return false;
     }
     xmlResetLastError();
@@ -94,16 +93,11 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         std::remove(backupFileName.c_str());
-        if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
-            return false;
-        }
-        operationMsg.append("backup file corrupt.");
         isReportCorrupt = true;
         return false;
     }
     if (std::rename(backupFileName.c_str(), fileName.c_str())) {
         LOG_ERROR("failed to restore backup errno %{public}d.", errno);
-        operationMsg.append("rename file from backup file failed.");
         return false;
     }
     isReportCorrupt = false;
@@ -137,7 +131,6 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     bool isReport = false;
     PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
     int errCode = 0;
-    std::string operationMsg = "read file: ";
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName, errCode);
         if (doc != nullptr) {
@@ -153,14 +146,14 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         if (!RenameToBrokenFile(fileName)) {
             return doc;
         }
-        operationMsg.append("current file corrupt.");
         isReport = true;
     }
 
-    if (RenameFromBackupFile(fileName, bundleName, isReport, operationMsg)) {
+    if (RenameFromBackupFile(fileName, bundleName, isReport)) {
         doc = ReadFile(fileName, errCode);
     }
     if (isReport) {
+        const std::string operationMsg = "operation: failed to read XML format file.";
         ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
     }
     return doc;
@@ -339,7 +332,6 @@ bool XmlSaveFormatFileEnc(
     }
 
     bool isReport = false;
-    std::string operationMsg = "write file: ";
     auto [ret, errCode] = SaveFormatFileEnc(fileName, doc);
     if (!ret) {
         xmlErrorPtr xmlErr = xmlGetLastError();
@@ -349,14 +341,13 @@ bool XmlSaveFormatFileEnc(
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             return false;
         }
-
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
-            operationMsg.append("original file exist.");
             isReport = true;
         }
-        RenameFromBackupFile(fileName, bundleName, isReport, operationMsg);
+        RenameFromBackupFile(fileName, bundleName, isReport);
         if (isReport) {
+            const std::string operationMsg = "operation: failed to save XML format file.";
             ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
         }
         return false;
