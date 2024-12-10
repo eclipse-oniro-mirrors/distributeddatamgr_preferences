@@ -57,7 +57,9 @@ StorageProxy::StorageProxy(std::shared_ptr<OHOS::NativePreferences::Preferences>
 StorageProxy::~StorageProxy()
 {
     for (auto &observer : dataObserver_) {
-        value_->UnRegisterObserver(observer);
+        if (observer != nullptr) {
+            value_->UnRegisterObserver(observer);
+        }
     }
     dataObserver_.clear();
 }
