@@ -68,12 +68,16 @@ private:
 
     /* thread function */
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
+    static void ReLoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     void AwaitLoadFile();
     bool WriteSettingXml(const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap);
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
     static bool ReadSettingXml(std::shared_ptr<PreferencesImpl> pref);
+    static bool RereadSettingXml(std::shared_ptr<PreferencesImpl> pref);
 
     std::atomic<bool> loaded_;
+    std::atomic<bool> fileExist_;
+    uint64_t loadBeginTime_ = 0;
 
     /* Current memory state (always increasing) */
     int64_t currentMemoryStateGeneration_;

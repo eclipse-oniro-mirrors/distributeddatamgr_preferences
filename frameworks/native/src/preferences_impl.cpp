@@ -40,6 +40,7 @@ using namespace std::chrono;
 
 constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
+constexpr int32_t THREE_SECONDS = 3000;
 
 template<typename T>
 std::string GetTypeName()
@@ -128,6 +129,7 @@ std::string GetTypeName<BigInt>()
 PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options)
 {
     loaded_.store(false);
+    fileExist_.store(false);
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
     queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
@@ -148,6 +150,7 @@ int PreferencesImpl::Init()
 bool PreferencesImpl::StartLoadFromDisk()
 {
     loaded_.store(false);
+    fileExist_.store(false);
 
     ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
     return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
@@ -160,7 +163,11 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         return;
     }
     std::lock_guard<std::mutex> lock(pref->mutex_);
+    loadBeginTime_ = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     if (!pref->loaded_.load()) {
+        if (Access(pref->options_.filePath) == 0) {
+            fileExist_.store(true);
+        }
         bool loadResult = PreferencesImpl::ReadSettingXml(pref);
         if (!loadResult) {
             LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
@@ -170,10 +177,37 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     }
 }
 
+void PreferencesImpl::ReloadFromDisk(std::shared_ptr<PreferencesImpl> pref)
+{
+    if (pref->fileExist_.load()) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(pref->mutex_);
+    if (!pref->fileExist_.load()) {
+        if (Access(pref->options_.filePath) == 0) {
+            bool loadResult = PreferencesImpl::RereadSettingXml(pref);
+            LOG_WARN("The settingXml %{public}s reload result is %{public}d",
+                ExtractFileName(pref->options_.filePath).c_str(), loadResult);
+            if (loadResult) {
+                fileExist_.store(true);
+            }
+        }
+    }
+}
+
 void PreferencesImpl::AwaitLoadFile()
 {
     if (loaded_.load()) {
+        if (!fileExist_.load() && Access(options_.filePath) == 0) {
+            ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::ReloadFromDisk(pref); };
+            executorPool_.Execute(std::move(task));
+        }
         return;
+    }
+    auto nowMs = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+    if (nowMs - loadBeginTime_ > THREE_SECONDS) {
+        LOG_ERROR("The settingXml %{public}s load time exceed 3s, load begin time:%{public}", PRIu64,
+            ExtractFileName(options_.filePath).c_str(), loadBeginTime_);
     }
     std::unique_lock<std::mutex> lock(mutex_);
     if (!loaded_.load()) {
@@ -291,6 +325,14 @@ void ReadXmlElement(const Element &element, std::map<std::string, PreferencesVal
     }
 }
 
+void RereadXmlElement(const Element &element, ConcurrentMap<std::string, PreferencesValue> &prefConMap)
+{
+    PreferencesValue value(static_cast<int64_t>(0));
+    if (Convert2PrefValue(element, value.value_)) {
+        prefConMap.Insert(element.key_, value);
+    }
+}
+
 bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
 {
     std::vector<Element> settings;
@@ -304,6 +346,21 @@ bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
         ReadXmlElement(element, values);
     }
     pref->valuesCache_ = std::move(values);
+    return true;
+}
+
+bool PreferencesImpl::RereadSettingXml(std::shared_ptr<PreferencesImpl> pref)
+{
+    std::vector<Element> settings;
+    if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.bundleName,
+        pref->options_.dataGroupId, settings)) {
+        return false;
+    }
+
+    for (const auto &element : settings) {
+        RereadXmlElement(element, pref->valuesCache_);
+    }
+
     return true;
 }
 
@@ -476,6 +533,9 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
     if (!pref->WriteSettingXml(pref->options_, writeToDiskMap)) {
         return E_ERROR;
     }
+    if (!pref->fileExist_.load()) {
+        pref->fileExist_.store(true);
+    }
     pref->NotifyPreferencesObserver(keysModified, writeToDiskMap);
     return E_OK;
 }
@@ -489,9 +549,14 @@ void PreferencesImpl::Flush()
             auto realQueue = queue.lock();
             auto realThis = self.lock();
             if (realQueue == nullptr || realThis == nullptr) {
-                return ;
+                return;
             }
             uint64_t value = 0;
+            if (realThis->loaded_.load()) {
+                if (!fileExist_.load() && Access(realThis->options_.filePath) == 0) {
+                    PreferencesImpl::ReloadFromDisk(realThis);
+                }
+            }
             std::lock_guard<std::mutex> lock(realThis->mutex_);
             auto has = realQueue->PopNotWait(value);
             if (has && value == 1) {
@@ -508,6 +573,11 @@ int PreferencesImpl::FlushSync()
     if (success) {
         if (queue_ == nullptr) {
             return E_ERROR;
+        }
+        if (loaded_.load()) {
+            if (!fileExist_.load() && Access(options_.filePath) == 0) {
+                PreferencesImpl::ReloadFromDisk(realThis);
+            }
         }
         uint64_t value = 0;
         std::lock_guard<std::mutex> lock(mutex_);
