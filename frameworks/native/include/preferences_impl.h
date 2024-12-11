@@ -68,7 +68,7 @@ private:
 
     /* thread function */
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
-    static void ReLoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
+    static void ReloadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     void AwaitLoadFile();
     bool WriteSettingXml(const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap);
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);

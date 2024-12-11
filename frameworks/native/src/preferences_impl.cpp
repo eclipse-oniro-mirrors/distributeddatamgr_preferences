@@ -163,10 +163,11 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         return;
     }
     std::lock_guard<std::mutex> lock(pref->mutex_);
-    loadBeginTime_ = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+    pref->loadBeginTime_ =
+        static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     if (!pref->loaded_.load()) {
         if (Access(pref->options_.filePath) == 0) {
-            fileExist_.store(true);
+            pref->fileExist_.store(true);
         }
         bool loadResult = PreferencesImpl::ReadSettingXml(pref);
         if (!loadResult) {
@@ -189,7 +190,7 @@ void PreferencesImpl::ReloadFromDisk(std::shared_ptr<PreferencesImpl> pref)
             LOG_WARN("The settingXml %{public}s reload result is %{public}d",
                 ExtractFileName(pref->options_.filePath).c_str(), loadResult);
             if (loadResult) {
-                fileExist_.store(true);
+                pref->fileExist_.store(true);
             }
         }
     }
@@ -206,7 +207,7 @@ void PreferencesImpl::AwaitLoadFile()
     }
     auto nowMs = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     if (nowMs - loadBeginTime_ > THREE_SECONDS) {
-        LOG_ERROR("The settingXml %{public}s load time exceed 3s, load begin time:%{public}", PRIu64,
+        LOG_ERROR("The settingXml %{public}s load time exceed 3s, load begin time:%{public}lu",
             ExtractFileName(options_.filePath).c_str(), loadBeginTime_);
     }
     std::unique_lock<std::mutex> lock(mutex_);
@@ -553,7 +554,7 @@ void PreferencesImpl::Flush()
             }
             uint64_t value = 0;
             if (realThis->loaded_.load()) {
-                if (!fileExist_.load() && Access(realThis->options_.filePath) == 0) {
+                if (!realThis->fileExist_.load() && Access(realThis->options_.filePath) == 0) {
                     PreferencesImpl::ReloadFromDisk(realThis);
                 }
             }
@@ -576,7 +577,7 @@ int PreferencesImpl::FlushSync()
         }
         if (loaded_.load()) {
             if (!fileExist_.load() && Access(options_.filePath) == 0) {
-                PreferencesImpl::ReloadFromDisk(realThis);
+                PreferencesImpl::ReloadFromDisk(shared_from_this());
             }
         }
         uint64_t value = 0;
