@@ -333,11 +333,11 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
     EXPECT_EQ(settingsRes.empty(), false);
     EXPECT_EQ(elem.key_, settingsRes[0].key_);
     EXPECT_EQ(elem.tag_, settingsRes[0].tag_);
-    EXPECT_EQ(2, settingsRes[0].value_);
+    EXPECT_EQ(std::to_string(2), settingsRes[0].value_);
 
-    EXPECT_EQ(elem1.key_, settingsRes[0].key_);
-    EXPECT_EQ(elem1.tag_, settingsRes[0].tag_);
-    EXPECT_EQ(elem1.value_, settingsRes[0].value_);
+    EXPECT_EQ(elem1.key_, settingsRes[1].key_);
+    EXPECT_EQ(elem1.tag_, settingsRes[1].tag_);
+    EXPECT_EQ(elem1.value_, settingsRes[1].value_);
 
     pref = nullptr;
     ret = PreferencesHelper::DeletePreferences(file);
