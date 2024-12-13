@@ -252,7 +252,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level3)
 }
 
 /**
- * @tc.name: NativePreferencesFileTest_001
+ * @tc.name: NativePreferencesFileTest_005
  * @tc.desc: normal testcase of fallback logic
  * @tc.type: FUNC
  */
@@ -288,6 +288,56 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
     EXPECT_EQ(ret, 2);
     ret = pref->GetInt("intKey1", 0);
     EXPECT_EQ(ret, 10);
+
+    pref = nullptr;
+    ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+ * @tc.name: NativePreferencesFileTest_006
+ * @tc.desc: normal testcase of fallback logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
+{
+    std::string file = "/data/test/test";
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    EXPECT_EQ(false, pref->HasKey("intKey"));
+    EXPECT_EQ(false, pref->HasKey("intKey1"));
+    pref->PutInt("intKey", 2);
+
+    std::vector<Element> settings;
+    Element elem;
+    elem.key_ = "intKey";
+    elem.tag_ = std::string("int");
+    elem.value_ = std::to_string(20);
+    Element elem1;
+    elem1.key_ = "intKey1";
+    elem1.tag_ = std::string("int");
+    elem1.value_ = std::to_string(20);
+    settings.push_back(elem);
+    settings.push_back(elem1);
+    PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
+
+    pref->FlushSync();
+
+    std::vector<Element> settingsRes = {};
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", "", settingsRes);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(settingsRes.empty(), false);
+    EXPECT_EQ(elem.key_, settingsRes[0].key_);
+    EXPECT_EQ(elem.tag_, settingsRes[0].tag_);
+    EXPECT_EQ(2, settingsRes[0].value_);
+
+    EXPECT_EQ(elem1.key_, settingsRes[0].key_);
+    EXPECT_EQ(elem1.tag_, settingsRes[0].tag_);
+    EXPECT_EQ(elem1.value_, settingsRes[0].value_);
 
     pref = nullptr;
     ret = PreferencesHelper::DeletePreferences(file);
