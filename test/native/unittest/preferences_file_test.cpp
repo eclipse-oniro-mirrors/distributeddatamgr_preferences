@@ -265,9 +265,9 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
     EXPECT_EQ(errCode, E_OK);
-    int ret = pref->GetInt("intKey", 0);
+    ret = pref->GetInt("intKey", 0);
     EXPECT_EQ(ret, 0);
-    int ret = pref->GetInt("intKey1", 0);
+    ret = pref->GetInt("intKey1", 0);
     EXPECT_EQ(ret, 0);
     pref->PutInt("intKey", 2);
 
@@ -284,9 +284,9 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
     settings.push_back(elem1);
     PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
 
-    int ret = pref->GetInt("intKey", 0);
+    ret = pref->GetInt("intKey", 0);
     EXPECT_EQ(ret, 2);
-    int ret = pref->GetInt("intKey1", 0);
+    ret = pref->GetInt("intKey1", 0);
     EXPECT_EQ(ret, 10);
 
     pref = nullptr;
