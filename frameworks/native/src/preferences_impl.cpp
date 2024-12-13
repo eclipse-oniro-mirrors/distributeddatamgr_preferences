@@ -200,8 +200,7 @@ void PreferencesImpl::AwaitLoadFile()
 {
     if (loaded_.load()) {
         if (!fileExist_.load() && Access(options_.filePath) == 0) {
-            ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::ReloadFromDisk(pref); };
-            executorPool_.Execute(std::move(task));
+            PreferencesImpl::ReloadFromDisk(pref);
         }
         return;
     }
