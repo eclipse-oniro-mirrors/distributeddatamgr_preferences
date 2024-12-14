@@ -200,13 +200,13 @@ void PreferencesImpl::AwaitLoadFile()
 {
     if (loaded_.load()) {
         if (!fileExist_.load() && Access(options_.filePath) == 0) {
-            PreferencesImpl::ReloadFromDisk(pref);
+            PreferencesImpl::ReloadFromDisk(shared_from_this());
         }
         return;
     }
     auto nowMs = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     if (nowMs - loadBeginTime_ > THREE_SECONDS) {
-        LOG_ERROR("The settingXml %{public}s load time exceed 3s, load begin time:%{public}lu",
+        LOG_ERROR("The settingXml %{public}s load time exceed 3s, load begin time:%{public}" PRIu64 ".",
             ExtractFileName(options_.filePath).c_str(), loadBeginTime_);
     }
     std::unique_lock<std::mutex> lock(mutex_);
@@ -552,10 +552,8 @@ void PreferencesImpl::Flush()
                 return;
             }
             uint64_t value = 0;
-            if (realThis->loaded_.load()) {
-                if (!realThis->fileExist_.load() && Access(realThis->options_.filePath) == 0) {
-                    PreferencesImpl::ReloadFromDisk(realThis);
-                }
+            if (realThis->loaded_.load() && !realThis->fileExist_.load() && Access(realThis->options_.filePath) == 0) {
+                PreferencesImpl::ReloadFromDisk(realThis);
             }
             std::lock_guard<std::mutex> lock(realThis->mutex_);
             auto has = realQueue->PopNotWait(value);
