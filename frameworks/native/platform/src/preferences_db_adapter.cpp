@@ -272,18 +272,14 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
     int errCode = OpenDb(false);
     if (errCode == GRD_DATA_CORRUPTED) {
         PreferencesDfxManager::ReportDbFault(GetReportParam("db corrupted", errCode));
-    }
-    if (errCode == GRD_DATA_CORRUPTED || errCode == GRD_INNER_ERR) {
         int innerErr = TryRepairAndRebuild(errCode);
         if (innerErr != GRD_OK) {
             // log inside
             return TransferGrdErrno(innerErr);
         }
-        if (errCode == GRD_DATA_CORRUPTED) {
-            ReportParam param = GetReportParam("db repair success", GRD_OK);
-            param.errnoCode = 0;
-            PreferencesDfxManager::ReportDbFault(param);
-        }
+        ReportParam param = GetReportParam("db repair success", GRD_OK);
+        param.errnoCode = 0;
+        PreferencesDfxManager::ReportDbFault(param);
     } else if (errCode != GRD_OK) {
         LOG_ERROR("db open failed, errCode: %{public}d", errCode);
         return TransferGrdErrno(errCode);
