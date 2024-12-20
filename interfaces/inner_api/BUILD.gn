@@ -70,6 +70,11 @@ if (!is_ohos) {
 
 if (is_ohos) {
   ohos_shared_library("native_preferences") {
+    defines = []
+    if (!defined(global_parts_info) ||
+        defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
+      defines += [ "ARKDATA_DATABASE_CORE_ENABLE" ]
+    }
     branch_protector_ret = "pac_ret"
     sanitize = {
       boundary_sanitize = true
@@ -241,6 +246,11 @@ ohos_static_library("native_preferences_static") {
     ]
   } else {
     if (is_ohos) {
+      defines = []
+      if (!defined(global_parts_info) ||
+          defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
+        defines += [ "ARKDATA_DATABASE_CORE_ENABLE" ]
+      }
       branch_protector_ret = "pac_ret"
       sanitize = {
         boundary_sanitize = true

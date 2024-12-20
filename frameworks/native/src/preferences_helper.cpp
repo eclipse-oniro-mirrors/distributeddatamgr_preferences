@@ -115,12 +115,12 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     return path;
 }
 
-static bool IsInWhiteList(const std::string &bundleName)
+static bool IsInTrustList(const std::string &bundleName)
 {
-    std::vector<std::string> whiteList = {"uttest", "alipay", "com.jd.", "cmblife", "os.mms", "os.ouc",
+    std::vector<std::string> trustList = {"uttest", "alipay", "com.jd.", "cmblife", "os.mms", "os.ouc",
         "meetimeservice"};
-    for (size_t i = 0; i < whiteList.size(); i++) {
-        if (bundleName.find(whiteList[i]) != std::string::npos) {
+    for (size_t i = 0; i < trustList.size(); i++) {
+        if (bundleName.find(trustList[i]) != std::string::npos) {
             return true;
         }
     }
@@ -130,7 +130,7 @@ static bool IsInWhiteList(const std::string &bundleName)
 int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhancePreferences,
     std::shared_ptr<Preferences> &pref)
 {
-    if (IsInWhiteList(options.bundleName)) {
+    if (IsInTrustList(options.bundleName)) {
         if (!IsFileExist(options.filePath) && IsStorageTypeSupported(StorageType::CLKV)) {
             pref = PreferencesEnhanceImpl::GetPreferences(options);
             isEnhancePreferences = true;
@@ -156,8 +156,13 @@ int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhan
         return E_NOT_SUPPORTED;
     }
     if (!IsStorageTypeSupported(StorageType::CLKV)) {
-        LOG_ERROR("CLKV load failed, not supported");
+        // log inside
         return E_NOT_SUPPORTED;
+    }
+    PreferenceDbAdapter::ApiInit();
+    if (!PreferenceDbAdapter::IsEnhandceDbEnable()) {
+        LOG_ERROR("enhance api load failed.");
+        return E_ERROR;
     }
     pref = PreferencesEnhanceImpl::GetPreferences(options);
     isEnhancePreferences = true;
@@ -282,11 +287,10 @@ bool PreferencesHelper::IsStorageTypeSupported(const StorageType &type)
         return true;
     }
     if (type == StorageType::CLKV) {
-#if !defined(CROSS_PLATFORM)
-        PreferenceDbAdapter::ApiInit();
-        return PreferenceDbAdapter::IsEnhandceDbEnable();
+#if !defined(CROSS_PLATFORM) && defined(ARKDATA_DATABASE_CORE_ENABLE)
+        return true;
 #else
-        LOG_ERROR("CLKV not support this platform");
+        LOG_WARN("CLKV not support this platform.");
         return false;
 #endif
     }
