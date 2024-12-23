@@ -76,7 +76,8 @@ private:
     static bool RereadSettingXml(std::shared_ptr<PreferencesImpl> pref);
 
     std::atomic<bool> loaded_;
-    std::atomic<bool> fileExist_;
+    std::atomic<bool> isNeverUnlock_;
+    std::atomic<bool> loadResult_;
     uint64_t loadBeginTime_ = 0;
 
     /* Current memory state (always increasing) */
