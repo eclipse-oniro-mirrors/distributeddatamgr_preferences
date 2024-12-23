@@ -64,7 +64,9 @@ PreferencesProxy::~PreferencesProxy()
 void PreferencesProxy::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
 {
     PreferencesProxy *obj = static_cast<PreferencesProxy *>(nativeObject);
-    delete obj;
+    if (obj != nullptr) {
+        delete obj;
+    }
 }
 
 void PreferencesProxy::Init(napi_env env, napi_value exports)

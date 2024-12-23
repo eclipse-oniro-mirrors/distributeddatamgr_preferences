@@ -70,6 +70,11 @@ if (!is_ohos) {
 
 if (is_ohos) {
   ohos_shared_library("native_preferences") {
+    defines = []
+    if (!defined(global_parts_info) ||
+        defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
+      defines += [ "ARKDATA_DATABASE_CORE_ENABLE" ]
+    }
     branch_protector_ret = "pac_ret"
     sanitize = {
       boundary_sanitize = true
@@ -132,10 +137,16 @@ if (is_ohos) {
     ]
     if (is_mac) {
       buildos = "mac"
-      defines = [ "MAC_PLATFORM" ]
+      defines = [
+        "MAC_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
     } else {
       buildos = "windows"
-      defines = [ "WINDOWS_PLATFORM" ]
+      defines = [
+        "WINDOWS_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
       ldflags = [ "-lws2_32" ]
     }
     deps = [
@@ -156,7 +167,10 @@ if (is_ohos) {
     sources = base_sources
     sources += mock_sources
 
-    defines = [ "ANDROID_PLATFORM" ]
+    defines = [
+      "ANDROID_PLATFORM",
+      "CROSS_PLATFORM",
+    ]
 
     configs = [ ":native_preferences_config" ]
     configs += [ ":mock_config" ]
@@ -176,7 +190,10 @@ if (is_ohos) {
     all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
     sources += mock_sources
-    defines = [ "IOS_PLATFORM" ]
+    defines = [
+      "IOS_PLATFORM",
+      "CROSS_PLATFORM",
+    ]
 
     configs = [ ":native_preferences_config" ]
     configs += [ ":mock_config" ]
@@ -208,10 +225,16 @@ ohos_static_library("native_preferences_static") {
     ]
     if (is_mac) {
       buildos = "mac"
-      defines = [ "MAC_PLATFORM" ]
+      defines = [
+        "MAC_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
     } else {
       buildos = "windows"
-      defines = [ "WINDOWS_PLATFORM" ]
+      defines = [
+        "WINDOWS_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
       ldflags = [ "-lws2_32" ]
     }
     deps = [
@@ -223,6 +246,11 @@ ohos_static_library("native_preferences_static") {
     ]
   } else {
     if (is_ohos) {
+      defines = []
+      if (!defined(global_parts_info) ||
+          defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
+        defines += [ "ARKDATA_DATABASE_CORE_ENABLE" ]
+      }
       branch_protector_ret = "pac_ret"
       sanitize = {
         boundary_sanitize = true

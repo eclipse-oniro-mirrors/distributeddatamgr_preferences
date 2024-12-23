@@ -31,7 +31,7 @@ config("ndk_preferences_public_config") {
 
 if (is_ohos) {
   base_sources = [
-    "${preferences_ndk_path}/src/convertor_error_code.cpp",
+    "${preferences_ndk_path}/src/oh_convertor.cpp",
     "${preferences_ndk_path}/src/oh_preferences.cpp",
     "${preferences_ndk_path}/src/oh_preferences_option.cpp",
     "${preferences_ndk_path}/src/oh_preferences_value.cpp",

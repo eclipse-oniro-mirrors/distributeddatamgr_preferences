@@ -29,6 +29,10 @@
 namespace OHOS {
 namespace NativePreferences {
 using RegisterMode = PreferencesObserver::RegisterMode;
+enum StorageType {
+    XML = 0,
+    CLKV
+};
 struct Options {
 public:
     Options(const std::string inputFilePath) : filePath(inputFilePath)
