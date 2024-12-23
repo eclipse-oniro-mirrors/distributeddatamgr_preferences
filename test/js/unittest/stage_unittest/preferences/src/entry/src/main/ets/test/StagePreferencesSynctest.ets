@@ -15,14 +15,32 @@
 
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
 import data_preferences from '@ohos.data.preferences';
+import fs from '@ohos.file.fs';
 
 const TAG = "[stagePreferencesSyncJsTest]"
 let mPreferences;
+let context;
+
+function isFileExists(path: string) : boolean {
+    if (!path) {
+        console.error(TAG, 'path is undefined');
+        return false;
+    }
+    try {
+        if (fs.accessSync(path)) {
+            return true;
+        }
+    } catch (err) {
+        console.error(TAG, 'accessSync failed: ' + JSON.stringify(err));
+    }
+    return false;
+}
 
 export default function stagePreferencesSyncJsTest() {
   describe('stagePreferencesSyncJsTest', () =>{
     beforeAll(() => {
       console.log('stagePreferencesSyncJsTest TestAbility context' + globalThis.abilityContext);
+      context = globalThis.abilityContext;
       console.info('beforeAll');
     })
     afterAll(() => {
@@ -183,5 +201,211 @@ export default function stagePreferencesSyncJsTest() {
         expect().assertFail();
       }
     })
-  })
+
+    /**
+      * @tc.name isStorageTypeSupported
+      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_StorageType_001
+      * @tc.desc test StorageType
+      */
+    it('testPreferencesStorageType001', 0, () => {
+      try {
+        // normal storage type
+        console.info(TAG + "enum value of xml: ${data_preferences.StorageType.XML}");
+        console.info(TAG + "enum value of clkv: ${data_preferences.StorageType.CLKV}");
+        expect(0).assertEqual(data_preferences.StorageType.XML);
+        expect(1).assertEqual(data_preferences.StorageType.CLKV);
+
+        let isXmlSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.XML);
+        console.info(TAG + "isXmlSupported: ${isXmlSupported}");
+        expect(isXmlSupported).assertTrue()
+
+        let isClkvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.CLKV);
+        console.info(TAG + "isClkvSupported: ${isClkvSupported}");
+        expect(isClkvSupported).assertFalse()
+
+        console.info("====>testPreferencesStorageType001 success: part1")
+      } catch (err) {
+          console.info("====>testPreferencesStorageType001 throw_err:" + JSON.stringify(err))
+          expect().assertFail()
+      }
+      // invalid storage type
+      try {
+        let boolVar = data_preferences.isStorageTypeSupported(-1);
+        expect().assertFail();
+      } catch (err) {
+        console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+        expect("401").assertEqual(err.code.toString());
+        console.info("====>testPreferencesStorageType001 success: part2")
+      }
+      try {
+        let boolVar = data_preferences.isStorageTypeSupported(2);
+        expect().assertFail();
+      } catch (err) {
+        console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+        expect("401").assertEqual(err.code.toString());
+        console.info("====>testPreferencesStorageType001 success: part3")
+      }
+    })
+
+    /**
+      * @tc.name GetPreferencesSync
+      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_StorageType_002
+      * @tc.desc test StorageType
+      */
+    it('testPreferencesStorageType002', 0, async() => {
+      let OptionArray: data_preferences.Options[] = [
+        { name: "default_storage_002_1" },
+        { name: "default_storage_002_2", dataGroupId: null },
+        { name: "default_storage_002_3", storageType: null },
+        { name: "default_storage_002_4", storageType: 0 },
+        { name: "default_storage_002_5", storageType: data_preferences.StorageType.XML }
+      ]
+      let spArray:data_preferences.Preferences[] = []
+      for (let i = 0; i < OptionArray.length; i++) {
+        try {
+          spArray[i] = data_preferences.getPreferencesSync(context, OptionArray[i]);
+          expect(spArray[i] != null).assertTrue();
+          spArray[i].putSync("key", "value");
+          await spArray[i].flush();
+          data_preferences.removePreferencesFromCacheSync(context, OptionArray[i]);
+        } catch (err) {
+          console.error(TAG + "try put and flush catch err =" + err + ", code =" + err.code +
+              ", message =" + err.message);
+          expect().assertFail();
+        }
+      }
+      for (let i = 0; i < OptionArray.length; i++) {
+        if (!isFileExists(context.preferencesDir + '/' + OptionArray[i].name)) {
+          console.error(TAG + 'check file failed: ' + context.preferencesDir + '/' +
+              OptionArray[i].name);
+          expect().assertFail();
+        }
+      }
+    })
+
+      /**
+        * @tc.name GetPreferencesSync
+        * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_StorageType_004
+        * @tc.desc test StorageType
+        */
+      it('testPreferencesStorageType004', 0, async () => {
+        // not white list
+        // when xml exists, open again, it should be ok and be xml
+        // firstly create xml
+        let sp = await data_preferences.getPreferences(context,
+            {name: "storage_004_1", storageType: null});
+        expect(sp != null).assertTrue();
+        sp.putSync("key", "value");
+        await sp.flush();
+        data_preferences.removePreferencesFromCacheSync(context,
+            {name: "storage_004_1", storageType: null});
+        expect(isFileExists(context.preferencesDir + '/' + "storage_004_1")).assertTrue();
+
+        // open again
+        try {
+          sp = await data_preferences.getPreferences(context,
+              {name: "storage_004_1", storageType: null});
+          expect(sp != null).assertTrue();
+          data_preferences.removePreferencesFromCacheSync(context,
+              {name: "storage_004_1", storageType: null});
+        } catch (err) {
+          console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+          expect().assertFail();
+        }
+      })
+
+      /**
+        * @tc.name GetPreferencesSync
+        * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_StorageType_005
+        * @tc.desc test StorageType
+        */
+      it('testPreferencesStorageType005', 0, () => {
+        // open with xml type but clkv exists
+        // it should return not supported
+        // firstly create clkv
+        let isEnhance = data_preferences.isStorageTypeSupported(data_preferences.StorageType.CLKV);
+        if (isEnhance) {
+          const Options : data_preferences.Options = {
+            name: "storage_005",
+            storageType: data_preferences.StorageType.CLKV
+          };
+          let sp = data_preferences.getPreferencesSync(context, Options);
+          expect(sp != null).assertTrue();
+          data_preferences.removePreferencesFromCacheSync(context, Options);
+          expect(isFileExists(context.preferencesDir + '/' + "storage_005.db")).assertTrue();
+          const Options2 : data_preferences.Options = {
+            name: "storage_005",
+            storageType: data_preferences.StorageType.XML
+          };
+
+          // secondly, open with xml type
+          try {
+            sp = data_preferences.getPreferencesSync(context, Options2);
+            expect(sp == null).assertTrue();
+          } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            console.info("====>testPreferencesStorageType005 success")
+          }
+        }
+      })
+      /**
+        * @tc.name GetPreferencesSync
+        * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_StorageType_006
+        * @tc.desc test StorageType
+        */
+      it('testPreferencesStorageType006', 0, async () => {
+        // open with clkv type but xml exists
+        // it should return not supported
+        // firstly create xml
+        const Options : data_preferences.Options = {
+          name: "storage_006"
+        }
+        let sp = await data_preferences.getPreferences(context, Options);
+        expect(sp != null).assertTrue();
+        sp.putSync("key", "value");
+        await sp.flush();
+        data_preferences.removePreferencesFromCacheSync(context, Options);
+        expect(isFileExists(context.preferencesDir + '/' + Options.name)).assertTrue();
+
+        // open with clkv
+        const Options2 : data_preferences.Options = {
+          name: "storage_006",
+          storageType: data_preferences.StorageType.CLKV
+        }
+        try {
+          sp = data_preferences.getPreferencesSync(context, Options2);
+          expect(sp == null).assertTrue();
+        } catch (err) {
+          console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+          console.info("====>testPreferencesStorageType006 success")
+        }
+      })
+      /**
+        * @tc.name GetPreferencesSync
+        * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_StorageType_007
+        * @tc.desc test StorageType
+        */
+      it('testPreferencesStorageType007', 0, () => {
+        // open with clkv type and open again
+        // firstly create clkv
+        let isEnhance = data_preferences.isStorageTypeSupported(data_preferences.StorageType.CLKV);
+        if (isEnhance) {
+          try {
+            const Options : data_preferences.Options = {
+              name: "storage_007",
+              storageType: data_preferences.StorageType.CLKV
+            };
+            let sp = data_preferences.getPreferencesSync(context, Options);
+            expect(sp != null).assertTrue();
+            data_preferences.removePreferencesFromCacheSync(context, Options);
+
+            sp = data_preferences.getPreferencesSync(context, Options);
+            expect(sp != null).assertTrue();
+            data_preferences.removePreferencesFromCacheSync(context, Options);
+          } catch (err) {
+            console.log("try catch err =" + err + ", code =" + err.code +", message =" + err.message);
+            expect().assertFail();
+          }
+        }
+      })
 }

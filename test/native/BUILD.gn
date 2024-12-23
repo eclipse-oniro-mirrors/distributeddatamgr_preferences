@@ -21,6 +21,7 @@ config("module_private_config") {
 
   include_dirs = [
     "${preferences_native_path}/include/",
+    "${preferences_native_path}/platform/include/",
     "${preferences_innerapi_path}/include",
     "${preferences_base_path}/frameworks/common/include",
   ]
@@ -39,6 +40,7 @@ ohos_unittest("NativePreferencesTest") {
     "unittest/base64_helper_test.cpp",
     "unittest/preferences_file_test.cpp",
     "unittest/preferences_helper_test.cpp",
+    "unittest/preferences_storage_type_test.cpp",
     "unittest/preferences_test.cpp",
     "unittest/preferences_xml_utils_test.cpp",
   ]

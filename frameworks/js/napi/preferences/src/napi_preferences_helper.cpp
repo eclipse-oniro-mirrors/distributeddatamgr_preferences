@@ -29,6 +29,7 @@ namespace OHOS {
 namespace PreferencesJsKit {
 constexpr const char* DATA_GROUP_ID = "dataGroupId";
 constexpr const char* NAME = "name";
+constexpr const char* STORAGE_TYPE = "storageType";
 
 struct HelperAysncContext : public BaseContext {
     std::string path;
@@ -36,6 +37,8 @@ struct HelperAysncContext : public BaseContext {
     std::string bundleName;
     std::string dataGroupId;
     std::shared_ptr<NativePreferences::Preferences> proxy;
+    StorageType storageType = StorageType::XML;
+    bool isStorageTypeSupported = false;
 
     HelperAysncContext()
     {
@@ -43,26 +46,59 @@ struct HelperAysncContext : public BaseContext {
     virtual ~HelperAysncContext(){};
 };
 
+int ParseOptionalParameters(const napi_env env, napi_value *argv, std::shared_ptr<HelperAysncContext> context)
+{
+    napi_value temp = nullptr;
+    bool hasGroupId = false;
+    PRE_CHECK_RETURN_ERR_SET(napi_has_named_property(env, argv[1], DATA_GROUP_ID, &hasGroupId) == napi_ok,
+        std::make_shared<ParamTypeError>("napi call failed when check dataGroupId."));
+    if (hasGroupId) {
+        PRE_CHECK_RETURN_ERR_SET(napi_get_named_property(env, argv[1], DATA_GROUP_ID, &temp) == napi_ok,
+            std::make_shared<ParamTypeError>("napi call failed when get dataGroupId."));
+        napi_valuetype type = napi_undefined;
+        napi_status status = napi_typeof(env, temp, &type);
+        if (status == napi_ok && (type != napi_null && type != napi_undefined)) {
+            PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
+                std::make_shared<ParamTypeError>("The dataGroupId must be string."));
+        }
+        PRE_CHECK_RETURN_ERR_SET(status == napi_ok,
+            std::make_shared<InnerError>("parse group id: type of api failed"));
+    }
+    bool hasStorageType = false;
+    PRE_CHECK_RETURN_ERR_SET(napi_has_named_property(env, argv[1], STORAGE_TYPE, &hasStorageType) == napi_ok,
+        std::make_shared<ParamTypeError>("napi call failed when check storageType"));
+    if (hasStorageType) {
+        temp = nullptr;
+        PRE_CHECK_RETURN_ERR_SET(napi_get_named_property(env, argv[1], STORAGE_TYPE, &temp) == napi_ok,
+            std::make_shared<ParamTypeError>("napi call failed when get storageType."));
+        napi_valuetype type = napi_undefined;
+        napi_status status = napi_typeof(env, temp, &type);
+        if (status == napi_ok && (type != napi_null && type != napi_undefined)) {
+            int32_t intVal = 0;
+            PRE_CHECK_RETURN_ERR_SET(napi_get_value_int32(env, temp, &intVal) == napi_ok,
+                std::make_shared<ParamTypeError>("The storageType must be StorageType which is enum."));
+            bool isTypeValid = (intVal == static_cast<int32_t>(StorageType::XML) ||
+                intVal == static_cast<int32_t>(StorageType::CLKV));
+            PRE_CHECK_RETURN_ERR_SET(isTypeValid, std::make_shared<ParamTypeError>("Storage type value invalid."));
+            context->storageType = (intVal == static_cast<int32_t>(StorageType::XML)) ?
+                StorageType::XML : StorageType::CLKV;
+        }
+        PRE_CHECK_RETURN_ERR_SET(status == napi_ok,
+            std::make_shared<InnerError>("parse storage type: type of api failed"));
+    }
+    return OK;
+}
+
 int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<HelperAysncContext> context)
 {
     if (JSUtils::Convert2NativeValue(env, argv[1], context->name) != napi_ok) {
         napi_value temp = nullptr;
-        napi_get_named_property(env, argv[1], NAME, &temp);
+        PRE_CHECK_RETURN_ERR_SET(napi_get_named_property(env, argv[1], NAME, &temp) == napi_ok,
+            std::make_shared<ParamTypeError>("napi call failed when get name."));
         PRE_CHECK_RETURN_ERR_SET(temp && JSUtils::Convert2NativeValue(env, temp, context->name) == napi_ok,
             std::make_shared<ParamTypeError>("The name must be string."));
-
-        bool hasGroupId = false;
-        napi_has_named_property(env, argv[1], DATA_GROUP_ID, &hasGroupId);
-        if (hasGroupId) {
-            temp = nullptr;
-            napi_get_named_property(env, argv[1], DATA_GROUP_ID, &temp);
-            napi_valuetype type = napi_undefined;
-            napi_status status = napi_typeof(env, temp, &type);
-            if (status == napi_ok && (type != napi_null && type != napi_undefined)) {
-                PRE_CHECK_RETURN_ERR_SET(JSUtils::Convert2NativeValue(env, temp, context->dataGroupId) == napi_ok,
-                    std::make_shared<ParamTypeError>("The dataGroupId must be string."));
-            }
-        }
+        PRE_CHECK_RETURN_ERR_SET(ParseOptionalParameters(env, argv, context) == OK,
+            std::make_shared<ParamTypeError>("parse optional param failed"));
     }
     JSAbility::ContextInfo contextInfo;
     std::shared_ptr<JSError> err = JSAbility::GetContextInfo(env, argv[0], context->dataGroupId, contextInfo);
@@ -82,7 +118,8 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         int errCode = E_OK;
-        Options options(context->path, context->bundleName, context->dataGroupId);
+        Options options(context->path, context->bundleName, context->dataGroupId,
+            context->storageType == StorageType::CLKV);
         context->proxy = PreferencesHelper::GetPreferences(options, errCode);
         return errCode;
     };
@@ -139,6 +176,62 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     return AsyncCall::Call(env, context, "RemovePreferencesFromCache");
 }
 
+napi_value IsStorageTypeSupported(napi_env env, napi_callback_info info)
+{
+    auto context = std::make_shared<HelperAysncContext>();
+    auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
+        // check param number
+        PRE_NAPI_ASSERT_RETURN_VOID(env, argc == 1, std::make_shared<ParamNumError>("must have 1 param"));
+        // check param data type and value
+        int32_t intVal = 0;
+        PRE_NAPI_ASSERT_RETURN_VOID(env, napi_get_value_int32(env, argv[0], &intVal) == napi_ok,
+            std::make_shared<ParamTypeError>("The storageType must be StorageType which is enum."));
+        bool isTypeValid = (intVal == static_cast<int32_t>(StorageType::XML) ||
+            intVal == static_cast<int32_t>(StorageType::CLKV));
+        PRE_NAPI_ASSERT_RETURN_VOID(env, isTypeValid, std::make_shared<ParamTypeError>("Storage type value invalid."));
+        context->storageType = (intVal == static_cast<int32_t>(StorageType::XML)) ?
+                StorageType::XML : StorageType::CLKV;
+    };
+
+    auto exec = [context]() -> int {
+        context->isStorageTypeSupported = PreferencesHelper::IsStorageTypeSupported(context->storageType);
+        return OK;
+    };
+
+    auto output = [context](napi_env env, napi_value &result) {
+        napi_status status = napi_get_boolean(env, context->isStorageTypeSupported, &result);
+        PRE_NAPI_ASSERT_RETURN_VOID(env, status == napi_ok,
+            std::make_shared<InnerError>("Failed to get boolean when checking storage type"));
+        LOG_DEBUG("isStorageTypeSupported end.");
+    };
+    context->SetAction(env, info, input, exec, output);
+
+    PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
+    return AsyncCall::Call(env, context, "IsStorageTypeSupported");
+}
+
+static napi_status SetNamedProperty(napi_env env, napi_value& obj, const std::string& name, int32_t value)
+{
+    napi_value property = nullptr;
+    napi_status status = napi_create_int32(env, value, &property);
+    PRE_NAPI_ASSERT_BASE(env, status == napi_ok, std::make_shared<InnerError>("napi_create_int32 failed!"), status);
+    
+    status = napi_set_named_property(env, obj, name.c_str(), property);
+    PRE_NAPI_ASSERT_BASE(env, status == napi_ok, std::make_shared<InnerError>("napi_set_named_property failed!"),
+        status);
+    return status;
+}
+
+static napi_value ExportStorageType(napi_env env)
+{
+    napi_value storageType = nullptr;
+    napi_create_object(env, &storageType);
+    SetNamedProperty(env, storageType, "XML", static_cast<int32_t>(StorageType::XML));
+    SetNamedProperty(env, storageType, "CLKV", static_cast<int32_t>(StorageType::CLKV));
+    napi_object_freeze(env, storageType);
+    return storageType;
+}
+
 napi_value InitPreferencesHelper(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
@@ -150,6 +243,8 @@ napi_value InitPreferencesHelper(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION_WITH_DATA("removePreferencesFromCacheSync", RemovePreferencesFromCache, SYNC),
         DECLARE_NAPI_PROPERTY("MAX_KEY_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_KEY_LENGTH)),
         DECLARE_NAPI_PROPERTY("MAX_VALUE_LENGTH", JSUtils::Convert2JSValue(env, Preferences::MAX_VALUE_LENGTH)),
+        DECLARE_NAPI_PROPERTY("StorageType", ExportStorageType(env)),
+        DECLARE_NAPI_FUNCTION_WITH_DATA("isStorageTypeSupported", IsStorageTypeSupported, SYNC),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(properties) / sizeof(*properties), properties));
     return exports;

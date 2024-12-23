@@ -383,19 +383,20 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
     GRD_KVItemT innerVal = { NULL, 0 };
 
     int retryTimes = CREATE_COLLECTION_RETRY_TIMES;
-    int ret = E_OK;
+    int ret = GRD_OK;
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvGetApi(db_, TABLENAME, &innerKey, &innerVal);
         if (ret == GRD_UNDEFINED_TABLE) {
             LOG_INFO("CreateCollection called when Get, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
-            if (ret == E_OK) {
+            if (ret == GRD_OK) {
                 break;
-            } else {
-                LOG_ERROR("rd get failed:%{public}d", ret);
-                return TransferGrdErrno(ret);
             }
+            if (ret != GRD_NO_DATA) {
+                LOG_ERROR("rd get failed:%{public}d", ret);
+            }
+            return TransferGrdErrno(ret);
         }
         retryTimes--;
     } while (retryTimes > 0);
