@@ -177,7 +177,7 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         if (!loadResult) {
             LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
         } else {
-            loadResult_.store(true);
+            pref->loadResult_.store(true);
         }
         pref->loaded_.store(true);
         pref->cond_.notify_all();

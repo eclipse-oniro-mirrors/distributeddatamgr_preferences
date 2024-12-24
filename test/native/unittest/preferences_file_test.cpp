@@ -21,6 +21,7 @@
 #include "log_print.h"
 #include "preferences.h"
 #include "preferences_errno.h"
+#include "preferences_file_operation.h"
 #include "preferences_helper.h"
 #include "preferences_xml_utils.h"
 
