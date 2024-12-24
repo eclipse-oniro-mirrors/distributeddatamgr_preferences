@@ -350,4 +350,124 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
     EXPECT_EQ(ret, E_OK);
     rmdir(path.c_str());
 }
+
+/**
+ * @tc.name: NativePreferencesFileTest_007
+ * @tc.desc: normal testcase of fallback logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_007, TestSize.Level1)
+{
+    std::string file = "/data/test/test";
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    pref->PutInt("intKey", 7);
+
+    std::vector<Element> settings;
+    Element elem;
+    elem.key_ = "intKey";
+    elem.tag_ = std::string("int");
+    elem.value_ = std::to_string(70);
+    Element elem1;
+    elem1.key_ = "intKey1";
+    elem1.tag_ = std::string("int");
+    elem1.value_ = std::to_string(70);
+    settings.push_back(elem);
+    settings.push_back(elem1);
+    PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
+
+    ret = pref->GetInt("intKey", 0);
+    EXPECT_EQ(ret, 7);
+    ret = pref->GetInt("intKey1", 0);
+    EXPECT_EQ(ret, 70);
+
+    pref = nullptr;
+    ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+ * @tc.name: NativePreferencesFileTest_008
+ * @tc.desc: normal testcase of fallback logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_008, TestSize.Level1)
+{
+    std::string file = "/data/test/test";
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    EXPECT_EQ(false, pref->HasKey("intKey"));
+    EXPECT_EQ(false, pref->HasKey("intKey1"));
+    pref->PutInt("intKey", 8);
+
+    std::vector<Element> settings;
+    Element elem;
+    elem.key_ = "intKey";
+    elem.tag_ = std::string("int");
+    elem.value_ = std::to_string(80);
+    Element elem1;
+    elem1.key_ = "intKey1";
+    elem1.tag_ = std::string("int");
+    elem1.value_ = std::to_string(80);
+    settings.push_back(elem);
+    settings.push_back(elem1);
+    PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
+
+    pref->FlushSync();
+
+    std::vector<Element> settingsRes = {};
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", "", settingsRes);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(settingsRes.empty(), false);
+    EXPECT_EQ(elem.key_, settingsRes[0].key_);
+    EXPECT_EQ(elem.tag_, settingsRes[0].tag_);
+    EXPECT_EQ(std::to_string(8), settingsRes[0].value_);
+
+    EXPECT_EQ(elem1.key_, settingsRes[1].key_);
+    EXPECT_EQ(elem1.tag_, settingsRes[1].tag_);
+    EXPECT_EQ(elem1.value_, settingsRes[1].value_);
+
+    pref = nullptr;
+    ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+ * @tc.name: NativePreferencesFileTest_009
+ * @tc.desc: normal testcase of fallback logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_009, TestSize.Level1)
+{
+    std::string file = "/data/test/test";
+    int ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    pref->PutInt("intKey", 9);
+
+    pref->FlushSync();
+
+    std::vector<Element> settingsRes = {};
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", "", settingsRes);
+    EXPECT_EQ(res, true);
+    EXPECT_EQ(settingsRes.empty(), false);
+    EXPECT_EQ("intKey", settingsRes[0].key_);
+    EXPECT_EQ(std::string("int"), settingsRes[0].tag_);
+    EXPECT_EQ(std::to_string(9), settingsRes[0].value_);
+
+    pref = nullptr;
+    ret = PreferencesHelper::DeletePreferences(file);
+    EXPECT_EQ(ret, E_OK);
+}
 }

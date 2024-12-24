@@ -206,8 +206,8 @@ void PreferencesImpl::ReloadFromDisk(std::shared_ptr<PreferencesImpl> pref)
 void PreferencesImpl::AwaitLoadFile()
 {
     if (loaded_.load()) {
-        if ((isNeverUnlock_.load() && Access(options_.filePath) == 0) ||
-            (!isNeverUnlock_.load() && !loadResult_.load())) {
+        if ((isNeverUnlock_.load() || (!isNeverUnlock_.load() && !loadResult_.load())) &&
+            Access(options_.filePath) == 0) {
             PreferencesImpl::ReloadFromDisk(shared_from_this());
         }
         return;
@@ -536,6 +536,9 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
     if (pref->isNeverUnlock_.load()) {
         pref->isNeverUnlock_.store(false);
     }
+    if (!pref->loadResult_.load()) {
+        pref->loadResult_.store(true);
+    }
     pref->NotifyPreferencesObserver(keysModified, writeToDiskMap);
     return E_OK;
 }
@@ -555,8 +558,8 @@ void PreferencesImpl::Flush()
         }
         uint64_t value = 0;
         if (realThis->loaded_.load() &&
-            ((realThis->isNeverUnlock_.load() && Access(realThis->options_.filePath) == 0) ||
-            (!realThis->isNeverUnlock_.load() && !realThis->loadResult_.load()))) {
+            ((realThis->isNeverUnlock_.load() || (!realThis->isNeverUnlock_.load() && !realThis->loadResult_.load())) &&
+            Access(realThis->options_.filePath) == 0)) {
             PreferencesImpl::ReloadFromDisk(realThis);
             if (!realThis->loadResult_.load()) {
                 return;
@@ -578,13 +581,12 @@ int PreferencesImpl::FlushSync()
         if (queue_ == nullptr) {
             return E_ERROR;
         }
-        if (loaded_.load()) {
-            if ((isNeverUnlock_.load() && Access(options_.filePath) == 0) ||
-                (!isNeverUnlock_.load() && !loadResult_.load())) {
-                PreferencesImpl::ReloadFromDisk(shared_from_this());
-                if (!loadResult_.load()) {
-                    return E_OK;
-                }
+        if (loaded_.load() &&
+            ((isNeverUnlock_.load() || (!isNeverUnlock_.load() && !loadResult_.load())) &&
+            Access(options_.filePath) == 0)) {
+            PreferencesImpl::ReloadFromDisk(shared_from_this());
+            if (!loadResult_.load()) {
+                return E_OK;
             }
         }
         uint64_t value = 0;
