@@ -258,7 +258,8 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level3)
  */
 HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
 {
-    std::string file = "/data/test/test";
+    std::string path = "/data/test/file_test005";
+    std::string file = path + "/test";
     int ret = PreferencesHelper::DeletePreferences(file);
     EXPECT_EQ(ret, E_OK);
 
@@ -271,6 +272,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
     EXPECT_EQ(ret, 0);
     pref->PutInt("intKey", 2);
 
+    OHOS::NativePreferences::Mkdir(path);
     std::vector<Element> settings;
     Element elem;
     elem.key_ = "intKey";
@@ -292,6 +294,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
     pref = nullptr;
     ret = PreferencesHelper::DeletePreferences(file);
     EXPECT_EQ(ret, E_OK);
+    rmdir(path.c_str());
 }
 
 /**
@@ -301,7 +304,8 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
  */
 HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
 {
-    std::string file = "/data/test/test";
+    std::string path = "/data/test/file_test006";
+    std::string file = path + "/test";
     int ret = PreferencesHelper::DeletePreferences(file);
     EXPECT_EQ(ret, E_OK);
 
@@ -312,6 +316,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
     EXPECT_EQ(false, pref->HasKey("intKey1"));
     pref->PutInt("intKey", 2);
 
+    OHOS::NativePreferences::Mkdir(path);
     std::vector<Element> settings;
     Element elem;
     elem.key_ = "intKey";
@@ -342,5 +347,6 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
     pref = nullptr;
     ret = PreferencesHelper::DeletePreferences(file);
     EXPECT_EQ(ret, E_OK);
+    rmdir(path.c_str());
 }
 }
