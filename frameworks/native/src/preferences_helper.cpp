@@ -159,11 +159,6 @@ int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhan
         // log inside
         return E_NOT_SUPPORTED;
     }
-    PreferenceDbAdapter::ApiInit();
-    if (!PreferenceDbAdapter::IsEnhandceDbEnable()) {
-        LOG_ERROR("enhance api load failed.");
-        return E_ERROR;
-    }
     pref = PreferencesEnhanceImpl::GetPreferences(options);
     isEnhancePreferences = true;
     return std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();

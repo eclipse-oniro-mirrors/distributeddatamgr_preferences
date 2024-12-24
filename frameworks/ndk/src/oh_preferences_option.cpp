@@ -25,6 +25,7 @@ using namespace OHOS::PreferencesNdk;
 
 int OH_PreferencesOption::SetFileName(const std::string &str)
 {
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     if (str.empty()) {
         LOG_ERROR("Set file path failed, str is empty");
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
@@ -35,36 +36,43 @@ int OH_PreferencesOption::SetFileName(const std::string &str)
 
 void OH_PreferencesOption::SetBundleName(const std::string &str)
 {
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     bundleName = str;
 }
 
 void OH_PreferencesOption::SetDataGroupId(const std::string &str)
 {
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     dataGroupId = str;
 }
 
 void OH_PreferencesOption::SetStorageType(const Preferences_StorageType &type)
 {
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
     storageType = type;
 }
 
 Preferences_StorageType OH_PreferencesOption::GetStorageType()
 {
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
     return storageType;
 }
 
 std::string OH_PreferencesOption::GetFileName()
 {
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
     return fileName;
 }
 
 std::string OH_PreferencesOption::GetBundleName()
 {
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
     return bundleName;
 }
 
 std::string OH_PreferencesOption::GetDataGroupId()
 {
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
     return dataGroupId;
 }
 

@@ -48,6 +48,11 @@ PreferencesEnhanceImpl::~PreferencesEnhanceImpl()
 int PreferencesEnhanceImpl::Init()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    PreferenceDbAdapter::ApiInit();
+    if (!PreferenceDbAdapter::IsEnhandceDbEnable()) {
+        LOG_ERROR("enhance api load failed.");
+        return E_ERROR;
+    }
     db_ = std::make_shared<PreferencesDb>();
     cachedDataVersion_ = 0;
     int errCode = db_->Init(options_.filePath, options_.bundleName);

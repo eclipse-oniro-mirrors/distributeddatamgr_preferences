@@ -136,19 +136,20 @@ int OH_PreferencesValue_GetString(const OH_PreferencesValue *object, char **valu
             LOG_ERROR("malloc failed when value get string, errno: %{public}d", errno);
             return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
         }
-        *value = (char *)ptr;
-        int sysErr = memset_s(*value, (strLen + 1), 0, (strLen + 1));
+
+        int sysErr = memset_s(ptr, (strLen + 1), 0, (strLen + 1));
         if (sysErr != EOK) {
-            LOG_ERROR("memset failed when get string, errCode: %{public}d", sysErr);
+            LOG_ERROR("memset failed when value get string, errCode: %{public}d", sysErr);
         }
         if (strLen > 0) {
-            sysErr = memcpy_s(*value, strLen, str.c_str(), strLen);
+            sysErr = memcpy_s(ptr, strLen, str.c_str(), strLen);
             if (sysErr != EOK) {
                 LOG_ERROR("memcpy failed when value get string, errCode: %{public}d", sysErr);
                 free(ptr);
                 return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
             }
         }
+        *value = reinterpret_cast<char *>(ptr);
         *valueLen = strLen + 1;
         return OH_Preferences_ErrCode::PREFERENCES_OK;
     }

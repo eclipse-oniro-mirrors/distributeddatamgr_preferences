@@ -217,7 +217,6 @@ int PreferencesDb::RepairDb()
     }
     int errCode = PreferenceDbAdapter::GetApiInstance().DbRepairApi(dbPath_.c_str(), CONFIG_STR);
     if (errCode != GRD_OK) {
-        std::string errMsg = "db repair failed";
         LOG_ERROR("repair db failed, errCode: %{public}d", errCode);
     }
     return errCode;

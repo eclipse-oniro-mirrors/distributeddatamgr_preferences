@@ -90,6 +90,7 @@ struct OH_PreferencesOption {
     Preferences_StorageType storageType = Preferences_StorageType::PREFERENCES_STORAGE_CLKV;
     void SetStorageType(const Preferences_StorageType &type);
     Preferences_StorageType GetStorageType();
+    std::shared_mutex opMutex_;
 };
 
 class NDKPreferencesUtils {
