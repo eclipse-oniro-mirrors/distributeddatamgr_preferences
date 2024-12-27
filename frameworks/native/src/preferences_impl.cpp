@@ -40,7 +40,7 @@ using namespace std::chrono;
 
 constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
-constexpr int32_t THREE_SECONDS = 3000;
+constexpr int32_t LOAD_XML_LOG_TIME = 1000;
 
 template<typename T>
 std::string GetTypeName()
@@ -165,8 +165,6 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         return;
     }
     std::lock_guard<std::mutex> lock(pref->mutex_);
-    pref->loadBeginTime_ =
-        static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     if (!pref->loaded_.load()) {
         std::string::size_type pos = pref->options_.filePath.find_last_of('/');
         std::string filePath = pref->options_.filePath.substr(0, pos);
@@ -184,7 +182,7 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     }
 }
 
-void PreferencesImpl::ReloadFromDisk(std::shared_ptr<PreferencesImpl> pref)
+void PreferencesImpl::ReloadFromDisk()
 {
     if (pref->loadResult_.load()) {
         return;
@@ -192,7 +190,7 @@ void PreferencesImpl::ReloadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     std::lock_guard<std::mutex> lock(pref->mutex_);
     if (!pref->loadResult_.load()) {
         if (Access(pref->options_.filePath) == 0) {
-            bool loadResult = PreferencesImpl::RereadSettingXml(pref);
+            bool loadResult = RereadSettingXml();
             LOG_WARN("The settingXml %{public}s reload result is %{public}d",
                 ExtractFileName(pref->options_.filePath).c_str(), loadResult);
             if (loadResult) {
@@ -203,19 +201,27 @@ void PreferencesImpl::ReloadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     }
 }
 
+bool PreferencesImpl::ReloadXml()
+{
+    if (!loaded_.load()) {
+        return false;
+    }
+    if (Access(options_.filePath) == 0) {
+        bool isNeverUnlock = isNeverUnlock_.load();
+        bool isLoadSuccessful = loadResult_.load();
+        if (isNeverUnlock || (!isNeverUnlock && !isLoadSuccessful)) {
+            ReloadFromDisk();
+            return true;
+        }
+    }
+    return false;
+}
+
 void PreferencesImpl::AwaitLoadFile()
 {
     if (loaded_.load()) {
-        if ((isNeverUnlock_.load() || (!isNeverUnlock_.load() && !loadResult_.load())) &&
-            Access(options_.filePath) == 0) {
-            PreferencesImpl::ReloadFromDisk(shared_from_this());
-        }
+        ReloadXml();
         return;
-    }
-    auto nowMs = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    if (nowMs - loadBeginTime_ > THREE_SECONDS) {
-        LOG_ERROR("The settingXml %{public}s load time exceed 3s, load begin time:%{public}" PRIu64 ".",
-            ExtractFileName(options_.filePath).c_str(), loadBeginTime_);
     }
     std::unique_lock<std::mutex> lock(mutex_);
     if (!loaded_.load()) {
@@ -333,12 +339,28 @@ void ReadXmlElement(const Element &element, ConcurrentMap<std::string, Preferenc
     }
 }
 
+static int64_t GetFileSize(const std::string &path)
+{
+    int64_t fileSize = -1;
+    struct stat buffer;
+    if (stat(path.c_str(), &buffer) == 0) {
+        fileSize = static_cast<int64_t>(buffer.st_size);
+    }
+    return fileSize;
+}
+
 bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
 {
     std::vector<Element> settings;
+    auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.bundleName,
         pref->options_.dataGroupId, settings)) {
         return false;
+    }
+    auto end = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+    if (end - begin > LOAD_XML_LOG_TIME) {
+        LOG_ERROR("The settingXml %{public}s load time exceed 1s, file size:%{public}" PRId64 ".",
+            ExtractFileName(pref->options_.filePath).c_str(), GetFileSize(pref->options_.filePath));
     }
 
     ConcurrentMap<std::string, PreferencesValue> values;
@@ -349,16 +371,22 @@ bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
     return true;
 }
 
-bool PreferencesImpl::RereadSettingXml(std::shared_ptr<PreferencesImpl> pref)
+bool PreferencesImpl::RereadSettingXml()
 {
+    auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     std::vector<Element> settings;
-    if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.bundleName,
-        pref->options_.dataGroupId, settings)) {
+    if (!PreferencesXmlUtils::ReadSettingXml(options_.filePath, options_.bundleName,
+        options_.dataGroupId, settings)) {
         return false;
+    }
+    auto end = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+    if (end - begin > LOAD_XML_LOG_TIME) {
+        LOG_ERROR("The settingXml %{public}s load time exceed 1s, file size:%{public}" PRId64 ".",
+            ExtractFileName(options_.filePath).c_str(), GetFileSize(options_.filePath));
     }
 
     for (const auto &element : settings) {
-        ReadXmlElement(element, pref->valuesCache_);
+        ReadXmlElement(element, valuesCache_);
     }
 
     return true;
@@ -557,11 +585,8 @@ void PreferencesImpl::Flush()
             return;
         }
         uint64_t value = 0;
-        if (realThis->loaded_.load() &&
-            ((realThis->isNeverUnlock_.load() || (!realThis->isNeverUnlock_.load() && !realThis->loadResult_.load())) &&
-            Access(realThis->options_.filePath) == 0)) {
-            PreferencesImpl::ReloadFromDisk(realThis);
-            if (!realThis->loadResult_.load()) {
+        if (realThis->loaded_.load()) {
+            if (realThis->ReloadXml() && !realThis->loadResult_.load()) {
                 return;
             }
         }
@@ -581,11 +606,8 @@ int PreferencesImpl::FlushSync()
         if (queue_ == nullptr) {
             return E_ERROR;
         }
-        if (loaded_.load() &&
-            ((isNeverUnlock_.load() || (!isNeverUnlock_.load() && !loadResult_.load())) &&
-            Access(options_.filePath) == 0)) {
-            PreferencesImpl::ReloadFromDisk(shared_from_this());
-            if (!loadResult_.load()) {
+        if (loaded_.load()) {
+            if (ReloadXml() && !loadResult_.load()) {
                 return E_OK;
             }
         }
