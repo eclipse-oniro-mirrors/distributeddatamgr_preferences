@@ -184,18 +184,18 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
 
 void PreferencesImpl::ReloadFromDisk()
 {
-    if (pref->loadResult_.load()) {
+    if (loadResult_.load()) {
         return;
     }
-    std::lock_guard<std::mutex> lock(pref->mutex_);
-    if (!pref->loadResult_.load()) {
-        if (Access(pref->options_.filePath) == 0) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loadResult_.load()) {
+        if (Access(options_.filePath) == 0) {
             bool loadResult = RereadSettingXml();
             LOG_WARN("The settingXml %{public}s reload result is %{public}d",
-                ExtractFileName(pref->options_.filePath).c_str(), loadResult);
+                ExtractFileName(options_.filePath).c_str(), loadResult);
             if (loadResult) {
-                pref->isNeverUnlock_.store(false);
-                pref->loadResult_.store(true);
+                isNeverUnlock_.store(false);
+                loadResult_.store(true);
             }
         }
     }
@@ -373,8 +373,8 @@ bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
 
 bool PreferencesImpl::RereadSettingXml()
 {
-    auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     std::vector<Element> settings;
+    auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     if (!PreferencesXmlUtils::ReadSettingXml(options_.filePath, options_.bundleName,
         options_.dataGroupId, settings)) {
         return false;
