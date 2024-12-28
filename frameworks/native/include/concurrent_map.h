@@ -319,8 +319,8 @@ public:
         if (action == nullptr) {
             return;
         }
-        auto tmp = Clone();
         std::shared_lock<decltype(mutex_)> lock(mutex_);
+        auto tmp = entries_;
         action(tmp);
         return;
     }
