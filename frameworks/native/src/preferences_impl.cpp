@@ -171,10 +171,12 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         if (Access(filePath) != 0) {
             pref->isNeverUnlock_.store(true);
         }
-        bool loadResult = PreferencesImpl::ReadSettingXml(pref);
+        ConcurrentMap<std::string, PreferencesValue> values;
+        bool loadResult = pref->ReadSettingXml(values);
         if (!loadResult) {
             LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
         } else {
+            pref->valuesCache_ = std::move(values);
             pref->loadResult_.store(true);
         }
         pref->loaded_.store(true);
@@ -190,10 +192,12 @@ void PreferencesImpl::ReloadFromDisk()
     std::lock_guard<std::mutex> lock(mutex_);
     if (!loadResult_.load()) {
         if (Access(options_.filePath) == 0) {
-            bool loadResult = RereadSettingXml();
+            ConcurrentMap<std::string, PreferencesValue> values = valuesCache_;
+            bool loadResult = ReadSettingXml(values);
             LOG_WARN("The settingXml %{public}s reload result is %{public}d",
                 ExtractFileName(options_.filePath).c_str(), loadResult);
             if (loadResult) {
+                valuesCache_ = std::move(values);
                 isNeverUnlock_.store(false);
                 loadResult_.store(true);
             }
@@ -349,29 +353,7 @@ static int64_t GetFileSize(const std::string &path)
     return fileSize;
 }
 
-bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
-{
-    std::vector<Element> settings;
-    auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.bundleName,
-        pref->options_.dataGroupId, settings)) {
-        return false;
-    }
-    auto end = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    if (end - begin > LOAD_XML_LOG_TIME) {
-        LOG_ERROR("The settingXml %{public}s load time exceed 1s, file size:%{public}" PRId64 ".",
-            ExtractFileName(pref->options_.filePath).c_str(), GetFileSize(pref->options_.filePath));
-    }
-
-    ConcurrentMap<std::string, PreferencesValue> values;
-    for (const auto &element : settings) {
-        ReadXmlElement(element, values);
-    }
-    pref->valuesCache_ = std::move(values);
-    return true;
-}
-
-bool PreferencesImpl::RereadSettingXml()
+bool PreferencesImpl::ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap)
 {
     std::vector<Element> settings;
     auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
@@ -386,7 +368,7 @@ bool PreferencesImpl::RereadSettingXml()
     }
 
     for (const auto &element : settings) {
-        ReadXmlElement(element, valuesCache_);
+        ReadXmlElement(element, conMap);
     }
 
     return true;

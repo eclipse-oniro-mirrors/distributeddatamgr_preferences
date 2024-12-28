@@ -73,8 +73,7 @@ private:
     void AwaitLoadFile();
     bool WriteSettingXml(const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap);
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
-    static bool ReadSettingXml(std::shared_ptr<PreferencesImpl> pref);
-    bool RereadSettingXml();
+    bool ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap);
 
     std::atomic<bool> loaded_;
     std::atomic<bool> isNeverUnlock_;
