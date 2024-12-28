@@ -729,6 +729,8 @@ void NullTestCallback(void *context, const OH_PreferencesPair *pairs, uint32_t c
  */
 HWTEST_F(PreferencesNdkTest, NDKPreferencesNullInputTest_001, TestSize.Level1)
 {
+    OH_Preferences_FreeString(nullptr);
+
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
 

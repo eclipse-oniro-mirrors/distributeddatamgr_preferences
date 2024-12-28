@@ -99,6 +99,7 @@ OH_Preferences *OH_Preferences_Open(OH_PreferencesOption *option, int *errCode)
     }
     OH_PreferencesImpl *preferenceImpl = new (std::nothrow) OH_PreferencesImpl(innerPreferences);
     if (preferenceImpl == nullptr) {
+        innerPreferences = nullptr;
         LOG_ERROR("new impl object failed");
         *errCode = OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
         return nullptr;
@@ -232,19 +233,19 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
             LOG_ERROR("malloc failed when get string, errno: %{public}d", errno);
             return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
         }
-        *value = (char *)ptr;
-        int sysErr = memset_s(*value, (strLen + 1), 0, (strLen + 1));
+        int sysErr = memset_s(ptr, (strLen + 1), 0, (strLen + 1));
         if (sysErr != EOK) {
             LOG_ERROR("memset failed when get string, errCode: %{public}d", sysErr);
         }
         if (strLen > 0) {
-            sysErr = memcpy_s(*value, strLen, str.c_str(), strLen);
+            sysErr = memcpy_s(ptr, strLen, str.c_str(), strLen);
             if (sysErr != EOK) {
                 LOG_ERROR("memcpy failed when get string, errCode: %{public}d", sysErr);
                 free(ptr);
                 return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
             }
         }
+        *value = reinterpret_cast<char *>(ptr);
         *valueLen = strLen + 1;
     } else {
         LOG_ERROR("Get string failed, value's type is not string, err: %{public}d", res.first);
@@ -258,10 +259,6 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
 
 void OH_Preferences_FreeString(char *string)
 {
-    if (string == nullptr) {
-        LOG_ERROR("free string failed, string is null");
-        return;
-    }
     free(string);
 }
 

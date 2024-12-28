@@ -18,12 +18,6 @@
 #include "preferences_errno.h"
 
 namespace OHOS::PreferencesNdk {
-
-struct NdkErrCode {
-    int nativeCode;
-    int ndkCode;
-};
-
 const std::map<int, int> ERROR_CODE_MAP = {
     { OHOS::NativePreferences::E_OK, OH_Preferences_ErrCode::PREFERENCES_OK },
     { OHOS::NativePreferences::E_INVALID_ARGS, OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM },
