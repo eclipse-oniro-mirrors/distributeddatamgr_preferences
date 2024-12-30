@@ -129,8 +129,8 @@ std::string GetTypeName<BigInt>()
 PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options)
 {
     loaded_.store(false);
-    isNeverUnlock_.store(false);
-    loadResult_.store(false);
+    isNeverUnlock_ = false;
+    loadResult_= false;
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
     queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
@@ -150,9 +150,10 @@ int PreferencesImpl::Init()
 
 bool PreferencesImpl::StartLoadFromDisk()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     loaded_.store(false);
-    isNeverUnlock_.store(false);
-    loadResult_.store(false);
+    isNeverUnlock_ = false;
+    loadResult_ = false;
 
     ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
     return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
@@ -169,7 +170,7 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         std::string::size_type pos = pref->options_.filePath.find_last_of('/');
         std::string filePath = pref->options_.filePath.substr(0, pos);
         if (Access(filePath) != 0) {
-            pref->isNeverUnlock_.store(true);
+            pref->isNeverUnlock_ = true;
         }
         ConcurrentMap<std::string, PreferencesValue> values;
         bool loadResult = pref->ReadSettingXml(values);
@@ -177,54 +178,51 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
             LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
         } else {
             pref->valuesCache_ = std::move(values);
-            pref->loadResult_.store(true);
+            pref->loadResult_ = true;
+            pref->isNeverUnlock_ = false;
         }
         pref->loaded_.store(true);
         pref->cond_.notify_all();
     }
 }
 
-void PreferencesImpl::ReloadFromDisk()
+bool PreferencesImpl::ReloadFromDisk()
 {
-    if (loadResult_.load()) {
-        return;
-    }
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!loadResult_.load()) {
-        if (Access(options_.filePath) == 0) {
-            ConcurrentMap<std::string, PreferencesValue> values = valuesCache_;
-            bool loadResult = ReadSettingXml(values);
-            LOG_WARN("The settingXml %{public}s reload result is %{public}d",
-                ExtractFileName(options_.filePath).c_str(), loadResult);
-            if (loadResult) {
-                valuesCache_ = std::move(values);
-                isNeverUnlock_.store(false);
-                loadResult_.store(true);
-            }
-        }
-    }
-}
-
-bool PreferencesImpl::ReloadXml()
-{
-    if (!loaded_.load()) {
+    if (loadResult_) {
         return false;
     }
-    if (Access(options_.filePath) == 0) {
-        bool isNeverUnlock = isNeverUnlock_.load();
-        bool isLoadSuccessful = loadResult_.load();
-        if (isNeverUnlock || (!isNeverUnlock && !isLoadSuccessful)) {
-            ReloadFromDisk();
-            return true;
-        }
+
+    ConcurrentMap<std::string, PreferencesValue> values = valuesCache_;
+    bool loadResult = ReadSettingXml(values);
+    LOG_WARN("The settingXml %{public}s reload result is %{public}d",
+        ExtractFileName(options_.filePath).c_str(), loadResult);
+    if (loadResult) {
+        valuesCache_ = std::move(values);
+        isNeverUnlock_ = false;
+        loadResult_ = true;
+        return true;
     }
     return false;
+}
+
+bool PreferencesImpl::PreLoad()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_.load()) {
+        return true;
+    }
+    if (Access(options_.filePath) == 0) {
+        if (isNeverUnlock_ || (!isNeverUnlock_ && !loadResult_)) {
+            return ReloadFromDisk();
+        }
+    }
+    return true;
 }
 
 void PreferencesImpl::AwaitLoadFile()
 {
     if (loaded_.load()) {
-        ReloadXml();
+        PreLoad();
         return;
     }
     std::unique_lock<std::mutex> lock(mutex_);
@@ -543,11 +541,11 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
     if (!pref->WriteSettingXml(pref->options_, writeToDiskMap)) {
         return E_ERROR;
     }
-    if (pref->isNeverUnlock_.load()) {
-        pref->isNeverUnlock_.store(false);
+    if (pref->isNeverUnlock_) {
+        pref->isNeverUnlock_ = false;
     }
-    if (!pref->loadResult_.load()) {
-        pref->loadResult_.store(true);
+    if (!pref->loadResult_) {
+        pref->loadResult_ = true;
     }
     pref->NotifyPreferencesObserver(keysModified, writeToDiskMap);
     return E_OK;
@@ -567,10 +565,8 @@ void PreferencesImpl::Flush()
             return;
         }
         uint64_t value = 0;
-        if (realThis->loaded_.load()) {
-            if (realThis->ReloadXml() && !realThis->loadResult_.load()) {
-                return;
-            }
+        if (!realThis->PreLoad()) {
+            return;
         }
         std::lock_guard<std::mutex> lock(realThis->mutex_);
         auto has = realQueue->PopNotWait(value);
@@ -588,10 +584,8 @@ int PreferencesImpl::FlushSync()
         if (queue_ == nullptr) {
             return E_ERROR;
         }
-        if (loaded_.load()) {
-            if (ReloadXml() && !loadResult_.load()) {
-                return E_OK;
-            }
+        if (!PreLoad()) {
+            return E_OK;
         }
         uint64_t value = 0;
         std::lock_guard<std::mutex> lock(mutex_);

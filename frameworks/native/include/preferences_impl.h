@@ -65,19 +65,19 @@ private:
     void NotifyPreferencesObserver(const std::list<std::string> &keysModified,
         const std::map<std::string, PreferencesValue> &writeToDiskMap);
     bool StartLoadFromDisk();
-    bool ReloadXml();
+    bool PreLoad();
 
     /* thread function */
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
-    void ReloadFromDisk();
+    bool ReloadFromDisk();
     void AwaitLoadFile();
     bool WriteSettingXml(const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap);
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
     bool ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap);
 
     std::atomic<bool> loaded_;
-    std::atomic<bool> isNeverUnlock_;
-    std::atomic<bool> loadResult_;
+    bool isNeverUnlock_;
+    bool loadResult_;
 
     /* Current memory state (always increasing) */
     int64_t currentMemoryStateGeneration_;
