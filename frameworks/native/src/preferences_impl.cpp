@@ -211,8 +211,8 @@ bool PreferencesImpl::PreLoad()
     if (!loaded_.load()) {
         return true;
     }
-    if (Access(options_.filePath) == 0) {
-        if (isNeverUnlock_ || (!isNeverUnlock_ && !loadResult_)) {
+    if (isNeverUnlock_ || (!isNeverUnlock_ && !loadResult_)) {
+        if (Access(options_.filePath) == 0) {
             return ReloadFromDisk();
         }
     }
