@@ -35,12 +35,17 @@ private:
 };
 class PreferencesFileLock final {
 public:
-    PreferencesFileLock(const std::string &path, const std::string &dataGroupId);
+    PreferencesFileLock(const std::string &path);
     ~PreferencesFileLock();
+    void ReadLock(bool &isMultiProcessing);
+    void WriteLock(bool &isMultiProcessing);
 
 private:
+    void Lock(short lockType, bool &isMultiProcessing);
+
     int fd_{ -1 };
     std::shared_ptr<std::mutex> inProcessMutex_;
+    std::string filePath_;
 };
 } // namespace NativePreferences
 } // namespace OHOS

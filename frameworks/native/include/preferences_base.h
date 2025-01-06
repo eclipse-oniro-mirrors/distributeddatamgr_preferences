@@ -105,6 +105,8 @@ public:
 
     std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
 
+    std::string GetBundleName() const override;
+
 protected:
     Uri MakeUri(const std::string &key = "");
     struct WeakPtrCompare {

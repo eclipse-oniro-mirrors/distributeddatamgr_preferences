@@ -270,7 +270,7 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
     bundleName_ = bundleName;
     int errCode = OpenDb(false);
     if (errCode == GRD_DATA_CORRUPTED) {
-        PreferencesDfxManager::ReportDbFault(GetReportParam("db corrupted", errCode));
+        PreferencesDfxManager::Report(GetReportParam("db corrupted", errCode), EVENT_NAME_DB_CORRUPTED);
         int innerErr = TryRepairAndRebuild(errCode);
         if (innerErr != GRD_OK) {
             // log inside
@@ -278,7 +278,7 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
         }
         ReportParam param = GetReportParam("db repair success", GRD_OK);
         param.errnoCode = 0;
-        PreferencesDfxManager::ReportDbFault(param);
+        PreferencesDfxManager::Report(param, EVENT_NAME_DB_CORRUPTED);
     } else if (errCode != GRD_OK) {
         LOG_ERROR("db open failed, errCode: %{public}d", errCode);
         return TransferGrdErrno(errCode);

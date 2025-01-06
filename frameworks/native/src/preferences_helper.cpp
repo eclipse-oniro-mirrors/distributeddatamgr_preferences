@@ -29,10 +29,12 @@
 #include "preferences_dfx_adapter.h"
 #include "preferences_impl.h"
 #include "preferences_enhance_impl.h"
+
 namespace OHOS {
 namespace NativePreferences {
 std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
 std::mutex PreferencesHelper::prefsCacheMutex_;
+std::atomic<bool> PreferencesHelper::isReportFault_(false);
 static constexpr const int DB_SUFFIX_NUM = 6;
 static constexpr const char *DB_SUFFIX[DB_SUFFIX_NUM] = { ".ctrl", ".ctrl.dwr", ".redo", ".undo", ".safe", ".map" };
 
@@ -136,7 +138,7 @@ int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhan
             isEnhancePreferences = true;
             return std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
         }
-        pref =  PreferencesImpl::GetPreferences(options);
+        pref = PreferencesImpl::GetPreferences(options);
         isEnhancePreferences = false;
         return std::static_pointer_cast<PreferencesImpl>(pref)->Init();
     }
@@ -146,7 +148,7 @@ int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhan
             LOG_ERROR("CLKV exists, failed to get preferences by XML.");
             return E_NOT_SUPPORTED;
         }
-        pref =  PreferencesImpl::GetPreferences(options);
+        pref = PreferencesImpl::GetPreferences(options);
         isEnhancePreferences = false;
         return std::static_pointer_cast<PreferencesImpl>(pref)->Init();
     }
@@ -184,6 +186,16 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     }
 
     const_cast<Options &>(options).filePath = realPath;
+    std::string::size_type pos = realPath.find_last_of('/');
+    std::string filePath = realPath.substr(0, pos);
+    if (Access(filePath.c_str()) != 0) {
+        LOG_ERROR("The path is invalid, prefName is %{public}s.", ExtractFileName(filePath).c_str());
+        if (!PreferencesHelper::isReportFault_.exchange(true)) {
+            ReportParam param = { options.bundleName, NORMAL_DB, ExtractFileName(options.filePath),
+                E_INVALID_FILE_PATH, 2, "The path is invalid." };
+            PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
+        }
+    }
     bool isEnhancePreferences = false;
     std::shared_ptr<Preferences> pref = nullptr;
     errCode = GetPreferencesInner(options, isEnhancePreferences, pref);
@@ -202,7 +214,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         return errCode;
     }
 
-    std::string dataGroupId = "";
+    std::string bundleName = "";
     {
         std::lock_guard<std::mutex> lock(prefsCacheMutex_);
         std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
@@ -210,7 +222,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
             auto pref = it->second.first;
             if (pref != nullptr) {
                 LOG_INFO("Begin to Delete Preferences: %{public}s", ExtractFileName(path).c_str());
-                dataGroupId = pref->GetGroupId();
+                bundleName = pref->GetBundleName();
                 errCode = pref->CloseDb();
                 if (errCode != E_OK) {
                     LOG_ERROR("failed to close db when delete preferences.");
@@ -219,9 +231,6 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
             }
             pref = nullptr;
             prefsCache_.erase(it);
-            LOG_DEBUG("DeletePreferences: found preferences in cache, erase it.");
-        } else {
-            LOG_DEBUG("DeletePreferences: cache not found, just delete files.");
         }
     }
 
@@ -230,19 +239,24 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string brokenPath = MakeFilePath(filePath, STR_BROKEN);
     std::string lockFilePath = MakeFilePath(filePath, STR_LOCK);
 
-    PreferencesFileLock fileLock(lockFilePath, dataGroupId);
+    bool isMultiProcessing = false;
+    PreferencesFileLock fileLock(filePath);
+    fileLock.WriteLock(isMultiProcessing);
+    if (isMultiProcessing) {
+        LOG_ERROR("The file has cross-process operations, fileName is %{public}s.", ExtractFileName(filePath).c_str());
+        ReportParam param = { bundleName, NORMAL_DB, ExtractFileName(path),
+            E_OPERAT_IS_CROSS_PROESS, 0, "Cross-process operations exist during file deleting." };
+        PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
+    }
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());
+    std::remove(lockFilePath.c_str());
     if (RemoveEnhanceDbFileIfNeed(path) != E_OK) {
         return E_DELETE_FILE_FAIL;
     }
 
-    if (!dataGroupId.empty()) {
-        std::remove(lockFilePath.c_str());
-    }
-
-    if (IsFileExist(filePath) || IsFileExist(backupPath) || IsFileExist(brokenPath)) {
+    if (IsFileExist(filePath) || IsFileExist(backupPath) || IsFileExist(brokenPath) || IsFileExist(lockFilePath)) {
         return E_DELETE_FILE_FAIL;
     }
     return E_OK;

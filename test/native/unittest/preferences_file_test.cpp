@@ -83,7 +83,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level1)
     elem.tag_ = std::string("int");
     elem.value_ = std::to_string(10);
     settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(backupFile, "", "", settings);
+    PreferencesXmlUtils::WriteSettingXml(backupFile, "", settings);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -285,7 +285,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
     elem1.value_ = std::to_string(10);
     settings.push_back(elem);
     settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
+    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
 
     ret = pref->GetInt("intKey", 0);
     EXPECT_EQ(ret, 2);
@@ -329,12 +329,12 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
     elem1.value_ = std::to_string(20);
     settings.push_back(elem);
     settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
+    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
 
     pref->FlushSync();
 
     std::vector<Element> settingsRes = {};
-    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", "", settingsRes);
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", settingsRes);
     EXPECT_EQ(res, true);
     EXPECT_EQ(settingsRes.empty(), false);
     EXPECT_EQ(elem.key_, settingsRes[0].key_);
@@ -378,7 +378,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_007, TestSize.Level1)
     elem1.value_ = std::to_string(70);
     settings.push_back(elem);
     settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
+    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
 
     ret = pref->GetInt("intKey", 0);
     EXPECT_EQ(ret, 7);
@@ -419,12 +419,12 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_008, TestSize.Level1)
     elem1.value_ = std::to_string(80);
     settings.push_back(elem);
     settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", "", settings);
+    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
 
     pref->FlushSync();
 
     std::vector<Element> settingsRes = {};
-    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", "", settingsRes);
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", settingsRes);
     EXPECT_EQ(res, true);
     EXPECT_EQ(settingsRes.empty(), false);
     EXPECT_EQ(elem.key_, settingsRes[0].key_);
@@ -459,7 +459,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_009, TestSize.Level1)
     pref->FlushSync();
 
     std::vector<Element> settingsRes = {};
-    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", "", settingsRes);
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", settingsRes);
     EXPECT_EQ(res, true);
     EXPECT_EQ(settingsRes.empty(), false);
     EXPECT_EQ("intKey", settingsRes[0].key_);

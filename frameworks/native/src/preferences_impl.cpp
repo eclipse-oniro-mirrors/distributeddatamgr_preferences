@@ -42,6 +42,8 @@ constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
 constexpr int32_t LOAD_XML_LOG_TIME = 1000;
 
+ConcurrentMap<std::string, uint64_t> PreferencesImpl::reportedFaults_;
+
 template<typename T>
 std::string GetTypeName()
 {
@@ -131,8 +133,6 @@ PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(optio
     loaded_.store(false);
     isNeverUnlock_ = false;
     loadResult_= false;
-    currentMemoryStateGeneration_ = 0;
-    diskStateGeneration_ = 0;
     queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
 }
 
@@ -355,8 +355,7 @@ bool PreferencesImpl::ReadSettingXml(ConcurrentMap<std::string, PreferencesValue
 {
     std::vector<Element> settings;
     auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    if (!PreferencesXmlUtils::ReadSettingXml(options_.filePath, options_.bundleName,
-        options_.dataGroupId, settings)) {
+    if (!PreferencesXmlUtils::ReadSettingXml(options_.filePath, options_.bundleName, settings)) {
         return false;
     }
     auto end = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
@@ -460,7 +459,7 @@ bool PreferencesImpl::WriteSettingXml(
         settings.push_back(elem);
     }
 
-    return PreferencesXmlUtils::WriteSettingXml(options.filePath, options.bundleName, options.dataGroupId, settings);
+    return PreferencesXmlUtils::WriteSettingXml(options.filePath, options.bundleName, settings);
 }
 
 

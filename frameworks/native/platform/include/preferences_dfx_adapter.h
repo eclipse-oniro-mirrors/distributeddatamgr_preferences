@@ -25,21 +25,22 @@ namespace NativePreferences {
 static constexpr const char *NORMAL_DB = "XMLDB";
 static constexpr const char *ENHANCE_DB = "ENHANCEDB";
 static constexpr const char *EVENT_NAME_DB_CORRUPTED = "DATABASE_CORRUPTED";
+static constexpr const char *EVENT_NAME_PREFERENCES_FAULT = "PREFERENCES_FAULT";
 static constexpr const char *DISTRIBUTED_DATAMGR = "DISTDATAMGR";
 
 struct ReportParam {
     std::string bundleName; // bundleName
     std::string dbType;     // NORMAL_DB or ENHANCE_DB
-    std::string storeName; // filename
+    std::string storeName;  // filename
     uint32_t errCode = E_OK;
-    int32_t errnoCode = 0; // errno
+    int32_t errnoCode = 0;  // errno
     // additional info, "operation: reason", such as "read failed"
-    std::string appendix; // additional info
+    std::string appendix;   // additional info
 };
 
 class PreferencesDfxManager {
 public:
-    static void ReportDbFault(const ReportParam &reportParam);
+    static void Report(const ReportParam &reportParam, const char *eventName);
     static std::string GetModuleName();
 };
 } // namespace NativePreferences

@@ -30,6 +30,12 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+enum class ReportedFaultOffset {
+    RESTORED_FROM_BAK_OFFSET,
+    SCREEN_LOCKED_FAULT_OFFSET
+};
+
 class PreferencesImpl : public PreferencesBase, public std::enable_shared_from_this<PreferencesImpl> {
 public:
     static std::shared_ptr<PreferencesImpl> GetPreferences(const Options &options)
@@ -61,7 +67,7 @@ public:
     std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
 private:
     explicit PreferencesImpl(const Options &options);
-    
+
     void NotifyPreferencesObserver(const std::list<std::string> &keysModified,
         const std::map<std::string, PreferencesValue> &writeToDiskMap);
     bool StartLoadFromDisk();
@@ -79,16 +85,13 @@ private:
     bool isNeverUnlock_;
     bool loadResult_;
 
-    /* Current memory state (always increasing) */
-    int64_t currentMemoryStateGeneration_;
-    /* Latest memory state that was committed to disk */
-    int64_t diskStateGeneration_;
-
     std::list<std::string> modifiedKeys_;
 
     ConcurrentMap<std::string, PreferencesValue> valuesCache_;
 
     std::shared_ptr<SafeBlockQueue<uint64_t>> queue_;
+public:
+    static ConcurrentMap<std::string, uint64_t> reportedFaults_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

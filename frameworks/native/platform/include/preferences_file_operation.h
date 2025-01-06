@@ -22,6 +22,7 @@
 #include <string>
 
 #include "visibility.h"
+#include "preferences_anonymous.h"
 
 #ifndef _WIN32
 #include <dlfcn.h>
@@ -58,6 +59,11 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+constexpr int32_t PRE_OFFSET_SIZE = 1;
+constexpr int32_t AREA_MINI_SIZE = 4;
+constexpr int32_t AREA_OFFSET_SIZE = 5;
+constexpr int32_t FILE_PATH_MINI_SIZE = 6;
 
 static UNUSED_FUNCTION void *DBDlOpen()
 {
@@ -115,11 +121,23 @@ static UNUSED_FUNCTION bool Fsync(const std::string &filePath)
 
 static UNUSED_FUNCTION std::string ExtractFileName(const std::string &path)
 {
-    auto pos = path.rfind('/');
-    if (pos == std::string::npos) {
-        return path;
+    auto pre = path.find("/");
+    auto end = path.rfind("/");
+    if (pre == std::string::npos || end - pre < FILE_PATH_MINI_SIZE) {
+        return Anonymous::ToBeAnonymous(path);
     }
-    return path.substr(pos + 1);
+    std::string fileName = path.substr(end + 1); // preferences file name
+    auto filePath = path.substr(pre, end - pre);
+    auto area = filePath.find("/el");
+    if (area == std::string::npos || area + AREA_MINI_SIZE > path.size()) {
+        filePath = "";
+    } else if (area + AREA_OFFSET_SIZE < path.size()) {
+        filePath = path.substr(area, AREA_MINI_SIZE) + "/***";
+    } else {
+        filePath = path.substr(area, AREA_MINI_SIZE);
+    }
+    fileName = Anonymous::ToBeAnonymous(fileName);
+    return path.substr(0, pre + PRE_OFFSET_SIZE) + "***" + filePath + "/"+ fileName;
 }
 } // namespace NativePreferences
 } // namespace OHOS
