@@ -424,6 +424,18 @@ public:
     {
         return {E_OK, {}};
     }
+
+    /**
+     * @brief  Get Bundle Name.
+     *
+     * This function is used to Get Bundle Name.
+     *
+     * @return Returns the bundleName when it exists, otherwise returns an empty string.
+     */
+    virtual std::string GetBundleName() const
+    {
+        return "";
+    }
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

@@ -64,16 +64,34 @@ static xmlDoc *ReadFile(const std::string &fileName, int &errCode)
     return doc;
 }
 
-static void ReportXmlFileIsBroken(const std::string &fileName, const std::string &bundleName,
+static void ReportXmlFileCorrupted(const std::string &fileName, const std::string &bundleName,
     const std::string &operationMsg, int errCode)
 {
-    ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName), E_ERROR, errCode, operationMsg };
-    PreferencesDfxManager::ReportDbFault(reportParam);
+    ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
+        E_ERROR, errCode, operationMsg };
+    PreferencesDfxManager::Report(reportParam, EVENT_NAME_DB_CORRUPTED);
     ReportParam succreportParam = reportParam;
     succreportParam.errCode = E_OK;
     succreportParam.errnoCode = 0;
     succreportParam.appendix = "operation: restore success";
-    PreferencesDfxManager::ReportDbFault(succreportParam);
+    PreferencesDfxManager::Report(succreportParam, EVENT_NAME_DB_CORRUPTED);
+}
+
+static void ReportAbnormalOperation(ReportInfo &reportInfo, ReportedFaultOffset faultOffset)
+{
+    uint64_t offset = static_cast<uint32_t>(faultOffset);
+    PreferencesImpl::reportedFaults_.Compute(
+        reportInfo.fileName_, [reportInfo, offset](auto &fileName, uint64_t &report) {
+        uint64_t mask = 0x01;
+        if ((report >> offset) & mask) {
+            return true;
+        }
+        ReportParam param = { reportInfo.bundleName_, NORMAL_DB, ExtractFileName(reportInfo.fileName_),
+            reportInfo.errCode_, reportInfo.errNo_, reportInfo.operationMsg_ };
+        PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
+        report |= (mask << offset);
+        return true;
+    });
 }
 
 static bool RenameFromBackupFile(const std::string &fileName, const std::string &bundleName, bool &isReportCorrupt)
@@ -93,6 +111,12 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         std::remove(backupFileName.c_str());
+        if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
+            std::string operationMsg = "Read bak file when the screen is locked.";
+            ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
+            ReportAbnormalOperation(reportInfo, ReportedFaultOffset::SCREEN_LOCKED_FAULT_OFFSET);
+            return false;
+        }
         isReportCorrupt = true;
         return false;
     }
@@ -101,6 +125,13 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         return false;
     }
     isReportCorrupt = false;
+    struct stat fileStats;
+    if (stat(fileName.c_str(), &fileStats) == -1) {
+        LOG_ERROR("failed to stat backup file.");
+    }
+    std::string appindex = "Restored from the backup. The file size is " + std::to_string(fileStats.st_size) + ".";
+    ReportInfo reportInfo = { E_XML_RESTORED_FROM_BACKUP_FILE, 0, fileName, bundleName, appindex };
+    ReportAbnormalOperation(reportInfo, ReportedFaultOffset::RESTORED_FROM_BAK_OFFSET);
     LOG_INFO("restore XML file %{public}s successfully.", ExtractFileName(fileName).c_str());
     return true;
 }
@@ -125,11 +156,13 @@ static bool RenameToBrokenFile(const std::string &fileName)
     return RenameFile(fileName, STR_BROKEN);
 }
 
-static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId)
+static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundleName)
 {
     xmlDoc *doc = nullptr;
     bool isReport = false;
-    PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    bool isMultiProcessing = false;
+    PreferencesFileLock fileLock(fileName);
+    fileLock.ReadLock(isMultiProcessing);
     int errCode = 0;
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName, errCode);
@@ -141,6 +174,9 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
+            std::string operationMsg = "Read Xml file when the screen is locked.";
+            ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
+            ReportAbnormalOperation(reportInfo, ReportedFaultOffset::SCREEN_LOCKED_FAULT_OFFSET);
             return nullptr;
         }
         if (!RenameToBrokenFile(fileName)) {
@@ -152,24 +188,30 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     if (RenameFromBackupFile(fileName, bundleName, isReport)) {
         doc = ReadFile(fileName, errCode);
     }
-    if (isReport) {
-        const std::string operationMsg = "operation: failed to read XML format file.";
-        ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
+    if (!isMultiProcessing) {
+        if (isReport) {
+            const std::string operationMsg = "operation: failed to read XML format file.";
+            ReportXmlFileCorrupted(fileName, bundleName, operationMsg, errCode);
+        }
+    } else {
+        ReportParam param = { bundleName, NORMAL_DB, ExtractFileName(fileName),
+            E_OPERAT_IS_CROSS_PROESS, errCode, "Cross-process operations exist during file reading."
+        };
+        PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
     }
     return doc;
 }
 
 /* static */
 bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, const std::string &bundleName,
-    const std::string &dataGroupId, std::vector<Element> &settings)
+    std::vector<Element> &settings)
 {
-    LOG_RECORD_FILE_NAME("Read setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
     }
     auto doc =
-        std::shared_ptr<xmlDoc>(XmlReadFile(fileName, bundleName, dataGroupId), [](xmlDoc *doc) { xmlFreeDoc(doc); });
+        std::shared_ptr<xmlDoc>(XmlReadFile(fileName, bundleName), [](xmlDoc *doc) { xmlFreeDoc(doc); });
     if (doc == nullptr) {
         return false;
     }
@@ -193,9 +235,6 @@ bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, const std:
             break;
         }
     }
-
-    /* free the document */
-    LOG_RECORD_FILE_NAME("Read setting xml end.");
     return success;
 }
 
@@ -322,53 +361,63 @@ static std::pair<bool, int> SaveFormatFileEnc(const std::string &fileName, xmlDo
     return {xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0, errno};
 }
 
-bool XmlSaveFormatFileEnc(
-    const std::string &fileName, const std::string &bundleName, const std::string &dataGroupId, xmlDoc *doc)
+bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &bundleName, xmlDoc *doc)
 {
-    PreferencesFileLock fileLock(MakeFilePath(fileName, STR_LOCK), dataGroupId);
+    PreferencesFileLock fileLock(fileName);
+    bool isMultiProcessing = false;
+    fileLock.WriteLock(isMultiProcessing);
     LOG_INFO("save xml file:%{public}s.", ExtractFileName(fileName).c_str());
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
 
-    bool isReport = false;
     auto [ret, errCode] = SaveFormatFileEnc(fileName, doc);
     if (!ret) {
+        bool isReport = false;
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to save XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
+            std::string operationMsg = "Write Xml file when the screen is locked.";
+            ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
+            ReportAbnormalOperation(reportInfo, ReportedFaultOffset::SCREEN_LOCKED_FAULT_OFFSET);
             return false;
         }
-
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
             isReport = true;
         }
         RenameFromBackupFile(fileName, bundleName, isReport);
-        if (isReport) {
-            const std::string operationMsg = "operation: failed to save XML format file.";
-            ReportXmlFileIsBroken(fileName, bundleName, operationMsg, errCode);
+        if (!isMultiProcessing) {
+            if (isReport) {
+                const std::string operationMsg = "operation: failed to save XML format file.";
+                ReportXmlFileCorrupted(fileName, bundleName, operationMsg, errCode);
+            }
+        } else {
+            ReportParam param = { bundleName, NORMAL_DB, ExtractFileName(fileName),
+                E_OPERAT_IS_CROSS_PROESS, errCode, "Cross-process operations exist during file writing."
+            };
+            PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
         }
         return false;
     }
 
-    RemoveBackupFile(fileName);
-    PreferencesXmlUtils::LimitXmlPermission(fileName);
     // make sure the file is written to disk.
     if (!Fsync(fileName)) {
         LOG_WARN("failed to write the file to the disk.");
     }
+
+    RemoveBackupFile(fileName);
+    PreferencesXmlUtils::LimitXmlPermission(fileName);
     LOG_DEBUG("successfully saved the XML format file");
     return true;
 }
 
 /* static */
 bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std::string &bundleName,
-    const std::string &dataGroupId, const std::vector<Element> &settings)
+    const std::vector<Element> &settings)
 {
-    LOG_RECORD_FILE_NAME("Write setting xml start.");
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
@@ -406,8 +455,7 @@ bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std
     }
 
     /* 1: formatting spaces are added. */
-    bool result = XmlSaveFormatFileEnc(fileName, bundleName, dataGroupId, doc.get());
-    LOG_RECORD_FILE_NAME("Write setting xml end.");
+    bool result = XmlSaveFormatFileEnc(fileName, bundleName, doc.get());
     return result;
 }
 

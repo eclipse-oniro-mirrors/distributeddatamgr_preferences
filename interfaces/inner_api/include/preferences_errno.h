@@ -158,6 +158,21 @@ constexpr int E_ALREADY_CLOSED = (E_BASE + 21);
 * @brief The error code is used to indicate that the key is not exists.
 */
 constexpr int E_NO_DATA = (E_BASE + 22);
+
+/**
+* @brief This code is used for the XML file restored from backup file.
+*/
+constexpr int E_XML_RESTORED_FROM_BACKUP_FILE = (E_BASE + 23);
+
+/**
+* @brief This code is used for operating XML file when the screen os locked.
+*/
+constexpr int E_OPERAT_IS_LOCKED = (E_BASE + 24);
+
+/**
+* @brief This code is used for operating XML file when the screen os locked.
+*/
+constexpr int E_OPERAT_IS_CROSS_PROESS = (E_BASE + 25);
 } // namespace NativePreferences
 } // namespace OHOS
 #endif // PREFERENCES_ERRNO_H

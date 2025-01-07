@@ -68,53 +68,52 @@ std::string PreferencesDfxManager::GetModuleName()
     return moduleName;
 }
 
-void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
+void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *eventName)
 {
-    std::thread thread([reportParam]() {
-        std::string nowTime = GetCurrentTime();
-        std::string moudleName = GetModuleName();
-        if (moudleName.empty()) {
-            moudleName = reportParam.storeName;
-        }
-        std::string bundleName = reportParam.bundleName.empty() ? moudleName : reportParam.bundleName;
-        HiSysEventParam params[] = {
-            { .name = "BUNDLE_NAME",
-                .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(bundleName.c_str()) },
-                .arraySize = 0 },
-            { .name = "MODULE_NAME",
-                .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(moudleName.c_str()) },
-                .arraySize = 0 },
-            { .name = "STORE_TYPE",
-                .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(reportParam.dbType.c_str()) },
-                .arraySize = 0 },
-            { .name = "STORE_NAME",
-                .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(reportParam.storeName.c_str()) },
-                .arraySize = 0 },
-            { .name = "SECURITY_LEVEL", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
-            { .name = "PATH_AREA", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
-            { .name = "ENCRYPT_STATUS", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
-            { .name = "INTERGITY_CHECK", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
-            { .name = "ERROR_CODE", .t = HISYSEVENT_UINT32, .v = { .ui32 = reportParam.errCode }, .arraySize = 0 },
-            { .name = "ERRNO", .t = HISYSEVENT_INT32, .v = { .i32 = reportParam.errnoCode }, .arraySize = 0 },
-            { .name = "APPENDIX",
-                .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(reportParam.appendix.c_str()) },
-                .arraySize = 0 },
-            { .name = "ERROR_TIME",
-                .t = HISYSEVENT_STRING,
-                .v = { .s = const_cast<char *>(nowTime.c_str()) },
-                .arraySize = 0 },
-        };
-        size_t len = sizeof(params) / sizeof(params[0]);
-        OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, EVENT_NAME_DB_CORRUPTED, HISYSEVENT_FAULT, params, len);
-    });
-    thread.detach();
+    std::string nowTime = GetCurrentTime();
+    std::string moduleName = GetModuleName();
+    if (moduleName.empty()) {
+        moduleName = reportParam.storeName;
+    }
+    std::string bundleName = reportParam.bundleName.empty() ? moduleName : reportParam.bundleName;
+    HiSysEventParam params[] = {
+        { .name = "BUNDLE_NAME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(bundleName.c_str()) },
+            .arraySize = 0 },
+        { .name = "MODULE_NAME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(moduleName.c_str()) },
+            .arraySize = 0 },
+        { .name = "STORE_TYPE",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(reportParam.dbType.c_str()) },
+            .arraySize = 0 },
+        { .name = "STORE_NAME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(reportParam.storeName.c_str()) },
+            .arraySize = 0 },
+        { .name = "SECURITY_LEVEL", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
+        { .name = "PATH_AREA", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
+        { .name = "ENCRYPT_STATUS", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
+        { .name = "INTERGITY_CHECK", .t = HISYSEVENT_UINT32, .v = { .ui32 = 0u }, .arraySize = 0 },
+        { .name = "ERROR_CODE", .t = HISYSEVENT_UINT32, .v = { .ui32 = reportParam.errCode }, .arraySize = 0 },
+        { .name = "ERRNO", .t = HISYSEVENT_INT32, .v = { .i32 = reportParam.errnoCode }, .arraySize = 0 },
+        { .name = "APPENDIX",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(reportParam.appendix.c_str()) },
+            .arraySize = 0 },
+        { .name = "ERROR_TIME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(nowTime.c_str()) },
+            .arraySize = 0 },
+    };
+    size_t len = sizeof(params) / sizeof(params[0]);
+    OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, eventName, HISYSEVENT_FAULT, params, len);
 }
+
 #else
+
 std::string GetCurrentTime()
 {
     return "";
@@ -125,9 +124,10 @@ std::string PreferencesDfxManager::GetModuleName()
     return "";
 }
 
-void PreferencesDfxManager::ReportDbFault(const ReportParam &reportParam)
+void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *eventName)
 {
 }
+
 #endif
 } // End of namespace NativePreferences
 } // End of namespace OHOS

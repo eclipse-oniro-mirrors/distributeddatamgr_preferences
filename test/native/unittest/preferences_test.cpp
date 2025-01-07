@@ -174,6 +174,7 @@ HWTEST_F(PreferencesTest, NativePreferencesGroupIdTest_001, TestSize.Level1)
     std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(option, errCode);
     EXPECT_EQ(errCode, E_OK);
     EXPECT_EQ(preferences->GetGroupId(), "2002001");
+    EXPECT_EQ(preferences->GetBundleName(), "ohos.test.demo");
 
     preferences = nullptr;
     int ret = PreferencesHelper::DeletePreferences("/data/test/test1");

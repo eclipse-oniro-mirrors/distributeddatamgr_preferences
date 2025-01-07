@@ -30,13 +30,19 @@ public:
         if (data.size() < MIN_SIZE) {
             return (data.substr(0, HEAD_SIZE) + REPLACE_CHAIN);
         }
-        return (data.substr(0, HEAD_SIZE) + REPLACE_CHAIN + data.substr(data.size() - END_SIZE, END_SIZE));
+        if (data.size() < MEDIAN_SIZE) {
+            return (data.substr(0, HEAD_SIZE) + REPLACE_CHAIN + data.substr(data.size() - END_SIZE, END_SIZE));
+        }
+        return (data.substr(0, DATA_HEAD) + REPLACE_CHAIN + data.substr(data.size() - DATA_END, DATA_END));
     }
 
 private:
     static constexpr size_t HEAD_SIZE = 3;
     static constexpr size_t END_SIZE = 3;
+    static constexpr size_t DATA_HEAD = 4;
+    static constexpr size_t DATA_END = 4;
     static constexpr size_t MIN_SIZE = HEAD_SIZE + END_SIZE + 3;
+    static constexpr size_t MEDIAN_SIZE = DATA_HEAD + DATA_END + 3;
     static constexpr const char *REPLACE_CHAIN = "***";
     static constexpr const char *DEFAULT_ANONYMOUS = "******";
 };

@@ -230,6 +230,11 @@ std::pair<int, std::map<std::string, PreferencesValue>> PreferencesBase::GetAllD
     return std::make_pair(E_OK, map);
 }
 
+std::string PreferencesBase::GetBundleName() const
+{
+    return options_.bundleName;
+}
+
 int PreferencesBase::RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
     const std::vector<std::string> &keys)
 {

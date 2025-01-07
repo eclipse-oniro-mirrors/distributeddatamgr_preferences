@@ -351,4 +351,21 @@ describe('preferencesSyncTest', function () {
         let pre2 = await mPreferences.getSync(KEY_TEST_BIGINT, BigInt(0));
         expect(bigint === pre2).assertTrue();
     })
+
+    /**
+     * @tc.name put String sync and flushSync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0163
+     * @tc.desc put String sync interface test
+     */
+    it('testPreferenceflushSync0163', 0, async function () {
+        mPreferences.putSync(KEY_TEST_STRING_ELEMENT, 'string');
+        let per = mPreferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
+        expect('string').assertEqual(per);
+        mPreferences.flushSync();
+        data_preferences.removePreferencesFromCacheSync(context, NAME);
+        mPreferences = null;
+        mPreferences = data_preferences.getPreferencesSync(context, NAME);
+        let per2 = mPreferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
+        expect('string').assertEqual(per2);
+    })
 })
