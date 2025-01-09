@@ -112,6 +112,49 @@ void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *e
     OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, eventName, HISYSEVENT_FAULT, params, len);
 }
 
+void PreferencesDfxManager::ArkDataReport(const ArkDataReportParam &reportParam, const char *eventName)
+{
+    std::string nowTime = GetCurrentTime();
+    std::string moduleName = GetModuleName();
+    if (moduleName.empty()) {
+        moduleName = reportParam.storeName;
+    }
+    std::string bundleName = reportParam.bundleName.empty() ? moduleName : reportParam.bundleName;
+    HiSysEventParam params[] = {
+        { .name = "FAULT_TIME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(nowTime.c_str()) },
+            .arraySize = 0 },
+        { .name = "FAULT_TYPE",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(reportParam.faultType.c_str()) },
+            .arraySize = 0 },
+        { .name = "BUNDLE_NAME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(bundleName.c_str()) },
+            .arraySize = 0 },
+        { .name = "MODULE_NAME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(moduleName.c_str()) },
+            .arraySize = 0 },
+        { .name = "STORE_NAME",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(reportParam.storeName.c_str()) },
+            .arraySize = 0 },
+        { .name = "BUSINESE_TYPE",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(reportParam.dbType.c_str()) },
+            .arraySize = 0 },
+        { .name = "ERROR_CODE", .t = HISYSEVENT_INT32, .v = { .i32 = reportParam.errCode }, .arraySize = 0 },
+        { .name = "APPENDIX",
+            .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char *>(reportParam.appendix.c_str()) },
+            .arraySize = 0 },
+    };
+    size_t len = sizeof(params) / sizeof(params[0]);
+    OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, eventName, HISYSEVENT_FAULT, params, len);
+}
+
 #else
 
 std::string GetCurrentTime()
@@ -125,6 +168,10 @@ std::string PreferencesDfxManager::GetModuleName()
 }
 
 void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *eventName)
+{
+}
+
+void PreferencesDfxManager::ArkDataReport(const ReportParam &reportParam, const char *eventName)
 {
 }
 

@@ -25,6 +25,7 @@
 #include "base64_helper.h"
 #include "executor_pool.h"
 #include "log_print.h"
+#include "preferences_file_operation.h"
 #include "preferences_observer_stub.h"
 
 namespace OHOS {
@@ -174,6 +175,7 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
         int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
         if (errcode != 0) {
             LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
+
             return errcode;
         }
         multiProcessObservers_.push_back(observer);
@@ -274,6 +276,10 @@ int PreferencesBase::UnRegisterObserver(std::shared_ptr<PreferencesObserver> pre
             int errcode = dataObsMgrClient->UnregisterObserver(MakeUri(), *it);
             if (errcode != 0) {
                 LOG_ERROR("UnRegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
+                ArkDataReportParam param = { "subscribe error", bundleName, NORMAL_DB,
+                    ExtractFileName(options_.filePath), E_SUBSCRIBE_FAILED,
+                    "subscribe failed, the reason is " + std::to_string(errcode) };
+                PreferencesDfxManager::ArkDataReport(param, EVENT_NAME_ARKDATA_PREFERENCES_FAULT);
                 return errcode;
             }
             multiProcessObservers_.erase(it);

@@ -28,6 +28,7 @@
 #include <shared_mutex>
 
 #include "preferences.h"
+#include "preferences_dfx_adapter.h"
 #include "preferences_observer.h"
 #include "preferences_utils.h"
 

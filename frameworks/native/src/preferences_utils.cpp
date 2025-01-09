@@ -72,5 +72,37 @@ int CheckValue(const PreferencesValue &value)
     }
     return E_OK;
 }
+
+bool IsUtf8(const std::string &str)
+{
+    if (str.empty()) {
+        return true;
+    }
+    const unsigned char* bytes = reinterpret_cast<const unsigned char*>(str.c_str());
+    int32_t num;
+    while (*bytes != 0x00) {
+        // 判断几字节编码
+        if ((*bytes & 0x80) == 0x00) {
+            num = UTF8_BYTE_NUM_ONE; // U+0000 to U+007F
+        } else if ((*bytes & 0xE0) == 0xC0) {
+            num = UTF8_BYTE_NUM_TWO; // U+0080 to U+07FF
+        } else if ((*bytes & 0xF0) == 0xE0) {
+            num = UTF8_BYTE_NUM_THREE; // U+0800 to U+FFFF
+        } else if ((*bytes & 0xF8) == 0xF0) {
+            num = UTF8_BYTE_NUM_FOUR; // U+10000 to U+10FFFF
+        } else {
+            return false;
+        }
+        ++bytes;
+        // 除第一字节其他字节均为10开头 11110XXX 10XXXXXX 10XXXXXX 10XXXXXX
+        for (int i = 1; i < num; i++) {
+            if ((*bytes & 0xC0) != 0x80) {
+                return false;
+            }
+            ++bytes;
+        }
+    }
+    return true;
+}
 } // End of namespace NativePreferences
 } // End of namespace OHOS
