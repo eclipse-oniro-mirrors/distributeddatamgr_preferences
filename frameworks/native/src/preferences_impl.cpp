@@ -484,6 +484,7 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
         return errCode;
     }
     AwaitLoadFile();
+
     valuesCache_.Compute(key, [this, &value](auto &key, PreferencesValue &val) {
         if (val == value) {
             return true;

@@ -496,5 +496,4 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_005, TestSize.Level1)
     int ret = PreferencesHelper::DeletePreferences(fileName);
     EXPECT_EQ(ret, E_OK);
 }
-
 }
