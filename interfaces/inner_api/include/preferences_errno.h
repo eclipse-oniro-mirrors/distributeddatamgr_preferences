@@ -175,14 +175,9 @@ constexpr int E_OPERAT_IS_LOCKED = (E_BASE + 24);
 constexpr int E_OPERAT_IS_CROSS_PROESS = (E_BASE + 25);
 
 /**
-* @brief This code is value data format invalid.
-*/
-constexpr int E_DATA_FORMAT_INVALID = (E_BASE + 26);
-
-/**
 * @brief This code is subscribe failed.
 */
-constexpr int E_SUBSCRIBE_FAILED = (E_BASE + 27);
+constexpr int E_SUBSCRIBE_FAILED = (E_BASE + 26);
 } // namespace NativePreferences
 } // namespace OHOS
 #endif // PREFERENCES_ERRNO_H

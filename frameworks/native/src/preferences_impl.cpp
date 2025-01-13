@@ -473,24 +473,6 @@ bool PreferencesImpl::HasKey(const std::string &key)
     return valuesCache_.Contains(key);
 }
 
-bool PreferencesImpl::CheckValueUtf8(const PreferencesValue &value)
-{
-    if (value.IsString()) {
-        auto str = std::get<std::string>(value.value_);
-        if (!PreferencesXmlUtils::IsUtf8(str)) {
-            return false;
-        }
-    } else if (value.IsStringArray()) {
-        auto strVector = std::get<std::vector<std::string>>(value.value_);
-        for (auto str : strVector) {
-            if (!PreferencesXmlUtils::IsUtf8(str)) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
 {
     int errCode = CheckKey(key);
@@ -502,15 +484,6 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
         return errCode;
     }
     AwaitLoadFile();
-
-    if (!CheckValueUtf8(value)) {
-        LOG_ERROR("The value of key:%{public}s in the Xml:%{public}s contains non UTF-8 characters",
-            Anonymous::ToBeAnonymous(key).c_str(), ExtractFileName(options_.filePath).c_str());
-        ArkDataReportParam param = { "value data invaild", options_.bundleName, NORMAL_DB,
-            ExtractFileName(options_.filePath), E_DATA_FORMAT_INVALID,
-            "The value of key:" + Anonymous::ToBeAnonymous(key) + " contains non UTF-8 characters " };
-        PreferencesDfxManager::ArkDataReport(param);
-    }
     valuesCache_.Compute(key, [this, &value](auto &key, PreferencesValue &val) {
         if (val == value) {
             return true;

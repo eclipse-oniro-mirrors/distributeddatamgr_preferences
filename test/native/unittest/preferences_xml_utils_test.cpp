@@ -497,36 +497,4 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_005, TestSize.Level1)
     EXPECT_EQ(ret, E_OK);
 }
 
-/**
-* @tc.name: UTF8Test_001
-* @tc.desc: UTF8 string testcase of PreferencesXmlUtils
-* @tc.type: FUNC
-*/
-HWTEST_F(PreferencesXmlUtilsTest, UTF8Test_001, TestSize.Level1)
-{
-    std::string utf8String = "THIS IS A UTF-8 STRING é (e-acute).";
-    EXPECT_EQ(PreferencesXmlUtils::IsUtf8(utf8String), true);
-}
-
-/**
-* @tc.name: UTF8Test_002
-* @tc.desc: empty string testcase of PreferencesXmlUtils
-* @tc.type: FUNC
-*/
-HWTEST_F(PreferencesXmlUtilsTest, UTF8Test_002, TestSize.Level1)
-{
-    std::string utf8String = "";
-    EXPECT_EQ(PreferencesXmlUtils::IsUtf8(utf8String), true);
-}
-
-/**
-* @tc.name: UTF8Test_003
-* @tc.desc: singleByte string testcase of PreferencesXmlUtils
-* @tc.type: FUNC
-*/
-HWTEST_F(PreferencesXmlUtilsTest, UTF8Test_003, TestSize.Level1)
-{
-    std::string utf8String = "\x80";
-    EXPECT_EQ(PreferencesXmlUtils::IsUtf8(utf8String), false);
-}
 }

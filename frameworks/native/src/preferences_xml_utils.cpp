@@ -21,7 +21,6 @@
 #include <cstring>
 
 #include "libxml/parser.h"
-#include "libxml/xmlstring.h"
 #include "log_print.h"
 #include "preferences_dfx_adapter.h"
 #include "preferences_file_lock.h"
@@ -78,7 +77,7 @@ static void ReportXmlFileCorrupted(const std::string &fileName, const std::strin
     PreferencesDfxManager::Report(succreportParam, EVENT_NAME_DB_CORRUPTED);
 }
 
-static void ReportAbnormalOperation(ReportInfo &reportInfo, ReportedFaultOffset faultOffset)
+static void ReportAbnormalOperation(ReportInfo &reportInfo, ReportedFaultBitMap faultOffset)
 {
     uint64_t offset = static_cast<uint32_t>(faultOffset);
     PreferencesImpl::reportedFaults_.Compute(
@@ -115,7 +114,7 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             std::string operationMsg = "Read bak file when the screen is locked.";
             ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
-            ReportAbnormalOperation(reportInfo, ReportedFaultOffset::SCREEN_LOCKED_FAULT_OFFSET);
+            ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
             return false;
         }
         isReportCorrupt = true;
@@ -132,7 +131,7 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
     }
     std::string appindex = "Restored from the backup. The file size is " + std::to_string(fileStats.st_size) + ".";
     ReportInfo reportInfo = { E_XML_RESTORED_FROM_BACKUP_FILE, 0, fileName, bundleName, appindex };
-    ReportAbnormalOperation(reportInfo, ReportedFaultOffset::RESTORED_FROM_BAK_OFFSET);
+    ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::RESTORE_FROM_BAK);
     LOG_INFO("restore XML file %{public}s successfully.", ExtractFileName(fileName).c_str());
     return true;
 }
@@ -167,6 +166,8 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     int errCode = 0;
     std::string errMessage;
     if (IsFileExist(fileName)) {
+        LOG_INFO("read xml file:%{public}s, muti processing status is %{public}d.", ExtractFileName(fileName).c_str(),
+            isMultiProcessing);
         doc = ReadFile(fileName, errCode);
         if (doc != nullptr) {
             return doc;
@@ -178,7 +179,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             std::string operationMsg = "Read Xml file when the screen is locked.";
             ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
-            ReportAbnormalOperation(reportInfo, ReportedFaultOffset::SCREEN_LOCKED_FAULT_OFFSET);
+            ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
             return nullptr;
         }
         if (!RenameToBrokenFile(fileName)) {
@@ -188,7 +189,11 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     }
 
     if (RenameFromBackupFile(fileName, bundleName, isReport)) {
-        doc = ReadFile(fileName, errCode);
+        int bakErrorCode = 0;
+        doc = ReadFile(fileName, bakErrorCode);
+        xmlErrorPtr xmlErr = xmlGetLastError();
+        errMessage.append(" bak: error code is " + std::to_string(bakErrorCode) + ", errMessage is " +
+            (xmlErr != nullptr) ? xmlErr->message : "null");
     }
     if (!isMultiProcessing) {
         if (isReport) {
@@ -368,7 +373,8 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &bundle
     PreferencesFileLock fileLock(fileName);
     bool isMultiProcessing = false;
     fileLock.WriteLock(isMultiProcessing);
-    LOG_INFO("save xml file:%{public}s.", ExtractFileName(fileName).c_str());
+    LOG_INFO("save xml file:%{public}s, muti processing status is %{public}d.", ExtractFileName(fileName).c_str(),
+        isMultiProcessing);
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
@@ -383,7 +389,7 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &bundle
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             std::string operationMsg = "Write Xml file when the screen is locked.";
             ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
-            ReportAbnormalOperation(reportInfo, ReportedFaultOffset::SCREEN_LOCKED_FAULT_OFFSET);
+            ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
             return false;
         }
         if (IsFileExist(fileName)) {
@@ -579,13 +585,5 @@ void PreferencesXmlUtils::LimitXmlPermission(const std::string &fileName)
     }
 }
 
-bool PreferencesXmlUtils::IsUtf8(const std::string &str)
-{
-    if (str.empty()) {
-        return true;
-    }
-
-    return xmlCheckUTF8(reinterpret_cast<const unsigned char*>(str.c_str()));
-}
 } // End of namespace NativePreferences
 } // End of namespace OHOS

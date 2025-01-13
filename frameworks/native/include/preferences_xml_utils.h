@@ -46,7 +46,6 @@ public:
     static bool WriteSettingXml(const std::string &fileName, const std::string &bundleName,
         const std::vector<Element> &settings);
     static void LimitXmlPermission(const std::string &fileName);
-    static bool IsUtf8(const std::string &str);
 
 private:
     PreferencesXmlUtils()

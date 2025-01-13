@@ -31,9 +31,9 @@
 namespace OHOS {
 namespace NativePreferences {
 
-enum class ReportedFaultOffset {
-    RESTORED_FROM_BAK_OFFSET,
-    SCREEN_LOCKED_FAULT_OFFSET
+enum class ReportedFaultBitMap {
+    RESTORE_FROM_BAK,
+    USE_WHEN_SCREEN_LOCKED
 };
 
 class PreferencesImpl : public PreferencesBase, public std::enable_shared_from_this<PreferencesImpl> {
@@ -77,7 +77,6 @@ private:
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     bool ReloadFromDisk();
     void AwaitLoadFile();
-    bool CheckValueUtf8(const PreferencesValue &value);
     bool WriteSettingXml(const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap);
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
     bool ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap);
