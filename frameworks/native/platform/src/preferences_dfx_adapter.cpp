@@ -112,7 +112,7 @@ void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *e
     OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, eventName, HISYSEVENT_FAULT, params, len);
 }
 
-void PreferencesDfxManager::ArkDataReport(const ArkDataReportParam &reportParam, const char *eventName)
+void PreferencesDfxManager::ArkDataReport(const ArkDataReportParam &reportParam)
 {
     std::string nowTime = GetCurrentTime();
     std::string moduleName = GetModuleName();
@@ -152,7 +152,7 @@ void PreferencesDfxManager::ArkDataReport(const ArkDataReportParam &reportParam,
             .arraySize = 0 },
     };
     size_t len = sizeof(params) / sizeof(params[0]);
-    OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, eventName, HISYSEVENT_FAULT, params, len);
+    OH_HiSysEvent_Write(DISTRIBUTED_DATAMGR, EVENT_NAME_ARKDATA_PREFERENCES_FAULT, HISYSEVENT_FAULT, params, len);
 }
 
 #else
@@ -171,7 +171,7 @@ void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *e
 {
 }
 
-void PreferencesDfxManager::ArkDataReport(const ReportParam &reportParam, const char *eventName)
+void PreferencesDfxManager::ArkDataReport(const ReportParam &reportParam)
 {
 }
 

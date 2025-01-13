@@ -21,6 +21,7 @@
 #include <cstring>
 
 #include "libxml/parser.h"
+#include "libxml/xmlstring.h"
 #include "log_print.h"
 #include "preferences_dfx_adapter.h"
 #include "preferences_file_lock.h"
@@ -164,13 +165,14 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     PreferencesFileLock fileLock(fileName);
     fileLock.ReadLock(isMultiProcessing);
     int errCode = 0;
+    std::string errMessage;
     if (IsFileExist(fileName)) {
         doc = ReadFile(fileName, errCode);
         if (doc != nullptr) {
             return doc;
         }
         xmlErrorPtr xmlErr = xmlGetLastError();
-        std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
+        errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
@@ -190,7 +192,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     }
     if (!isMultiProcessing) {
         if (isReport) {
-            const std::string operationMsg = "operation: failed to read XML format file.";
+            const std::string operationMsg = "operation: failed to read XML format file, errMessage:" + errMessage;
             ReportXmlFileCorrupted(fileName, bundleName, operationMsg, errCode);
         }
     } else {
@@ -391,7 +393,7 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &bundle
         RenameFromBackupFile(fileName, bundleName, isReport);
         if (!isMultiProcessing) {
             if (isReport) {
-                const std::string operationMsg = "operation: failed to save XML format file.";
+                const std::string operationMsg = "operation: failed to save XML format file, errMessage:" + errMessage;
                 ReportXmlFileCorrupted(fileName, bundleName, operationMsg, errCode);
             }
         } else {
@@ -575,6 +577,15 @@ void PreferencesXmlUtils::LimitXmlPermission(const std::string &fileName)
             LOG_ERROR("Failed to chmod file, errno:%{public}d.", errno);
         }
     }
+}
+
+bool PreferencesXmlUtils::IsUtf8(const std::string &str)
+{
+    if (str.empty()) {
+        return true;
+    }
+
+    return xmlCheckUTF8(reinterpret_cast<const unsigned char*>(str.c_str()));
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

@@ -31,11 +31,6 @@ static constexpr uint32_t MAX_KEY_LENGTH = 1024;
  */
 static constexpr uint32_t MAX_VALUE_LENGTH = 16 * 1024 * 1024;
 
-static constexpr uint32_t UTF8_BYTE_NUM_ONE = 1;
-static constexpr uint32_t UTF8_BYTE_NUM_TWO = 2;
-static constexpr uint32_t UTF8_BYTE_NUM_THREE = 3;
-static constexpr uint32_t UTF8_BYTE_NUM_FOUR = 4;
-
 static const char *STR_BROKEN = ".broken";
 static const char *STR_BACKUP = ".bak";
 static const char *STR_LOCK = ".lock";
@@ -48,8 +43,6 @@ std::string MakeFilePath(const std::string &prefPath, const std::string &suffix)
 int CheckKey(const std::string &key);
 
 int CheckValue(const PreferencesValue &value);
-
-bool IsUtf8(const std::string &str);
 } // End of namespace NativePreferences
 } // End of namespace OHOS
 #endif // End of #ifndef PREFERENCES_H

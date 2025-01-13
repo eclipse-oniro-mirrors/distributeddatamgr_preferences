@@ -77,7 +77,7 @@ private:
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     bool ReloadFromDisk();
     void AwaitLoadFile();
-    void CheckValueUtf8(const std::string &key, const PreferencesValue &value);
+    bool CheckValueUtf8(const PreferencesValue &value);
     bool WriteSettingXml(const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap);
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
     bool ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap);

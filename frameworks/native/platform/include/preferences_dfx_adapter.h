@@ -52,7 +52,7 @@ struct ArkDataReportParam {
 class PreferencesDfxManager {
 public:
     static void Report(const ReportParam &reportParam, const char *eventName);
-    static void ArkDataReport(const ArkDataReportParam &reportParam, const char *eventName);
+    static void ArkDataReport(const ArkDataReportParam &reportParam);
     static std::string GetModuleName();
 };
 } // namespace NativePreferences
