@@ -189,11 +189,11 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     }
 
     if (RenameFromBackupFile(fileName, bundleName, isReport)) {
-        int bakErrorCode = 0;
-        doc = ReadFile(fileName, bakErrorCode);
+        int bakErrCode = 0;
+        doc = ReadFile(fileName, bakErrCode);
         xmlErrorPtr xmlErr = xmlGetLastError();
-        errMessage.append(" bak: error code is " + std::to_string(bakErrorCode) + ", errMessage is " +
-            (xmlErr != nullptr) ? xmlErr->message : "null");
+        std::string message = (xmlErr != nullptr) ? xmlErr->message : "null";
+        errMessage.append(" bak: errno is " + std::to_string(bakErrCode) + ", errMessage is " + message);
     }
     if (!isMultiProcessing) {
         if (isReport) {
