@@ -171,7 +171,7 @@ void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *e
 {
 }
 
-void PreferencesDfxManager::ArkDataReport(const ReportParam &reportParam)
+void PreferencesDfxManager::ArkDataReport(const ArkDataReportParam &reportParam)
 {
 }
 
