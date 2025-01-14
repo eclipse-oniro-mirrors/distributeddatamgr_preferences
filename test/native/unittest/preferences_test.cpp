@@ -1002,6 +1002,29 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_032, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NativePreferencesTest_033
+ * @tc.desc: RegisterObserver testing
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_033, TestSize.Level1)
+{
+    vector<std::shared_ptr<PreferencesObserverCrossProcess>> counters;
+    for (int i = 0; i <= 50; i++) {
+        std::shared_ptr<PreferencesObserverCrossProcess> counter = std::make_shared<PreferencesObserverCrossProcess>();
+        counters.push_back(counter);
+        int ret = pref->RegisterObserver(counter, RegisterMode::MULTI_PRECESS_CHANGE);
+        EXPECT_EQ(ret, E_OK);
+    }
+    std::shared_ptr<PreferencesObserverCrossProcess> counter = std::make_shared<PreferencesObserverCrossProcess>();
+    int ret = pref->RegisterObserver(counter, RegisterMode::MULTI_PRECESS_CHANGE);
+    EXPECT_NE(ret, E_OK);
+    for (auto counter : counters) {
+        ret = pref->UnRegisterObserver(counter, RegisterMode::MULTI_PRECESS_CHANGE);
+        EXPECT_EQ(ret, E_OK);
+    }
+}
+
+/**
  * @tc.name: OperatorTest_001
  * @tc.desc: normal testcase of PreferencesValue Operator
  * @tc.type: FUNC

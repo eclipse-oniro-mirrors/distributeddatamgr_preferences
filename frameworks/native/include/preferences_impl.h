@@ -31,9 +31,9 @@
 namespace OHOS {
 namespace NativePreferences {
 
-enum class ReportedFaultOffset {
-    RESTORED_FROM_BAK_OFFSET,
-    SCREEN_LOCKED_FAULT_OFFSET
+enum class ReportedFaultBitMap {
+    RESTORE_FROM_BAK,
+    USE_WHEN_SCREEN_LOCKED
 };
 
 class PreferencesImpl : public PreferencesBase, public std::enable_shared_from_this<PreferencesImpl> {
