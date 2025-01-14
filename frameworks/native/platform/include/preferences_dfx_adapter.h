@@ -39,7 +39,7 @@ struct ReportParam {
     std::string appendix;   // additional info
 };
 
-struct ArkDataReportParam {
+struct ReportFaultParam {
     std::string faultType; // faultType
     std::string bundleName; // bundleName
     std::string dbType;     // NORMAL_DB or ENHANCE_DB
@@ -52,7 +52,7 @@ struct ArkDataReportParam {
 class PreferencesDfxManager {
 public:
     static void Report(const ReportParam &reportParam, const char *eventName);
-    static void ArkDataReport(const ArkDataReportParam &reportParam);
+    static void ReportFault(const ReportFaultParam &reportParam);
     static std::string GetModuleName();
 };
 } // namespace NativePreferences

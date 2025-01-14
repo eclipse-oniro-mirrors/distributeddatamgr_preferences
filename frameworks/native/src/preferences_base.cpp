@@ -25,6 +25,7 @@
 #include "base64_helper.h"
 #include "executor_pool.h"
 #include "log_print.h"
+#include "preferences_dfx_adapter.h"
 #include "preferences_file_operation.h"
 #include "preferences_observer_stub.h"
 
@@ -175,10 +176,10 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
         int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
         if (errcode != 0) {
             LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
-            ArkDataReportParam param = { "subscribe error", options_.bundleName, NORMAL_DB,
+            ReportFaultParam param = { "subscribe error", options_.bundleName, NORMAL_DB,
                 ExtractFileName(options_.filePath), E_SUBSCRIBE_FAILED,
                 "subscribe failed, the reason is " + std::to_string(errcode) };
-            PreferencesDfxManager::ArkDataReport(param);
+            PreferencesDfxManager::ReportFault(param);
             return errcode;
         }
         multiProcessObservers_.push_back(observer);
