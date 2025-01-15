@@ -32,6 +32,7 @@
 #include "preferences_xml_utils.h"
 #include "preferences_file_operation.h"
 #include "preferences_anonymous.h"
+#include "preferences_dfx_adapter.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -41,8 +42,6 @@ using namespace std::chrono;
 constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
 constexpr int32_t LOAD_XML_LOG_TIME = 1000;
-
-ConcurrentMap<std::string, uint64_t> PreferencesImpl::reportedFaults_;
 
 template<typename T>
 std::string GetTypeName()
@@ -134,6 +133,7 @@ PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(optio
     isNeverUnlock_ = false;
     loadResult_= false;
     queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
+    isActive_.store(true);
 }
 
 PreferencesImpl::~PreferencesImpl()
@@ -242,6 +242,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
     }
 
     AwaitLoadFile();
+    OperationInactiveObject();
 
     auto it = valuesCache_.Find(key);
     if (it.first) {
@@ -253,6 +254,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
 std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
 {
     AwaitLoadFile();
+    OperationInactiveObject();
     return valuesCache_.Clone();
 }
 
@@ -447,6 +449,23 @@ void WriteXmlElement(Element &elem, const PreferencesValue &value)
     Convert2Element(elem, value.value_);
 }
 
+int PreferencesImpl::Close()
+{
+    isActive_.store(false);
+    return E_OK;
+}
+
+void PreferencesImpl::OperationInactiveObject()
+{
+    if (!isActive_.load()) {
+        LOG_WARN("file %{public}s is inactive.", ExtractFileName(options_.filePath).c_str());
+        std::string operationMsg = "operation: Invalid operation on the preference instance.";
+        ReportParam reportParam = { options_.bundleName, NORMAL_DB, ExtractFileName(options_.filePath),
+            E_OBJECT_NOT_ACTIVE, 0, operationMsg};
+        PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::OBJECT_IS_NOT_ACTIVE);
+    }
+}
+
 bool PreferencesImpl::WriteSettingXml(
     const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap)
 {
@@ -470,6 +489,7 @@ bool PreferencesImpl::HasKey(const std::string &key)
     }
 
     AwaitLoadFile();
+    OperationInactiveObject();
     return valuesCache_.Contains(key);
 }
 
@@ -484,6 +504,7 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
         return errCode;
     }
     AwaitLoadFile();
+    OperationInactiveObject();
 
     valuesCache_.Compute(key, [this, &value](auto &key, PreferencesValue &val) {
         if (val == value) {
@@ -503,6 +524,7 @@ int PreferencesImpl::Delete(const std::string &key)
         return errCode;
     }
     AwaitLoadFile();
+    OperationInactiveObject();
     valuesCache_.EraseIf(key, [this](auto &key, PreferencesValue &val) {
         modifiedKeys_.push_back(key);
         return true;
@@ -513,6 +535,7 @@ int PreferencesImpl::Delete(const std::string &key)
 int PreferencesImpl::Clear()
 {
     AwaitLoadFile();
+    OperationInactiveObject();
     valuesCache_.EraseIf([this](auto &key, PreferencesValue &val) {
         modifiedKeys_.push_back(key);
         return true;
@@ -552,6 +575,7 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
 
 void PreferencesImpl::Flush()
 {
+    OperationInactiveObject();
     auto success = queue_->PushNoWait(1);
     if (!success) {
         return;
@@ -578,6 +602,7 @@ void PreferencesImpl::Flush()
 
 int PreferencesImpl::FlushSync()
 {
+    OperationInactiveObject();
     auto success = queue_->PushNoWait(1);
     if (success) {
         if (queue_ == nullptr) {
@@ -604,6 +629,7 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
     }
 
     AwaitLoadFile();
+    OperationInactiveObject();
     auto iter = valuesCache_.Find(key);
     if (iter.first) {
         return std::make_pair(E_OK, iter.second);
@@ -614,6 +640,7 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
 std::pair<int, std::map<std::string, PreferencesValue>> PreferencesImpl::GetAllData()
 {
     AwaitLoadFile();
+    OperationInactiveObject();
     return std::make_pair(E_OK, valuesCache_.Clone());
 }
 

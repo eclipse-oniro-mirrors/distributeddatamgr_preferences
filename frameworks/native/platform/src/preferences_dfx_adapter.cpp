@@ -21,6 +21,7 @@
 #include <sstream>
 
 #include "log_print.h"
+
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 #include <thread>
 
@@ -31,6 +32,9 @@
 
 namespace OHOS {
 namespace NativePreferences {
+
+ConcurrentMap<std::string, uint64_t> PreferencesDfxManager::reportedFaults_;
+
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 std::string GetCurrentTime()
 {
@@ -66,6 +70,21 @@ std::string PreferencesDfxManager::GetModuleName()
         }
     }
     return moduleName;
+}
+
+void PreferencesDfxManager::ReportAbnormalOperation(const ReportParam &reportParam, ReportedFaultBitMap faultOffset)
+{
+    uint64_t offset = static_cast<uint32_t>(faultOffset);
+    PreferencesDfxManager::reportedFaults_.Compute(
+        reportParam.storeName, [reportParam, offset](auto &, uint64_t &report) {
+        uint64_t mask = 0x01;
+        if ((report >> offset) & mask) {
+            return true;
+        }
+        PreferencesDfxManager::Report(reportParam, EVENT_NAME_PREFERENCES_FAULT);
+        report |= (mask << offset);
+        return true;
+    });
 }
 
 void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *eventName)
@@ -172,6 +191,11 @@ void PreferencesDfxManager::Report(const ReportParam &reportParam, const char *e
 }
 
 void PreferencesDfxManager::ReportFault(const ReportFaultParam &reportParam)
+{
+}
+
+
+void PreferencesDfxManager::ReportAbnormalOperation(const ReportParam &reportParam, ReportedFaultBitMap faultOffset)
 {
 }
 

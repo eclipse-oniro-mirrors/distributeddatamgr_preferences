@@ -206,6 +206,33 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     return pref;
 }
 
+std::pair<std::string, int> PreferencesHelper::DeletePreferencesInner(const std::string &realPath)
+{
+    std::string bundleName;
+    int errCode = E_OK;
+
+    std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it =
+        prefsCache_.find(realPath);
+
+    if (it != prefsCache_.end()) {
+        auto pref = it->second.first;
+        if (pref != nullptr) {
+            LOG_INFO("Begin to Delete Preferences: %{public}s", ExtractFileName(realPath).c_str());
+            bundleName = pref->GetBundleName();
+            if (it->second.second) {
+                errCode = pref->CloseDb();
+            } else {
+                errCode = std::static_pointer_cast<PreferencesImpl>(pref)->Close();
+            }
+        }
+        if (errCode == E_OK) {
+            prefsCache_.erase(it);
+        }
+    }
+
+    return { bundleName, errCode };
+}
+
 int PreferencesHelper::DeletePreferences(const std::string &path)
 {
     int errCode = E_OK;
@@ -214,24 +241,15 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         return errCode;
     }
 
-    std::string bundleName = "";
+    std::string bundleName;
     {
         std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-        std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
-        if (it != prefsCache_.end()) {
-            auto pref = it->second.first;
-            if (pref != nullptr) {
-                LOG_INFO("Begin to Delete Preferences: %{public}s", ExtractFileName(path).c_str());
-                bundleName = pref->GetBundleName();
-                errCode = pref->CloseDb();
-                if (errCode != E_OK) {
-                    LOG_ERROR("failed to close db when delete preferences.");
-                    return errCode;
-                }
-            }
-            pref = nullptr;
-            prefsCache_.erase(it);
+        auto [ name, code ] = DeletePreferencesInner(realPath);
+        if (code != E_OK) {
+            LOG_ERROR("failed to close when delete preferences, errCode is: %{public}d", code);
+            return code;
         }
+        bundleName = name;
     }
 
     std::string filePath = realPath.c_str();
@@ -277,12 +295,16 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
         return E_OK;
     }
 
-    if (it->second.second) {
-        auto pref = it->second.first;
-        errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();
-        if (errCode != E_OK) {
-            LOG_ERROR("RemovePreferencesFromCache: failed to close db.");
-            return E_ERROR;
+    auto pref = it->second.first;
+    if (pref != nullptr) {
+        if (it->second.second) {
+            errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();
+            if (errCode != E_OK) {
+                LOG_ERROR("RemovePreferencesFromCache: failed to close db.");
+                return E_ERROR;
+            }
+        } else {
+            std::static_pointer_cast<PreferencesImpl>(pref)->Close();
         }
     }
 

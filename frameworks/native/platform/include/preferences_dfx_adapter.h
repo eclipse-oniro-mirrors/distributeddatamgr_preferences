@@ -18,7 +18,9 @@
 
 #include <string>
 
+#include "concurrent_map.h"
 #include "preferences_errno.h"
+
 namespace OHOS {
 namespace NativePreferences {
 
@@ -28,6 +30,12 @@ static constexpr const char *EVENT_NAME_DB_CORRUPTED = "DATABASE_CORRUPTED";
 static constexpr const char *EVENT_NAME_PREFERENCES_FAULT = "PREFERENCES_FAULT";
 static constexpr const char *EVENT_NAME_ARKDATA_PREFERENCES_FAULT = "ARKDATA_PREFERENCES_FAULT";
 static constexpr const char *DISTRIBUTED_DATAMGR = "DISTDATAMGR";
+
+enum class ReportedFaultBitMap {
+    RESTORE_FROM_BAK,
+    USE_WHEN_SCREEN_LOCKED,
+    OBJECT_IS_NOT_ACTIVE
+};
 
 struct ReportParam {
     std::string bundleName; // bundleName
@@ -54,6 +62,10 @@ public:
     static void Report(const ReportParam &reportParam, const char *eventName);
     static void ReportFault(const ReportFaultParam &reportParam);
     static std::string GetModuleName();
+
+    static void ReportAbnormalOperation(const ReportParam &reportParam, ReportedFaultBitMap faultOffset);
+private:
+    static ConcurrentMap<std::string, uint64_t> reportedFaults_;
 };
 } // namespace NativePreferences
 } // namespace OHOS
