@@ -297,7 +297,8 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
         if (it->second.second) {
             errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();
             if (errCode != E_OK) {
-                LOG_ERROR("RemovePreferencesFromCache: file %{public}s failed to close db, errCode is %{public}d.", pref->GetBundleName(), errCode);
+                LOG_ERROR("RemovePreferencesFromCache: file %{public}s failed to close db, errCode is %{public}d.",
+                    pref->GetBundleName(), errCode);
                 return E_ERROR;
             }
         } else {
