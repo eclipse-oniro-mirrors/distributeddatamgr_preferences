@@ -206,7 +206,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     return pref;
 }
 
-std::pair<std::string, int> PreferencesHelper::DeletePreferencesInner(const std::string &realPath)
+std::pair<std::string, int> PreferencesHelper::DeletePreferencesCache(const std::string &realPath)
 {
     std::string bundleName;
     int errCode = E_OK;
@@ -241,7 +241,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::string bundleName;
     {
         std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-        auto [ name, code ] = DeletePreferencesInner(realPath);
+        auto [ name, code ] = DeletePreferencesCache(realPath);
         if (code != E_OK) {
             LOG_ERROR("failed to close when delete preferences, errCode is: %{public}d", code);
             return code;
@@ -297,7 +297,7 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
         if (it->second.second) {
             errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();
             if (errCode != E_OK) {
-                LOG_ERROR("RemovePreferencesFromCache: failed to close db.");
+                LOG_ERROR("RemovePreferencesFromCache: failed to close db, errCode is %{public}d.", errCode);
                 return E_ERROR;
             }
         } else {

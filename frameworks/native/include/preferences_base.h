@@ -106,7 +106,10 @@ public:
         return E_OK;
     }
 
-    virtual void OperationInactiveObject() {}
+    virtual bool IsClose()
+    {
+        return false;
+    }
 
     std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
 

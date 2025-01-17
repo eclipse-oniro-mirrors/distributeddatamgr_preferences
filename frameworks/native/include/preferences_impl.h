@@ -59,7 +59,7 @@ public:
 
     int Close() override;
 
-    void OperationInactiveObject() override;
+    bool IsClose() override;
 
     std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
 

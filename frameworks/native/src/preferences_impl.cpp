@@ -242,7 +242,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
     }
 
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
 
     auto it = valuesCache_.Find(key);
     if (it.first) {
@@ -254,7 +254,7 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
 std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
 {
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
     return valuesCache_.Clone();
 }
 
@@ -455,15 +455,18 @@ int PreferencesImpl::Close()
     return E_OK;
 }
 
-void PreferencesImpl::OperationInactiveObject()
+bool PreferencesImpl::IsClose()
 {
-    if (!isActive_.load()) {
-        LOG_WARN("file %{public}s is inactive.", ExtractFileName(options_.filePath).c_str());
-        std::string operationMsg = "operation: Invalid operation on the preference instance.";
-        ReportParam reportParam = { options_.bundleName, NORMAL_DB, ExtractFileName(options_.filePath),
-            E_OBJECT_NOT_ACTIVE, 0, operationMsg};
-        PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::OBJECT_IS_NOT_ACTIVE);
+    if (isActive_.load()) {
+        return false;
     }
+
+    LOG_WARN("file %{public}s is inactive.", ExtractFileName(options_.filePath).c_str());
+    std::string operationMsg = "operation: Invalid operation on the preference instance.";
+    ReportParam reportParam = { options_.bundleName, NORMAL_DB, ExtractFileName(options_.filePath),
+        E_OBJECT_NOT_ACTIVE, 0, operationMsg};
+    PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::OBJECT_IS_NOT_ACTIVE);
+    return true;
 }
 
 bool PreferencesImpl::WriteSettingXml(
@@ -489,7 +492,7 @@ bool PreferencesImpl::HasKey(const std::string &key)
     }
 
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
     return valuesCache_.Contains(key);
 }
 
@@ -504,7 +507,7 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
         return errCode;
     }
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
 
     valuesCache_.Compute(key, [this, &value](auto &key, PreferencesValue &val) {
         if (val == value) {
@@ -524,7 +527,7 @@ int PreferencesImpl::Delete(const std::string &key)
         return errCode;
     }
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
     valuesCache_.EraseIf(key, [this](auto &key, PreferencesValue &val) {
         modifiedKeys_.push_back(key);
         return true;
@@ -535,7 +538,7 @@ int PreferencesImpl::Delete(const std::string &key)
 int PreferencesImpl::Clear()
 {
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
     valuesCache_.EraseIf([this](auto &key, PreferencesValue &val) {
         modifiedKeys_.push_back(key);
         return true;
@@ -575,7 +578,7 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
 
 void PreferencesImpl::Flush()
 {
-    OperationInactiveObject();
+    IsClose();
     auto success = queue_->PushNoWait(1);
     if (!success) {
         return;
@@ -602,7 +605,7 @@ void PreferencesImpl::Flush()
 
 int PreferencesImpl::FlushSync()
 {
-    OperationInactiveObject();
+    IsClose();
     auto success = queue_->PushNoWait(1);
     if (success) {
         if (queue_ == nullptr) {
@@ -629,7 +632,7 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
     }
 
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
     auto iter = valuesCache_.Find(key);
     if (iter.first) {
         return std::make_pair(E_OK, iter.second);
@@ -640,7 +643,7 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
 std::pair<int, std::map<std::string, PreferencesValue>> PreferencesImpl::GetAllData()
 {
     AwaitLoadFile();
-    OperationInactiveObject();
+    IsClose();
     return std::make_pair(E_OK, valuesCache_.Clone());
 }
 

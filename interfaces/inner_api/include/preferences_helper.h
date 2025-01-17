@@ -84,7 +84,7 @@ private:
     static std::string GetRealPath(const std::string &path, int &errorCode);
     static int GetPreferencesInner(const Options &options, bool &isEnhancePreferences,
         std::shared_ptr<Preferences> &pref);
-    static std::pair<std::string, int> DeletePreferencesInner(const std::string &realPath);
+    static std::pair<std::string, int> DeletePreferencesCache(const std::string &realPath);
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
