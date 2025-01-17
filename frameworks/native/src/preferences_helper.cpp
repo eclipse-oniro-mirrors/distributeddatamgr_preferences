@@ -244,7 +244,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         auto [ name, code ] = DeletePreferencesCache(realPath);
         if (code != E_OK) {
             LOG_ERROR("file %{public}s failed to close when delete preferences, errCode is: %{public}d",
-                ExtractFileName(pref->options_.filePath).c_str(), code);
+                ExtractFileName(realPath).c_str(), code);
             return code;
         }
         bundleName = name;
@@ -299,7 +299,7 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
             errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();
             if (errCode != E_OK) {
                 LOG_ERROR("RemovePreferencesFromCache: file %{public}s failed to close db, errCode is %{public}d.",
-                    ExtractFileName(pref->options_.filePath).c_str(), errCode);
+                    ExtractFileName(realPath).c_str(), errCode);
                 return E_ERROR;
             }
         } else {
