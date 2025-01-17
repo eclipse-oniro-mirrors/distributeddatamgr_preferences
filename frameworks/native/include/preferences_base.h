@@ -101,6 +101,16 @@ public:
 
     int CloseDb() override;
 
+    virtual int Close()
+    {
+        return E_OK;
+    }
+
+    virtual bool IsClose()
+    {
+        return false;
+    }
+
     std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
 
     std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;

@@ -30,15 +30,6 @@ public:
     std::vector<Element> children_;
 };
 
-class ReportInfo {
-public:
-    int errCode_;
-    int errNo_;
-    std::string fileName_;
-    std::string bundleName_;
-    std::string operationMsg_;
-};
-
 class PreferencesXmlUtils {
 public:
     static bool ReadSettingXml(const std::string &fileName, const std::string &bundleName,

@@ -178,6 +178,11 @@ constexpr int E_OPERAT_IS_CROSS_PROESS = (E_BASE + 25);
 * @brief This code is subscribe failed.
 */
 constexpr int E_SUBSCRIBE_FAILED = (E_BASE + 26);
+
+/**
+* @brief This code is still operated after the removePreferencesFromCache or deletePreferences operation is performed.
+*/
+constexpr int E_OBJECT_NOT_ACTIVE = (E_BASE + 27);
 } // namespace NativePreferences
 } // namespace OHOS
 #endif // PREFERENCES_ERRNO_H

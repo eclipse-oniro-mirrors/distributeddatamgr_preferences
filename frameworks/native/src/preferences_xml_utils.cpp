@@ -77,23 +77,6 @@ static void ReportXmlFileCorrupted(const std::string &fileName, const std::strin
     PreferencesDfxManager::Report(succreportParam, EVENT_NAME_DB_CORRUPTED);
 }
 
-static void ReportAbnormalOperation(ReportInfo &reportInfo, ReportedFaultBitMap faultOffset)
-{
-    uint64_t offset = static_cast<uint32_t>(faultOffset);
-    PreferencesImpl::reportedFaults_.Compute(
-        reportInfo.fileName_, [reportInfo, offset](auto &fileName, uint64_t &report) {
-        uint64_t mask = 0x01;
-        if ((report >> offset) & mask) {
-            return true;
-        }
-        ReportParam param = { reportInfo.bundleName_, NORMAL_DB, ExtractFileName(reportInfo.fileName_),
-            reportInfo.errCode_, reportInfo.errNo_, reportInfo.operationMsg_ };
-        PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
-        report |= (mask << offset);
-        return true;
-    });
-}
-
 static bool RenameFromBackupFile(const std::string &fileName, const std::string &bundleName, bool &isReportCorrupt)
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
@@ -113,8 +96,9 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         std::remove(backupFileName.c_str());
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             std::string operationMsg = "Read bak file when the screen is locked.";
-            ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
-            ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
+            const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
+                E_OBJECT_NOT_ACTIVE, errCode, operationMsg};
+            PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
             return false;
         }
         isReportCorrupt = true;
@@ -130,8 +114,9 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         LOG_ERROR("failed to stat backup file.");
     }
     std::string appindex = "Restored from the backup. The file size is " + std::to_string(fileStats.st_size) + ".";
-    ReportInfo reportInfo = { E_XML_RESTORED_FROM_BACKUP_FILE, 0, fileName, bundleName, appindex };
-    ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::RESTORE_FROM_BAK);
+    const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
+        E_XML_RESTORED_FROM_BACKUP_FILE, 0, appindex};
+    PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::RESTORE_FROM_BAK);
     LOG_INFO("restore XML file %{public}s successfully.", ExtractFileName(fileName).c_str());
     return true;
 }
@@ -178,8 +163,9 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             std::string operationMsg = "Read Xml file when the screen is locked.";
-            ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
-            ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
+            const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
+                E_OPERAT_IS_LOCKED, errCode, operationMsg};
+            PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
             return nullptr;
         }
         if (!RenameToBrokenFile(fileName)) {
@@ -202,8 +188,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         }
     } else {
         ReportParam param = { bundleName, NORMAL_DB, ExtractFileName(fileName),
-            E_OPERAT_IS_CROSS_PROESS, errCode, "Cross-process operations exist during file reading."
-        };
+            E_OPERAT_IS_CROSS_PROESS, errCode, "Cross-process operations exist during file reading." };
         PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
     }
     return doc;
@@ -388,8 +373,9 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &bundle
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
             std::string operationMsg = "Write Xml file when the screen is locked.";
-            ReportInfo reportInfo = { E_OPERAT_IS_LOCKED, errCode, fileName, bundleName, operationMsg };
-            ReportAbnormalOperation(reportInfo, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
+            const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
+                E_OPERAT_IS_LOCKED, errCode, operationMsg};
+            PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
             return false;
         }
         if (IsFileExist(fileName)) {

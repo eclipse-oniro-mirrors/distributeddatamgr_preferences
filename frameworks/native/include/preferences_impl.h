@@ -31,11 +31,6 @@
 namespace OHOS {
 namespace NativePreferences {
 
-enum class ReportedFaultBitMap {
-    RESTORE_FROM_BAK,
-    USE_WHEN_SCREEN_LOCKED
-};
-
 class PreferencesImpl : public PreferencesBase, public std::enable_shared_from_this<PreferencesImpl> {
 public:
     static std::shared_ptr<PreferencesImpl> GetPreferences(const Options &options)
@@ -62,6 +57,10 @@ public:
 
     int FlushSync() override;
 
+    int Close() override;
+
+    bool IsClose() override;
+
     std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
 
     std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
@@ -87,11 +86,11 @@ private:
 
     std::list<std::string> modifiedKeys_;
 
+    std::atomic<bool> isActive_;
+
     ConcurrentMap<std::string, PreferencesValue> valuesCache_;
 
     std::shared_ptr<SafeBlockQueue<uint64_t>> queue_;
-public:
-    static ConcurrentMap<std::string, uint64_t> reportedFaults_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
