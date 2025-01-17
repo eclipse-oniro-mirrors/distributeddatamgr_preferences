@@ -210,9 +210,7 @@ std::pair<std::string, int> PreferencesHelper::DeletePreferencesInner(const std:
 {
     std::string bundleName;
     int errCode = E_OK;
-
     std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
-
     if (it != prefsCache_.end()) {
         auto pref = it->second.first;
         if (pref != nullptr) {
