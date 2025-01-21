@@ -51,7 +51,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bo
         return;
     }
     int ret = uv_queue_work(loop_, work, [](uv_work_t* work) {
-        LOG_INFO("AsyncCall callback");
+        LOG_DEBUG("AsyncCall callback");
     }, UvQueue::Work);
     if (ret != 0) {
         LOG_ERROR("Failed to uv_queue_work.");
