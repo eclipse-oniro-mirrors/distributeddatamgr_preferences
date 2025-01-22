@@ -40,6 +40,7 @@ using namespace std::chrono;
 
 constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
+constexpr int32_t LOAD_XML_LOG_TIME = 1000;
 
 template<typename T>
 std::string GetTypeName()
@@ -128,6 +129,8 @@ std::string GetTypeName<BigInt>()
 PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options)
 {
     loaded_.store(false);
+    isNeverUnlock_ = false;
+    loadResult_= false;
     currentMemoryStateGeneration_ = 0;
     diskStateGeneration_ = 0;
     queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
@@ -147,7 +150,10 @@ int PreferencesImpl::Init()
 
 bool PreferencesImpl::StartLoadFromDisk()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     loaded_.store(false);
+    isNeverUnlock_ = false;
+    loadResult_ = false;
 
     ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
     return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
@@ -161,18 +167,62 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     }
     std::lock_guard<std::mutex> lock(pref->mutex_);
     if (!pref->loaded_.load()) {
-        bool loadResult = PreferencesImpl::ReadSettingXml(pref);
+        std::string::size_type pos = pref->options_.filePath.find_last_of('/');
+        std::string filePath = pref->options_.filePath.substr(0, pos);
+        if (Access(filePath) != 0) {
+            pref->isNeverUnlock_ = true;
+        }
+        ConcurrentMap<std::string, PreferencesValue> values;
+        bool loadResult = pref->ReadSettingXml(values);
         if (!loadResult) {
             LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
+        } else {
+            pref->valuesCache_ = std::move(values);
+            pref->loadResult_ = true;
+            pref->isNeverUnlock_ = false;
         }
         pref->loaded_.store(true);
         pref->cond_.notify_all();
     }
 }
 
+bool PreferencesImpl::ReloadFromDisk()
+{
+    if (loadResult_) {
+        return false;
+    }
+
+    ConcurrentMap<std::string, PreferencesValue> values = valuesCache_;
+    bool loadResult = ReadSettingXml(values);
+    LOG_WARN("The settingXml %{public}s reload result is %{public}d",
+        ExtractFileName(options_.filePath).c_str(), loadResult);
+    if (loadResult) {
+        valuesCache_ = std::move(values);
+        isNeverUnlock_ = false;
+        loadResult_ = true;
+        return true;
+    }
+    return false;
+}
+
+bool PreferencesImpl::PreLoad()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_.load()) {
+        return true;
+    }
+    if (Access(options_.filePath) == 0) {
+        if (isNeverUnlock_ || (!isNeverUnlock_ && !loadResult_)) {
+            return ReloadFromDisk();
+        }
+    }
+    return true;
+}
+
 void PreferencesImpl::AwaitLoadFile()
 {
     if (loaded_.load()) {
+        PreLoad();
         return;
     }
     std::unique_lock<std::mutex> lock(mutex_);
@@ -283,27 +333,42 @@ bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
     return GetPrefValue<decltype(value), Types...>(element, value);
 }
 
-void ReadXmlElement(const Element &element, std::map<std::string, PreferencesValue> &prefMap)
+void ReadXmlElement(const Element &element, ConcurrentMap<std::string, PreferencesValue> &prefConMap)
 {
     PreferencesValue value(static_cast<int64_t>(0));
     if (Convert2PrefValue(element, value.value_)) {
-        prefMap.insert(std::make_pair(element.key_, value));
+        prefConMap.Insert(element.key_, value);
     }
 }
 
-bool PreferencesImpl::ReadSettingXml(std::shared_ptr<PreferencesImpl> pref)
+static int64_t GetFileSize(const std::string &path)
+{
+    int64_t fileSize = -1;
+    struct stat buffer;
+    if (stat(path.c_str(), &buffer) == 0) {
+        fileSize = static_cast<int64_t>(buffer.st_size);
+    }
+    return fileSize;
+}
+
+bool PreferencesImpl::ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap)
 {
     std::vector<Element> settings;
-    if (!PreferencesXmlUtils::ReadSettingXml(pref->options_.filePath, pref->options_.bundleName,
-        pref->options_.dataGroupId, settings)) {
+    auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+    if (!PreferencesXmlUtils::ReadSettingXml(options_.filePath, options_.bundleName,
+        options_.dataGroupId, settings)) {
         return false;
     }
-
-    std::map<std::string, PreferencesValue> values;
-    for (const auto &element : settings) {
-        ReadXmlElement(element, values);
+    auto end = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
+    if (end - begin > LOAD_XML_LOG_TIME) {
+        LOG_ERROR("The settingXml %{public}s load time exceed 1s, file size:%{public}" PRId64 ".",
+            ExtractFileName(options_.filePath).c_str(), GetFileSize(options_.filePath));
     }
-    pref->valuesCache_ = std::move(values);
+
+    for (const auto &element : settings) {
+        ReadXmlElement(element, conMap);
+    }
+
     return true;
 }
 
@@ -476,6 +541,12 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
     if (!pref->WriteSettingXml(pref->options_, writeToDiskMap)) {
         return E_ERROR;
     }
+    if (pref->isNeverUnlock_) {
+        pref->isNeverUnlock_ = false;
+    }
+    if (!pref->loadResult_) {
+        pref->loadResult_ = true;
+    }
     pref->NotifyPreferencesObserver(keysModified, writeToDiskMap);
     return E_OK;
 }
@@ -483,23 +554,27 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
 void PreferencesImpl::Flush()
 {
     auto success = queue_->PushNoWait(1);
-    if (success) {
-        std::weak_ptr<SafeBlockQueue<uint64_t>> queue = queue_;
-        ExecutorPool::Task task = [queue, self = weak_from_this()] {
-            auto realQueue = queue.lock();
-            auto realThis = self.lock();
-            if (realQueue == nullptr || realThis == nullptr) {
-                return ;
-            }
-            uint64_t value = 0;
-            std::lock_guard<std::mutex> lock(realThis->mutex_);
-            auto has = realQueue->PopNotWait(value);
-            if (has && value == 1) {
-                PreferencesImpl::WriteToDiskFile(realThis);
-            }
-        };
-        executorPool_.Schedule(std::chrono::milliseconds(TASK_EXEC_TIME), std::move(task));
+    if (!success) {
+        return;
     }
+    std::weak_ptr<SafeBlockQueue<uint64_t>> queue = queue_;
+    ExecutorPool::Task task = [queue, self = weak_from_this()] {
+        auto realQueue = queue.lock();
+        auto realThis = self.lock();
+        if (realQueue == nullptr || realThis == nullptr) {
+            return;
+        }
+        uint64_t value = 0;
+        if (!realThis->PreLoad()) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(realThis->mutex_);
+        auto has = realQueue->PopNotWait(value);
+        if (has && value == 1) {
+            PreferencesImpl::WriteToDiskFile(realThis);
+        }
+    };
+    executorPool_.Schedule(std::chrono::milliseconds(TASK_EXEC_TIME), std::move(task));
 }
 
 int PreferencesImpl::FlushSync()
@@ -508,6 +583,9 @@ int PreferencesImpl::FlushSync()
     if (success) {
         if (queue_ == nullptr) {
             return E_ERROR;
+        }
+        if (!PreLoad()) {
+            return E_OK;
         }
         uint64_t value = 0;
         std::lock_guard<std::mutex> lock(mutex_);

@@ -21,6 +21,7 @@ config("module_private_config") {
 
   include_dirs = [
     "${preferences_native_path}/include/",
+    "${preferences_native_path}/platform/include/",
     "${preferences_innerapi_path}/include",
     "${preferences_base_path}/frameworks/common/include",
   ]
