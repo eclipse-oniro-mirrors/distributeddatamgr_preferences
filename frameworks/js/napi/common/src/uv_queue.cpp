@@ -41,7 +41,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bo
     }
 
     auto env = GetEnv();
-    auto task = [env, getter, genArgs, sendable](){
+    auto task = [env, getter, genArgs, sendable]() {
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(env, &scope);
         if (scope == nullptr) {
@@ -49,7 +49,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bo
         }
         napi_value method = getter(env);
         if (method == nullptr) {
-            LOG_WARN("the callback is invalid, maybe is cleared");
+            LOG_WARN("the callback is invalid, maybe is cleared!");
             napi_close_handle_scope(env, scope);
             return;
         }
@@ -57,12 +57,12 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bo
         napi_value argv[MAX_CALLBACK_ARG_NUM] = { nullptr };
         if (genArgs) {
             argc = MAX_CALLBACK_ARG_NUM;
-            genArgs(env, sendable, argc, agrv);
+            genArgs(env, sendable, argc, argv);
         }
         napi_value global = nullptr;
         napi_get_global(env, &global);
         napi_value result;
-        napi_status status = napi_call_function(env, global, mathod, argc, argv, &result);
+        napi_status status = napi_call_function(env, global, method, argc, argv, &result);
         if (status != napi_ok) {
             LOG_ERROR("notify data change failed status: %{public}d.", status);
         }
