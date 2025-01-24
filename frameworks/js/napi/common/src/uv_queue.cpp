@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "log_print.h"
+#include <memory>
 #include "uv_queue.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
-#include "log_print.h"
-
-#include <memory>
-
 
 namespace OHOS::PreferencesJsKit {
 constexpr size_t MAX_CALLBACK_ARG_NUM = 6;
@@ -60,9 +59,13 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bo
             genArgs(env, sendable, argc, argv);
         }
         napi_value global = nullptr;
-        napi_get_global(env, &global);
+        napi_status status = napi_get_global(env, &global);
+        if (status != napi_ok) {
+            LOG_ERROR("get napi gloabl failed. status: %{public}d.", status);
+            return;
+        }
         napi_value result;
-        napi_status status = napi_call_function(env, global, method, argc, argv, &result);
+        status = napi_call_function(env, global, method, argc, argv, &result);
         if (status != napi_ok) {
             LOG_ERROR("notify data change failed status: %{public}d.", status);
         }
