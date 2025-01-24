@@ -62,6 +62,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bo
         napi_status status = napi_get_global(env, &global);
         if (status != napi_ok) {
             LOG_ERROR("get napi gloabl failed. status: %{public}d.", status);
+            napi_close_handle_scope(env, scope);
             return;
         }
         napi_value result;
