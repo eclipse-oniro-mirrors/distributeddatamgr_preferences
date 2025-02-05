@@ -16,9 +16,6 @@
 #define OHOS_UV_QUEUE_H
 #include <functional>
 #include "napi/native_api.h"
-#include "napi/native_common.h"
-#include "napi/native_node_api.h"
-#include "uv.h"
 
 namespace OHOS::PreferencesJsKit {
 class UvQueue final {
@@ -31,15 +28,7 @@ public:
     napi_env GetEnv();
     void AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs = NapiArgsGenerator(), bool sendable = false);
 private:
-    static void Work(uv_work_t* work, int uvstatus);
-    struct UvEntry {
-        napi_env env;
-        NapiCallbackGetter callback;
-        NapiArgsGenerator args;
-        bool sendable;
-    };
     napi_env env_ = nullptr;
-    uv_loop_s* loop_ = nullptr;
 };
 } // namespace OHOS::PreferencesJsKit
 #endif // OHOS_UV_QUEUE_H

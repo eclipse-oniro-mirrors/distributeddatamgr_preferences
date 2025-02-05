@@ -12,20 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "uv_queue.h"
-
-#include <memory>
 
 #include "log_print.h"
+#include <memory>
+#include "uv_queue.h"
+#include "napi/native_common.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS::PreferencesJsKit {
 constexpr size_t MAX_CALLBACK_ARG_NUM = 6;
 UvQueue::UvQueue(napi_env env)
     : env_(env)
 {
-    if (env != nullptr) {
-        napi_get_uv_event_loop(env, &loop_);
-    }
 }
 
 UvQueue::~UvQueue()
@@ -36,60 +34,47 @@ UvQueue::~UvQueue()
 
 void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs, bool sendable)
 {
-    if (loop_ == nullptr || !getter) {
-        LOG_ERROR("loop_ or callback is nullptr");
+    if (!getter) {
+        LOG_ERROR("callback is nullptr");
         return;
     }
 
-    uv_work_t* work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        return;
+    auto env = GetEnv();
+    auto task = [env, getter, genArgs, sendable]() {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(env, &scope);
+        if (scope == nullptr) {
+            return;
+        }
+        napi_value method = getter(env);
+        if (method == nullptr) {
+            LOG_WARN("the callback is invalid, maybe is cleared!");
+            napi_close_handle_scope(env, scope);
+            return;
+        }
+        int argc = 0;
+        napi_value argv[MAX_CALLBACK_ARG_NUM] = { nullptr };
+        if (genArgs) {
+            argc = MAX_CALLBACK_ARG_NUM;
+            genArgs(env, sendable, argc, argv);
+        }
+        napi_value global = nullptr;
+        napi_status status = napi_get_global(env, &global);
+        if (status != napi_ok) {
+            LOG_ERROR("get napi gloabl failed. status: %{public}d.", status);
+            napi_close_handle_scope(env, scope);
+            return;
+        }
+        napi_value result;
+        status = napi_call_function(env, global, method, argc, argv, &result);
+        if (status != napi_ok) {
+            LOG_ERROR("notify data change failed status: %{public}d.", status);
+        }
+        napi_close_handle_scope(env, scope);
+    };
+    if (napi_ok != napi_send_event(env_, task, napi_eprio_immediate)) {
+        LOG_ERROR("Failed to napi_send_event.");
     }
-    work->data = new (std::nothrow) UvEntry{ env_, getter, std::move(genArgs), sendable };
-    if (work->data == nullptr) {
-        delete work;
-        return;
-    }
-    int ret = uv_queue_work(loop_, work, [](uv_work_t* work) {}, UvQueue::Work);
-    if (ret != 0) {
-        LOG_ERROR("Failed to uv_queue_work.");
-        delete static_cast<UvEntry *>(work->data);
-        delete work;
-    }
-}
-
-void UvQueue::Work(uv_work_t* work, int uvstatus)
-{
-    std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-        delete data;
-        delete work;
-    });
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(entry->env, &scope);
-    if (scope == nullptr) {
-        return;
-    }
-    napi_value method = entry->callback(entry->env);
-    if (method == nullptr) {
-        LOG_WARN("the callback is invalid, maybe is cleared!");
-        napi_close_handle_scope(entry->env, scope);
-        return ;
-    }
-    int argc = 0;
-    napi_value argv[MAX_CALLBACK_ARG_NUM] = { nullptr };
-    if (entry->args) {
-        argc = MAX_CALLBACK_ARG_NUM;
-        entry->args(entry->env, entry->sendable, argc, argv);
-    }
-    LOG_DEBUG("queue uv_after_work_cb");
-    napi_value global = nullptr;
-    napi_get_global(entry->env, &global);
-    napi_value result;
-    napi_status status = napi_call_function(entry->env, global, method, argc, argv, &result);
-    if (status != napi_ok) {
-        LOG_ERROR("notify data change failed status:%{public}d.", status);
-    }
-    napi_close_handle_scope(entry->env, scope);
 }
 
 napi_env UvQueue::GetEnv()
