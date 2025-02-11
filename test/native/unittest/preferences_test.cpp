@@ -557,6 +557,8 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_015, TestSize.Level1)
     pref->FlushSync();
     ret = pref->GetString("test", "defaultValue");
     EXPECT_EQ(ret, "defaultValue");
+    int res = pref->Delete("");
+    EXPECT_EQ(res, E_KEY_EMPTY);
 }
 
 /**
