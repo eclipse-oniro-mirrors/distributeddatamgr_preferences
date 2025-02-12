@@ -52,7 +52,6 @@ void Base64HelperTest::TearDown(void)
  * @tc.name: Base64HelperTest_0001
  * @tc.desc: normal testcase of base64 encode
  * @tc.type: FUNC
- * @tc.require: SR000CU2BL
  * @tc.author: xiuhongju
  */
 HWTEST_F(Base64HelperTest, Base64HelperTest_001, TestSize.Level1)
