@@ -66,7 +66,6 @@ int PreferencesPutValue(std::shared_ptr<Preferences> pref, const std::string &in
  * @tc.name: NativePreferencesFileTest_001
  * @tc.desc: normal testcase of backup file
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: liulinna
  */
 HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level1)
@@ -106,7 +105,6 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level1)
  * @tc.name: NativePreferencesFileTest_002
  * @tc.desc: normal testcase of file permission
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: liulinna
  */
 HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_002, TestSize.Level1)
@@ -136,7 +134,6 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_002, TestSize.Level1)
  * @tc.name: NativePreferencesFileTest_003
  * @tc.desc: test FlushSync one times and five times
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: liulinna
  */
 HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level1)
@@ -194,7 +191,6 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level1)
  * @tc.name: NativePreferencesFileTest_004
  * @tc.desc: test Flush one times and five times
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: liulinna
  */
 HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level3)

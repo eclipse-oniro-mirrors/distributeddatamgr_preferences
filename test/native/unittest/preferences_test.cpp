@@ -164,7 +164,6 @@ void PreferencesObserverCrossProcess::OnChange(const std::string &key)
  * @tc.name: NativePreferencesGroupIdTest_001
  * @tc.desc: normal testcase of GetGroupId
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: lirui
  */
 HWTEST_F(PreferencesTest, NativePreferencesGroupIdTest_001, TestSize.Level1)
@@ -185,7 +184,6 @@ HWTEST_F(PreferencesTest, NativePreferencesGroupIdTest_001, TestSize.Level1)
  * @tc.name: NativePreferencesTest_001
  * @tc.desc: normal testcase of FlushSync
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_001, TestSize.Level1)
@@ -204,7 +202,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_001, TestSize.Level1)
  * @tc.name: NativePreferencesTest_002
  * @tc.desc: normal testcase of HasKey
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_002, TestSize.Level1)
@@ -228,7 +225,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_002, TestSize.Level1)
  * @tc.name: NativePreferencesTest_003
  * @tc.desc: normal testcase of pref
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_003, TestSize.Level1)
@@ -247,7 +243,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_003, TestSize.Level1)
  * @tc.name: NativePreferencesTest_004
  * @tc.desc: normal testcase of GetBool
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_004, TestSize.Level1)
@@ -273,7 +268,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_004, TestSize.Level1)
  * @tc.name: NativePreferencesTest_005
  * @tc.desc: normal testcase of GetFloat
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_005, TestSize.Level1)
@@ -299,7 +293,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_005, TestSize.Level1)
  * @tc.name: NativePreferencesTest_006
  * @tc.desc: normal testcase of GetInt
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_006, TestSize.Level1)
@@ -325,7 +318,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_006, TestSize.Level1)
  * @tc.name: NativePreferencesTest_007
  * @tc.desc: normal testcase of GetLong
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_007, TestSize.Level1)
@@ -351,7 +343,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_007, TestSize.Level1)
  * @tc.name: NativePreferencesTest_008
  * @tc.desc: normal testcase of GetString
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_008, TestSize.Level1)
@@ -377,7 +368,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_008, TestSize.Level1)
  * @tc.name: NativePreferencesTest_009
  * @tc.desc: normal testcase of GetDefValue
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_009, TestSize.Level1)
@@ -402,7 +392,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_009, TestSize.Level1)
  * @tc.name: NativePreferencesTest_010
  * @tc.desc: normal testcase of PutBool
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_010, TestSize.Level1)
@@ -430,7 +419,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_010, TestSize.Level1)
  * @tc.name: NativePreferencesTest_011
  * @tc.desc: normal testcase of PutFloat
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_011, TestSize.Level1)
@@ -458,7 +446,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_011, TestSize.Level1)
  * @tc.name: NativePreferencesTest_012
  * @tc.desc: normal testcase of PutInt
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_012, TestSize.Level1)
@@ -486,7 +473,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_012, TestSize.Level1)
  * @tc.name: NativePreferencesTest_013
  * @tc.desc: normal testcase of PutLong
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_013, TestSize.Level1)
@@ -514,7 +500,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_013, TestSize.Level1)
  * @tc.name: NativePreferencesTest_014
  * @tc.desc: normal testcase of PutString
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_014, TestSize.Level1)
@@ -542,7 +527,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_014, TestSize.Level1)
  * @tc.name: NativePreferencesTest_015
  * @tc.desc: normal testcase of Delete
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_015, TestSize.Level1)
@@ -565,7 +549,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_015, TestSize.Level1)
  * @tc.name: NativePreferencesTest_016
  * @tc.desc: normal testcase of RegisterPreferencesObserver
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_016, TestSize.Level1)
@@ -590,7 +573,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_016, TestSize.Level1)
  * @tc.name: NativePreferencesTest_017
  * @tc.desc: normal testcase of UnRegisterPreferencesObserver
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_017, TestSize.Level1)
@@ -615,7 +597,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_017, TestSize.Level1)
  * @tc.name: NativePreferencesTest_018
  * @tc.desc: normal testcase of Clear
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_018, TestSize.Level1)
@@ -1030,7 +1011,6 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_033, TestSize.Level1)
  * @tc.name: OperatorTest_001
  * @tc.desc: normal testcase of PreferencesValue Operator
  * @tc.type: FUNC
- * @tc.require: AR000CU2BN
  * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
