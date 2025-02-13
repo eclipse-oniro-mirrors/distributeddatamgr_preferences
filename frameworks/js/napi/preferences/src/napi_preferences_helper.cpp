@@ -131,7 +131,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "GetPreferences");
+    return AsyncCall::Call(env, context, "PreferencesGetPreferences");
 }
 
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
@@ -152,7 +152,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "DeletePreferences");
+    return AsyncCall::Call(env, context, "PreferencesDeletePreferences");
 }
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
@@ -173,7 +173,7 @@ napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "RemovePreferencesFromCache");
+    return AsyncCall::Call(env, context, "PreferencesRemovePreferencesFromCache");
 }
 
 napi_value IsStorageTypeSupported(napi_env env, napi_callback_info info)
@@ -207,7 +207,7 @@ napi_value IsStorageTypeSupported(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "IsStorageTypeSupported");
+    return AsyncCall::Call(env, context, "PreferencesIsStorageTypeSupported");
 }
 
 static napi_status SetNamedProperty(napi_env env, napi_value& obj, const std::string& name, int32_t value)
@@ -215,7 +215,7 @@ static napi_status SetNamedProperty(napi_env env, napi_value& obj, const std::st
     napi_value property = nullptr;
     napi_status status = napi_create_int32(env, value, &property);
     PRE_NAPI_ASSERT_BASE(env, status == napi_ok, std::make_shared<InnerError>("napi_create_int32 failed!"), status);
-    
+
     status = napi_set_named_property(env, obj, name.c_str(), property);
     PRE_NAPI_ASSERT_BASE(env, status == napi_ok, std::make_shared<InnerError>("napi_set_named_property failed!"),
         status);

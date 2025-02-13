@@ -27,6 +27,7 @@
 #include "preferences_file_operation.h"
 #include "log_print.h"
 #include "preferences_observer_stub.h"
+#include "preferences_utils.h"
 #include "preferences_value.h"
 #include "preferences_value_parcel.h"
 

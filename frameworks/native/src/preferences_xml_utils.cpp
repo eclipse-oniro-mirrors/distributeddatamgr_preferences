@@ -25,10 +25,12 @@
 #include "preferences_dfx_adapter.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
-#include "preferences_impl.h"
+#include "preferences_utils.h"
 
 namespace OHOS {
 namespace NativePreferences {
+constexpr int NO_SPACE_LEFT_ON_DEVICE = 28;
+constexpr int DISK_QUOTA_EXCEEDED = 122;
 constexpr int REQUIRED_KEY_NOT_AVAILABLE = 126;
 constexpr int REQUIRED_KEY_REVOKED = 128;
 static bool ParseNodeElement(const xmlNode *node, Element &element);
@@ -73,17 +75,38 @@ static void ReportXmlFileCorrupted(const std::string &fileName, const std::strin
     ReportParam succreportParam = reportParam;
     succreportParam.errCode = E_OK;
     succreportParam.errnoCode = 0;
-    succreportParam.appendix = "operation: restore success";
+    succreportParam.appendix = "restore success";
     PreferencesDfxManager::Report(succreportParam, EVENT_NAME_DB_CORRUPTED);
 }
 
-static bool RenameFromBackupFile(const std::string &fileName, const std::string &bundleName, bool &isReportCorrupt)
+static bool ReportNonCorruptError(
+    const std::string &faultType, const std::string &fileName, const std::string &bundleName, int errCode)
+{
+    if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
+        ReportFaultParam reportParam = { faultType, bundleName, NORMAL_DB, ExtractFileName(fileName),
+            E_OPERAT_IS_LOCKED, faultType + " the screen is locked." };
+        PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
+        return true;
+    }
+    if (errCode == NO_SPACE_LEFT_ON_DEVICE || errCode == DISK_QUOTA_EXCEEDED) {
+        ReportFaultParam param = { faultType, bundleName, NORMAL_DB, ExtractFileName(fileName),
+            E_ERROR, faultType + " " + std::strerror(errCode)};
+        PreferencesDfxManager::ReportFault(param);
+        return true;
+    }
+    return false;
+}
+
+static bool RenameFromBackupFile(
+    const std::string &fileName, const std::string &bundleName, bool &isReportCorrupt, bool &isBakFileExist)
 {
     std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
+        isBakFileExist = false;
         LOG_DEBUG("the backup file does not exist.");
         return false;
     }
+    isBakFileExist = true;
     xmlResetLastError();
     int errCode = 0;
     auto bakDoc = std::shared_ptr<xmlDoc>(ReadFile(backupFileName, errCode),
@@ -94,11 +117,7 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         std::remove(backupFileName.c_str());
-        if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
-            std::string operationMsg = "Read bak file when the screen is locked.";
-            const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
-                E_OBJECT_NOT_ACTIVE, errCode, operationMsg};
-            PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
+        if (ReportNonCorruptError("read bak failed", fileName, bundleName, errCode)) {
             return false;
         }
         isReportCorrupt = true;
@@ -114,8 +133,8 @@ static bool RenameFromBackupFile(const std::string &fileName, const std::string 
         LOG_ERROR("failed to stat backup file.");
     }
     std::string appindex = "Restored from the backup. The file size is " + std::to_string(fileStats.st_size) + ".";
-    const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
-        E_XML_RESTORED_FROM_BACKUP_FILE, 0, appindex};
+    ReportFaultParam reportParam = { "read failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
+        E_XML_RESTORED_FROM_BACKUP_FILE, appindex };
     PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::RESTORE_FROM_BAK);
     LOG_INFO("restore XML file %{public}s successfully.", ExtractFileName(fileName).c_str());
     return true;
@@ -161,11 +180,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
-        if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
-            std::string operationMsg = "Read Xml file when the screen is locked.";
-            const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
-                E_OPERAT_IS_LOCKED, errCode, operationMsg};
-            PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
+        if (ReportNonCorruptError("read failed", fileName, bundleName, errCode)) {
             return nullptr;
         }
         if (!RenameToBrokenFile(fileName)) {
@@ -174,22 +189,25 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         isReport = true;
     }
 
-    if (RenameFromBackupFile(fileName, bundleName, isReport)) {
+    bool isExist = true;
+    if (RenameFromBackupFile(fileName, bundleName, isReport, isExist)) {
         int bakErrCode = 0;
         doc = ReadFile(fileName, bakErrCode);
         xmlErrorPtr xmlErr = xmlGetLastError();
         std::string message = (xmlErr != nullptr) ? xmlErr->message : "null";
         errMessage.append(" bak: errno is " + std::to_string(bakErrCode) + ", errMessage is " + message);
     }
-    if (!isMultiProcessing) {
-        if (isReport) {
-            const std::string operationMsg = "operation: failed to read XML format file, errMessage:" + errMessage;
-            ReportXmlFileCorrupted(fileName, bundleName, operationMsg, errCode);
-        }
-    } else {
-        ReportParam param = { bundleName, NORMAL_DB, ExtractFileName(fileName),
-            E_OPERAT_IS_CROSS_PROESS, errCode, "Cross-process operations exist during file reading." };
-        PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
+    if (isMultiProcessing) {
+        ReportFaultParam param = { "read failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
+            E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
+        PreferencesDfxManager::ReportFault(param);
+        return doc;
+    }
+    if (isReport) {
+        ReportFaultParam param = { "read failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
+            E_ERROR, "read failed, " + errMessage};
+        isExist ? ReportXmlFileCorrupted(fileName, bundleName, errMessage, errCode) :
+            PreferencesDfxManager::ReportFault(param);
     }
     return doc;
 }
@@ -371,28 +389,26 @@ bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &bundle
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to save XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
-        if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
-            std::string operationMsg = "Write Xml file when the screen is locked.";
-            const ReportParam reportParam = { bundleName, NORMAL_DB, ExtractFileName(fileName),
-                E_OPERAT_IS_LOCKED, errCode, operationMsg};
-            PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
+        if (ReportNonCorruptError("write failed", fileName, bundleName, errCode)) {
             return false;
         }
         if (IsFileExist(fileName)) {
             RenameToBrokenFile(fileName);
             isReport = true;
         }
-        RenameFromBackupFile(fileName, bundleName, isReport);
-        if (!isMultiProcessing) {
-            if (isReport) {
-                const std::string operationMsg = "operation: failed to save XML format file, errMessage:" + errMessage;
-                ReportXmlFileCorrupted(fileName, bundleName, operationMsg, errCode);
-            }
-        } else {
-            ReportParam param = { bundleName, NORMAL_DB, ExtractFileName(fileName),
-                E_OPERAT_IS_CROSS_PROESS, errCode, "Cross-process operations exist during file writing."
-            };
-            PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
+        bool isExist = true;
+        RenameFromBackupFile(fileName, bundleName, isReport, isExist);
+        if (isMultiProcessing) {
+            ReportFaultParam param = { "write failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
+                E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
+            PreferencesDfxManager::ReportFault(param);
+            return false;
+        }
+        if (isReport) {
+            ReportFaultParam param = { "write failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
+                E_ERROR, "write failed, " + errMessage};
+            isExist ? ReportXmlFileCorrupted(fileName, bundleName, errMessage, errCode) :
+                PreferencesDfxManager::ReportFault(param);
         }
         return false;
     }

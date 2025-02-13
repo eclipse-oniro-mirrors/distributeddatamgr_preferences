@@ -23,7 +23,7 @@
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_helper.h"
-#include "preferences_impl.h"
+#include "preferences_utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::NativePreferences;

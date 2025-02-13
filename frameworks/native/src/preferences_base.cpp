@@ -22,9 +22,9 @@
 #include <functional>
 #include <sstream>
 
-#include "base64_helper.h"
 #include "executor_pool.h"
 #include "log_print.h"
+#include "preferences_utils.h"
 #include "preferences_dfx_adapter.h"
 #include "preferences_file_operation.h"
 #include "preferences_observer_stub.h"
@@ -163,7 +163,7 @@ int PreferencesBase::FlushSync()
 
 int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
 {
-    IsClose();
+    IsClose(std::string(__FUNCTION__));
     std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
     if (mode == RegisterMode::LOCAL_CHANGE) {
         std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
@@ -192,7 +192,7 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
 int PreferencesBase::UnRegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
     const std::vector<std::string> &keys)
 {
-    IsClose();
+    IsClose(std::string(__FUNCTION__));
     std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
     auto it = dataObserversMap_.find(preferencesObserver);
     if (it == dataObserversMap_.end()) {
@@ -246,7 +246,7 @@ std::string PreferencesBase::GetBundleName() const
 int PreferencesBase::RegisterDataObserver(std::shared_ptr<PreferencesObserver> preferencesObserver,
     const std::vector<std::string> &keys)
 {
-    IsClose();
+    IsClose(std::string(__FUNCTION__));
     std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
     auto it = dataObserversMap_.find(preferencesObserver);
     if (it == dataObserversMap_.end()) {
@@ -261,7 +261,7 @@ int PreferencesBase::RegisterDataObserver(std::shared_ptr<PreferencesObserver> p
 
 int PreferencesBase::UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
 {
-    IsClose();
+    IsClose(std::string(__FUNCTION__));
     std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
     if (mode == RegisterMode::LOCAL_CHANGE) {
         for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {

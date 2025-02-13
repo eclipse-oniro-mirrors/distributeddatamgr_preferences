@@ -207,9 +207,9 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
         GetAllExecute(env, context, result);
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "GetAll");
+    return AsyncCall::Call(env, context, "PreferencesGetAll");
 }
 
 napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
@@ -245,9 +245,9 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
             std::make_shared<InnerError>("Failed to delete reference when getting value."));
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "GetValue");
+    return AsyncCall::Call(env, context, "PreferencesGetValue");
 }
 
 napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
@@ -277,9 +277,9 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
         LOG_DEBUG("SetValue end.");
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "SetValue");
+    return AsyncCall::Call(env, context, "PreferencesSetValue");
 }
 
 napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
@@ -308,9 +308,9 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
         LOG_DEBUG("Delete end.");
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "Delete");
+    return AsyncCall::Call(env, context, "PreferencesDelete");
 }
 
 napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
@@ -340,9 +340,9 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
         LOG_DEBUG("HasKey end.");
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "HasKey");
+    return AsyncCall::Call(env, context, "PreferencesHasKey");
 }
 
 napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
@@ -372,7 +372,7 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     context->SetAction(env, info, input, exec, output);
 
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "Flush");
+    return AsyncCall::Call(env, context, "PreferencesFlush");
 }
 
 napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
@@ -400,9 +400,9 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
         LOG_DEBUG("Clear end.");
     };
     context->SetAction(env, info, input, exec, output);
-    
+
     PRE_CHECK_RETURN_NULL(context->error == nullptr || context->error->GetCode() == OK);
-    return AsyncCall::Call(env, context, "Clear");
+    return AsyncCall::Call(env, context, "PreferencesClear");
 }
 
 napi_value PreferencesProxy::RegisterObserver(napi_env env, napi_callback_info info)
