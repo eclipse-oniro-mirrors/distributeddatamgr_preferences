@@ -22,13 +22,13 @@
 
 #include "log_print.h"
 #include "preferences.h"
-#include "preferences_db_adapter.h"
 #include "preferences_errno.h"
 #include "preferences_file_lock.h"
 #include "preferences_file_operation.h"
 #include "preferences_dfx_adapter.h"
 #include "preferences_impl.h"
 #include "preferences_enhance_impl.h"
+#include "preferences_utils.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -191,9 +191,9 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     if (Access(filePath.c_str()) != 0) {
         LOG_ERROR("The path is invalid, prefName is %{public}s.", ExtractFileName(filePath).c_str());
         if (!PreferencesHelper::isReportFault_.exchange(true)) {
-            ReportParam param = { options.bundleName, NORMAL_DB, ExtractFileName(options.filePath),
-                E_INVALID_FILE_PATH, 2, "The path is invalid." };
-            PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
+            ReportFaultParam param = { "GetPreferences error", options.bundleName, NORMAL_DB,
+                ExtractFileName(options.filePath), E_INVALID_FILE_PATH, "The path is invalid." };
+            PreferencesDfxManager::ReportFault(param);
         }
     }
     bool isEnhancePreferences = false;
@@ -260,9 +260,9 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     fileLock.WriteLock(isMultiProcessing);
     if (isMultiProcessing) {
         LOG_ERROR("The file has cross-process operations, fileName is %{public}s.", ExtractFileName(filePath).c_str());
-        ReportParam param = { bundleName, NORMAL_DB, ExtractFileName(path),
-            E_OPERAT_IS_CROSS_PROESS, 0, "Cross-process operations exist during file deleting." };
-        PreferencesDfxManager::Report(param, EVENT_NAME_PREFERENCES_FAULT);
+        ReportFaultParam param = { "DeletePreferences error", bundleName, NORMAL_DB, ExtractFileName(filePath),
+            E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
+        PreferencesDfxManager::ReportFault(param);
     }
     std::remove(filePath.c_str());
     std::remove(backupPath.c_str());

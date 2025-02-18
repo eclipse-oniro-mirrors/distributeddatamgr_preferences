@@ -29,7 +29,6 @@
 
 #include "preferences.h"
 #include "preferences_observer.h"
-#include "preferences_utils.h"
 
 namespace OHOS {
 template <typename T> class sptr;
@@ -106,7 +105,7 @@ public:
         return E_OK;
     }
 
-    virtual bool IsClose()
+    virtual bool IsClose(const std::string &name)
     {
         return false;
     }

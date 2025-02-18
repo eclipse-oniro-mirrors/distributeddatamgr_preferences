@@ -44,7 +44,7 @@ std::shared_ptr<std::mutex> PreferencesLockManager::Get(const std::string fileNa
 }
 
 #if !defined(WINDOWS_PLATFORM)
-static const std::chrono::microseconds WAIT_CONNECT_TIMEOUT(20);
+static const std::chrono::milliseconds WAIT_CONNECT_TIMEOUT(20);
 static const int ATTEMPTS = 50;
 PreferencesFileLock::PreferencesFileLock(const std::string &path)
 {

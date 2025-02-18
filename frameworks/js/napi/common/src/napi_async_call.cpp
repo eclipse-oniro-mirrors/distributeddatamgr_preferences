@@ -114,8 +114,7 @@ napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context, 
     }
     context->keep_ = context;
     napi_value resource = nullptr;
-    const std::string name_resource = "Preferences" + name;
-    napi_create_string_utf8(env, name_resource.c_str(), NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
     // create async work, execute function is OnExecute, complete function is OnComplete
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete,
                            reinterpret_cast<void *>(context.get()), &context->work_);

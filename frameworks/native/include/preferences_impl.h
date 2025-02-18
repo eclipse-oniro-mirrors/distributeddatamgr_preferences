@@ -59,7 +59,7 @@ public:
 
     int Close() override;
 
-    bool IsClose() override;
+    bool IsClose(const std::string &name) override;
 
     std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
 

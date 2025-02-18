@@ -20,8 +20,6 @@
 #include <iomanip>
 #include <sstream>
 
-#include "log_print.h"
-
 #if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 #include <thread>
 
@@ -72,7 +70,8 @@ std::string PreferencesDfxManager::GetModuleName()
     return moduleName;
 }
 
-void PreferencesDfxManager::ReportAbnormalOperation(const ReportParam &reportParam, ReportedFaultBitMap faultOffset)
+void PreferencesDfxManager::ReportAbnormalOperation(
+    const ReportFaultParam &reportParam, ReportedFaultBitMap faultOffset)
 {
     uint64_t offset = static_cast<uint32_t>(faultOffset);
     PreferencesDfxManager::reportedFaults_.Compute(
@@ -81,7 +80,7 @@ void PreferencesDfxManager::ReportAbnormalOperation(const ReportParam &reportPar
         if ((report >> offset) & mask) {
             return true;
         }
-        PreferencesDfxManager::Report(reportParam, EVENT_NAME_PREFERENCES_FAULT);
+        PreferencesDfxManager::ReportFault(reportParam);
         report |= (mask << offset);
         return true;
     });
@@ -194,8 +193,8 @@ void PreferencesDfxManager::ReportFault(const ReportFaultParam &reportParam)
 {
 }
 
-
-void PreferencesDfxManager::ReportAbnormalOperation(const ReportParam &reportParam, ReportedFaultBitMap faultOffset)
+void PreferencesDfxManager::ReportAbnormalOperation(
+    const ReportFaultParam &reportParam, ReportedFaultBitMap faultOffset)
 {
 }
 

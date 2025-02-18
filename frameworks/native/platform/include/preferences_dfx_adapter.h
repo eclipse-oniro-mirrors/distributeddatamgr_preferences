@@ -63,7 +63,7 @@ public:
     static void ReportFault(const ReportFaultParam &reportParam);
     static std::string GetModuleName();
 
-    static void ReportAbnormalOperation(const ReportParam &reportParam, ReportedFaultBitMap faultOffset);
+    static void ReportAbnormalOperation(const ReportFaultParam &reportParam, ReportedFaultBitMap faultOffset);
 private:
     static ConcurrentMap<std::string, uint64_t> reportedFaults_;
 };
