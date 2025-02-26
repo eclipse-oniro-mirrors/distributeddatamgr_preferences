@@ -87,7 +87,7 @@ struct OH_PreferencesOption {
     std::string GetFileName();
     std::string GetBundleName();
     std::string GetDataGroupId();
-    Preferences_StorageType storageType = Preferences_StorageType::PREFERENCES_STORAGE_CLKV;
+    Preferences_StorageType storageType = Preferences_StorageType::PREFERENCES_STORAGE_GSKV;
     void SetStorageType(const Preferences_StorageType &type);
     Preferences_StorageType GetStorageType();
     std::shared_mutex opMutex_;

@@ -78,10 +78,10 @@ int ParseOptionalParameters(const napi_env env, napi_value *argv, std::shared_pt
             PRE_CHECK_RETURN_ERR_SET(napi_get_value_int32(env, temp, &intVal) == napi_ok,
                 std::make_shared<ParamTypeError>("The storageType must be StorageType which is enum."));
             bool isTypeValid = (intVal == static_cast<int32_t>(StorageType::XML) ||
-                intVal == static_cast<int32_t>(StorageType::CLKV));
+                intVal == static_cast<int32_t>(StorageType::GSKV));
             PRE_CHECK_RETURN_ERR_SET(isTypeValid, std::make_shared<ParamTypeError>("Storage type value invalid."));
             context->storageType = (intVal == static_cast<int32_t>(StorageType::XML)) ?
-                StorageType::XML : StorageType::CLKV;
+                StorageType::XML : StorageType::GSKV;
         }
         PRE_CHECK_RETURN_ERR_SET(status == napi_ok,
             std::make_shared<InnerError>("parse storage type: type of api failed"));
@@ -119,7 +119,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         int errCode = E_OK;
         Options options(context->path, context->bundleName, context->dataGroupId,
-            context->storageType == StorageType::CLKV);
+            context->storageType == StorageType::GSKV);
         context->proxy = PreferencesHelper::GetPreferences(options, errCode);
         return errCode;
     };
@@ -187,10 +187,10 @@ napi_value IsStorageTypeSupported(napi_env env, napi_callback_info info)
         PRE_NAPI_ASSERT_RETURN_VOID(env, napi_get_value_int32(env, argv[0], &intVal) == napi_ok,
             std::make_shared<ParamTypeError>("The storageType must be StorageType which is enum."));
         bool isTypeValid = (intVal == static_cast<int32_t>(StorageType::XML) ||
-            intVal == static_cast<int32_t>(StorageType::CLKV));
+            intVal == static_cast<int32_t>(StorageType::GSKV));
         PRE_NAPI_ASSERT_RETURN_VOID(env, isTypeValid, std::make_shared<ParamTypeError>("Storage type value invalid."));
         context->storageType = (intVal == static_cast<int32_t>(StorageType::XML)) ?
-                StorageType::XML : StorageType::CLKV;
+                StorageType::XML : StorageType::GSKV;
     };
 
     auto exec = [context]() -> int {
@@ -227,7 +227,7 @@ static napi_value ExportStorageType(napi_env env)
     napi_value storageType = nullptr;
     napi_create_object(env, &storageType);
     SetNamedProperty(env, storageType, "XML", static_cast<int32_t>(StorageType::XML));
-    SetNamedProperty(env, storageType, "CLKV", static_cast<int32_t>(StorageType::CLKV));
+    SetNamedProperty(env, storageType, "GSKV", static_cast<int32_t>(StorageType::GSKV));
     napi_object_freeze(env, storageType);
     return storageType;
 }

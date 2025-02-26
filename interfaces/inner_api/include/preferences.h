@@ -31,7 +31,7 @@ namespace NativePreferences {
 using RegisterMode = PreferencesObserver::RegisterMode;
 enum StorageType {
     XML = 0,
-    CLKV
+    GSKV
 };
 struct Options {
 public:

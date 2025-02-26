@@ -211,17 +211,17 @@ export default function stagePreferencesSyncJsTest() {
       try {
         // normal storage type
         console.info(TAG + "enum value of xml: ${data_preferences.StorageType.XML}");
-        console.info(TAG + "enum value of clkv: ${data_preferences.StorageType.CLKV}");
+        console.info(TAG + "enum value of GSKV: ${data_preferences.StorageType.GSKV}");
         expect(0).assertEqual(data_preferences.StorageType.XML);
-        expect(1).assertEqual(data_preferences.StorageType.CLKV);
+        expect(1).assertEqual(data_preferences.StorageType.GSKV);
 
         let isXmlSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.XML);
         console.info(TAG + "isXmlSupported: ${isXmlSupported}");
         expect(isXmlSupported).assertTrue()
 
-        let isClkvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.CLKV);
-        console.info(TAG + "isClkvSupported: ${isClkvSupported}");
-        expect(isClkvSupported).assertFalse()
+        let isGskvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
+        console.info(TAG + "isGskvSupported: ${isGskvSupported}");
+        expect(isGskvSupported).assertFalse()
 
         console.info("====>testPreferencesStorageType001 success: part1")
       } catch (err) {
@@ -320,14 +320,14 @@ export default function stagePreferencesSyncJsTest() {
         * @tc.desc test StorageType
         */
       it('testPreferencesStorageType005', 0, () => {
-        // open with xml type but clkv exists
+        // open with xml type but GSKV exists
         // it should return not supported
-        // firstly create clkv
-        let isEnhance = data_preferences.isStorageTypeSupported(data_preferences.StorageType.CLKV);
+        // firstly create GSKV
+        let isEnhance = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
         if (isEnhance) {
           const Options : data_preferences.Options = {
             name: "storage_005",
-            storageType: data_preferences.StorageType.CLKV
+            storageType: data_preferences.StorageType.GSKV
           };
           let sp = data_preferences.getPreferencesSync(context, Options);
           expect(sp != null).assertTrue();
@@ -354,7 +354,7 @@ export default function stagePreferencesSyncJsTest() {
         * @tc.desc test StorageType
         */
       it('testPreferencesStorageType006', 0, async () => {
-        // open with clkv type but xml exists
+        // open with GSKV type but xml exists
         // it should return not supported
         // firstly create xml
         const Options : data_preferences.Options = {
@@ -367,10 +367,10 @@ export default function stagePreferencesSyncJsTest() {
         data_preferences.removePreferencesFromCacheSync(context, Options);
         expect(isFileExists(context.preferencesDir + '/' + Options.name)).assertTrue();
 
-        // open with clkv
+        // open with GSKV
         const Options2 : data_preferences.Options = {
           name: "storage_006",
-          storageType: data_preferences.StorageType.CLKV
+          storageType: data_preferences.StorageType.GSKV
         }
         try {
           sp = data_preferences.getPreferencesSync(context, Options2);
@@ -386,14 +386,14 @@ export default function stagePreferencesSyncJsTest() {
         * @tc.desc test StorageType
         */
       it('testPreferencesStorageType007', 0, () => {
-        // open with clkv type and open again
-        // firstly create clkv
-        let isEnhance = data_preferences.isStorageTypeSupported(data_preferences.StorageType.CLKV);
+        // open with GSKV type and open again
+        // firstly create GSKV
+        let isEnhance = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
         if (isEnhance) {
           try {
             const Options : data_preferences.Options = {
               name: "storage_007",
-              storageType: data_preferences.StorageType.CLKV
+              storageType: data_preferences.StorageType.GSKV
             };
             let sp = data_preferences.getPreferencesSync(context, Options);
             expect(sp != null).assertTrue();

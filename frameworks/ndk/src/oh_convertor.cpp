@@ -43,8 +43,8 @@ int OHConvertor::NativeErrToNdk(int nativeCode)
 
 OHOS::NativePreferences::StorageType OHConvertor::NdkStorageTypeToNative(const Preferences_StorageType &type)
 {
-    if (type == Preferences_StorageType::PREFERENCES_STORAGE_CLKV) {
-        return OHOS::NativePreferences::StorageType::CLKV;
+    if (type == Preferences_StorageType::PREFERENCES_STORAGE_GSKV) {
+        return OHOS::NativePreferences::StorageType::GSKV;
     }
     return OHOS::NativePreferences::StorageType::XML;
 }

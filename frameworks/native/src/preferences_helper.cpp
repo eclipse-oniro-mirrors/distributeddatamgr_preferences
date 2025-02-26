@@ -133,7 +133,7 @@ int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhan
     std::shared_ptr<Preferences> &pref)
 {
     if (IsInTrustList(options.bundleName)) {
-        if (!IsFileExist(options.filePath) && IsStorageTypeSupported(StorageType::CLKV)) {
+        if (!IsFileExist(options.filePath) && IsStorageTypeSupported(StorageType::GSKV)) {
             pref = PreferencesEnhanceImpl::GetPreferences(options);
             isEnhancePreferences = true;
             return std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->Init();
@@ -145,19 +145,19 @@ int PreferencesHelper::GetPreferencesInner(const Options &options, bool &isEnhan
     if (!options.isEnhance) {
         // xml
         if (IsFileExist(options.filePath + ".db")) {
-            LOG_ERROR("CLKV exists, failed to get preferences by XML.");
+            LOG_ERROR("GSKV exists, failed to get preferences by XML.");
             return E_NOT_SUPPORTED;
         }
         pref = PreferencesImpl::GetPreferences(options);
         isEnhancePreferences = false;
         return std::static_pointer_cast<PreferencesImpl>(pref)->Init();
     }
-    // clkv
+    // GSKV
     if (IsFileExist(options.filePath)) {
-        LOG_ERROR("XML exists, failed to get preferences by CLKV.");
+        LOG_ERROR("XML exists, failed to get preferences by GSKV.");
         return E_NOT_SUPPORTED;
     }
-    if (!IsStorageTypeSupported(StorageType::CLKV)) {
+    if (!IsStorageTypeSupported(StorageType::GSKV)) {
         // log inside
         return E_NOT_SUPPORTED;
     }
@@ -316,11 +316,11 @@ bool PreferencesHelper::IsStorageTypeSupported(const StorageType &type)
     if (type == StorageType::XML) {
         return true;
     }
-    if (type == StorageType::CLKV) {
+    if (type == StorageType::GSKV) {
 #if !defined(CROSS_PLATFORM) && defined(ARKDATA_DATABASE_CORE_ENABLE)
         return true;
 #else
-        LOG_WARN("CLKV not support this platform.");
+        LOG_WARN("GSKV not support this platform.");
         return false;
 #endif
     }
