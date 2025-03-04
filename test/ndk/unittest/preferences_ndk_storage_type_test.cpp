@@ -87,7 +87,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_001, TestSize.Lev
     ASSERT_EQ(errCode, PREFERENCES_OK);
     ASSERT_EQ(isSupport, true);
 
-    errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_CLKV, &isSupport);
+    errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isSupport);
     ASSERT_EQ(errCode, PREFERENCES_OK);
     ASSERT_EQ(isSupport, false);
 
@@ -96,7 +96,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_001, TestSize.Lev
     ASSERT_EQ(errCode, PREFERENCES_ERROR_INVALID_PARAM);
 
     errCode = OH_Preferences_IsStorageTypeSupported(
-        static_cast<Preferences_StorageType>(Preferences_StorageType::PREFERENCES_STORAGE_CLKV + 1), &isSupport);
+        static_cast<Preferences_StorageType>(Preferences_StorageType::PREFERENCES_STORAGE_GSKV + 1), &isSupport);
     ASSERT_EQ(errCode, PREFERENCES_ERROR_INVALID_PARAM);
 }
 
@@ -110,7 +110,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_001, TestSize.Lev
 HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_002, TestSize.Level1)
 {
     // without setting storage type
-    // it should be xml when not in enhance by default, or clkv in enhance
+    // it should be xml when not in enhance by default, or GSKV in enhance
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     const char *fileName = "CStorageTypeTest002";
     ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
@@ -122,7 +122,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_002, TestSize.Lev
     EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
 
     bool isEnhance = false;
-    errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_CLKV, &isEnhance);
+    errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     ASSERT_EQ(errCode, PREFERENCES_OK);
     if (isEnhance) {
         ASSERT_EQ(IsFileExist(TEST_PATH + std::string(fileName) + ".db"), true);
@@ -175,15 +175,15 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_003, TestSize.Leve
 
 /**
  * @tc.name: NDKStorageTypeXMLTest_003
- * @tc.desc: test storage type when clkv exists and open with xml
+ * @tc.desc: test storage type when GSKV exists and open with xml
  * @tc.type: FUNC
  * @tc.require: NA
  * @tc.author: huangboxin
  */
 HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_004, TestSize.Level1)
 {
-    // clkv exists, open in xml mode, should return invalid_args
-    // create fake clkv firstly
+    // GSKV exists, open in xml mode, should return invalid_args
+    // create fake GSKV firstly
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     const char *fileName = "CStorageTypeTest004";
     ASSERT_EQ(OH_PreferencesOption_SetFileName(option, "CStorageTypeTest004.db"), PREFERENCES_OK);
@@ -207,25 +207,25 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_004, TestSize.Leve
 }
 
 /**
- * @tc.name: NDKStorageTypeCLKVTest_005
- * @tc.desc: test storage type when new with clkv
+ * @tc.name: NDKStorageTypeGSKVTest_005
+ * @tc.desc: test storage type when new with GSKV
  * @tc.type: FUNC
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_005, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_005, TestSize.Level1)
 {
-    // new with clkv mode
+    // new with GSKV mode
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     const char *fileName = "CStorageTypeTest005";
     ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
 
     bool isEnhance = false;
-    int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_CLKV, &isEnhance);
+    int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     ASSERT_EQ(errCode, PREFERENCES_OK);
 
     if (isEnhance) {
-        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_CLKV),
+        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
             PREFERENCES_OK);
         OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
         ASSERT_EQ(errCode, PREFERENCES_OK);
@@ -234,7 +234,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_005, TestSize.Lev
         ASSERT_EQ(IsFileExist(TEST_PATH + std::string(fileName) + ".db"), true);
         ASSERT_EQ(IsFileExist(TEST_PATH + std::string(fileName)), false);
     } else {
-        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_CLKV),
+        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
             PREFERENCES_OK);
         (void)OH_Preferences_Open(option, &errCode);
         ASSERT_EQ(errCode, PREFERENCES_ERROR_NOT_SUPPORTED);
@@ -247,15 +247,15 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_005, TestSize.Lev
 }
 
 /**
- * @tc.name: NDKStorageTypeCLKVTest_006
- * @tc.desc: test storage type when xml exists but open with clkv
+ * @tc.name: NDKStorageTypeGSKVTest_006
+ * @tc.desc: test storage type when xml exists but open with GSKV
  * @tc.type: FUNC
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_006, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_006, TestSize.Level1)
 {
-    // xml exists but open with clkv
+    // xml exists but open with GSKV
     // create xml firstly
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     const char *fileName = "CStorageTypeTest006";
@@ -270,17 +270,17 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_006, TestSize.Lev
     ASSERT_EQ(IsFileExist(TEST_PATH + std::string(fileName) + ".db"), false);
     ASSERT_EQ(IsFileExist(TEST_PATH + std::string(fileName)), true);
 
-    // open with clkv
+    // open with GSKV
     bool isEnhance = false;
-    errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_CLKV, &isEnhance);
+    errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     ASSERT_EQ(errCode, PREFERENCES_OK);
     if (isEnhance) {
-        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_CLKV),
+        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
             PREFERENCES_OK);
         pref = OH_Preferences_Open(option, &errCode);
         ASSERT_EQ(errCode, PREFERENCES_ERROR_NOT_SUPPORTED);
     } else {
-        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_CLKV),
+        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
             PREFERENCES_OK);
         pref = OH_Preferences_Open(option, &errCode);
         ASSERT_EQ(errCode, PREFERENCES_ERROR_NOT_SUPPORTED);
@@ -292,24 +292,24 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_006, TestSize.Lev
 }
 
 /**
- * @tc.name: NDKStorageTypeCLKVTest_007
- * @tc.desc: test storage type when clkv exists but open with clkv
+ * @tc.name: NDKStorageTypeGSKVTest_007
+ * @tc.desc: test storage type when GSKV exists but open with GSKV
  * @tc.type: FUNC
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_007, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_007, TestSize.Level1)
 {
-    // clkv exists, open in clkv mode
+    // GSKV exists, open in GSKV mode
     bool isEnhance = false;
-    int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_CLKV, &isEnhance);
+    int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     ASSERT_EQ(errCode, PREFERENCES_OK);
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     if (isEnhance) {
-        // create clkv firstly
+        // create GSKV firstly
         const char *fileName = "CStorageTypeTest007";
         ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
-        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_CLKV),
+        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
             PREFERENCES_OK);
         OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
         ASSERT_EQ(errCode, PREFERENCES_OK);
@@ -323,7 +323,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_007, TestSize.Lev
         ASSERT_EQ(errCode, PREFERENCES_OK);
         ASSERT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
     } else {
-        // create fake clkv firstly
+        // create fake GSKV firstly
         const char *fileName = "CStorageTypeTest007Fake.db";
         ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
         // xml by default when not enhance
@@ -335,7 +335,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeCLKVTest_007, TestSize.Lev
         ASSERT_EQ(IsFileExist(TEST_PATH + std::string(fileName)), true);
 
         // open again
-        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_CLKV),
+        ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
             PREFERENCES_OK);
         pref = OH_Preferences_Open(option, &errCode);
         ASSERT_EQ(errCode, PREFERENCES_ERROR_NOT_SUPPORTED);

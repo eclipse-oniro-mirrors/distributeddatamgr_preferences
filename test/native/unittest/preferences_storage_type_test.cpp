@@ -109,7 +109,7 @@ void PreferencesStorageTypeTest::TearDown(void)
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeBaseTest000, TestSize.Level0)
 {
     ASSERT_EQ(PreferencesHelper::IsStorageTypeSupported(StorageType::XML), true);
-    ASSERT_EQ(PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV), false);
+    ASSERT_EQ(PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV), false);
 }
 
 /**
@@ -144,12 +144,12 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeBaseTest002, TestSize.Level0)
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
     ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath), E_OK);
 
-    filePath = "/data/test/CLKV002";
+    filePath = "/data/test/GSKV002";
     Options option2 = Options(filePath, "", "", true);
     pref = PreferencesHelper::GetPreferences(option2, errCode);
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
-        printf("test with clkv\n");
+        printf("test with GSKV\n");
         ASSERT_EQ(errCode, E_OK);
         ASSERT_EQ(IsFileExist(filePath + ".db"), true);
         ASSERT_EQ(IsFileExist(filePath), false);
@@ -169,7 +169,7 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeBaseTest002, TestSize.Level0)
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeBaseTest004, TestSize.Level0)
 {
     printf("test with xml\n");
-    // xml exist and open with clkv mode
+    // xml exist and open with GSKV mode
     int errCode = E_OK;
     std::string filePath = "/data/test/XML004";
     Options option = Options(filePath, "", "", false);
@@ -188,11 +188,11 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeBaseTest004, TestSize.Level0)
     ASSERT_EQ(errCode, E_NOT_SUPPORTED);
     ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath), E_OK);
 
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
-        printf("test with clkv\n");
-        // clkv exist and open with xml mode
-        filePath = "/data/test/CLKV004";
+        printf("test with GSKV\n");
+        // GSKV exist and open with xml mode
+        filePath = "/data/test/GSKV004";
         option.filePath = filePath;
         option.isEnhance = true;
         pref = PreferencesHelper::GetPreferences(option, errCode);
@@ -228,9 +228,9 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest005, TestSize.Level0)
     ASSERT_EQ(pref->PutString("key", "value"), E_OK);
     ASSERT_EQ(pref->FlushSync(), E_OK);
     ASSERT_EQ(errCode, E_OK);
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
-        printf("test with clkv\n");
+        printf("test with GSKV\n");
         ASSERT_EQ(IsFileExist(filePath + ".db"), true);
         ASSERT_EQ(IsFileExist(filePath), false);
     } else {
@@ -283,9 +283,9 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest006, TestSize.Level0)
     ASSERT_EQ(pref->FlushSync(), E_OK);
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
     ASSERT_EQ(IsFileExist(filePath), true);
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
-        printf("test with clkv\n");
+        printf("test with GSKV\n");
         pref = PreferencesHelper::GetPreferences(option, errCode);
         ASSERT_EQ(errCode, E_OK);
         ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
@@ -312,7 +312,7 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest006, TestSize.Level0)
  */
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest007, TestSize.Level0)
 {
-    // create fake clkv firstly
+    // create fake GSKV firstly
     int errCode = E_OK;
     std::string filePath = "/data/test/XML007";
     Options option = Options(filePath + ".db", "", "");
@@ -323,7 +323,7 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest007, TestSize.Level0)
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
     ASSERT_EQ(IsFileExist(filePath + ".db"), true);
     ASSERT_EQ(IsFileExist(filePath), false);
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         // open with white list in xml mode
         // it should be xml
@@ -340,9 +340,9 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest007, TestSize.Level0)
     ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath), E_OK);
 
     if (isEnhance) {
-        // create clkv firstly
-        printf("test with clkv\n");
-        filePath = "/data/test/CLKV007";
+        // create GSKV firstly
+        printf("test with GSKV\n");
+        filePath = "/data/test/GSKV007";
         option.filePath = filePath;
         option.isEnhance = true;
         pref = PreferencesHelper::GetPreferences(option, errCode);
@@ -350,7 +350,7 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest007, TestSize.Level0)
         ASSERT_EQ(IsFileExist(filePath + ".db"), true);
         ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
 
-        // open in xml mode with white list, it should be clkv
+        // open in xml mode with white list, it should be GSKV
         option.bundleName = "abcuttestabc";
         option.isEnhance = false;
         pref = PreferencesHelper::GetPreferences(option, errCode);
@@ -370,7 +370,7 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest007, TestSize.Level0)
  */
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest008, TestSize.Level0)
 {
-    // create fake clkv firstly
+    // create fake GSKV firstly
     int errCode = E_OK;
     printf("test with xml\n");
     std::string filePath = "/data/test/XML008";
@@ -384,18 +384,18 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest008, TestSize.Level0)
     ASSERT_EQ(IsFileExist(filePath), false);
 
     // open with xml mode, not in white list
-    // clkv exists, should return E_NOT_SUPPORTED
+    // GSKV exists, should return E_NOT_SUPPORTED
     Options option = Options(filePath, "abc", "", false);
     pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_NOT_SUPPORTED);
     ASSERT_EQ(IsFileExist(filePath), false);
     ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath + ".db"), E_OK);
 
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
         // same case in enhance
-        printf("test with clkv\n");
-        filePath = "/data/test/CLKV008";
+        printf("test with GSKV\n");
+        filePath = "/data/test/GSKV008";
         option.filePath = filePath;
         option.isEnhance = true;
         pref = PreferencesHelper::GetPreferences(option, errCode);
@@ -412,13 +412,13 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest008, TestSize.Level0)
 
 /**
  * @tc.name: StorageTypeCombineTest009
- * @tc.desc: combine test, test clkv mode in different cases
+ * @tc.desc: combine test, test GSKV mode in different cases
  * @tc.type: FUNC
  * @tc.author: huangboxin
  */
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest009, TestSize.Level0)
 {
-    // new with clkv mode
+    // new with GSKV mode
     // white list
     int errCode = E_OK;
     std::string filePath = "/data/test/White009";
@@ -428,9 +428,9 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest009, TestSize.Level0)
     ASSERT_EQ(pref->PutString("key", "value"), E_OK);
     ASSERT_EQ(pref->FlushSync(), E_OK);
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
-        printf("test with clkv\n");
+        printf("test with GSKV\n");
         ASSERT_EQ(IsFileExist(filePath + ".db"), true);
         ASSERT_EQ(IsFileExist(filePath), false);
     } else {
@@ -439,7 +439,7 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest009, TestSize.Level0)
     }
     ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath), E_OK);
 
-    // new with clkv mode and not in white list
+    // new with GSKV mode and not in white list
     filePath = "/data/test/Normal009";
     option.filePath = filePath;
     option.bundleName = "abc";
@@ -458,13 +458,13 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest009, TestSize.Level0)
 
 /**
  * @tc.name: StorageTypeCombineTest010
- * @tc.desc: combine test, test clkv mode in different cases
+ * @tc.desc: combine test, test GSKV mode in different cases
  * @tc.type: FUNC
  * @tc.author: huangboxin
  */
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest010, TestSize.Level0)
 {
-    // xml exists when clkv mode
+    // xml exists when GSKV mode
     // create xml firstly
     int errCode = E_OK;
     std::string filePath = "/data/test/Test010";
@@ -495,14 +495,14 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest010, TestSize.Level0)
 
 /**
  * @tc.name: StorageTypeCombineTest011
- * @tc.desc: combine test, test clkv mode in different cases
+ * @tc.desc: combine test, test GSKV mode in different cases
  * @tc.type: FUNC
  * @tc.author: huangboxin
  */
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest011, TestSize.Level0)
 {
-    // clkv exists, open with clkv mode
-    // create fake clkv firstly
+    // GSKV exists, open with GSKV mode
+    // create fake GSKV firstly
     int errCode = E_OK;
     std::string filePath = "/data/test/Test011";
     std::string filePathFakeKV = "/data/test/Test011.db";
@@ -516,7 +516,7 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest011, TestSize.Level0)
     ASSERT_EQ(IsFileExist(filePathFakeKV), true);
 
     // open in white list when not enhance
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         option.bundleName = "uttest";
         option.isEnhance = true;
@@ -534,17 +534,17 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest011, TestSize.Level0)
 
 /**
  * @tc.name: StorageTypeCombineTest012
- * @tc.desc: combine test, test clkv mode in different cases
+ * @tc.desc: combine test, test GSKV mode in different cases
  * @tc.type: FUNC
  * @tc.author: huangboxin
  */
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest012, TestSize.Level0)
 {
-    // clkv exists, open with clkv mode
-    // it should be clkv enven not in white list
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    // GSKV exists, open with GSKV mode
+    // it should be GSKV enven not in white list
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
-        // create clkv firstly
+        // create GSKV firstly
         int errCode = E_OK;
         std::string filePath = "/data/test/Test012";
         Options option = Options(filePath, "", "", true);
@@ -572,13 +572,13 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeCombineTest012, TestSize.Level0)
 
 /**
  * @tc.name: StorageTypeApiTest013
- * @tc.desc: api test, test clkv mode in different cases
+ * @tc.desc: api test, test GSKV mode in different cases
  * @tc.type: FUNC
  * @tc.author: huangboxin
  */
 HWTEST_F(PreferencesStorageTypeTest, StorageTypeApiTest013, TestSize.Level0)
 {
-    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::CLKV);
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (isEnhance) {
         int errCode = E_OK;
         std::string filePath = "/data/test/Test013";

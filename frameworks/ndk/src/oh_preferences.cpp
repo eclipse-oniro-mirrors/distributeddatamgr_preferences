@@ -86,7 +86,7 @@ OH_Preferences *OH_Preferences_Open(OH_PreferencesOption *option, int *errCode)
 
     Preferences_StorageType type = option->GetStorageType();
     OHOS::NativePreferences::Options nativeOptions(filePath, option->GetBundleName(),
-        option->GetDataGroupId(), type == PREFERENCES_STORAGE_CLKV);
+        option->GetDataGroupId(), type == PREFERENCES_STORAGE_GSKV);
 
     int nativeErr = OHOS::NativePreferences::E_OK;
     std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences=
@@ -394,7 +394,7 @@ int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *cont
 int OH_Preferences_IsStorageTypeSupported(Preferences_StorageType type, bool *isSupported)
 {
     if (type < Preferences_StorageType::PREFERENCES_STORAGE_XML ||
-        type > Preferences_StorageType::PREFERENCES_STORAGE_CLKV || isSupported == nullptr) {
+        type > Preferences_StorageType::PREFERENCES_STORAGE_GSKV || isSupported == nullptr) {
         LOG_ERROR("param check failed, type: %{public}d, isSupported is null: %{public}d", static_cast<int>(type),
             isSupported == nullptr);
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
