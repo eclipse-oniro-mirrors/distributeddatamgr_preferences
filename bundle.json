@@ -60,7 +60,8 @@
                 "hitrace",
                 "ipc",
                 "bounds_checking_function",
-                "libxml2"
+                "libxml2",
+                "runtime_core"
             ]
         },
         "build": {
@@ -72,7 +73,8 @@
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/preferences:preferences",
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/sendable_preferences:sendablepreferences",
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/storage:storage",
-                "//foundation/distributeddatamgr/preferences/frameworks/js/napi/system_storage:storage_napi"
+                "//foundation/distributeddatamgr/preferences/frameworks/js/napi/system_storage:storage_napi",
+                "//foundation/distributeddatamgr/preferences/frameworks/js/ani:ani_preferences_package"
             ],
             "inner_kits": [
                 {
