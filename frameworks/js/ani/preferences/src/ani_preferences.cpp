@@ -46,7 +46,7 @@ static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
     return static_cast<ani_error>(errorObject);
 }
 
-void getContextPath(ani_env *env, ani_object context, std::string &dataGroupStr, std::string &contextPath)
+static bool GetContextPath(ani_env *env, ani_object context, std::string &dataGroupStr, std::string &contextPath)
 {
     OHOS::PreferencesJsKit::JSAbility::ContextInfo contextInfo;
     std::shared_ptr<OHOS::PreferencesJsKit::JSError> err = GetContextInfo(env, context, dataGroupStr, contextInfo);
@@ -54,71 +54,79 @@ void getContextPath(ani_env *env, ani_object context, std::string &dataGroupStr,
         LOG_ERROR("err is %{public}s.", err->GetMsg().c_str());
         ani_error aniErr = CreateAniError(env, err->GetMsg());
         env->ThrowError(aniErr);
+        return false;
     }
     LOG_INFO("preferencesDir is %{public}s.", contextInfo.preferencesDir.c_str());
     contextPath = contextInfo.preferencesDir;
-    return;
+    return true;
 }
 
-static int executeRemoveByName(ani_env *env, ani_object context, ani_string name)
+static std::shared_ptr<Options> GetOptions(ani_env *env, ani_object context, std::string &dataGroupStr,
+    std::string &nameStr)
+{
+    OHOS::PreferencesJsKit::JSAbility::ContextInfo contextInfo;
+    std::shared_ptr<OHOS::PreferencesJsKit::JSError> err = GetContextInfo(env, context, dataGroupStr, contextInfo);
+    if (err != nullptr) {
+        LOG_ERROR("err is %{public}s.", err->GetMsg().c_str());
+        ani_error aniErr = CreateAniError(env, err->GetMsg());
+        env->ThrowError(aniErr);
+        return nullptr;
+    }
+    LOG_INFO("preferencesDir is %{public}s.", contextInfo.preferencesDir.c_str());
+    std::string path = contextInfo.preferencesDir.append("/").append(nameStr);
+    LOG_INFO("path is %{public}s, bundleName is %{public}s.", path.c_str(), contextInfo.bundleName.c_str());
+    return std::make_shared<Options>(path, contextInfo.bundleName, dataGroupStr);
+}
+
+static int ExecuteRemoveByName(ani_env *env, ani_object context, ani_string name)
+{
+    std::string nameStr = AniStringToStdStr(env, name);
+    LOG_INFO("in ExecuteRemoveByName nameStr is: %{public}s .", nameStr.c_str());
+
+    std::string dataGroupStr = "";
+    std::string contextPath;
+    bool ret = GetContextPath(env, context, dataGroupStr, contextPath);
+    if (!ret) {
+        LOG_ERROR("GetContextPath failed.");
+        return E_ERROR;
+    }
+    LOG_INFO("in ExecuteRemoveByName contextPath is: %{public}s.", contextPath.c_str());
+    std::string path = contextPath.append("/").append(nameStr);
+    return PreferencesHelper::RemovePreferencesFromCache(path);
+}
+
+static int ExecuteRemoveByOpt(ani_env *env, ani_object context, ani_object opt)
 {
     int errCode = E_ERROR;
     ani_ref nameTmp;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "name", &nameTmp)) {
-        LOG_INFO("Object_GetFieldByName_Ref name Faild.");
-        nameTmp = static_cast<ani_ref>(name);
-    }
-    std::string nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
-    LOG_INFO("in executeRemoveByName nameStr is: %{public}s .", nameStr.c_str());
-
-    ani_ref dataGroupId;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
-        LOG_ERROR("Object_GetFieldByName_Ref dataGroupId Faild from context.");
+    if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "name", &nameTmp)) {
+        LOG_ERROR("Object_GetFieldByName_Ref name from opt Faild");
         return errCode;
     }
-    auto dataGroupStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
-    LOG_INFO("in executeRemoveByName dataGroupId is: %{public}s.", dataGroupStr.c_str());
 
-    std::string contextPath;
-    getContextPath(env, context, dataGroupStr, contextPath);
-    LOG_INFO("in executeRemoveByName contextPath is: %{public}s.", contextPath.c_str());
-    std::string path = contextPath.append("/").append(nameStr);
-    return PreferencesHelper::RemovePreferencesFromCache(path);
-}
-
-static int executeRemoveByOpt(ani_env *env, ani_object context, ani_object opt)
-{
-    int errCode = E_ERROR;
-    ani_ref nameTmp;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "name", &nameTmp)) {
-        LOG_INFO("Object_GetFieldByName_Ref name from context Faild.");
-        if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "name", &nameTmp)) {
-            LOG_ERROR("Object_GetFieldByName_Ref name from opt Faild.");
-            return errCode;
-        }
-    }
     auto nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
-    LOG_INFO("nameStr is %{public}s.", nameStr.c_str());
+    LOG_INFO("nameStr is : %{public}s.", nameStr.c_str());
 
+    std::string dataGroupIdStr;
     ani_ref dataGroupId;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
-        LOG_INFO("Object_GetFieldByName_Ref dataGroupId from context Faild.");
-        if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "dataGroupId", &dataGroupId)) {
-            LOG_ERROR("Object_GetFieldByName_Ref dataGroupId from opt Faild.");
-            return errCode;
-        }
+    if (env->Object_GetPropertyByName_Ref(opt, "dataGroupId", &dataGroupId) == ANI_OK) {
+        LOG_INFO("Object_GetFieldByName_Ref dataGroupId from opt succeed.");
+        dataGroupIdStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
     }
-    auto dataGroupStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
-    LOG_INFO("dataGroupId is %{public}s.", dataGroupStr.c_str());
+    LOG_INFO("dataGroupId is: %{public}s.", dataGroupIdStr.c_str());
 
     std::string contextPath;
-    getContextPath(env, context, dataGroupStr, contextPath);
-    LOG_INFO("in executeRemoveByOpt contextPath is: %{public}s.", contextPath.c_str());
+    bool ret = GetContextPath(env, context, dataGroupIdStr, contextPath);
+    if (!ret) {
+        LOG_ERROR("GetContextPath failed.");
+        return errCode;
+    }
+    LOG_INFO("in ExecuteRemoveByOpt contextPath is: %{public}s.", contextPath.c_str());
     std::string path = contextPath.append("/").append(nameStr);
     return PreferencesHelper::RemovePreferencesFromCache(path);
 }
 
-static ani_object createPreferencesObj(ani_env *env, Options &options)
+static ani_object CreatePreferencesObj(ani_env *env, Options &options)
 {
     int errCode = E_OK;
     std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(options, errCode);
@@ -155,93 +163,52 @@ static ani_object createPreferencesObj(ani_env *env, Options &options)
     return prefences_obj;
 }
 
-static ani_object executeGetByName(ani_env *env, ani_object context, ani_string name)
+static ani_object ExecuteGetByName(ani_env *env, ani_object context, ani_string name)
 {
-    LOG_INFO("in cpp executeGetByName");
-    ani_ref nameTmp;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "name", &nameTmp)) {
-        LOG_INFO("Object_GetFieldByName_Ref Faild");
-        nameTmp = static_cast<ani_ref>(name);
-    }
-    auto nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
-    LOG_INFO("nameStr is: %{public}s.", nameStr.c_str());
-
-    ani_ref dataGroupId;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
-        LOG_ERROR("Object_GetFieldByName_Ref Faild.");
+    LOG_INFO("in cpp ExecuteGetByName");
+    auto nameStr = AniStringToStdStr(env, name);
+    LOG_INFO("nameStr is : %{public}s.", nameStr.c_str());
+    std::string dataGroupStr = "";
+    auto optionsPtr = GetOptions(env, context, dataGroupStr, nameStr);
+    if (optionsPtr == nullptr) {
+        LOG_ERROR("GetOptions failed.");
         return nullptr;
     }
-    auto dataGroupIdStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
-    LOG_INFO("dataGroupId is: %{public}s.", dataGroupIdStr.c_str());
-
-    OHOS::PreferencesJsKit::JSAbility::ContextInfo contextInfo;
-    std::shared_ptr<OHOS::PreferencesJsKit::JSError> err = GetContextInfo(env, context, dataGroupIdStr, contextInfo);
-    if (err != nullptr) {
-        LOG_ERROR("err is %{public}s.", err->GetMsg().c_str());
-        ani_error aniErr = CreateAniError(env, err->GetMsg());
-        env->ThrowError(aniErr);
-    }
-    LOG_INFO("preferencesDir is %{public}s.", contextInfo.preferencesDir.c_str());
-    std::string path = contextInfo.preferencesDir.append("/").append(nameStr);
-    LOG_INFO("path is %{public}s, bundleName is %{public}s.", path.c_str(), contextInfo.bundleName.c_str());
-    Options options(path, contextInfo.bundleName, dataGroupIdStr);
-    return createPreferencesObj(env, options);
+    return CreatePreferencesObj(env, *optionsPtr);
 }
 
-static ani_object executeGetByOpt(ani_env *env, ani_object context, ani_object opt)
+static ani_object ExecuteGetByOpt(ani_env *env, ani_object context, ani_object opt)
 {
-    LOG_INFO("in cpp executeGetByOpt");
+    LOG_INFO("in cpp ExecuteGetByOpt");
     ani_ref nameTmp;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "name", &nameTmp)) {
-        LOG_INFO("Object_GetFieldByName_Ref name from context Faild");
-        if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "name", &nameTmp)) {
-            LOG_ERROR("Object_GetFieldByName_Ref name from opt Faild");
-            return nullptr;
-        }
+    if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "name", &nameTmp)) {
+        LOG_ERROR("Object_GetFieldByName_Ref name from opt Faild");
+        return nullptr;
     }
 
     auto nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
     LOG_INFO("nameStr is : %{public}s.", nameStr.c_str());
 
+    std::string dataGroupIdStr;
     ani_ref dataGroupId;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
-        LOG_INFO("Object_GetFieldByName_Ref dataGroupId from context Faild");
-        if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "dataGroupId", &dataGroupId)) {
-            LOG_ERROR("Object_GetFieldByName_Ref dataGroupId from opt Faild");
-            return nullptr;
-        }
+    if (env->Object_GetPropertyByName_Ref(opt, "dataGroupId", &dataGroupId) == ANI_OK) {
+        LOG_INFO("Object_GetFieldByName_Ref dataGroupId from opt succeed.");
+        dataGroupIdStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
     }
-    auto dataGroupIdStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
     LOG_INFO("dataGroupId is: %{public}s.", dataGroupIdStr.c_str());
 
-    OHOS::PreferencesJsKit::JSAbility::ContextInfo contextInfo;
-    std::shared_ptr<OHOS::PreferencesJsKit::JSError> err = GetContextInfo(env, context, dataGroupIdStr, contextInfo);
-    if (err != nullptr) {
-        LOG_ERROR("err is %{public}s.", err->GetMsg().c_str());
-        ani_error aniErr = CreateAniError(env, err->GetMsg());
-        env->ThrowError(aniErr);
-    }
-    LOG_INFO("preferencesDir is %{public}s.", contextInfo.preferencesDir.c_str());
-    std::string path = contextInfo.preferencesDir.append("/").append(nameStr);
-    LOG_INFO("path is %{public}s, bundleName is %{public}s.", path.c_str(), contextInfo.bundleName.c_str());
-    Options options(path, contextInfo.bundleName, dataGroupIdStr);
-    return createPreferencesObj(env, options);
-}
-
-static Preferences* unwrapp(ani_env *env, ani_object object)
-{
-    ani_long context;
-    if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativePtr", &context)) {
+    auto optionsPtr = GetOptions(env, context, dataGroupIdStr, nameStr);
+    if (optionsPtr == nullptr) {
+        LOG_ERROR("GetOptions failed.");
         return nullptr;
     }
-    LOG_INFO("nativePtr is %{public}lld.", static_cast<long long>(context));
-    return reinterpret_cast<Preferences *>(context);
+    return CreatePreferencesObj(env, *optionsPtr);
 }
 
 static int deleteSync(ani_env *env, ani_object obj, ani_string key)
 {
     int32_t errCode = E_ERROR;
-    auto preferences =  unwrapp(env, obj);
+    auto preferences = NativeObjectWrapper<Preferences>::Unwrap(env, obj);
     if (preferences != nullptr) {
         auto key_str = AniStringToStdStr(env, key);
         LOG_INFO("key_str is %{public}s.", key_str.c_str());
@@ -254,7 +221,7 @@ static int deleteSync(ani_env *env, ani_object obj, ani_string key)
 static bool hasSyncInner(ani_env *env, ani_object obj, ani_string key)
 {
     bool ret = false;
-    auto preferences =  unwrapp(env, obj);
+    auto preferences =  NativeObjectWrapper<Preferences>::Unwrap(env, obj);
     if (preferences != nullptr) {
         auto key_str = AniStringToStdStr(env, key);
         LOG_INFO("key_str is %{public}s.", key_str.c_str());
@@ -267,7 +234,7 @@ static bool hasSyncInner(ani_env *env, ani_object obj, ani_string key)
 static int flushSync(ani_env *env, ani_object obj)
 {
     int32_t errCode = E_OK;
-    auto preferences =  unwrapp(env, obj);
+    auto preferences =  NativeObjectWrapper<Preferences>::Unwrap(env, obj);
     if (preferences != nullptr) {
         LOG_INFO("before flush...");
         errCode = preferences->FlushSync();
@@ -414,10 +381,9 @@ static ani_object StringToObject(ani_env *env, std::string value)
     return static_cast<ani_object>(stringValue);
 }
 
-static ani_object BigIntToObject(ani_env *env, const BigInt value)
+static ani_object BigIntToObject(ani_env *env, int64_t value)
 {
     ani_object aniObject = nullptr;
-    ani_long longValue = static_cast<ani_long>(value.words_[0] * value.sign_);
     static const char *className = "Lescompat/BigInt;";
     ani_class aniClass;
     if (ANI_OK != env->FindClass(className, &aniClass)) {
@@ -426,12 +392,11 @@ static ani_object BigIntToObject(ani_env *env, const BigInt value)
     }
 
     ani_method personInfoCtor;
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "Lescompat/BigInt;:V", &personInfoCtor)) {
+    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "J:V", &personInfoCtor)) {
         LOG_ERROR("Class_GetMethod Failed '%{public}s' <ctor>.", className);
         return aniObject;
     }
-
-    if (ANI_OK != env->Object_New(aniClass, personInfoCtor, &aniObject, longValue)) {
+    if (ANI_OK != env->Object_New(aniClass, personInfoCtor, &aniObject, value)) {
         LOG_ERROR("Object_New Failed '%{public}s'.", className);
         return aniObject;
     }
@@ -580,7 +545,7 @@ static ani_object GetInner(ani_env *env, ani_object obj, ani_string key, ani_obj
 {
     LOG_INFO("in GetInner");
     ani_object aniObjectRet = nullptr;
-    auto preferences = unwrapp(env, obj);
+    auto preferences = NativeObjectWrapper<Preferences>::Unwrap(env, obj);
     if (preferences == nullptr) {
         LOG_ERROR("PutInner: unwrapp Preferences onject failed");
         return aniObjectRet;
@@ -599,7 +564,8 @@ static ani_object GetInner(ani_env *env, ani_object obj, ani_string key, ani_obj
         aniObjectRet = StringToObject(env, res);
     }
 
-    if (res.IsBigInt()) {
+    if (res.IsLong()) {
+        LOG_INFO("in GetInner for bigInt");
         aniObjectRet = BigIntToObject(env, res);
     }
 
@@ -629,7 +595,7 @@ static ani_object GetInner(ani_env *env, ani_object obj, ani_string key, ani_obj
 static int PutInner(ani_env *env, ani_object obj, ani_string key, ani_object unionValue)
 {
     int32_t errCode = E_ERROR;
-    auto preferences =  unwrapp(env, obj);
+    auto preferences =  NativeObjectWrapper<Preferences>::Unwrap(env, obj);
     if (preferences == nullptr) {
         LOG_ERROR("PutInner: unwrapp Preferences onject failed");
         return errCode;
@@ -659,10 +625,10 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     LOG_INFO("After find namespace ohos/data/preferences/preferences.");
 
     std::array methods = {
-        ani_native_function {"executeGetByOpt", nullptr, reinterpret_cast<void *>(executeGetByOpt)},
-        ani_native_function {"executeGetByName", nullptr, reinterpret_cast<void *>(executeGetByName)},
-        ani_native_function {"executeRemoveByName", nullptr, reinterpret_cast<void *>(executeRemoveByName)},
-        ani_native_function {"executeRemoveByOpt", nullptr, reinterpret_cast<void *>(executeRemoveByOpt)},
+        ani_native_function {"executeGetByOpt", nullptr, reinterpret_cast<void *>(ExecuteGetByOpt)},
+        ani_native_function {"executeGetByName", nullptr, reinterpret_cast<void *>(ExecuteGetByName)},
+        ani_native_function {"executeRemoveByName", nullptr, reinterpret_cast<void *>(ExecuteRemoveByName)},
+        ani_native_function {"executeRemoveByOpt", nullptr, reinterpret_cast<void *>(ExecuteRemoveByOpt)},
         ani_native_function {"flushSync", nullptr, reinterpret_cast<void *>(flushSync)},
         ani_native_function {"getInner", nullptr, reinterpret_cast<void *>(GetInner)},
         ani_native_function {"putInner", nullptr, reinterpret_cast<void *>(PutInner)},
