@@ -36,11 +36,11 @@ namespace StorageJsKit {
 struct StorageAysncContext : public BaseContext {
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
-    std::map<std::string, PreferencesValue> allElements;
+    std::unordered_map<std::string, PreferencesValue> allElements;
     bool hasKey;
     std::list<std::string> keysModified;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
-    
+
     StorageAysncContext() : hasKey(false)
     {
     }

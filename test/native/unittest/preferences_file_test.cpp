@@ -76,13 +76,9 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level1)
     std::remove(file.c_str());
     std::remove(backupFile.c_str());
 
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "intKey";
-    elem.tag_ = std::string("int");
-    elem.value_ = std::to_string(10);
-    settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(backupFile, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"intKey", 10});
+    PreferencesXmlUtils::WriteSettingXml(backupFile, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -270,19 +266,10 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
     pref->PutInt("intKey", 2);
 
     OHOS::NativePreferences::Mkdir(path);
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "intKey";
-    elem.tag_ = std::string("int");
-    elem.value_ = std::to_string(10);
-    Element elem1;
-    elem1.key_ = "intKey1";
-    elem1.tag_ = std::string("int");
-    elem1.value_ = std::to_string(10);
-    settings.push_back(elem);
-    settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
-
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"intKey", 10});
+    values.insert({"intKey1", 10});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
     ret = pref->GetInt("intKey", 0);
     EXPECT_EQ(ret, 2);
     ret = pref->GetInt("intKey1", 0);
@@ -314,32 +301,25 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
     pref->PutInt("intKey", 2);
 
     OHOS::NativePreferences::Mkdir(path);
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "intKey";
-    elem.tag_ = std::string("int");
-    elem.value_ = std::to_string(20);
-    Element elem1;
-    elem1.key_ = "intKey1";
-    elem1.tag_ = std::string("int");
-    elem1.value_ = std::to_string(20);
-    settings.push_back(elem);
-    settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    int value = 20;
+    values.insert({"intKey", value});
+    values.insert({"intKey1", value});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     pref->FlushSync();
 
-    std::vector<Element> settingsRes = {};
-    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", settingsRes);
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", allDatas);
     EXPECT_EQ(res, true);
-    EXPECT_EQ(settingsRes.empty(), false);
-    EXPECT_EQ(elem.key_, settingsRes[0].key_);
-    EXPECT_EQ(elem.tag_, settingsRes[0].tag_);
-    EXPECT_EQ(std::to_string(2), settingsRes[0].value_);
+    EXPECT_EQ(allDatas.empty(), false);
+    auto it = allDatas.find("intKey");
+    EXPECT_EQ(it != allDatas.end(), true);
+    EXPECT_EQ(2, int(it->second));
 
-    EXPECT_EQ(elem1.key_, settingsRes[1].key_);
-    EXPECT_EQ(elem1.tag_, settingsRes[1].tag_);
-    EXPECT_EQ(elem1.value_, settingsRes[1].value_);
+    it = allDatas.find("intKey1");
+    EXPECT_EQ(it != allDatas.end(), true);
+    EXPECT_EQ(PreferencesValue(value) == it->second, true);
 
     pref = nullptr;
     ret = PreferencesHelper::DeletePreferences(file);
@@ -363,18 +343,10 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_007, TestSize.Level1)
     EXPECT_EQ(errCode, E_OK);
     pref->PutInt("intKey", 7);
 
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "intKey";
-    elem.tag_ = std::string("int");
-    elem.value_ = std::to_string(70);
-    Element elem1;
-    elem1.key_ = "intKey1";
-    elem1.tag_ = std::string("int");
-    elem1.value_ = std::to_string(70);
-    settings.push_back(elem);
-    settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"intKey", 70});
+    values.insert({"intKey1", 70});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     ret = pref->GetInt("intKey", 0);
     EXPECT_EQ(ret, 7);
@@ -404,32 +376,25 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_008, TestSize.Level1)
     EXPECT_EQ(false, pref->HasKey("intKey1"));
     pref->PutInt("intKey", 8);
 
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "intKey";
-    elem.tag_ = std::string("int");
-    elem.value_ = std::to_string(80);
-    Element elem1;
-    elem1.key_ = "intKey1";
-    elem1.tag_ = std::string("int");
-    elem1.value_ = std::to_string(80);
-    settings.push_back(elem);
-    settings.push_back(elem1);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    int value = 80;
+    values.insert({"intKey", value});
+    values.insert({"intKey1", value});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     pref->FlushSync();
 
-    std::vector<Element> settingsRes = {};
-    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", settingsRes);
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", allDatas);
     EXPECT_EQ(res, true);
-    EXPECT_EQ(settingsRes.empty(), false);
-    EXPECT_EQ(elem.key_, settingsRes[0].key_);
-    EXPECT_EQ(elem.tag_, settingsRes[0].tag_);
-    EXPECT_EQ(std::to_string(8), settingsRes[0].value_);
+    EXPECT_EQ(allDatas.empty(), false);
+    auto it = allDatas.find("intKey");
+    EXPECT_EQ(it != allDatas.end(), true);
+    EXPECT_EQ(8, int(it->second));
 
-    EXPECT_EQ(elem1.key_, settingsRes[1].key_);
-    EXPECT_EQ(elem1.tag_, settingsRes[1].tag_);
-    EXPECT_EQ(elem1.value_, settingsRes[1].value_);
+    it = allDatas.find("intKey1");
+    EXPECT_EQ(it != allDatas.end(), true);
+    EXPECT_EQ(PreferencesValue(value) == it->second, true);
 
     pref = nullptr;
     ret = PreferencesHelper::DeletePreferences(file);
@@ -454,13 +419,13 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_009, TestSize.Level1)
 
     pref->FlushSync();
 
-    std::vector<Element> settingsRes = {};
-    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", settingsRes);
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool res = PreferencesXmlUtils::ReadSettingXml(file, "", allDatas);
     EXPECT_EQ(res, true);
-    EXPECT_EQ(settingsRes.empty(), false);
-    EXPECT_EQ("intKey", settingsRes[0].key_);
-    EXPECT_EQ(std::string("int"), settingsRes[0].tag_);
-    EXPECT_EQ(std::to_string(9), settingsRes[0].value_);
+    EXPECT_EQ(allDatas.empty(), false);
+    auto it = allDatas.find("intKey");
+    EXPECT_EQ(it != allDatas.end(), true);
+    EXPECT_EQ(9, int(it->second));
 
     pref = nullptr;
     ret = PreferencesHelper::DeletePreferences(file);

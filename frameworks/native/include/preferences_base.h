@@ -116,6 +116,8 @@ public:
 
     std::string GetBundleName() const override;
 
+    virtual std::unordered_map<std::string, PreferencesValue> GetAllDatas() override;
+
 protected:
     Uri MakeUri(const std::string &key = "");
     struct WeakPtrCompare {

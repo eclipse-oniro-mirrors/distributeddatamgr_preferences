@@ -20,12 +20,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <functional>
-#include <sstream>
 #include <thread>
 #include <chrono>
 #include <cinttypes>
 
-#include "base64_helper.h"
 #include "executor_pool.h"
 #include "log_print.h"
 #include "preferences_observer_stub.h"
@@ -43,91 +41,6 @@ using namespace std::chrono;
 constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
 constexpr int32_t LOAD_XML_LOG_TIME = 1000;
-
-template<typename T>
-std::string GetTypeName()
-{
-    return "unknown";
-}
-
-template<>
-std::string GetTypeName<int>()
-{
-    return "int";
-}
-
-template<>
-std::string GetTypeName<bool>()
-{
-    return "bool";
-}
-
-template<>
-std::string GetTypeName<int64_t>()
-{
-    return "long";
-}
-
-template<>
-std::string GetTypeName<uint64_t>()
-{
-    return "uint64_t";
-}
-
-template<>
-std::string GetTypeName<float>()
-{
-    return "float";
-}
-
-template<>
-std::string GetTypeName<double>()
-{
-    return "double";
-}
-
-template<>
-std::string GetTypeName<std::string>()
-{
-    return "string";
-}
-
-template<>
-std::string GetTypeName<std::vector<std::string>>()
-{
-    return "stringArray";
-}
-
-template<>
-std::string GetTypeName<std::vector<double>>()
-{
-    return "doubleArray";
-}
-
-template<>
-std::string GetTypeName<std::vector<bool>>()
-{
-    return "boolArray";
-}
-
-template<>
-std::string GetTypeName<std::vector<uint8_t>>()
-{
-    return "uint8Array";
-}
-
-template<>
-std::string GetTypeName<Object>()
-{
-    return "object";
-}
-
-template<>
-std::string GetTypeName<BigInt>()
-{
-    return "BigInt";
-}
-
 PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options)
 {
     loaded_.store(false);
@@ -135,6 +48,7 @@ PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(optio
     loadResult_= false;
     queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
     isActive_.store(true);
+    isCleared_.store(false);
 }
 
 PreferencesImpl::~PreferencesImpl()
@@ -173,11 +87,12 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
         if (Access(filePath) != 0) {
             pref->isNeverUnlock_ = true;
         }
-        ConcurrentMap<std::string, PreferencesValue> values;
+        std::unordered_map<std::string, PreferencesValue> values;
         bool loadResult = pref->ReadSettingXml(values);
         if (!loadResult) {
             LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
         } else {
+            std::unique_lock<decltype(pref->cacheMutex_)> lock(pref->cacheMutex_);
             pref->valuesCache_ = std::move(values);
             pref->loadResult_ = true;
             pref->isNeverUnlock_ = false;
@@ -193,7 +108,8 @@ bool PreferencesImpl::ReloadFromDisk()
         return false;
     }
 
-    ConcurrentMap<std::string, PreferencesValue> values = valuesCache_;
+    std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    std::unordered_map<std::string, PreferencesValue> values = valuesCache_;
     bool loadResult = ReadSettingXml(values);
     LOG_WARN("The settingXml %{public}s reload result is %{public}d",
         ExtractFileName(options_.filePath).c_str(), loadResult);
@@ -245,9 +161,12 @@ PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesV
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
 
-    auto it = valuesCache_.Find(key);
-    if (it.first) {
-        return it.second;
+    std::shared_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (!isCleared_.load()) {
+        auto iter = valuesCache_.find(key);
+        if (iter != valuesCache_.end()) {
+            return iter->second;
+        }
     }
     return defValue;
 }
@@ -256,92 +175,14 @@ std::map<std::string, PreferencesValue> PreferencesImpl::GetAll()
 {
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
-    return valuesCache_.Clone();
-}
-
-template<typename T>
-static void Convert2PrefValue(const Element &element, T &value)
-{
-    if constexpr (std::is_same<T, bool>::value) {
-        value = (element.value_.compare("true") == 0) ? true : false;
-    } else if constexpr (std::is_same<T, std::string>::value) {
-        value = element.value_;
-    } else if constexpr (std::is_same<T, std::monostate>::value) {
-        value = std::monostate();
-    } else {
-        std::stringstream ss;
-        ss << element.value_;
-        ss >> value;
+    std::map<std::string, PreferencesValue> allDatas;
+    std::shared_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (!isCleared_.load()) {
+        for (auto &it : valuesCache_) {
+            allDatas.insert_or_assign(it.first, it.second);
+        }
     }
-}
-
-template<typename T>
-static void Convert2PrefValue(const Element &element, std::vector<T> &values)
-{
-    for (const auto &child : element.children_) {
-        T value;
-        Convert2PrefValue(child, value);
-        values.push_back(value);
-    }
-}
-
-static void Convert2PrefValue(const Element &element, BigInt &value)
-{
-    for (const auto &child : element.children_) {
-        uint64_t val;
-        Convert2PrefValue(child, val);
-        value.words_.push_back(val);
-    }
-    value.sign_ = 0;
-    if (!value.words_.empty()) {
-        value.sign_ = static_cast<int>(value.words_[value.words_.size() - 1]);
-        value.words_.pop_back();
-    }
-}
-
-template<typename T>
-bool GetPrefValue(const Element &element, T &value)
-{
-    LOG_WARN("unknown element type. the key is %{public}s", Anonymous::ToBeAnonymous(element.key_).c_str());
-    return false;
-}
-
-static void Convert2PrefValue(const Element &element, std::vector<uint8_t> &value)
-{
-    if (!Base64Helper::Decode(element.value_, value)) {
-        value.clear();
-    }
-}
-
-static void Convert2PrefValue(const Element &element, Object &value)
-{
-    value.valueStr = element.value_;
-}
-
-template<typename T, typename First, typename... Types>
-bool GetPrefValue(const Element &element, T &value)
-{
-    if (element.tag_ == GetTypeName<First>()) {
-        First val;
-        Convert2PrefValue(element, val);
-        value = val;
-        return true;
-    }
-    return GetPrefValue<T, Types...>(element, value);
-}
-
-template<typename... Types>
-bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
-{
-    return GetPrefValue<decltype(value), Types...>(element, value);
-}
-
-void ReadXmlElement(const Element &element, ConcurrentMap<std::string, PreferencesValue> &prefConMap)
-{
-    PreferencesValue value(static_cast<int64_t>(0));
-    if (Convert2PrefValue(element, value.value_)) {
-        prefConMap.Insert(element.key_, value);
-    }
+    return allDatas;
 }
 
 static int64_t GetFileSize(const std::string &path)
@@ -354,11 +195,10 @@ static int64_t GetFileSize(const std::string &path)
     return fileSize;
 }
 
-bool PreferencesImpl::ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap)
+bool PreferencesImpl::ReadSettingXml(std::unordered_map<std::string, PreferencesValue> &conMap)
 {
-    std::vector<Element> settings;
     auto begin = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    if (!PreferencesXmlUtils::ReadSettingXml(options_.filePath, options_.bundleName, settings)) {
+    if (!PreferencesXmlUtils::ReadSettingXml(options_.filePath, options_.bundleName, conMap)) {
         return false;
     }
     auto end = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
@@ -366,88 +206,7 @@ bool PreferencesImpl::ReadSettingXml(ConcurrentMap<std::string, PreferencesValue
         LOG_ERROR("The settingXml %{public}s load time exceed 1s, file size:%{public}" PRId64 ".",
             ExtractFileName(options_.filePath).c_str(), GetFileSize(options_.filePath));
     }
-
-    for (const auto &element : settings) {
-        ReadXmlElement(element, conMap);
-    }
-
     return true;
-}
-
-template<typename T>
-void Convert2Element(Element &elem, const T &value)
-{
-    elem.tag_ = GetTypeName<T>();
-    if constexpr (std::is_same<T, bool>::value) {
-        elem.value_ = ((bool)value) ? "true" : "false";
-    } else if constexpr (std::is_same<T, std::string>::value) {
-        elem.value_ = value;
-    } else if constexpr (std::is_same<T, std::monostate>::value) {
-        elem.value_ = {};
-    } else {
-        elem.value_ = std::to_string(value);
-    }
-}
-
-template<typename T>
-void Convert2Element(Element &elem, const std::vector<T> &value)
-{
-    elem.tag_ = GetTypeName<std::vector<T>>();
-    for (const T &val : value) {
-        Element element;
-        Convert2Element(element, val);
-        elem.children_.push_back(element);
-    }
-}
-
-void Convert2Element(Element &elem, const std::vector<uint8_t> &value)
-{
-    elem.tag_ = GetTypeName<std::vector<uint8_t>>();
-    elem.value_ = Base64Helper::Encode(value);
-}
-
-void Convert2Element(Element &elem, const Object &value)
-{
-    elem.tag_ = GetTypeName<Object>();
-    elem.value_ = value.valueStr;
-}
-
-void Convert2Element(Element &elem, const BigInt &value)
-{
-    elem.tag_ = GetTypeName<BigInt>();
-    for (const auto &val : value.words_) {
-        Element element;
-        Convert2Element(element, val);
-        elem.children_.push_back(element);
-    }
-    // place symbol at the end
-    Element symbolElement;
-    Convert2Element(symbolElement, static_cast<uint64_t>(value.sign_));
-    elem.children_.push_back(symbolElement);
-}
-
-template<typename T> void GetElement(Element &elem, const T &value)
-{
-    LOG_WARN("unknown element type. the key is %{public}s", Anonymous::ToBeAnonymous(elem.key_).c_str());
-}
-
-template<typename T, typename First, typename... Types> void GetElement(Element &elem, const T &value)
-{
-    auto *val = std::get_if<First>(&value);
-    if (val != nullptr) {
-        return Convert2Element(elem, *val);
-    }
-    return GetElement<T, Types...>(elem, value);
-}
-
-template<typename... Types> void Convert2Element(Element &elem, const std::variant<Types...> &value)
-{
-    return GetElement<decltype(value), Types...>(elem, value);
-}
-
-void WriteXmlElement(Element &elem, const PreferencesValue &value)
-{
-    Convert2Element(elem, value.value_);
 }
 
 int PreferencesImpl::Close()
@@ -470,22 +229,6 @@ bool PreferencesImpl::IsClose(const std::string &name)
     return true;
 }
 
-bool PreferencesImpl::WriteSettingXml(
-    const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap)
-{
-    std::vector<Element> settings;
-    for (auto it = writeToDiskMap.begin(); it != writeToDiskMap.end(); it++) {
-        Element elem;
-        elem.key_ = it->first;
-        PreferencesValue value = it->second;
-        WriteXmlElement(elem, value);
-        settings.push_back(elem);
-    }
-
-    return PreferencesXmlUtils::WriteSettingXml(options.filePath, options.bundleName, settings);
-}
-
-
 bool PreferencesImpl::HasKey(const std::string &key)
 {
     if (CheckKey(key) != E_OK) {
@@ -494,7 +237,11 @@ bool PreferencesImpl::HasKey(const std::string &key)
 
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
-    return valuesCache_.Contains(key);
+    std::shared_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (isCleared_.load()) {
+        return false;
+    }
+    return valuesCache_.find(key) != valuesCache_.end();
 }
 
 int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
@@ -510,14 +257,26 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
 
-    valuesCache_.Compute(key, [this, &value](auto &key, PreferencesValue &val) {
-        if (val == value) {
-            return true;
+    std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (isCleared_.load()) { // has cleared.
+        for (auto &it : valuesCache_) {
+            modifiedKeys_.emplace(it.first);
         }
-        val = value;
-        modifiedKeys_.push_back(key);
-        return true;
-    });
+        valuesCache_.clear();
+        valuesCache_.insert_or_assign(key, value);
+        modifiedKeys_.emplace(key);
+        isCleared_.store(false);
+    } else {
+        auto iter = valuesCache_.find(key);
+        if (iter != valuesCache_.end()) {
+            PreferencesValue &val = iter->second;
+            if (val == value) {
+                return E_OK;
+            }
+        }
+        valuesCache_.insert_or_assign(key, value);
+        modifiedKeys_.emplace(key);
+    }
     return E_OK;
 }
 
@@ -529,10 +288,14 @@ int PreferencesImpl::Delete(const std::string &key)
     }
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
-    valuesCache_.EraseIf(key, [this](auto &key, PreferencesValue &val) {
-        modifiedKeys_.push_back(key);
-        return true;
-    });
+    std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (isCleared_.load()) {
+        return E_OK;
+    }
+    if (valuesCache_.find(key) != valuesCache_.end()) {
+        valuesCache_.erase(key);
+        modifiedKeys_.emplace(key);
+    }
     return E_OK;
 }
 
@@ -540,31 +303,33 @@ int PreferencesImpl::Clear()
 {
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
-    valuesCache_.EraseIf([this](auto &key, PreferencesValue &val) {
-        modifiedKeys_.push_back(key);
-        return true;
-    });
+    isCleared_.store(true);
     return E_OK;
 }
 
 int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
 {
-    std::list<std::string> keysModified;
-    std::map<std::string, PreferencesValue> writeToDiskMap;
-    pref->valuesCache_.DoActionWhenClone(
-        [pref, &writeToDiskMap, &keysModified](const std::map<std::string, PreferencesValue> &map) {
-        if (!pref->modifiedKeys_.empty()) {
-            keysModified = std::move(pref->modifiedKeys_);
+    auto keysModified = std::make_shared<std::unordered_set<std::string>>();
+    auto writeToDiskMap = std::make_shared<std::unordered_map<std::string, PreferencesValue>>();
+    {
+        std::unique_lock<decltype(pref->cacheMutex_)> lock(pref->cacheMutex_);
+        if (pref->isCleared_.load()) {
+            for (auto &it : pref->valuesCache_) {
+                pref->modifiedKeys_.emplace(it.first);
+            }
+            pref->valuesCache_.clear();
+            pref->isCleared_.store(false);
         }
-        writeToDiskMap = std::move(map);
-    });
-
-    // Cache has not changed, Not need to write persistent files.
-    if (keysModified.empty()) {
-        LOG_INFO("No data to update persistent file");
-        return E_OK;
+        if (!pref->modifiedKeys_.empty()) {
+            *keysModified = std::move(pref->modifiedKeys_);
+            *writeToDiskMap = pref->valuesCache_;
+        } else {
+            // Cache has not changed, Not need to write persistent files.
+            LOG_INFO("No data to update persistent file");
+            return E_OK;
+        }
     }
-    if (!pref->WriteSettingXml(pref->options_, writeToDiskMap)) {
+    if (!PreferencesXmlUtils::WriteSettingXml(pref->options_.filePath, pref->options_.bundleName, *writeToDiskMap)) {
         return E_ERROR;
     }
     if (pref->isNeverUnlock_) {
@@ -573,7 +338,8 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
     if (!pref->loadResult_) {
         pref->loadResult_ = true;
     }
-    pref->NotifyPreferencesObserver(keysModified, writeToDiskMap);
+
+    NotifyPreferencesObserver(pref, keysModified, writeToDiskMap);
     return E_OK;
 }
 
@@ -634,9 +400,12 @@ std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &ke
 
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
-    auto iter = valuesCache_.Find(key);
-    if (iter.first) {
-        return std::make_pair(E_OK, iter.second);
+    std::shared_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (!isCleared_.load()) {
+        auto iter = valuesCache_.find(key);
+        if (iter != valuesCache_.end()) {
+            return std::make_pair(E_OK, iter->second);
+        }
     }
     return std::make_pair(E_NO_DATA, defValue);
 }
@@ -645,56 +414,78 @@ std::pair<int, std::map<std::string, PreferencesValue>> PreferencesImpl::GetAllD
 {
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
-    return std::make_pair(E_OK, valuesCache_.Clone());
+    std::map<std::string, PreferencesValue> allDatas;
+    std::shared_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (!isCleared_.load()) {
+        for (auto &it : valuesCache_) {
+            allDatas.insert_or_assign(it.first, it.second);
+        }
+    }
+    return std::make_pair(E_OK, allDatas);
 }
 
-void PreferencesImpl::NotifyPreferencesObserver(const std::list<std::string> &keysModified,
-    const std::map<std::string, PreferencesValue> &writeToDiskMap)
+std::unordered_map<std::string, PreferencesValue> PreferencesImpl::GetAllDatas()
 {
-    if (keysModified.empty()) {
+    AwaitLoadFile();
+    IsClose(std::string(__FUNCTION__));
+    std::shared_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+    if (!isCleared_.load()) {
+        return valuesCache_;
+    }
+    return {};
+}
+
+void PreferencesImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl> pref,
+    std::shared_ptr<std::unordered_set<std::string>> keysModified,
+    std::shared_ptr<std::unordered_map<std::string, PreferencesValue>> writeToDisk)
+{
+    if (keysModified->empty()) {
         return;
     }
-    LOG_DEBUG("notify observer size:%{public}zu", dataObserversMap_.size());
-    std::shared_lock<std::shared_mutex> autoLock(obseverMetux_);
-    for (const auto &[weakPrt, keys] : dataObserversMap_) {
+    std::shared_lock<std::shared_mutex> autoLock(pref->obseverMetux_);
+    for (const auto &[weakPrt, keys] : pref->dataObserversMap_) {
         std::map<std::string, PreferencesValue> records;
-        for (auto key = keysModified.begin(); key != keysModified.end(); ++key) {
-            auto itKey = keys.find(*key);
+        for (auto &key : *keysModified) {
+            auto itKey = keys.find(key);
             if (itKey == keys.end()) {
                 continue;
             }
             PreferencesValue value;
-            auto dataIt = writeToDiskMap.find(*key);
-            if (dataIt != writeToDiskMap.end()) {
+            auto dataIt = writeToDisk->find(key);
+            if (dataIt != writeToDisk->end()) {
                 value = dataIt->second;
             }
-            records.insert({*key, value});
+            records.insert({key, value});
         }
         if (records.empty()) {
             continue;
         }
         if (std::shared_ptr<PreferencesObserver> sharedPtr = weakPrt.lock()) {
-            LOG_DEBUG("dataChange observer call, resultSize:%{public}zu", records.size());
             sharedPtr->OnChange(records);
         }
     }
 
-    auto dataObsMgrClient = DataObsMgrClient::GetInstance();
-    for (auto key = keysModified.begin(); key != keysModified.end(); ++key) {
-        for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
-            std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;
+    for (auto &it : pref->localObservers_) {
+        for (auto &key : *keysModified) {
+            std::weak_ptr<PreferencesObserver> weakPreferencesObserver = it;
             if (std::shared_ptr<PreferencesObserver> sharedPreferencesObserver = weakPreferencesObserver.lock()) {
-                sharedPreferencesObserver->OnChange(*key);
+                sharedPreferencesObserver->OnChange(key);
             }
         }
-
-        if (dataObsMgrClient == nullptr) {
-            continue;
-        }
-        LOG_INFO("The %{public}s is changed, the observer needs to be triggered.",
-            Anonymous::ToBeAnonymous(*key).c_str());
-        dataObsMgrClient->NotifyChange(MakeUri(*key));
     }
+
+    ExecutorPool::Task task = [pref, keysModified] {
+        auto dataObsMgrClient = DataObsMgrClient::GetInstance();
+        if (dataObsMgrClient == nullptr) {
+            return;
+        }
+        for (auto &key : *keysModified) {
+            LOG_INFO("The %{public}s is changed, the observer needs to be triggered.",
+                Anonymous::ToBeAnonymous(key).c_str());
+            dataObsMgrClient->NotifyChange(pref->MakeUri(key));
+        }
+    };
+    executorPool_.Execute(std::move(task));
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

@@ -57,13 +57,15 @@ public:
     std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
 
     std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
+
+    std::unordered_map<std::string, PreferencesValue> GetAllDatas() override;
 private:
     explicit PreferencesEnhanceImpl(const Options &options);
     static void NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref, const std::string &key,
         const PreferencesValue &value);
     static void NotifyPreferencesObserverBatchKeys(std::shared_ptr<PreferencesEnhanceImpl> pref,
-        const std::map<std::string, PreferencesValue> &data);
-    std::pair<int, std::map<std::string, PreferencesValue>> GetAllInner();
+        const std::unordered_map<std::string, PreferencesValue> &data);
+    std::pair<int, std::unordered_map<std::string, PreferencesValue>> GetAllInner();
 
     std::shared_mutex dbMutex_;
     std::shared_ptr<PreferencesDb> db_;

@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "preferences_value.h"
+
 namespace OHOS {
 namespace NativePreferences {
 class Element {
@@ -33,10 +35,9 @@ public:
 class PreferencesXmlUtils {
 public:
     static bool ReadSettingXml(const std::string &fileName, const std::string &bundleName,
-        std::vector<Element> &settings);
+        std::unordered_map<std::string, PreferencesValue> &conMap);
     static bool WriteSettingXml(const std::string &fileName, const std::string &bundleName,
-        const std::vector<Element> &settings);
-    static void LimitXmlPermission(const std::string &fileName);
+        const std::unordered_map<std::string, PreferencesValue> &writeToDiskMap);
 
 private:
     PreferencesXmlUtils()
