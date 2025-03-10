@@ -15,12 +15,12 @@
 
 #ifndef DISTRIBUTEDDATAMGR_APPDATAMGR_JS_ANI_ABILITY_H
 #define DISTRIBUTEDDATAMGR_APPDATAMGR_JS_ANI_ABILITY_H
+#include <ani.h>
 #include <iostream>
 #include <string>
 
 #include "ani_preferences_error.h"
 #include "ability.h"
-#include "ani_base_context.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {

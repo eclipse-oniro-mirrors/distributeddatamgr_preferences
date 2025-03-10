@@ -52,7 +52,8 @@ ohos_shared_library("ani_preferences") {
   deps = [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
 
   external_deps = [
-    "c_utils:utils",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:appkit_native",
     "hilog:libhilog",
     "runtime_core:ani",
   ]
@@ -62,6 +63,8 @@ generate_static_abc("preferences_abc") {
   arktsconfig = "./arktsconfig.json"
   dst_file = "$target_out_dir/preferences.abc"
   out_puts = [ "$target_out_dir/preferences.abc" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/preferences.abc"
 }
 
 ohos_prebuilt_etc("preferences_abc_etc") {
