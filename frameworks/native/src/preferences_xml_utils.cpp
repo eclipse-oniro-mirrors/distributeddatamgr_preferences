@@ -754,7 +754,7 @@ bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std
         WriteXmlElement(elem, value);
         if (!CreateElementNode(writerWrapper.get(), elem)) {
             LOG_ERROR("Failed to format xml data.");
-            return false;;
+            return false;
         }
     }
 
