@@ -20,12 +20,12 @@
 #include <condition_variable>
 #include <filesystem>
 #include <list>
-#include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <vector>
 #include <shared_mutex>
 #include "safe_block_queue.h"
-#include "concurrent_map.h"
 #include "preferences_base.h"
 
 namespace OHOS {
@@ -64,31 +64,37 @@ public:
     std::pair<int, PreferencesValue> GetValue(const std::string &key, const PreferencesValue &defValue) override;
 
     std::pair<int, std::map<std::string, PreferencesValue>> GetAllData() override;
+
+    std::unordered_map<std::string, PreferencesValue> GetAllDatas() override;
 private:
     explicit PreferencesImpl(const Options &options);
 
-    void NotifyPreferencesObserver(const std::list<std::string> &keysModified,
-        const std::map<std::string, PreferencesValue> &writeToDiskMap);
+    static void NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl> pref,
+        std::shared_ptr<std::unordered_set<std::string>> keysModified,
+        std::shared_ptr<std::unordered_map<std::string, PreferencesValue>> writeToDisk);
     bool StartLoadFromDisk();
     bool PreLoad();
 
     /* thread function */
     static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     bool ReloadFromDisk();
-    void AwaitLoadFile();
-    bool WriteSettingXml(const Options &options, const std::map<std::string, PreferencesValue> &writeToDiskMap);
+    inline void AwaitLoadFile();
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
-    bool ReadSettingXml(ConcurrentMap<std::string, PreferencesValue> &conMap);
+    bool ReadSettingXml(std::unordered_map<std::string, PreferencesValue> &conMap);
 
     std::atomic<bool> loaded_;
     bool isNeverUnlock_;
     bool loadResult_;
 
-    std::list<std::string> modifiedKeys_;
+    std::unordered_set<std::string> modifiedKeys_;
+
+    std::atomic<bool> isCleared_;
 
     std::atomic<bool> isActive_;
 
-    ConcurrentMap<std::string, PreferencesValue> valuesCache_;
+    std::shared_mutex cacheMutex_;
+
+    std::unordered_map<std::string, PreferencesValue> valuesCache_;
 
     std::shared_ptr<SafeBlockQueue<uint64_t>> queue_;
 };

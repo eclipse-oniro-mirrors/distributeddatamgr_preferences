@@ -16,7 +16,7 @@
 #ifndef PREFERENCES_H
 #define PREFERENCES_H
 
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -435,6 +435,18 @@ public:
     virtual std::string GetBundleName() const
     {
         return "";
+    }
+
+    /**
+     * @brief Obtains all the keys and values of a preferences.
+     *
+     * This function is used to get all keys and values in an object.
+     *
+     * @return Returns a unordered_map, the key is string type and the value is PreferencesValue type.
+     */
+    virtual std::unordered_map<std::string, PreferencesValue> GetAllDatas()
+    {
+        return {};
     }
 };
 } // End of namespace NativePreferences

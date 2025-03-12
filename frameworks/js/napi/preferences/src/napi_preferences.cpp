@@ -38,7 +38,7 @@ struct PreferencesAysncContext : public BaseContext {
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int64_t>(0));
     napi_ref inputValueRef = nullptr;
-    std::map<std::string, PreferencesValue> allElements;
+    std::unordered_map<std::string, PreferencesValue> allElements;
     bool hasKey = false;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
 
@@ -165,10 +165,21 @@ int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<Pr
 
 int GetAllExecute(napi_env env, std::shared_ptr<PreferencesAysncContext> context, napi_value &result)
 {
-    napi_create_object(env, &result);
-    for (const auto &[key, value] : context->allElements) {
-        napi_set_named_property(env, result, key.c_str(), JSUtils::Convert2JSValue(env, value.value_));
+    std::vector<napi_property_descriptor> descriptors;
+    descriptors.reserve(context->allElements.size());
+    for (const auto& [key, value] : context->allElements) {
+        descriptors.push_back({
+            key.c_str(),
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            JSUtils::Convert2JSValue(env, value.value_),
+            napi_enumerable,
+            nullptr
+        });
     }
+    napi_create_object_with_properties(env, &result, descriptors.size(), descriptors.data());
     return OK;
 }
 
@@ -186,7 +197,6 @@ std::pair<PreferencesProxy *, std::weak_ptr<Preferences>> PreferencesProxy::GetS
 
 napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("GetAll start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
@@ -200,7 +210,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
             LOG_ERROR("Failed to get instance when GetAll, The instance is nullptr.");
             return E_INNER_ERROR;
         }
-        context->allElements = instance->GetAll();
+        context->allElements = instance->GetAllDatas();
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) {
@@ -214,7 +224,6 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("GetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
@@ -235,7 +244,6 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
     };
     auto output = [context](napi_env env, napi_value &result) {
         if (context->defValue.IsLong()) {
-            LOG_DEBUG("GetValue get default value.");
             napi_get_reference_value(env, context->inputValueRef, &result);
         } else {
             result = JSUtils::Convert2JSValue(env, context->defValue.value_);
@@ -252,7 +260,6 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("SetValue start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
@@ -265,7 +272,7 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         auto instance = context->instance_.lock();
         if (instance == nullptr) {
-            LOG_ERROR("Failed to get instance when GetValue, The instance is nullptr.");
+            LOG_ERROR("Failed to get instance when SetValue, The instance is nullptr.");
             return E_INNER_ERROR;
         }
         return instance->Put(context->key, context->defValue);
@@ -274,7 +281,6 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
         napi_status status = napi_get_undefined(env, &result);
         PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
             std::make_shared<InnerError>("Failed to get undefined when setting value."));
-        LOG_DEBUG("SetValue end.");
     };
     context->SetAction(env, info, input, exec, output);
 
@@ -284,7 +290,6 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("Delete start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
@@ -295,17 +300,16 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         auto instance = context->instance_.lock();
-        if (instance == nullptr) {
-            LOG_ERROR("Failed to get instance when GetValue, The instance is nullptr.");
-            return E_INNER_ERROR;
+        if (instance != nullptr) {
+            return instance->Delete(context->key);
         }
-        return instance->Delete(context->key);
+        LOG_ERROR("Failed to get instance when Delete, The instance is nullptr.");
+        return E_INNER_ERROR;
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
         PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
             std::make_shared<InnerError>("Failed to get undefined when deleting value."));
-        LOG_DEBUG("Delete end.");
     };
     context->SetAction(env, info, input, exec, output);
 
@@ -315,7 +319,6 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("HasKey start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
@@ -327,7 +330,7 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         auto instance = context->instance_.lock();
         if (instance == nullptr) {
-            LOG_ERROR("Failed to get instance when GetValue, The instance is nullptr.");
+            LOG_ERROR("Failed to get instance when HasKey, The instance is nullptr.");
             return E_INNER_ERROR;
         }
         context->hasKey = instance->HasKey(context->key);
@@ -337,7 +340,6 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
         napi_status status = napi_get_boolean(env, context->hasKey, &result);
         PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
             std::make_shared<InnerError>("Failed to get boolean when having key."));
-        LOG_DEBUG("HasKey end.");
     };
     context->SetAction(env, info, input, exec, output);
 
@@ -347,7 +349,6 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("Flush start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
@@ -358,7 +359,7 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         auto instance = context->instance_.lock();
         if (instance == nullptr) {
-            LOG_ERROR("Failed to get instance when GetValue, The instance is nullptr.");
+            LOG_ERROR("Failed to get instance when Flush, The instance is nullptr.");
             return E_INNER_ERROR;
         }
         return instance->FlushSync();
@@ -367,7 +368,6 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
         napi_status status = napi_get_undefined(env, &result);
         PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
             std::make_shared<InnerError>("Failed to get undefined when flushing."));
-        LOG_DEBUG("Flush end.");
     };
     context->SetAction(env, info, input, exec, output);
 
@@ -377,7 +377,6 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("Clear start");
     auto context = std::make_shared<PreferencesAysncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
@@ -387,17 +386,16 @@ napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
     };
     auto exec = [context]() -> int {
         auto instance = context->instance_.lock();
-        if (instance == nullptr) {
-            LOG_ERROR("Failed to get instance when GetValue, The instance is nullptr.");
-            return E_INNER_ERROR;
+        if (instance != nullptr) {
+            return instance->Clear();
         }
-        return instance->Clear();
+        LOG_ERROR("Failed to get instance when Clear, The instance is nullptr.");
+        return E_INNER_ERROR;
     };
     auto output = [context](napi_env env, napi_value &result) {
         napi_status status = napi_get_undefined(env, &result);
         PRE_CHECK_RETURN_VOID_SET(status == napi_ok,
             std::make_shared<InnerError>("Failed to get undefined when clearing."));
-        LOG_DEBUG("Clear end.");
     };
     context->SetAction(env, info, input, exec, output);
 

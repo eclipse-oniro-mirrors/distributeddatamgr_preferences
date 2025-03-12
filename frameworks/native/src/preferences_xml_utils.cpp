@@ -14,13 +14,15 @@
  */
 
 #include "preferences_xml_utils.h"
-
+#include "base64_helper.h"
 #include <sys/stat.h>
 
 #include <cerrno>
 #include <cstring>
+#include <sstream>
 
 #include "libxml/parser.h"
+#include <libxml/xmlwriter.h>
 #include "log_print.h"
 #include "preferences_dfx_adapter.h"
 #include "preferences_file_lock.h"
@@ -29,6 +31,7 @@
 
 namespace OHOS {
 namespace NativePreferences {
+constexpr int PRE_ALLOCATE_BUFFER_SIZE = 64;
 constexpr int NO_SPACE_LEFT_ON_DEVICE = 28;
 constexpr int DISK_QUOTA_EXCEEDED = 122;
 constexpr int REQUIRED_KEY_NOT_AVAILABLE = 126;
@@ -37,10 +40,300 @@ static bool ParseNodeElement(const xmlNode *node, Element &element);
 static bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element);
 static bool ParseStringNodeElement(const xmlNode *node, Element &element);
 static bool ParseArrayNodeElement(const xmlNode *node, Element &element);
-static xmlNode *CreateElementNode(Element &element);
-static xmlNode *CreatePrimitiveNode(Element &element);
-static xmlNode *CreateStringNode(Element &element);
-static xmlNode *CreateArrayNode(Element &element);
+static bool CreateElementNode(xmlTextWriterPtr writer, Element &element);
+static bool CreatePrimitiveNode(xmlTextWriterPtr writer, Element &element);
+static bool CreateStringNode(xmlTextWriterPtr writer, Element &element);
+static bool CreateArrayNode(xmlTextWriterPtr writer, Element &element);
+
+class XmlWriterWrapper {
+public:
+    explicit XmlWriterWrapper(xmlTextWriterPtr writer) : writer_(writer) {}
+    ~XmlWriterWrapper()
+    {
+        if (writer_) {
+            xmlFreeTextWriter(writer_);
+        }
+    }
+
+    xmlTextWriterPtr get() const
+    {
+        return writer_;
+    }
+private:
+    xmlTextWriterPtr writer_;
+};
+
+class XmlBufferWrapper {
+public:
+    explicit XmlBufferWrapper(xmlBufferPtr buffer) : buffer_(buffer) {}
+    ~XmlBufferWrapper()
+    {
+        if (buffer_) {
+            xmlBufferFree(buffer_);
+        }
+    }
+
+    xmlBufferPtr get() const
+    {
+        return buffer_;
+    }
+private:
+    xmlBufferPtr buffer_;
+};
+
+#define XML_CHECK(expr, msg)                                                                        \
+    do {                                                                                            \
+        if (!(expr)) {                                                                              \
+            xmlErrorPtr xmlErr = xmlGetLastError();                                                 \
+            LOG_ERROR("%{public}s. Error: %{public}s", msg, xmlErr ? xmlErr->message : "Unknown");  \
+            return false;                                                                           \
+        }                                                                                           \
+    } while (0)
+
+template<typename T>
+std::string GetTypeName()
+{
+    return "unknown";
+}
+
+template<>
+std::string GetTypeName<int>()
+{
+    return "int";
+}
+
+template<>
+std::string GetTypeName<bool>()
+{
+    return "bool";
+}
+
+template<>
+std::string GetTypeName<int64_t>()
+{
+    return "long";
+}
+
+template<>
+std::string GetTypeName<uint64_t>()
+{
+    return "uint64_t";
+}
+
+template<>
+std::string GetTypeName<float>()
+{
+    return "float";
+}
+
+template<>
+std::string GetTypeName<double>()
+{
+    return "double";
+}
+
+template<>
+std::string GetTypeName<std::string>()
+{
+    return "string";
+}
+
+template<>
+std::string GetTypeName<std::vector<std::string>>()
+{
+    return "stringArray";
+}
+
+template<>
+std::string GetTypeName<std::vector<double>>()
+{
+    return "doubleArray";
+}
+
+template<>
+std::string GetTypeName<std::vector<bool>>()
+{
+    return "boolArray";
+}
+
+template<>
+std::string GetTypeName<std::vector<uint8_t>>()
+{
+    return "uint8Array";
+}
+
+template<>
+std::string GetTypeName<Object>()
+{
+    return "object";
+}
+
+template<>
+std::string GetTypeName<BigInt>()
+{
+    return "BigInt";
+}
+
+template<typename T>
+void Convert2Element(Element &elem, const T &value)
+{
+    elem.tag_ = GetTypeName<T>();
+    if constexpr (std::is_same<T, std::string>::value) {
+        elem.value_ = value;
+    } else if constexpr (std::is_same<T, bool>::value) {
+        elem.value_ = ((bool)value) ? "true" : "false";
+    } else if constexpr (std::is_same<T, std::monostate>::value) {
+        elem.value_ = {};
+    } else {
+        elem.value_ = std::to_string(value);
+    }
+}
+
+template<typename T>
+void Convert2Element(Element &elem, const std::vector<T> &value)
+{
+    elem.tag_ = GetTypeName<std::vector<T>>();
+    for (const T &val : value) {
+        Element element;
+        Convert2Element(element, val);
+        elem.children_.emplace_back(element);
+    }
+}
+
+void Convert2Element(Element &elem, const std::vector<uint8_t> &value)
+{
+    elem.tag_ = GetTypeName<std::vector<uint8_t>>();
+    elem.value_ = Base64Helper::Encode(value);
+}
+
+void Convert2Element(Element &elem, const Object &value)
+{
+    elem.tag_ = GetTypeName<Object>();
+    elem.value_ = value.valueStr;
+}
+
+void Convert2Element(Element &elem, const BigInt &value)
+{
+    elem.tag_ = GetTypeName<BigInt>();
+    for (const auto &val : value.words_) {
+        Element element;
+        Convert2Element(element, val);
+        elem.children_.emplace_back(element);
+    }
+    // place symbol at the end
+    Element symbolElement;
+    Convert2Element(symbolElement, static_cast<uint64_t>(value.sign_));
+    elem.children_.emplace_back(symbolElement);
+}
+
+template<typename T> void GetElement(Element &elem, const T &value)
+{
+    LOG_WARN("unknown element type. the key is %{public}s", Anonymous::ToBeAnonymous(elem.key_).c_str());
+}
+
+template<typename T, typename First, typename... Types> void GetElement(Element &elem, const T &value)
+{
+    auto *val = std::get_if<First>(&value);
+    if (val != nullptr) {
+        return Convert2Element(elem, *val);
+    }
+    return GetElement<T, Types...>(elem, value);
+}
+
+template<typename... Types> void Convert2Element(Element &elem, const std::variant<Types...> &value)
+{
+    return GetElement<decltype(value), Types...>(elem, value);
+}
+
+void WriteXmlElement(Element &elem, const PreferencesValue &value)
+{
+    Convert2Element(elem, value.value_);
+}
+
+template<typename T>
+static void Convert2PrefValue(const Element &element, T &value)
+{
+    if constexpr (std::is_same<T, std::string>::value) {
+        value = element.value_;
+    } else if constexpr (std::is_same<T, bool>::value) {
+        value = (element.value_.compare("true") == 0) ? true : false;
+    } else if constexpr (std::is_same<T, std::monostate>::value) {
+        value = std::monostate();
+    } else {
+        std::stringstream ss;
+        ss << element.value_;
+        ss >> value;
+    }
+}
+
+template<typename T>
+static void Convert2PrefValue(const Element &element, std::vector<T> &values)
+{
+    for (const auto &child : element.children_) {
+        T value;
+        Convert2PrefValue(child, value);
+        values.push_back(value);
+    }
+}
+
+static void Convert2PrefValue(const Element &element, BigInt &value)
+{
+    for (const auto &child : element.children_) {
+        uint64_t val;
+        Convert2PrefValue(child, val);
+        value.words_.push_back(val);
+    }
+    value.sign_ = 0;
+    if (!value.words_.empty()) {
+        value.sign_ = static_cast<int>(value.words_[value.words_.size() - 1]);
+        value.words_.pop_back();
+    }
+}
+
+template<typename T>
+bool GetPrefValue(const Element &element, T &value)
+{
+    LOG_WARN("unknown element type. the key is %{public}s", Anonymous::ToBeAnonymous(element.key_).c_str());
+    return false;
+}
+
+static void Convert2PrefValue(const Element &element, std::vector<uint8_t> &value)
+{
+    if (!Base64Helper::Decode(element.value_, value)) {
+        value.clear();
+    }
+}
+
+static void Convert2PrefValue(const Element &element, Object &value)
+{
+    value.valueStr = element.value_;
+}
+
+template<typename T, typename First, typename... Types>
+bool GetPrefValue(const Element &element, T &value)
+{
+    if (element.tag_ == GetTypeName<First>()) {
+        First val;
+        Convert2PrefValue(element, val);
+        value = val;
+        return true;
+    }
+    return GetPrefValue<T, Types...>(element, value);
+}
+
+template<typename... Types>
+bool Convert2PrefValue(const Element &element, std::variant<Types...> &value)
+{
+    return GetPrefValue<decltype(value), Types...>(element, value);
+}
+
+void ReadXmlElement(const Element &element, std::unordered_map<std::string, PreferencesValue> &prefConMap)
+{
+    PreferencesValue value(static_cast<int64_t>(0));
+    if (Convert2PrefValue(element, value.value_)) {
+        prefConMap.insert({element.key_, value});
+    }
+}
 
 static bool IsFileExist(const std::string &inputPath)
 {
@@ -214,7 +507,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
 
 /* static */
 bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, const std::string &bundleName,
-    std::vector<Element> &settings)
+    std::unordered_map<std::string, PreferencesValue> &conMap)
 {
     if (fileName.size() == 0) {
         LOG_ERROR("The length of the file name is 0.");
@@ -238,7 +531,7 @@ bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, const std:
         Element element;
 
         if (ParseNodeElement(cur, element)) {
-            settings.push_back(element);
+            ReadXmlElement(element, conMap);
         } else {
             success = false;
             LOG_ERROR("The error occurred during getting xml child elements.");
@@ -251,6 +544,12 @@ bool PreferencesXmlUtils::ReadSettingXml(const std::string &fileName, const std:
 /* static */
 bool ParseNodeElement(const xmlNode *node, Element &element)
 {
+    if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("string"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("uint8Array"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("object"))) {
+        return ParseStringNodeElement(node, element);
+    }
+
     if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("int"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("long"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("bool"))
@@ -258,12 +557,6 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("double"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("uint64_t"))) {
         return ParsePrimitiveNodeElement(node, element);
-    }
-
-    if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("string"))
-        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("uint8Array"))
-        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("object"))) {
-        return ParseStringNodeElement(node, element);
     }
 
     if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("boolArray"))
@@ -366,226 +659,192 @@ bool ParseArrayNodeElement(const xmlNode *node, Element &element)
     return success;
 }
 
-static std::pair<bool, int> SaveFormatFileEnc(const std::string &fileName, xmlDoc *doc)
+static void ReportSaveFileFault(const std::string fileName, const std::string &bundleName,
+    bool &isReport, bool isMultiProcessing)
 {
-    return {xmlSaveFormatFileEnc(fileName.c_str(), doc, "UTF-8", 1) > 0, errno};
+    int errCode = errno;
+    bool isExist = false;
+    xmlErrorPtr xmlErr = xmlGetLastError();
+    std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
+    LOG_ERROR("Failed to save file: %{public}s, errno is %{public}d, error is %{public}s.",
+        ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
+    if (IsFileExist(fileName)) {
+        RenameToBrokenFile(fileName);
+        isReport = true;
+    }
+    RenameFromBackupFile(fileName, bundleName, isReport, isExist);
+    if (ReportNonCorruptError("write failed", fileName, bundleName, errCode)) {
+        return;
+    }
+    if (isMultiProcessing) {
+        ReportFaultParam param = { "write failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
+            E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
+        PreferencesDfxManager::ReportFault(param);
+        return;
+    }
+    if (isReport) {
+        ReportFaultParam param = { "write failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
+            E_ERROR, "write failed, " + errMessage};
+        isExist ? ReportXmlFileCorrupted(fileName, bundleName, errMessage, errCode) :
+            PreferencesDfxManager::ReportFault(param);
+    }
 }
 
-bool XmlSaveFormatFileEnc(const std::string &fileName, const std::string &bundleName, xmlDoc *doc)
+static bool SaveXmlFile(const std::string &fileName, const std::string &bundleName, xmlBufferPtr buf)
 {
-    PreferencesFileLock fileLock(fileName);
+    bool isReport = false;
     bool isMultiProcessing = false;
+    PreferencesFileLock fileLock(fileName);
     fileLock.WriteLock(isMultiProcessing);
-    LOG_INFO("save xml file:%{public}s, muti processing status is %{public}d.", ExtractFileName(fileName).c_str(),
-        isMultiProcessing);
+    LOG_INFO("save xml file:%{public}s, process is %{public}d.", ExtractFileName(fileName).c_str(), isMultiProcessing);
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
-
-    auto [ret, errCode] = SaveFormatFileEnc(fileName, doc);
-    if (!ret) {
-        bool isReport = false;
-        xmlErrorPtr xmlErr = xmlGetLastError();
-        std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-        LOG_ERROR("failed to save XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
-            ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
-        if (ReportNonCorruptError("write failed", fileName, bundleName, errCode)) {
-            return false;
-        }
-        if (IsFileExist(fileName)) {
-            RenameToBrokenFile(fileName);
-            isReport = true;
-        }
-        bool isExist = true;
-        RenameFromBackupFile(fileName, bundleName, isReport, isExist);
-        if (isMultiProcessing) {
-            ReportFaultParam param = { "write failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
-                E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
-            PreferencesDfxManager::ReportFault(param);
-            return false;
-        }
-        if (isReport) {
-            ReportFaultParam param = { "write failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
-                E_ERROR, "write failed, " + errMessage};
-            isExist ? ReportXmlFileCorrupted(fileName, bundleName, errMessage, errCode) :
-                PreferencesDfxManager::ReportFault(param);
-        }
+    int fd = Open(fileName.c_str());
+    if (fd == -1) {
+        LOG_ERROR("failed open xml file:%{public}s", ExtractFileName(fileName).c_str());
+        ReportSaveFileFault(fileName, bundleName, isReport, isMultiProcessing);
         return false;
     }
-
-    // make sure the file is written to disk.
-    if (!Fsync(fileName)) {
-        LOG_WARN("failed to write the file to the disk.");
+    if (Write(fd, buf->content, buf->use) < 0) {
+        LOG_ERROR("Failed to write file: %{public}s", ExtractFileName(fileName).c_str());
+        ReportSaveFileFault(fileName, bundleName, isReport, isMultiProcessing);
+        Close(fd);
+        return false;
     }
-
+    if (!Fsync(fd)) {
+        LOG_WARN("Failed to write the file to the disk.");
+    }
+    Close(fd);
     RemoveBackupFile(fileName);
-    PreferencesXmlUtils::LimitXmlPermission(fileName);
-    LOG_DEBUG("successfully saved the XML format file");
     return true;
 }
 
 /* static */
 bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std::string &bundleName,
-    const std::vector<Element> &settings)
+    const std::unordered_map<std::string, PreferencesValue> &writeToDiskMap)
 {
-    if (fileName.size() == 0) {
+    if (fileName.empty()) {
         LOG_ERROR("The length of the file name is 0.");
         return false;
     }
 
-    // define doc and root Node
-    auto doc = std::shared_ptr<xmlDoc>(xmlNewDoc(BAD_CAST "1.0"), [](xmlDoc *doc) { xmlFreeDoc(doc); });
-    if (doc == nullptr) {
-        LOG_ERROR("Failed to initialize the xmlDoc.");
+    XmlBufferWrapper bufferWrapper(xmlBufferCreateSize(writeToDiskMap.size() * PRE_ALLOCATE_BUFFER_SIZE));
+    if (!bufferWrapper.get()) {
+        LOG_ERROR("Failed to create XML buffer");
         return false;
     }
-    xmlNode *rootNode = xmlNewNode(NULL, BAD_CAST "preferences");
-    if (rootNode == nullptr) {
-        LOG_ERROR("The xmlDoc failed to initialize the root node.");
+    XmlWriterWrapper writerWrapper(xmlNewTextWriterMemory(bufferWrapper.get(), 0));
+    if (!writerWrapper.get()) {
+        LOG_ERROR("Failed to create XML writer");
         return false;
     }
-    xmlNewProp(rootNode, BAD_CAST "version", BAD_CAST "1.0");
 
-    // set root node
-    xmlDocSetRootElement(doc.get(), rootNode);
+    xmlTextWriterSetIndent(writerWrapper.get(), 0);
+    XML_CHECK(xmlTextWriterStartDocument(writerWrapper.get(), nullptr, "UTF-8", nullptr) >= 0,
+        "Start document failed");
+    XML_CHECK(xmlTextWriterStartElement(writerWrapper.get(), BAD_CAST "preferences") >= 0,
+        "Start preferences element failed");
+    XML_CHECK(xmlTextWriterWriteAttribute(writerWrapper.get(), BAD_CAST "version", BAD_CAST "1.0") >= 0,
+        "Write version attribute failed");
 
-    // set children node
-    for (Element element : settings) {
-        xmlNode *node = CreateElementNode(element);
-        if (node == nullptr) {
-            LOG_ERROR("The xmlDoc failed to initialize the element node.");
-            return false;
-        }
-        if (xmlAddChild(rootNode, node) == nullptr) {
-            /* free node in case of error */
-            LOG_ERROR("The xmlDoc failed to add the child node.");
-            xmlFreeNode(node);
+    for (const auto& [key, value] : writeToDiskMap) {
+        Element elem;
+        elem.key_.assign(key.data(), key.size());
+        WriteXmlElement(elem, value);
+        if (!CreateElementNode(writerWrapper.get(), elem)) {
+            LOG_ERROR("Failed to format xml data.");
             return false;
         }
     }
 
-    /* 1: formatting spaces are added. */
-    bool result = XmlSaveFormatFileEnc(fileName, bundleName, doc.get());
-    return result;
+    XML_CHECK(xmlTextWriterEndElement(writerWrapper.get()) >= 0, "End element failed");
+    XML_CHECK(xmlTextWriterEndDocument(writerWrapper.get()) >= 0, "End document failed");
+    return SaveXmlFile(fileName, bundleName, bufferWrapper.get());
 }
 
 /* static */
-xmlNode *CreateElementNode(Element &element)
+bool CreateElementNode(xmlTextWriterPtr writer, Element &element)
 {
+    if (element.tag_.compare("string") == 0 || element.tag_.compare("uint8Array") == 0
+        || element.tag_.compare("object") == 0) {
+        return CreateStringNode(writer, element);
+    }
+
     if ((element.tag_.compare("int") == 0) || (element.tag_.compare("long") == 0)
         || (element.tag_.compare("float") == 0) || (element.tag_.compare("bool") == 0)
         || (element.tag_.compare("double") == 0)) {
-        return CreatePrimitiveNode(element);
-    }
-
-    if (element.tag_.compare("string") == 0 || element.tag_.compare("uint8Array") == 0
-        || element.tag_.compare("object") == 0) {
-        return CreateStringNode(element);
+        return CreatePrimitiveNode(writer, element);
     }
 
     if ((element.tag_.compare("doubleArray") == 0) || (element.tag_.compare("stringArray") == 0)
         || (element.tag_.compare("boolArray") == 0) || (element.tag_.compare("BigInt") == 0)) {
-        return CreateArrayNode(element);
+        return CreateArrayNode(writer, element);
     }
 
     LOG_ERROR("An unsupported element type was encountered in parsing = %{public}s.", element.tag_.c_str());
-    return nullptr;
+    return false;
 }
 
 /* static */
-xmlNode *CreatePrimitiveNode(Element &element)
+bool CreatePrimitiveNode(xmlTextWriterPtr writer, Element &element)
 {
-    xmlNode *node = xmlNewNode(NULL, BAD_CAST element.tag_.c_str());
-    if (node == nullptr) {
-        LOG_ERROR("The xmlDoc failed to initialize the primitive element node.");
-        return nullptr;
-    }
-    if (!element.key_.empty()) {
-        const char *key = element.key_.c_str();
-        xmlNewProp(node, BAD_CAST "key", BAD_CAST key);
-    }
-
-    const char *value = element.value_.c_str();
-    xmlNewProp(node, BAD_CAST "value", BAD_CAST value);
-    return node;
-}
-
-xmlNode *CreateStringNode(Element &element)
-{
-    xmlNode *node = xmlNewNode(NULL, BAD_CAST element.tag_.c_str());
-    if (node == nullptr) {
-        LOG_ERROR("The xmlDoc failed to initialize the string element node.");
-        return nullptr;
-    }
+    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
 
     if (!element.key_.empty()) {
         const char *key = element.key_.c_str();
-        xmlNewProp(node, BAD_CAST "key", BAD_CAST key);
+        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
     }
 
     const char *value = element.value_.c_str();
-    xmlNodePtr text = xmlNewText(BAD_CAST value);
-    if (xmlAddChild(node, text) == nullptr) {
-        xmlFreeNode(text);
-    }
-    return node;
+    XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "value", BAD_CAST value) >= 0, "Write attr failed");
+    XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+    return true;
 }
 
-xmlNode *CreateArrayNode(Element &element)
+bool CreateStringNode(xmlTextWriterPtr writer, Element &element)
 {
-    xmlNode *node = xmlNewNode(NULL, BAD_CAST element.tag_.c_str());
-    if (node == nullptr) {
-        LOG_ERROR("The xmlDoc failed to initialize the array element node.");
-        return nullptr;
+    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
+
+    if (!element.key_.empty()) {
+        const char *key = element.key_.c_str();
+        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
     }
 
+    const char *value = element.value_.c_str();
+    XML_CHECK(xmlTextWriterWriteString(writer, BAD_CAST value) >= 0, "");
+    XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+    return true;
+}
+
+bool CreateArrayNode(xmlTextWriterPtr writer, Element &element)
+{
+    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
     const char *key = element.key_.c_str();
-    xmlNewProp(node, BAD_CAST "key", BAD_CAST key);
+    XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
 
     if (element.children_.empty()) {
-        return node;
+        XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+        return true;
     }
     Element flag = element.children_[0];
-    if ((flag.tag_.compare("bool") == 0) || (flag.tag_.compare("double") == 0) ||
+    if (flag.tag_.compare("string") == 0) {
+        for (Element &child : element.children_) {
+            if (!CreateStringNode(writer, child)) {
+                return false;
+            }
+        }
+    } else if ((flag.tag_.compare("bool") == 0) || (flag.tag_.compare("double") == 0) ||
         (flag.tag_.compare("uint64_t") == 0)) {
         for (Element &child : element.children_) {
-            xmlNode *childNode = CreatePrimitiveNode(child);
-            if (childNode == nullptr) {
-                continue;
-            }
-            if (xmlAddChild(node, childNode) == nullptr) {
-                xmlFreeNode(childNode);
-            }
-        }
-    } else if (flag.tag_.compare("string") == 0) {
-        for (Element child : element.children_) {
-            xmlNode *childNode = CreateStringNode(child);
-            if (childNode == nullptr) {
-                continue;
-            }
-            if (xmlAddChild(node, childNode) == nullptr) {
-                xmlFreeNode(childNode);
+            if (!CreatePrimitiveNode(writer, child)) {
+                return false;
             }
         }
     }
-    return node;
-}
 
-void PreferencesXmlUtils::LimitXmlPermission(const std::string &fileName)
-{
-    /* clear execute permission of owner, clear execute permission of group, clear all permission of group. */
-    struct stat fileStat = { 0 };
-    if (stat(fileName.c_str(), &fileStat) != 0) {
-        LOG_ERROR("Failed to obtain stat of file, errno:%{public}d.", errno);
-        return;
-    }
-    if ((fileStat.st_mode & (S_IXUSR | S_IXGRP | S_IRWXO)) != 0) {
-        int result = chmod(fileName.c_str(), fileStat.st_mode & (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP));
-        if (result != 0) {
-            LOG_ERROR("Failed to chmod file, errno:%{public}d.", errno);
-        }
-    }
+    XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+    return true;
 }
-
 } // End of namespace NativePreferences
 } // End of namespace OHOS

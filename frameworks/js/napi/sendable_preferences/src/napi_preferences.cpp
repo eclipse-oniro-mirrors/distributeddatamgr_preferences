@@ -39,7 +39,7 @@ struct PreferencesAysncContext : public BaseContext {
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int64_t>(0));
     napi_ref inputValueRef = nullptr;
-    std::map<std::string, PreferencesValue> allElements;
+    std::unordered_map<std::string, PreferencesValue> allElements;
     bool hasKey = false;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
 
@@ -177,6 +177,7 @@ std::pair<PreferencesProxy *, std::weak_ptr<Preferences>> PreferencesProxy::GetS
 int GetAllExecute(napi_env env, std::shared_ptr<PreferencesAysncContext> context, napi_value &result)
 {
     std::vector<napi_property_descriptor> descriptors;
+    descriptors.reserve(context->allElements.size());
     for (const auto &[key, value] : context->allElements) {
         descriptors.push_back(napi_property_descriptor(
             DECLARE_NAPI_DEFAULT_PROPERTY(key.c_str(), Utils::ConvertToSendable(env, value.value_))));
@@ -200,7 +201,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
         if (instance == nullptr) {
             return E_INNER_ERROR;
         }
-        context->allElements = instance->GetAll();
+        context->allElements = instance->GetAllDatas();
         return OK;
     };
     auto output = [context](napi_env env, napi_value &result) { GetAllExecute(env, context, result); };

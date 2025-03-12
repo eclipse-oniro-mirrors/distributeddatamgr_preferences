@@ -60,15 +60,15 @@ void PreferencesXmlUtilsTest::TearDown(void)
 */
 HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_001, TestSize.Level1)
 {
-    std::vector<Element> settings = {};
-    bool ret = PreferencesXmlUtils::ReadSettingXml("", "", settings);
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool ret = PreferencesXmlUtils::ReadSettingXml("", "", allDatas);
     EXPECT_EQ(ret, false);
 
     std::string path = "/data/test/test_helper" + std::string(4096, 't');
-    ret = PreferencesXmlUtils::ReadSettingXml(path, "", settings);
+    ret = PreferencesXmlUtils::ReadSettingXml(path, "", allDatas);
     EXPECT_EQ(ret, false);
 
-    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper", "", settings);
+    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper", "", allDatas);
     EXPECT_EQ(ret, false);
 }
 
@@ -101,21 +101,17 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_003, TestSize.Level1)
 {
     std::string file = "/data/test/test01";
 
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "testKet";
-    elem.tag_ = "int";
-    elem.value_ = "999";
-    settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"testKey", 999});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
-    std::vector<Element> settingsRes = {};
-    bool ret = PreferencesXmlUtils::ReadSettingXml(file, "", settingsRes);
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool ret = PreferencesXmlUtils::ReadSettingXml(file, "", allDatas);
     EXPECT_EQ(ret, true);
-    EXPECT_EQ(settingsRes.empty(), false);
-    EXPECT_EQ(elem.key_, settingsRes.front().key_);
-    EXPECT_EQ(elem.tag_, settingsRes.front().tag_);
-    EXPECT_EQ(elem.value_, settingsRes.front().value_);
+    EXPECT_EQ(allDatas.empty(), false);
+    auto it = allDatas.find("testKey");
+    EXPECT_EQ(it != allDatas.end(), true);
+    EXPECT_EQ(999, int(it->second));
 
     std::remove(file.c_str());
 }
@@ -127,23 +123,22 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_003, TestSize.Level1)
 */
 HWTEST_F(PreferencesXmlUtilsTest, UnnormalReadSettingXml_001, TestSize.Level1)
 {
-    std::vector<Element> settings = {};
-    PreferencesXmlUtils::WriteSettingXml("", "", settings);
-    bool ret = PreferencesXmlUtils::ReadSettingXml("", "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    PreferencesXmlUtils::WriteSettingXml("", "", values);
+    bool ret = PreferencesXmlUtils::ReadSettingXml("", "", values);
     EXPECT_EQ(ret, false);
 
     std::string path = "/data/test/test_helper" + std::string(4096, 't');
-    ret = PreferencesXmlUtils::ReadSettingXml(path, "", settings);
+    ret = PreferencesXmlUtils::ReadSettingXml(path, "", values);
     EXPECT_EQ(ret, false);
 
-    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper", "", settings);
+    ret = PreferencesXmlUtils::ReadSettingXml("data/test/test_helper", "", values);
     EXPECT_EQ(ret, false);
 
-    Element elem;
-    settings.push_back(elem);
+    values.insert({});
     path = "data/test/test_helper";
-    PreferencesXmlUtils::WriteSettingXml(path, "", settings);
-    ret = PreferencesXmlUtils::ReadSettingXml(path, "", settings);
+    PreferencesXmlUtils::WriteSettingXml(path, "", values);
+    ret = PreferencesXmlUtils::ReadSettingXml(path, "", values);
     EXPECT_EQ(ret, false);
 }
 
@@ -157,19 +152,15 @@ HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
     std::string file = "/data/test/test01";
     std::remove(file.c_str());
 
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "stringKey";
-    elem.tag_ = std::string("string");
-    elem.value_ = "test";
-    settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"stringKey", "test"});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
     EXPECT_EQ(errCode, E_OK);
     std::string retString = pref->GetString("stringKey", "");
-    EXPECT_EQ(retString, elem.value_);
+    EXPECT_EQ(retString, "test");
 
     int ret = PreferencesHelper::DeletePreferences(file);
     EXPECT_EQ(ret, E_OK);
@@ -184,24 +175,10 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_001, TestSize.Level1)
 {
     std::string file = "/data/test/test02";
     std::remove(file.c_str());
-    std::vector<Element> settings;
-
-    Element elem;
-    elem.key_ = "stringArrayKey";
-    elem.tag_ = std::string("stringArray");
-    elem.value_ = "testStringArray";
-
-    Element elemChild;
-    elemChild.key_ = "stringKey";
-    elemChild.tag_ = std::string("string");
-
-    elemChild.value_ = "test_child1";
-    elem.children_.push_back(elemChild);
-    elemChild.value_ = "test_child2";
-    elem.children_.push_back(elemChild);
-    settings.push_back(elem);
+    std::unordered_map<std::string, PreferencesValue> values;
     std::vector<std::string> inputStringArray = { "test_child1", "test_child2" };
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    values.insert({"stringArrayKey", inputStringArray});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -223,25 +200,10 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_002, TestSize.Level1)
 {
     std::string file = "/data/test/test03";
     std::remove(file.c_str());
-    std::vector<Element> settings;
-
-    Element elem;
-    elem.key_ = "doubleArrayKey";
-    elem.tag_ = std::string("doubleArray");
-    elem.value_ = std::to_string(10.0);
-
-    Element elemChild;
-    elemChild.key_ = "doubleKey";
-    elemChild.tag_ = std::string("double");
-
-    elemChild.value_ = std::to_string(1.0);
-    elem.children_.push_back(elemChild);
-
-    elemChild.value_ = std::to_string(2.0);
-    elem.children_.push_back(elemChild);
-    settings.push_back(elem);
+    std::unordered_map<std::string, PreferencesValue> values;
     std::vector<double> inputDoubleArray = { 1.0, 2.0 };
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    values.insert({"doubleArrayKey", inputDoubleArray});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -263,25 +225,10 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
 {
     std::string file = "/data/test/test04";
     std::remove(file.c_str());
-    std::vector<Element> settings;
-
-    Element elem;
-    elem.key_ = "boolArrayKey";
-    elem.tag_ = std::string("boolArray");
-    elem.value_ = std::to_string(false);
-
-    Element elemChild;
-    elemChild.key_ = "boolKey";
-    elemChild.tag_ = std::string("bool");
-
-    elemChild.value_ = "false";
-    elem.children_.push_back(elemChild);
-
-    elemChild.value_ = "true";
-    elem.children_.push_back(elemChild);
-    settings.push_back(elem);
+    std::unordered_map<std::string, PreferencesValue> values;
     std::vector<bool> inputBoolArray = { false, true };
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    values.insert({"boolArrayKey", inputBoolArray});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -301,17 +248,12 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
 */
 HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_004, TestSize.Level1)
 {
-    std::string file = "/data/test/test05";
+    std::string file = "/data/test/testttt05";
     std::remove(file.c_str());
-    std::vector<Element> settings;
-
-    Element elem;
-    elem.key_ = "boolArrayKey";
-    elem.tag_ = std::string("boolArray");
-    elem.value_ = std::to_string(false);
-
-    settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    std::vector<bool> value = {};
+    values.insert({"boolArrayKey", value});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -333,17 +275,12 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_004, TestSize.Level1)
 */
 HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_005, TestSize.Level1)
 {
-    std::string file = "/data/test/test06";
+    std::string file = "/data/test/testttt06";
     std::remove(file.c_str());
-    std::vector<Element> settings;
-
-    Element elem;
-    elem.key_ = "stringArrayKey";
-    elem.tag_ = std::string("stringArray");
-    elem.value_ = std::to_string(false);
-
-    settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    std::vector<std::string> value = {};
+    values.insert({"stringArrayKey", value});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -367,15 +304,10 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_006, TestSize.Level1)
 {
     std::string file = "/data/test/test07";
     std::remove(file.c_str());
-    std::vector<Element> settings;
-
-    Element elem;
-    elem.key_ = "doubleArrayKey";
-    elem.tag_ = std::string("doubleArray");
-    elem.value_ = std::to_string(1);
-
-    settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(file, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    std::vector<double> value = {};
+    values.insert({"doubleArrayKey", value});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(file, errCode);
@@ -402,14 +334,9 @@ HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level1)
     std::ofstream oss(fileName);
     oss << "corrupted";
 
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "intKey";
-    elem.tag_ = "int";
-    elem.value_ = "2";
-
-    settings.push_back(elem);
-    PreferencesXmlUtils::WriteSettingXml(MakeFilePath(fileName, STR_BACKUP), "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"intKey", 2});
+    PreferencesXmlUtils::WriteSettingXml(MakeFilePath(fileName, STR_BACKUP), "", values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(fileName, errCode);
@@ -437,8 +364,8 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_004, TestSize.Level1)
     std::ofstream ossBak(MakeFilePath(fileName, STR_BACKUP));
     ossBak << "corruptedBak";
 
-    std::vector<Element> settings;
-    bool res = PreferencesXmlUtils::ReadSettingXml(fileName, "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    bool res = PreferencesXmlUtils::ReadSettingXml(fileName, "", values);
     EXPECT_EQ(res, false);
 
     int ret = PreferencesHelper::DeletePreferences(fileName);
@@ -453,17 +380,12 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_004, TestSize.Level1)
 HWTEST_F(PreferencesXmlUtilsTest, WriteSettingXmlWhenFileIsNotExistTest_001, TestSize.Level1)
 {
     std::string fileName = "/data/test/test01";
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "stringKey";
-    elem.tag_ = "string";
-    elem.value_ = "";
-
-    settings.push_back(elem);
-    bool result = PreferencesXmlUtils::WriteSettingXml("/data/test/preferences/test01", "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"stringKey", ""});
+    bool result = PreferencesXmlUtils::WriteSettingXml("/data/test/preferences/testttt01", "", values);
     EXPECT_EQ(result, false);
 
-    result = PreferencesXmlUtils::WriteSettingXml(fileName, "", settings);
+    result = PreferencesXmlUtils::WriteSettingXml(fileName, "", values);
     EXPECT_EQ(result, true);
 }
 
@@ -480,17 +402,13 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_005, TestSize.Level1)
     std::ofstream oss(fileName);
     oss << "corrupted";
 
-    std::vector<Element> settings;
-    Element elem;
-    elem.key_ = "stringKey";
-    elem.tag_ = "string";
-    elem.value_ = "";
-
-    settings.push_back(elem);
-    bool result = PreferencesXmlUtils::WriteSettingXml(MakeFilePath(fileName, STR_BACKUP), "", settings);
+    std::unordered_map<std::string, PreferencesValue> values;
+    values.insert({"stringKey", ""});
+    bool result = PreferencesXmlUtils::WriteSettingXml(MakeFilePath(fileName, STR_BACKUP), "", values);
     EXPECT_EQ(result, true);
 
-    bool res = PreferencesXmlUtils::ReadSettingXml(fileName, "", settings);
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool res = PreferencesXmlUtils::ReadSettingXml(fileName, "", values);
     EXPECT_EQ(res, true);
 
     int ret = PreferencesHelper::DeletePreferences(fileName);

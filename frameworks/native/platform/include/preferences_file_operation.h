@@ -32,6 +32,7 @@
 
 #include <iostream>
 #include <windows.h>
+#include <io.h>
 
 #else
 
@@ -92,29 +93,52 @@ static UNUSED_FUNCTION int Access(const std::string &filePath)
 #endif
 }
 
-static UNUSED_FUNCTION bool Fsync(const std::string &filePath)
+static UNUSED_FUNCTION int Open(const std::string &filePath)
 {
 #if defined(WINDOWS_PLATFORM)
-    int fd = _open(filePath.c_str(), _O_WRONLY, _S_IWRITE);
-    if (fd == -1) {
-        return false;
+    return _open(filePath.c_str(), _O_WRONLY | _O_CREAT | _O_TRUNC, _S_IREAD | _S_IWRITE);
+#else
+    return open(filePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0660);
+#endif
+}
+
+static UNUSED_FUNCTION int Write(int fd, const unsigned char *buffer, ssize_t count)
+{
+#if defined(WINDOWS_PLATFORM)
+    HANDLE hFile = (HANDLE)_get_osfhandle(fd); // 转换文件描述符为 HANDLE
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return -1;
     }
+    DWORD bytesWritten = 0;
+    return WriteFile(hFile, buffer, (DWORD)count, &bytesWritten, NULL) ? (int)bytesWritten : -1;
+#else
+    return write(fd, buffer, count);
+#endif
+}
+
+static UNUSED_FUNCTION int Close(int fd)
+{
+#if defined(WINDOWS_PLATFORM)
+    return _close(fd);
+#else
+    return close(fd);
+#endif
+}
+
+static UNUSED_FUNCTION bool Fsync(int fd)
+{
+#if defined(WINDOWS_PLATFORM)
     HANDLE handle = (HANDLE)_get_osfhandle(fd);
     if (handle == INVALID_HANDLE_VALUE || !FlushFileBuffers(handle)) {
-        _close(fd);
         return false;
     }
-    _close(fd);
 #else
-    int fd = open(filePath.c_str(), O_RDWR, S_IRUSR | S_IWUSR);
     if (fd == -1) {
         return false;
     }
     if (fsync(fd) == -1) {
-        close(fd);
         return false;
     }
-    close(fd);
 #endif
     return true;
 }

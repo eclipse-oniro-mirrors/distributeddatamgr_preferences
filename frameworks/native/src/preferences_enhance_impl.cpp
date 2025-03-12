@@ -237,9 +237,9 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     return E_OK;
 }
 
-std::pair<int, std::map<std::string, PreferencesValue>> PreferencesEnhanceImpl::GetAllInner()
+std::pair<int, std::unordered_map<std::string, PreferencesValue>> PreferencesEnhanceImpl::GetAllInner()
 {
-    std::map<std::string, PreferencesValue> map;
+    std::unordered_map<std::string, PreferencesValue> map;
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:GetAll failed, db has been closed.");
         return std::make_pair(E_ALREADY_CLOSED, map);
@@ -251,7 +251,7 @@ std::pair<int, std::map<std::string, PreferencesValue>> PreferencesEnhanceImpl::
         return std::make_pair(E_ERROR, map);
     }
 
-    std::map<std::string, PreferencesValue> result;
+    std::unordered_map<std::string, PreferencesValue> result;
     std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> data;
     int errCode = db_->GetAll(data);
     if (errCode != E_OK) {
@@ -277,8 +277,12 @@ std::pair<int, std::map<std::string, PreferencesValue>> PreferencesEnhanceImpl::
 std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
-    std::pair<int, std::map<std::string, PreferencesValue>> res = GetAllInner();
-    return res.second;
+    std::pair<int, std::unordered_map<std::string, PreferencesValue>> res = GetAllInner();
+    std::map<std::string, PreferencesValue> allDatas;
+    for (auto &it : res.second) {
+        allDatas.insert_or_assign(it.first, it.second);
+    }
+    return allDatas;
 }
 
 void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref,
@@ -310,7 +314,7 @@ void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<Preferenc
 }
 
 void PreferencesEnhanceImpl::NotifyPreferencesObserverBatchKeys(std::shared_ptr<PreferencesEnhanceImpl> pref,
-    const std::map<std::string, PreferencesValue> &data)
+    const std::unordered_map<std::string, PreferencesValue> &data)
 {
     for (const auto &[key, value] : data) {
         NotifyPreferencesObserver(pref, key, value);
@@ -326,13 +330,13 @@ int PreferencesEnhanceImpl::Clear()
         return E_ERROR;
     }
 
-    std::pair<int, std::map<std::string, PreferencesValue>> res = GetAllInner();
+    std::pair<int, std::unordered_map<std::string, PreferencesValue>> res = GetAllInner();
     if (res.first != E_OK) {
         LOG_ERROR("get all failed when clear, errCode=%{public}d", res.first);
         return res.first;
     }
 
-    std::map<std::string, PreferencesValue> allData = res.second;
+    std::unordered_map<std::string, PreferencesValue> allData = res.second;
 
     int errCode = db_->DropCollection();
     if (errCode != E_OK) {
@@ -421,11 +425,22 @@ std::pair<int, PreferencesValue> PreferencesEnhanceImpl::GetValue(const std::str
     }
     return std::make_pair(E_OK, item.second);
 }
-    
+
 std::pair<int, std::map<std::string, PreferencesValue>> PreferencesEnhanceImpl::GetAllData()
 {
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
-    return GetAllInner();
+    std::pair<int, std::unordered_map<std::string, PreferencesValue>> res = GetAllInner();
+    std::map<std::string, PreferencesValue> allDatas;
+    for (auto &it : res.second) {
+        allDatas.insert_or_assign(it.first, it.second);
+    }
+    return {res.first, allDatas};
+}
+
+std::unordered_map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAllDatas()
+{
+    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
+    return GetAllInner().second;
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

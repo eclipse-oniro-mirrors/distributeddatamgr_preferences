@@ -234,8 +234,7 @@ std::pair<int, PreferencesValue> PreferencesBase::GetValue(const std::string &ke
 
 std::pair<int, std::map<std::string, PreferencesValue>> PreferencesBase::GetAllData()
 {
-    std::map<std::string, PreferencesValue> map;
-    return std::make_pair(E_OK, map);
+    return {};
 }
 
 std::string PreferencesBase::GetBundleName() const
@@ -257,6 +256,11 @@ int PreferencesBase::RegisterDataObserver(std::shared_ptr<PreferencesObserver> p
         it->second.insert(keys.begin(), keys.end());
     }
     return E_OK;
+}
+
+std::unordered_map<std::string, PreferencesValue> PreferencesBase::GetAllDatas()
+{
+    return {};
 }
 
 int PreferencesBase::UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
