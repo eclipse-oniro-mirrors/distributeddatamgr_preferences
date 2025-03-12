@@ -15,13 +15,13 @@
  */
 
 import BaseContext  from 'BaseContext'
-import { preferences } from "../ets/ani_preferences.ets";
-import { Options } from "../ets/ani_preferences.ets";
+import { preferences } from "../ets/@ohos.data.preferences.d.ets";
 
 class ContextImpl extends BaseContext {
     name: string = "";
     bundleName: string = "";
     stageMode: boolean = true;
+    dataGroupId?: string | null | undefined;
 };
 
 class ContextImplTest extends BaseContext {
@@ -29,18 +29,17 @@ class ContextImplTest extends BaseContext {
     bundleName: string = "";
 };
 
-class OptionsImpl implements Options {
+class OptionsImpl implements preferences.Options {
   name: string = "";
   dataGroupId?: string | null | undefined;
 }
 
-function main() {
-    console.log("hello ani_preferences");
+function test() {
     let context : ContextImpl = {
       name : "/data/123",
       stageMode: true,
-      bundleName : "com.example.app 111",
-      // dataGroupId : "group123"
+      dataGroupId : "dataGroupIdOpt"
+    //   bundleName : "com.example.app 111",
     };
     let opt : OptionsImpl = {
         name : "/data/123",
@@ -62,6 +61,7 @@ function main() {
     console.log("------------------------------");
     console.log(valueTypePerson);
     console.log("------------------------------");
+
     let fz:string = "";
     let fz1:number = 123;
     let fz10:number = 0;
@@ -74,7 +74,7 @@ function main() {
     let fz50:Array<string> = new Array<string>();
     let fz6:Array<boolean> = new Array<boolean>(true, false, true, false, true);
     let fz60:Array<boolean> = new Array<boolean>();
-    preferences.getPreferences(context, opt).then<void, void>((value: preferences.Preferences): void => {
+    await preferences.getPreferences(context, opt).then<void, void>((value: preferences.Preferences): void => {
         console.log("********************number************************");
         value.putSync("xying", fz1);
         console.log("Test passed fz start ");
@@ -115,20 +115,77 @@ function main() {
     });
 
     console.log("-------------- begin flush test ----------------");
-    preferences.getPreferences(context, opt).then<void, void>((value: preferences.Preferences): void => {
+    await preferences.getPreferences(context, "/data/123").then<void, void>((value: preferences.Preferences): void => {
         console.log("before flush.");
         value.flush(()=> {
           console.log("Callback: after flush.");
-        })
-    }, (err: Object): void => {
-        console.log("The promise shouldn`t be rejected.");
+        });
     });
     console.log("-------------- end flush test ----------------");
 
-    console.log("-------------- begin deleteSync test ----------------");
-    preferences.getPreferences(context, opt).then<void, void>((value: preferences.Preferences): void => {
+    await preferences.getPreferences(context, opt).then<void, void>((value: preferences.Preferences): void => {
+        console.log("-------------- begin deleteSync test ----------------");
         value.deleteSync("test");
-        console.log("Callback: after deleteSync.");
+        console.log("-------------- end deleteSync test ----------------");
+
+        console.log("-------------- begin delete asyncallback  test ----------------");
+        value.delete("test1", ((): void => {
+            console.log("After delete asyncallback!");
+        }))
+        console.log("-------------- end delete asyncallback  test ----------------");
+
+        console.log("-------------- begin delete promise  test ----------------");
+        await value.delete("test1").then<void, void>((value: int): void => {
+            console.log("After delete Promised! value is ", value);
+        });
+        console.log("-------------- end delete promise  test ----------------");
+
+        console.log("-------------- begin hasSync test ----------------");
+        value.hasSync("test");
+        console.log("-------------- end hasSync test ----------------");
+
+        console.log("-------------- begin has asyncallback  test ----------------");
+        value.has("test1", ((value: boolean): void => {
+            console.log("After has asyncallback!, ret is ", value);
+        }))
+        console.log("-------------- end has asyncallback  test ----------------");
+
+        console.log("-------------- begin has promise  test ----------------");
+        await value.has("test1").then<void, void>((value: boolean): void => {
+            console.log("After has Promised! value is ", value);
+        });
+        console.log("-------------- end has promise  test ----------------");
     });
-    console.log("-------------- end deleteSync test ----------------");
+
+
+    console.log("-------------- begin removePreferencesFromCache test ----------------");
+
+    preferences.removePreferencesFromCache(context, "name1", ((): void => {
+        console.log("Callback: after removePreferencesFromCache from name!");
+    }));
+
+    preferences.removePreferencesFromCache(context, opt, ((): void => {
+        console.log("Callback: after removePreferencesFromCache from opt!");
+    }));
+
+    await preferences.removePreferencesFromCache(context, opt).then<void, void>((value: int): void => {
+        console.log("Promised: after removePreferencesFromCache from opt, ret is: ", value);
+    });
+
+    await preferences.removePreferencesFromCache(context, "name1").then<void, void>((value: int): void => {
+        console.log("Promised: after removePreferencesFromCache from name, ret is: ", value);
+    });
+
+    console.log("-------------- end removePreferencesFromCache test ----------------");
+
+}
+
+function main() {
+    console.log("hello ani_preferences");
+    console.log("-------before test all -----------------------");
+    for (let i = 0; i < 1; i++) {
+        console.log("-------test " + (i + 1) + " times-----------------------");
+        test();
+    }
+    console.log("-------end test all -----------------------");
 }

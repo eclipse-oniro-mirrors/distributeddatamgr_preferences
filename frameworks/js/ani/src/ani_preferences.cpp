@@ -18,6 +18,7 @@
 #include <iostream>
 #include <securec.h>
 #include "ani_utils.h"
+#include "log_print.h"
 #include "preferences.h"
 #include "preferences_helper.h"
 #include "preferences_value.h"
@@ -52,8 +53,9 @@ static int executeRemoveName(ani_env *env, ani_object context, ani_string name)
         std::cout << "Object_GetFieldByName_Ref Faild" << std::endl;
         nameTmp = static_cast<ani_ref>(name);
     }
-    auto name_str = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
-    std::cout << "name_str is :" << name_str <<  std::endl;
+    std::string nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
+    std::cout << "in executeRemoveName nameStr is :" << nameStr <<  std::endl;
+    LOG_INFO("in executeRemoveName nameStr is: %{public}s .", nameStr.c_str());
 
     ani_ref dataGroupId;
     if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
@@ -61,9 +63,9 @@ static int executeRemoveName(ani_env *env, ani_object context, ani_string name)
         return errCode;
     }
     auto dataGroupId_str = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
-    std::cout << "dataGroupId is :" << dataGroupId_str <<  std::endl;
+    std::cout << "in executeRemoveName dataGroupId is :" << dataGroupId_str <<  std::endl;
 
-    std::string path = name_str; // add name -> path funciton
+    std::string path = nameStr; // add name -> path funciton
     return PreferencesHelper::RemovePreferencesFromCache(path);
 }
 
@@ -78,8 +80,8 @@ static int executeRemoveOpt(ani_env *env, ani_object context, ani_object opt)
             return errCode;
         }
     }
-    auto name_str = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
-    std::cout << "name_str is :" << name_str <<  std::endl;
+    auto nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
+    std::cout << "nameStr is :" << nameStr <<  std::endl;
 
     ani_ref dataGroupId;
     if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
@@ -92,7 +94,7 @@ static int executeRemoveOpt(ani_env *env, ani_object context, ani_object opt)
     auto dataGroupId_str = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
     std::cout << "dataGroupId is :" << dataGroupId_str <<  std::endl;
 
-    std::string path = name_str; // add name -> path funciton
+    std::string path = nameStr; // add name -> path funciton
     return PreferencesHelper::RemovePreferencesFromCache(path);
 }
 
@@ -107,7 +109,7 @@ static ani_object createPreferencesObj(ani_env *env, Options options)
     }
 
     ani_namespace ns {};
-    if (ANI_OK != env->FindNamespace("Lani_preferences/preferences;", &ns)) {
+    if (ANI_OK != env->FindNamespace("L@ohos/data/preferences/preferences;", &ns)) {
         std::cerr << "Not found namespace 'Lpreferences'" << std::endl;
         return nullptr;
     }
@@ -141,8 +143,8 @@ static ani_object executeGetName(ani_env *env, ani_object context, ani_string na
         std::cout << "Object_GetFieldByName_Ref Faild" << std::endl;
         nameTmp = static_cast<ani_ref>(name);
     }
-    auto name_str = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
-    std::cout << "name_str is :" << name_str <<  std::endl;
+    auto nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
+    std::cout << "nameStr is :" << nameStr <<  std::endl;
 
     ani_ref dataGroupId;
     if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
@@ -160,7 +162,7 @@ static ani_object executeGetName(ani_env *env, ani_object context, ani_string na
     auto bundleName_str = AniStringToStdStr(env, static_cast<ani_string>(bundleName));
     std::cout << "bundleName_str is :" << bundleName_str <<  std::endl;
 
-    std::string path = name_str;
+    std::string path = nameStr;
     Options options(path, bundleName_str, dataGroupId_str);
     return createPreferencesObj(env, options);
 }
@@ -176,9 +178,9 @@ static ani_object executeGetOpt(ani_env *env, ani_object context, ani_object opt
             return nullptr;
         }
     }
-    std::cout << "before trans name_str is :" << nameTmp <<  std::endl;
-    auto name_str = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
-    std::cout << "name_str is :" << name_str <<  std::endl;
+    std::cout << "before trans nameStr is :" << nameTmp <<  std::endl;
+    auto nameStr = AniStringToStdStr(env, static_cast<ani_string>(nameTmp));
+    std::cout << "nameStr is :" << nameStr <<  std::endl;
 
     ani_ref dataGroupId;
     if (ANI_OK != env->Object_GetFieldByName_Ref(context, "dataGroupId", &dataGroupId)) {
@@ -199,7 +201,7 @@ static ani_object executeGetOpt(ani_env *env, ani_object context, ani_object opt
     auto bundleName_str = AniStringToStdStr(env, static_cast<ani_string>(bundleName));
     std::cout << "bundleName_str is :" << bundleName_str <<  std::endl;
 
-    std::string path = name_str;
+    std::string path = nameStr;
     Options options(path, bundleName_str, dataGroupId_str);
     return createPreferencesObj(env, options);
 }
@@ -214,7 +216,7 @@ static Preferences* unwrapp(ani_env *env, ani_object object)
     return reinterpret_cast<Preferences *>(context);
 }
 
-static void deleteSync(ani_env *env, ani_object obj, ani_string key)
+static int deleteSync(ani_env *env, ani_object obj, ani_string key)
 {
     int32_t errCode = E_ERROR;
     auto preferences =  unwrapp(env, obj);
@@ -224,7 +226,20 @@ static void deleteSync(ani_env *env, ani_object obj, ani_string key)
         errCode = preferences->Delete(key_str);
         std::cerr << "errCode is " << errCode << std::endl;
     }
-    return;
+    return errCode;
+}
+
+static bool hasSyncInner(ani_env *env, ani_object obj, ani_string key)
+{
+    bool ret = false;
+    auto preferences =  unwrapp(env, obj);
+    if (preferences != nullptr) {
+        auto key_str = AniStringToStdStr(env, key);
+        std::cerr << "key_str is " << key_str << std::endl;
+        ret = preferences->HasKey(key_str);
+        std::cerr << "ret is " << ret << std::endl;
+    }
+    return ret;
 }
 
 static int flushSync(ani_env *env, ani_object obj)
@@ -610,7 +625,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     }
 
     ani_namespace ns {};
-    if (ANI_OK != env->FindNamespace("Lani_preferences/preferences;", &ns)) {
+    if (ANI_OK != env->FindNamespace("L@ohos/data/preferences/preferences;", &ns)) {
         std::cerr << "Not found namespace 'Lpreferences'" << std::endl;
         return ANI_ERROR;
     }
@@ -624,6 +639,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         ani_native_function {"flushSync", nullptr, reinterpret_cast<void *>(flushSync)},
         ani_native_function {"getInner", nullptr, reinterpret_cast<void *>(GetInner)},
         ani_native_function {"putInner", nullptr, reinterpret_cast<void *>(PutInner)},
+        ani_native_function {"deleteSyncInner", nullptr, reinterpret_cast<void *>(deleteSync)},
+        ani_native_function {"hasSyncInner", nullptr, reinterpret_cast<void *>(hasSyncInner)},
     };
 
     std::cout << "Start bind native methods to '" << ns << "'" << std::endl;
@@ -633,27 +650,6 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         return ANI_ERROR;
     };
     std::cout << "Finish bind native methods to '" << ns << "'" << std::endl;
-
-    static const char *classNameInner = "LPreferencesImpl;";
-    ani_class clsInner;
-    if (ANI_OK != env->Namespace_FindClass(ns, classNameInner, &clsInner)) {
-        std::cerr << "Not found '" << classNameInner << "'" << std::endl;
-        return ANI_ERROR;
-    }
-    std::cout << "after find class '" << classNameInner << "'" << std::endl;
-
-    std::array methodsInner = {
-        ani_native_function {"deleteSync", nullptr, reinterpret_cast<void *>(deleteSync)},
-    };
-
-    std::cout << "Start bind native methods to '" << classNameInner << "'" << std::endl;
-
-    if (ANI_OK != env->Class_BindNativeMethods(clsInner, methodsInner.data(), methodsInner.size())) {
-        std::cerr << "Cannot bind native methods to '" << classNameInner << "'" << std::endl;
-        return ANI_ERROR;
-    };
-    std::cout << "Finish bind native methods to '" << classNameInner << "'" << std::endl;
-
     *result = ANI_VERSION_1;
     return ANI_OK;
 }
