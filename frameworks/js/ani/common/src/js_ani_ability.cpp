@@ -24,7 +24,7 @@ CONTEXT_MODE GetContextMode(ani_env* env, ani_object value)
 {
     if (gContextNode == INIT) {
         ani_boolean isStageMode;
-        ani_status status = IsStageContext(env, value, isStageMode);
+        ani_status status = OHOS::AbilityRuntime::IsStageContext(env, value, isStageMode);
         LOG_INFO("GetContextMode is %{public}d", static_cast<bool>(isStageMode));
         if (status == ANI_OK) {
             gContextNode = isStageMode ? STAGE : FA;
@@ -39,27 +39,27 @@ std::shared_ptr<JSError> GetContextInfo(ani_env* env, ani_object value,
 {
     if (GetContextMode(env, value) == STAGE) {
         LOG_INFO("after GetContextMode, in stage.");
-        auto stageContext = GetStageModeContext(env, value);
+        auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, value);
         if (stageContext != nullptr) {
             int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
-            LOG_INFO("ymq: after GetContextMode, in stage. errcode is %{public}d.", errcode);
+            LOG_INFO("after GetContextMode, in stage. errcode is %{public}d.", errcode);
             if (errcode != 0) {
                 return std::make_shared<InnerError>(E_DATA_GROUP_ID_INVALID);
             }
             contextInfo.bundleName = stageContext->GetBundleName();
             return nullptr;
         } else {
-            LOG_INFO("ymq: The context is invalid.");
+            LOG_INFO("The context is invalid.");
             return std::make_shared<ParamTypeError>("The context is invalid.");
         }
     }
-    LOG_INFO("ymq: after GetContextMode, not in stage.");
+    LOG_INFO("after GetContextMode, not in stage.");
 
     if (!dataGroupId.empty()) {
         return std::make_shared<InnerError>(E_NOT_STAGE_MODE);
     }
 
-    AppExecFwk::Ability* ability = GetCurrentAbility(env);
+    AppExecFwk::Ability* ability = OHOS::AbilityRuntime::GetCurrentAbility(env);
     if (ability == nullptr) {
         return std::make_shared<ParamTypeError>("The context is invalid.");
     }
