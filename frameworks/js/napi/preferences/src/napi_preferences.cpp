@@ -15,6 +15,8 @@
 
 #include "napi_preferences.h"
 
+#include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <climits>
 #include <cmath>
@@ -163,23 +165,31 @@ int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<Pr
     return OK;
 }
 
+bool IsPureDigits(const std::string& str)
+{
+    return std::all_of(str.begin(), str.end(), ::isdigit);
+}
+
 int GetAllExecute(napi_env env, std::shared_ptr<PreferencesAysncContext> context, napi_value &result)
 {
     std::vector<napi_property_descriptor> descriptors;
     descriptors.reserve(context->allElements.size());
-    for (const auto& [key, value] : context->allElements) {
-        descriptors.push_back({
-            key.c_str(),
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            JSUtils::Convert2JSValue(env, value.value_),
-            napi_enumerable,
-            nullptr
-        });
+    bool containsPureDigits = false;
+    for (const auto &[key, value] : context->allElements) {
+        if (!containsPureDigits) {
+            if (IsPureDigits(key)) {
+                containsPureDigits = true;
+            }
+        }
+        descriptors.push_back(napi_property_descriptor(
+            DECLARE_NAPI_DEFAULT_PROPERTY(key.c_str(), JSUtils::Convert2JSValue(env, value.value_))));
     }
-    napi_create_object_with_properties(env, &result, descriptors.size(), descriptors.data());
+    if (containsPureDigits) {
+        napi_create_object(env, &result);
+        napi_define_properties(env, result, descriptors.size(), descriptors.data());
+    } else {
+        napi_create_object_with_properties(env, &result, descriptors.size(), descriptors.data());
+    }
     return OK;
 }
 
