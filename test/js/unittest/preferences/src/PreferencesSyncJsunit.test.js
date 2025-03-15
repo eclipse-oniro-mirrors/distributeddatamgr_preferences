@@ -125,6 +125,59 @@ describe('preferencesSyncTest', function () {
     })
 
     /**
+     * @tc.name getAll sync interface test
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0133
+     * @tc.desc getAll sync interface test
+     */
+    it('testPreferencesGetAll0002', 0, function () {
+        const key1 = '0';
+        const key2 = '1';
+        const key3 = '1234567890';
+        const key4 = '-1';
+        const key5 = '-1234567890';
+        const key6 = '0.0';
+        const key7 = '1.0';
+        const key8 = '3.14159';
+        const key9 = '00123';
+        const key10 = '0.00123';
+        const key11 = '123456789012345678901234567890';
+        const key12 = '-1234567890.12345678901234567890';
+        const key13 = '1.23e-10';
+        mPreferences.putSync(key1, KEY_TEST_INT_ELEMENT);
+        mPreferences.putSync(key2, KEY_TEST_INT_ELEMENT);
+        mPreferences.putSync(key3, KEY_TEST_INT_ELEMENT);
+        mPreferences.putSync(key4, KEY_TEST_INT_ELEMENT);
+        mPreferences.putSync(key5, KEY_TEST_INT_ELEMENT);
+        mPreferences.putSync(key6, KEY_TEST_STRING_ELEMENT);
+        mPreferences.putSync(key7, KEY_TEST_STRING_ELEMENT);
+        mPreferences.putSync(key8, KEY_TEST_STRING_ELEMENT);
+        mPreferences.putSync(key9, KEY_TEST_STRING_ELEMENT);
+        mPreferences.putSync(key10, KEY_TEST_STRING_ELEMENT);
+        mPreferences.putSync(key11, KEY_TEST_FLOAT_ELEMENT);
+        mPreferences.putSync(key12, KEY_TEST_FLOAT_ELEMENT);
+        mPreferences.putSync(key13, KEY_TEST_FLOAT_ELEMENT);
+
+        try {
+            let obj = mPreferences.getAllSync();
+            expect(KEY_TEST_INT_ELEMENT).assertEqual(obj[key1.toString()]);
+            expect(KEY_TEST_INT_ELEMENT).assertEqual(obj[key2.toString()]);
+            expect(KEY_TEST_INT_ELEMENT).assertEqual(obj[key3.toString()]);
+            expect(KEY_TEST_INT_ELEMENT).assertEqual(obj[key4.toString()]);
+            expect(KEY_TEST_INT_ELEMENT).assertEqual(obj[key5.toString()]);
+            expect(KEY_TEST_STRING_ELEMENT).assertEqual(obj[key6.toString()]);
+            expect(KEY_TEST_STRING_ELEMENT).assertEqual(obj[key7.toString()]);
+            expect(KEY_TEST_STRING_ELEMENT).assertEqual(obj[key8.toString()]);
+            expect(KEY_TEST_STRING_ELEMENT).assertEqual(obj[key9.toString()]);
+            expect(KEY_TEST_STRING_ELEMENT).assertEqual(obj[key10.toString()]);
+            expect(KEY_TEST_FLOAT_ELEMENT).assertEqual(obj[key11.toString()]);
+            expect(KEY_TEST_FLOAT_ELEMENT).assertEqual(obj[key12.toString()]);
+            expect(KEY_TEST_FLOAT_ELEMENT).assertEqual(obj[key13.toString()]);
+        } catch (err) {
+            expect(false).assertTrue();
+        }
+    })
+
+    /**
      * @tc.name clear sync interface test
      * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Promise_0010
      * @tc.desc clear sync interface test
@@ -367,5 +420,22 @@ describe('preferencesSyncTest', function () {
         mPreferences = data_preferences.getPreferencesSync(context, NAME);
         let per2 = mPreferences.getSync(KEY_TEST_STRING_ELEMENT, "defaultvalue");
         expect('string').assertEqual(per2);
+    })
+
+    /**
+     * @tc.name value is not utf-8
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_Preferences_0164
+     * @tc.desc put String sync interface test
+     */
+    it('testPreferenceflushSync0164', 0, async function () {
+        let pref = data_preferences.getPreferencesSync(context, {name: "test_preference_164"});
+        pref.put('key_test_utf_8', "éöüÄÖÜ€‚Š‘’“");
+        pref.flushSync();
+        data_preferences.removePreferencesFromCacheSync(context, {name: "test_preference_164"});
+        pref = null;
+        pref = data_preferences.getPreferencesSync(context, {name: "test_preference_164"});
+        let value = pref.getSync('key_test_utf_8', 'defaultValue');
+        expect('defaultValue').assertEqual(value);
+        await data_preferences.deletePreferences(context, {name: "test_preference_164"});
     })
 })

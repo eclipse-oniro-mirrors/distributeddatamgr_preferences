@@ -49,6 +49,8 @@ void PreferencesFuzzTest::SetUpTestCase(void)
 
 void PreferencesFuzzTest::TearDownTestCase(void)
 {
+    Preferences_->Clear();
+    PreferencesHelper::RemovePreferencesFromCache("/data/test/test");
 }
 
 void PreferencesFuzzTest::SetUp(void)
@@ -227,5 +229,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::PutLongFuzz(data, size);
     OHOS::PutDoubleFuzz(data, size);
     OHOS::GetLongFuzz(data, size);
+    OHOS::PreferencesFuzzTest::TearDownTestCase();
     return 0;
 }
