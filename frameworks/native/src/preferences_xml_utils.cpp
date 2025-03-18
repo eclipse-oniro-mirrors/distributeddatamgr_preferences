@@ -40,7 +40,6 @@ static bool ParseNodeElement(const xmlNode *node, Element &element);
 static bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element);
 static bool ParseStringNodeElement(const xmlNode *node, Element &element);
 static bool ParseArrayNodeElement(const xmlNode *node, Element &element);
-static bool CreateElementNode(xmlTextWriterPtr writer, Element &element);
 static bool CreatePrimitiveNode(xmlTextWriterPtr writer, Element &element);
 static bool CreateStringNode(xmlTextWriterPtr writer, Element &element);
 static bool CreateArrayNode(xmlTextWriterPtr writer, Element &element);
@@ -750,93 +749,69 @@ bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std
 
     for (const auto& [key, value] : writeToDiskMap) {
         Element elem;
-        elem.key_.assign(key.data(), key.size());
+        elem.key_ = key;
         WriteXmlElement(elem, value);
-        if (!CreateElementNode(writerWrapper.get(), elem)) {
+        bool success = false;
+        if (elem.tag_ == "string" || elem.tag_ == "uint8Array" || elem.tag_ == "object") {
+            success = CreateStringNode(writerWrapper.get(), elem);
+        } else if (elem.tag_ == "int" || elem.tag_ == "long" || elem.tag_ == "float" ||
+                elem.tag_ == "bool" || elem.tag_ == "double") {
+            success = CreatePrimitiveNode(writerWrapper.get(), elem);
+        } else if (elem.tag_ == "doubleArray" || elem.tag_ == "stringArray" ||
+                elem.tag_ == "boolArray" || elem.tag_ == "BigInt") {
+            success = CreateArrayNode(writerWrapper.get(), elem);
+        }
+        if (!success) {
             LOG_ERROR("Failed to format xml data.");
             return false;
         }
     }
-
     XML_CHECK(xmlTextWriterEndElement(writerWrapper.get()) >= 0, "End element failed");
     XML_CHECK(xmlTextWriterEndDocument(writerWrapper.get()) >= 0, "End document failed");
     return SaveXmlFile(fileName, bundleName, bufferWrapper.get());
 }
 
-/* static */
-bool CreateElementNode(xmlTextWriterPtr writer, Element &element)
+static bool CreatePrimitiveNode(xmlTextWriterPtr writer, Element &element)
 {
-    if (element.tag_.compare("string") == 0 || element.tag_.compare("uint8Array") == 0
-        || element.tag_.compare("object") == 0) {
-        return CreateStringNode(writer, element);
-    }
+    const char* tag = element.tag_.c_str();
+    const char* key = element.key_.c_str();
+    const char* value = element.value_.c_str();
 
-    if ((element.tag_.compare("int") == 0) || (element.tag_.compare("long") == 0)
-        || (element.tag_.compare("float") == 0) || (element.tag_.compare("bool") == 0)
-        || (element.tag_.compare("double") == 0)) {
-        return CreatePrimitiveNode(writer, element);
-    }
-
-    if ((element.tag_.compare("doubleArray") == 0) || (element.tag_.compare("stringArray") == 0)
-        || (element.tag_.compare("boolArray") == 0) || (element.tag_.compare("BigInt") == 0)) {
-        return CreateArrayNode(writer, element);
-    }
-
-    LOG_ERROR("An unsupported element type was encountered in parsing = %{public}s.", element.tag_.c_str());
-    return false;
-}
-
-/* static */
-bool CreatePrimitiveNode(xmlTextWriterPtr writer, Element &element)
-{
-    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
-
-    if (!element.key_.empty()) {
-        const char *key = element.key_.c_str();
-        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
-    }
-
-    const char *value = element.value_.c_str();
+    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST tag) >= 0, "Start element failed");
+    XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
     XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "value", BAD_CAST value) >= 0, "Write attr failed");
     XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
     return true;
 }
 
-bool CreateStringNode(xmlTextWriterPtr writer, Element &element)
+static bool CreateStringNode(xmlTextWriterPtr writer, Element &element)
 {
-    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
+    const char* tag = element.tag_.c_str();
+    const char* key = element.key_.c_str();
+    const char* value = element.value_.c_str();
 
-    if (!element.key_.empty()) {
-        const char *key = element.key_.c_str();
-        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
-    }
-
-    const char *value = element.value_.c_str();
+    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST tag) >= 0, "Start element failed");
+    XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
     XML_CHECK(xmlTextWriterWriteString(writer, BAD_CAST value) >= 0, "");
     XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
     return true;
+    return true;
 }
 
-bool CreateArrayNode(xmlTextWriterPtr writer, Element &element)
+static bool CreateArrayNode(xmlTextWriterPtr writer, Element &element)
 {
-    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
-    const char *key = element.key_.c_str();
+    const char* tag = element.tag_.c_str();
+    const char* key = element.key_.c_str();
+
+    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST tag) >= 0, "Start element failed");
     XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
 
-    if (element.children_.empty()) {
-        XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
-        return true;
-    }
-    Element flag = element.children_[0];
-    if (flag.tag_.compare("string") == 0) {
-        for (Element &child : element.children_) {
+    for (auto &child : element.children_) {
+        if (child.tag_ == "string") {
             if (!CreateStringNode(writer, child)) {
                 return false;
             }
-        }
-    } else if ((flag.tag_.compare("bool") == 0) || (flag.tag_.compare("double") == 0) ||
-        (flag.tag_.compare("uint64_t") == 0)) {
-        for (Element &child : element.children_) {
+        } else {
             if (!CreatePrimitiveNode(writer, child)) {
                 return false;
             }
