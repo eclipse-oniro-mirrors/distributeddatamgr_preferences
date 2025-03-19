@@ -31,19 +31,130 @@
 
 namespace OHOS {
 namespace NativePreferences {
-constexpr int PRE_ALLOCATE_BUFFER_SIZE = 64;
+constexpr int PRE_ALLOCATE_BUFFER_SIZE = 128;
 constexpr int NO_SPACE_LEFT_ON_DEVICE = 28;
 constexpr int DISK_QUOTA_EXCEEDED = 122;
 constexpr int REQUIRED_KEY_NOT_AVAILABLE = 126;
 constexpr int REQUIRED_KEY_REVOKED = 128;
+
+constexpr const char *TAG_PREFERENCES = "preferences";
+constexpr const char *TAG_VERSION = "version";
+constexpr const char *VERSION_VALUE = "1.0";
+constexpr const char *ATTR_KEY = "key";
+constexpr const char *ATTR_VALUE = "value";
+
 static bool ParseNodeElement(const xmlNode *node, Element &element);
 static bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element);
 static bool ParseStringNodeElement(const xmlNode *node, Element &element);
 static bool ParseArrayNodeElement(const xmlNode *node, Element &element);
-static bool CreateElementNode(xmlTextWriterPtr writer, Element &element);
-static bool CreatePrimitiveNode(xmlTextWriterPtr writer, Element &element);
-static bool CreateStringNode(xmlTextWriterPtr writer, Element &element);
-static bool CreateArrayNode(xmlTextWriterPtr writer, Element &element);
+
+struct ValueVisitor {
+    std::string_view typeTag;
+    std::string valueStr;
+    std::string_view childrenTag;
+    std::vector<std::string> arrayValues;
+
+    void operator()(int val)
+    {
+        typeTag = "int";
+        valueStr = std::to_string(val);
+    }
+
+    void operator()(bool val)
+    {
+        typeTag = "bool";
+        valueStr = val ? "true" : "false";
+    }
+
+    void operator()(int64_t val)
+    {
+        typeTag = "long";
+        valueStr = std::to_string(val);
+    }
+
+    void operator()(uint64_t val)
+    {
+        typeTag = "uint64_t";
+        valueStr = std::to_string(val);
+    }
+
+    void operator()(float val)
+    {
+        typeTag = "float";
+        valueStr = std::to_string(val);
+    }
+
+    void operator()(double val)
+    {
+        typeTag = "double";
+        valueStr = std::to_string(val);
+    }
+
+    void operator()(const std::string& val)
+    {
+        typeTag = "string";
+        valueStr = val;
+    }
+
+    void operator()(const std::vector<std::string>& val)
+    {
+        typeTag = "stringArray";
+        childrenTag = "string";
+        arrayValues.reserve(val.size());
+        for (const auto& s : val) {
+            arrayValues.push_back(s);
+        }
+    }
+
+    void operator()(const std::vector<double>& val)
+    {
+        typeTag = "doubleArray";
+        childrenTag = "double";
+        arrayValues.reserve(val.size());
+        for (const auto& d : val) {
+            arrayValues.push_back(std::to_string(d));
+        }
+    }
+
+    void operator()(const std::vector<bool>& val)
+    {
+        typeTag = "boolArray";
+        childrenTag = "bool";
+        arrayValues.reserve(val.size());
+        for (const auto& b : val) {
+            arrayValues.push_back(b ? "true" : "false");
+        }
+    }
+
+    void operator()(const std::vector<uint8_t>& val)
+    {
+        typeTag = "uint8Array";
+        valueStr = Base64Helper::Encode(val);
+    }
+
+    void operator()(const Object& val)
+    {
+        typeTag = "object";
+        valueStr = val.valueStr;
+    }
+
+    void operator()(const BigInt& val)
+    {
+        typeTag = "BigInt";
+        childrenTag = "uint64_t";
+        arrayValues.reserve(val.words_.size() + 1);
+        for (const auto& word : val.words_) {
+            arrayValues.push_back(std::to_string(word));
+        }
+        arrayValues.push_back(std::to_string(static_cast<uint64_t>(val.sign_)));
+    }
+
+    void operator()(const std::monostate&)
+    {
+        typeTag = "unknown";
+        LOG_ERROR("Encountered unknown type in PreferencesValue");
+    }
+};
 
 class XmlWriterWrapper {
 public:
@@ -172,82 +283,6 @@ template<>
 std::string GetTypeName<BigInt>()
 {
     return "BigInt";
-}
-
-template<typename T>
-void Convert2Element(Element &elem, const T &value)
-{
-    elem.tag_ = GetTypeName<T>();
-    if constexpr (std::is_same<T, std::string>::value) {
-        elem.value_ = value;
-    } else if constexpr (std::is_same<T, bool>::value) {
-        elem.value_ = ((bool)value) ? "true" : "false";
-    } else if constexpr (std::is_same<T, std::monostate>::value) {
-        elem.value_ = {};
-    } else {
-        elem.value_ = std::to_string(value);
-    }
-}
-
-template<typename T>
-void Convert2Element(Element &elem, const std::vector<T> &value)
-{
-    elem.tag_ = GetTypeName<std::vector<T>>();
-    for (const T &val : value) {
-        Element element;
-        Convert2Element(element, val);
-        elem.children_.emplace_back(element);
-    }
-}
-
-void Convert2Element(Element &elem, const std::vector<uint8_t> &value)
-{
-    elem.tag_ = GetTypeName<std::vector<uint8_t>>();
-    elem.value_ = Base64Helper::Encode(value);
-}
-
-void Convert2Element(Element &elem, const Object &value)
-{
-    elem.tag_ = GetTypeName<Object>();
-    elem.value_ = value.valueStr;
-}
-
-void Convert2Element(Element &elem, const BigInt &value)
-{
-    elem.tag_ = GetTypeName<BigInt>();
-    for (const auto &val : value.words_) {
-        Element element;
-        Convert2Element(element, val);
-        elem.children_.emplace_back(element);
-    }
-    // place symbol at the end
-    Element symbolElement;
-    Convert2Element(symbolElement, static_cast<uint64_t>(value.sign_));
-    elem.children_.emplace_back(symbolElement);
-}
-
-template<typename T> void GetElement(Element &elem, const T &value)
-{
-    LOG_WARN("unknown element type. the key is %{public}s", Anonymous::ToBeAnonymous(elem.key_).c_str());
-}
-
-template<typename T, typename First, typename... Types> void GetElement(Element &elem, const T &value)
-{
-    auto *val = std::get_if<First>(&value);
-    if (val != nullptr) {
-        return Convert2Element(elem, *val);
-    }
-    return GetElement<T, Types...>(elem, value);
-}
-
-template<typename... Types> void Convert2Element(Element &elem, const std::variant<Types...> &value)
-{
-    return GetElement<decltype(value), Types...>(elem, value);
-}
-
-void WriteXmlElement(Element &elem, const PreferencesValue &value)
-{
-    Convert2Element(elem, value.value_);
 }
 
 template<typename T>
@@ -574,8 +609,8 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
 /* static */
 bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element)
 {
-    xmlChar *key = xmlGetProp(node, reinterpret_cast<const xmlChar *>("key"));
-    xmlChar *value = xmlGetProp(node, reinterpret_cast<const xmlChar *>("value"));
+    xmlChar *key = xmlGetProp(node, reinterpret_cast<const xmlChar *>(ATTR_KEY));
+    xmlChar *value = xmlGetProp(node, reinterpret_cast<const xmlChar *>(ATTR_VALUE));
 
     bool success = false;
     if (value != nullptr) {
@@ -601,7 +636,7 @@ bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element)
 /* static */
 bool ParseStringNodeElement(const xmlNode *node, Element &element)
 {
-    xmlChar *key = xmlGetProp(node, (const xmlChar *)"key");
+    xmlChar *key = xmlGetProp(node, (const xmlChar *)ATTR_KEY);
     xmlChar *text = xmlNodeGetContent(node);
 
     bool success = false;
@@ -628,7 +663,7 @@ bool ParseStringNodeElement(const xmlNode *node, Element &element)
 /* static */
 bool ParseArrayNodeElement(const xmlNode *node, Element &element)
 {
-    xmlChar *key = xmlGetProp(node, (const xmlChar *)"key");
+    xmlChar *key = xmlGetProp(node, (const xmlChar *)ATTR_KEY);
     const xmlNode *children = node->children;
 
     bool success = false;
@@ -720,6 +755,47 @@ static bool SaveXmlFile(const std::string &fileName, const std::string &bundleNa
     return true;
 }
 
+static bool WriteXmlElement(xmlTextWriterPtr writer, const std::string &key, const PreferencesValue &value)
+{
+    ValueVisitor visitor;
+    std::visit(visitor, value.value_);
+    const char* tag = visitor.typeTag.data();
+    const char* keyPtr = key.c_str();
+    if (visitor.typeTag == "string" || visitor.typeTag == "uint8Array" || visitor.typeTag == "object") {
+        XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST tag) >= 0, "Start element failed");
+        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST ATTR_KEY, BAD_CAST keyPtr) >= 0, "Write attr failed");
+        XML_CHECK(xmlTextWriterWriteString(writer, BAD_CAST visitor.valueStr.c_str()) >= 0, "Write value failed");
+        XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+    } else if (visitor.typeTag == "int" || visitor.typeTag == "long" ||visitor.typeTag == "float" ||
+        visitor.typeTag == "bool" || visitor.typeTag == "double") {
+        XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST tag) >= 0, "Start element failed");
+        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST ATTR_KEY, BAD_CAST keyPtr) >= 0, "Write attr failed");
+        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST ATTR_VALUE, BAD_CAST visitor.valueStr.c_str()) >= 0,
+            "Write attr failed");
+        XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+    } else if (visitor.typeTag == "doubleArray" || visitor.typeTag == "stringArray" ||
+        visitor.typeTag == "boolArray" || visitor.typeTag == "BigInt") {
+        XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST tag) >= 0, "Start element failed");
+        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST ATTR_KEY, BAD_CAST keyPtr) >= 0, "Write attr failed");
+        for (auto &child : visitor.arrayValues) {
+            if (visitor.childrenTag == "string") {
+                XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST visitor.childrenTag.data()) >= 0,
+                    "Start element failed");
+                XML_CHECK(xmlTextWriterWriteString(writer, BAD_CAST child.c_str()) >= 0, "Write value failed");
+                XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+            } else {
+                XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST visitor.childrenTag.data()) >= 0,
+                    "Start element failed");
+                XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST ATTR_VALUE, BAD_CAST child.c_str()) >= 0,
+                    "Write attr failed");
+                XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+            }
+        }
+        XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
+    }
+    return true;
+}
+
 /* static */
 bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std::string &bundleName,
     const std::unordered_map<std::string, PreferencesValue> &writeToDiskMap)
@@ -740,111 +816,24 @@ bool PreferencesXmlUtils::WriteSettingXml(const std::string &fileName, const std
         return false;
     }
 
-    xmlTextWriterSetIndent(writerWrapper.get(), 0);
-    XML_CHECK(xmlTextWriterStartDocument(writerWrapper.get(), nullptr, "UTF-8", nullptr) >= 0,
-        "Start document failed");
-    XML_CHECK(xmlTextWriterStartElement(writerWrapper.get(), BAD_CAST "preferences") >= 0,
-        "Start preferences element failed");
-    XML_CHECK(xmlTextWriterWriteAttribute(writerWrapper.get(), BAD_CAST "version", BAD_CAST "1.0") >= 0,
-        "Write version attribute failed");
+    xmlTextWriterPtr writer = writerWrapper.get();
+    xmlTextWriterSetIndent(writer, 0);
 
-    for (const auto& [key, value] : writeToDiskMap) {
-        Element elem;
-        elem.key_.assign(key.data(), key.size());
-        WriteXmlElement(elem, value);
-        if (!CreateElementNode(writerWrapper.get(), elem)) {
-            LOG_ERROR("Failed to format xml data.");
+    XML_CHECK(xmlTextWriterStartDocument(writer, nullptr, "UTF-8", nullptr) >= 0, "Start document failed");
+    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST TAG_PREFERENCES) >= 0, "Start root element failed");
+    XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST TAG_VERSION, BAD_CAST VERSION_VALUE) >= 0,
+            "Write version failed");
+
+    for (const auto& [key, prefValue] : writeToDiskMap) {
+        if (!WriteXmlElement(writer, key, prefValue)) {
             return false;
         }
     }
 
-    XML_CHECK(xmlTextWriterEndElement(writerWrapper.get()) >= 0, "End element failed");
-    XML_CHECK(xmlTextWriterEndDocument(writerWrapper.get()) >= 0, "End document failed");
+    XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End root failed");
+    XML_CHECK(xmlTextWriterEndDocument(writer) >= 0, "End document failed");
+
     return SaveXmlFile(fileName, bundleName, bufferWrapper.get());
-}
-
-/* static */
-bool CreateElementNode(xmlTextWriterPtr writer, Element &element)
-{
-    if (element.tag_.compare("string") == 0 || element.tag_.compare("uint8Array") == 0
-        || element.tag_.compare("object") == 0) {
-        return CreateStringNode(writer, element);
-    }
-
-    if ((element.tag_.compare("int") == 0) || (element.tag_.compare("long") == 0)
-        || (element.tag_.compare("float") == 0) || (element.tag_.compare("bool") == 0)
-        || (element.tag_.compare("double") == 0)) {
-        return CreatePrimitiveNode(writer, element);
-    }
-
-    if ((element.tag_.compare("doubleArray") == 0) || (element.tag_.compare("stringArray") == 0)
-        || (element.tag_.compare("boolArray") == 0) || (element.tag_.compare("BigInt") == 0)) {
-        return CreateArrayNode(writer, element);
-    }
-
-    LOG_ERROR("An unsupported element type was encountered in parsing = %{public}s.", element.tag_.c_str());
-    return false;
-}
-
-/* static */
-bool CreatePrimitiveNode(xmlTextWriterPtr writer, Element &element)
-{
-    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
-
-    if (!element.key_.empty()) {
-        const char *key = element.key_.c_str();
-        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
-    }
-
-    const char *value = element.value_.c_str();
-    XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "value", BAD_CAST value) >= 0, "Write attr failed");
-    XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
-    return true;
-}
-
-bool CreateStringNode(xmlTextWriterPtr writer, Element &element)
-{
-    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
-
-    if (!element.key_.empty()) {
-        const char *key = element.key_.c_str();
-        XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
-    }
-
-    const char *value = element.value_.c_str();
-    XML_CHECK(xmlTextWriterWriteString(writer, BAD_CAST value) >= 0, "");
-    XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
-    return true;
-}
-
-bool CreateArrayNode(xmlTextWriterPtr writer, Element &element)
-{
-    XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST element.tag_.c_str()) >= 0, "Start element failed");
-    const char *key = element.key_.c_str();
-    XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST "key", BAD_CAST key) >= 0, "Write attr failed");
-
-    if (element.children_.empty()) {
-        XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
-        return true;
-    }
-    Element flag = element.children_[0];
-    if (flag.tag_.compare("string") == 0) {
-        for (Element &child : element.children_) {
-            if (!CreateStringNode(writer, child)) {
-                return false;
-            }
-        }
-    } else if ((flag.tag_.compare("bool") == 0) || (flag.tag_.compare("double") == 0) ||
-        (flag.tag_.compare("uint64_t") == 0)) {
-        for (Element &child : element.children_) {
-            if (!CreatePrimitiveNode(writer, child)) {
-                return false;
-            }
-        }
-    }
-
-    XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
-    return true;
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS
