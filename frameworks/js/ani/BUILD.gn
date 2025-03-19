@@ -54,7 +54,7 @@ ohos_shared_library("ani_preferences") {
 
   external_deps = [
     "ability_runtime:abilitykit_native",
-    "ability_runtime:napi_base_context",
+    "ability_runtime:ani_base_context",
     "hilog:libhilog",
     "runtime_core:ani",
   ]
