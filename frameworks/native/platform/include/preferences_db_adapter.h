@@ -83,6 +83,13 @@ typedef struct GRD_DbValueT {
     } value;
 } GRD_DbValueT;
 
+typedef enum {
+    GRD_EVENT_CORRUPTION,
+    GRD_EVENT_BOTTOM,
+} GRD_EventTypeE;
+
+typedef void (*GRD_EventCallbackT)(void *callbackContext, const char *eventInfo);
+
 typedef int32_t (*DBOpen)(const char *dbPath, const char *configStr, uint32_t flags, GRD_DB **db);
 typedef int32_t (*DBClose)(GRD_DB *db, uint32_t flags);
 typedef int32_t (*DBCreateCollection)(GRD_DB *db, const char *tableName, const char *optionStr, uint32_t flags);
@@ -103,6 +110,7 @@ typedef int32_t (*KVFreeItem)(GRD_KVItemT *item);
 typedef int32_t (*FreeResultSet)(GRD_ResultSet *resultSet);
 typedef int32_t (*DBRepair)(const char *dbFile, const char *configStr);
 typedef GRD_DbValueT (*DBGetConfig)(GRD_DB *db, GRD_ConfigTypeE type);
+typedef int32_t (*DBSetEventCallback)(void *callbackContext, GRD_EventTypeE type, GRD_EventCallbackT callback);
 
 struct GRD_APIInfo {
     DBOpen DbOpenApi = nullptr;
@@ -123,6 +131,7 @@ struct GRD_APIInfo {
     FreeResultSet FreeResultSetApi = nullptr;
     DBRepair DbRepairApi = nullptr;
     DBGetConfig DbGetConfigApi = nullptr;
+    DBSetEventCallback DbSetEventCallbackApi = nullptr;
 };
 
 class PreferenceDbAdapter {
@@ -130,11 +139,15 @@ public:
     static bool IsEnhandceDbEnable();
     static GRD_APIInfo& GetApiInstance();
     static void ApiInit();
+    static std::string GetDbEventInfo();
+    static void DbEventCallback(void *callbackContext, const char *eventInfo);
+    static void RegisterDbEventCallback();
 
     static void *gLibrary_;
     static std::mutex apiMutex_;
     static GRD_APIInfo api_;
     static std::atomic<bool> isInit_;
+    static thread_local std::string eventInfo_;
 };
 
 class PreferencesDb {

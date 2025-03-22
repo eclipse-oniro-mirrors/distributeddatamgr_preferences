@@ -30,6 +30,8 @@ GRD_APIInfo PreferenceDbAdapter::api_;
 
 std::atomic<bool> PreferenceDbAdapter::isInit_ = false;
 
+thread_local std::string PreferenceDbAdapter::eventInfo_;
+
 #if !defined(WINDOWS_PLATFORM)
 static const std::chrono::milliseconds WAIT_REPAIRE_TIMEOUT(5);
 #endif
@@ -65,6 +67,8 @@ void GRDDBApiInitEnhance(GRD_APIInfo &GRD_DBApiInfo)
     GRD_DBApiInfo.FreeResultSetApi = (FreeResultSet)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_FreeResultSet");
     GRD_DBApiInfo.DbRepairApi = (DBRepair)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_DBRepair");
     GRD_DBApiInfo.DbGetConfigApi = (DBGetConfig)dlsym(PreferenceDbAdapter::gLibrary_, "GRD_GetConfig");
+    GRD_DBApiInfo.DbSetEventCallbackApi = (DBSetEventCallback)dlsym(PreferenceDbAdapter::gLibrary_,
+        "GRD_SetEventCallback");
 #endif
 }
 
@@ -123,7 +127,36 @@ void PreferenceDbAdapter::ApiInit()
         LOG_DEBUG("use default db kernel");
     }
     PreferenceDbAdapter::isInit_ = true;
+    PreferenceDbAdapter::RegisterDbEventCallback();
     return;
+}
+
+std::string PreferenceDbAdapter::GetDbEventInfo()
+{
+    std::string info = PreferenceDbAdapter::eventInfo_;
+    eventInfo_ = "";
+    return info;
+}
+
+void PreferenceDbAdapter::DbEventCallback(void *callbackContext, const char *eventInfo)
+{
+    (void)callbackContext;
+    if (eventInfo != NULL) {
+        PreferenceDbAdapter::eventInfo_ = eventInfo;
+    }
+}
+
+void PreferenceDbAdapter::RegisterDbEventCallback()
+{
+    if (PreferenceDbAdapter::GetApiInstance().DbSetEventCallbackApi == nullptr) { // LCOV_EXCL_BR_LINE
+        LOG_ERROR("api load failed:DbSetEventCallbackApi");
+        return;
+    }
+    int errCode = PreferenceDbAdapter::GetApiInstance().DbSetEventCallbackApi(nullptr, GRD_EVENT_CORRUPTION,
+        &PreferenceDbAdapter::DbEventCallback);
+    if (errCode != GRD_OK) { // LCOV_EXCL_BR_LINE
+        LOG_ERROR("set event callback failed, errCode: %{public}d", errCode);
+    }
 }
 
 PreferencesDb::PreferencesDb()
@@ -270,7 +303,9 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
     bundleName_ = bundleName;
     int errCode = OpenDb(false);
     if (errCode == GRD_DATA_CORRUPTED) {
-        PreferencesDfxManager::Report(GetReportParam("db corrupted", errCode), EVENT_NAME_DB_CORRUPTED);
+        std::string info = PreferenceDbAdapter::GetDbEventInfo();
+        PreferencesDfxManager::Report(GetReportParam((info.empty() ? "db corrupted" : info), errCode),
+            EVENT_NAME_DB_CORRUPTED);
         int innerErr = TryRepairAndRebuild(errCode);
         if (innerErr != GRD_OK) {
             // log inside
