@@ -13,7 +13,7 @@
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
 
-module_output_path = "preferences/native_preferences"
+module_output_path = "preferences/preferences/native_preferences"
 
 ###############################################################################
 config("module_private_config") {
