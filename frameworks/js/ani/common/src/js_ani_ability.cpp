@@ -20,11 +20,11 @@
 namespace OHOS {
 namespace PreferencesJsKit {
 namespace JSAbility {
-CONTEXT_MODE GetContextMode(ani_env* env, ani_object value)
+CONTEXT_MODE GetContextMode(ani_env* env, ani_object context)
 {
     if (gContextNode == INIT) {
         ani_boolean isStageMode;
-        ani_status status = OHOS::AbilityRuntime::IsStageContext(env, value, isStageMode);
+        ani_status status = OHOS::AbilityRuntime::IsStageContext(env, context, isStageMode);
         LOG_INFO("GetContextMode is %{public}d", static_cast<bool>(isStageMode));
         if (status == ANI_OK) {
             gContextNode = isStageMode ? STAGE : FA;
@@ -34,12 +34,12 @@ CONTEXT_MODE GetContextMode(ani_env* env, ani_object value)
     return gContextNode;
 }
 
-std::shared_ptr<JSError> GetContextInfo(ani_env* env, ani_object value,
+std::shared_ptr<JSError> GetContextInfo(ani_env* env, ani_object context,
     const std::string &dataGroupId, ContextInfo &contextInfo)
 {
-    if (GetContextMode(env, value) == STAGE) {
+    if (GetContextMode(env, context) == STAGE) {
         LOG_INFO("after GetContextMode, in stage.");
-        auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, value);
+        auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, context);
         if (stageContext != nullptr) {
             int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
             LOG_INFO("after GetContextMode, in stage. errcode is %{public}d.", errcode);

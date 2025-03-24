@@ -19,7 +19,7 @@ config("ani_config") {
   include_dirs = [
     ".",
     "//foundation/distributeddatamgr/preferences/frameworks/common/include/",
-    "common/include",
+    "../common/include",
   ]
 }
 
@@ -42,9 +42,9 @@ ohos_shared_library("ani_preferences") {
   public_configs = [ ":ani_config" ]
 
   sources = [
-    "common/src/ani_preferences_error.cpp",
-    "common/src/js_ani_ability.cpp",
-    "src/ani_preferences.cpp",
+    "../common/src/ani_preferences_error.cpp",
+    "../common/src/js_ani_ability.cpp",
+    "./src/ani_preferences.cpp",
   ]
   subsystem_name = "distributeddatamgr"
   part_name = "preferences"
