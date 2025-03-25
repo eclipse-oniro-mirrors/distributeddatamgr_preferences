@@ -429,7 +429,7 @@ describe('preferencesSyncTest', function () {
      */
     it('testPreferenceflushSync0164', 0, async function () {
         let pref = data_preferences.getPreferencesSync(context, {name: "test_preference_164"});
-        pref.put('key_test_utf_8', "éöüÄÖÜ€‚Š‘’“");
+        pref.putSync('key_test_utf_8', 'ßC?¾¼vÖ¬O1"\'ÈD');
         pref.flushSync();
         data_preferences.removePreferencesFromCacheSync(context, {name: "test_preference_164"});
         pref = null;

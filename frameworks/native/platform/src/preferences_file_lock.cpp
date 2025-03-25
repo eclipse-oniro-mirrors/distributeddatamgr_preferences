@@ -56,9 +56,6 @@ PreferencesFileLock::PreferencesFileLock(const std::string &path)
 PreferencesFileLock::~PreferencesFileLock()
 {
     inProcessMutex_->unlock();
-    if (Access(filePath_) != 0 && Access(MakeFilePath(filePath_, STR_BACKUP)) != 0) {
-        return;
-    }
     if (fd_ > 0) {
         struct flock fileLockInfo = { 0 };
         fileLockInfo.l_type = F_UNLCK;
@@ -75,9 +72,6 @@ PreferencesFileLock::~PreferencesFileLock()
 
 void PreferencesFileLock::ReadLock(bool &isMultiProcessing)
 {
-    if (Access(filePath_) != 0 && Access(MakeFilePath(filePath_, STR_BACKUP)) != 0) {
-        return;
-    }
     Lock(F_RDLCK, isMultiProcessing);
 }
 
