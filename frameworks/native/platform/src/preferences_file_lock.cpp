@@ -72,6 +72,9 @@ PreferencesFileLock::~PreferencesFileLock()
 
 void PreferencesFileLock::ReadLock(bool &isMultiProcessing)
 {
+    if (Access(filePath_) != 0) {
+        return;
+    }
     Lock(F_RDLCK, isMultiProcessing);
 }
 
