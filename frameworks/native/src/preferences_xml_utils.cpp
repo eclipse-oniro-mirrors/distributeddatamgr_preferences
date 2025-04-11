@@ -31,6 +31,7 @@
 
 namespace OHOS {
 namespace NativePreferences {
+constexpr int TOO_MANY_OPEN_FILES = 24;
 constexpr int PRE_ALLOCATE_BUFFER_SIZE = 128;
 constexpr int NO_SPACE_LEFT_ON_DEVICE = 28;
 constexpr int DISK_QUOTA_EXCEEDED = 122;
@@ -416,7 +417,7 @@ static bool ReportNonCorruptError(
         PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
         return true;
     }
-    if (errCode == NO_SPACE_LEFT_ON_DEVICE || errCode == DISK_QUOTA_EXCEEDED) {
+    if (errCode == NO_SPACE_LEFT_ON_DEVICE || errCode == DISK_QUOTA_EXCEEDED || errCode == TOO_MANY_OPEN_FILES) {
         ReportFaultParam param = { faultType, bundleName, NORMAL_DB, ExtractFileName(fileName),
             E_ERROR, faultType + " " + std::strerror(errCode)};
         PreferencesDfxManager::ReportFault(param);
