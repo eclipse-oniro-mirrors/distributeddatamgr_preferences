@@ -157,7 +157,7 @@ export namespace preferences {
     let p = new Promise<void>((resolve: (v: undefined) => void,
       reject: (error: Object) => void) : void => {
         let p1 = taskpool.execute(delPreByOpt, context, options);
-        p1.then((e : NullishType) : void=>{
+        p1.then((e : NullishType) : void=> {
           let ret =  e as int;
           hilog.info(0x0000, 'preferences', "in deletePreferences by opt promised then. ret is " + ret);
           resolve(undefined);
@@ -221,7 +221,7 @@ export namespace preferences {
     let p = new Promise<void>((resolve: (v: undefined) => void,
       reject: (error: Object) => void) : void => {
         let p1 = taskpool.execute(executeRemoveByOpt, context, options);
-        p1.then((e : NullishType) : void=>{
+        p1.then((e : NullishType) : void=> {
           resolve(undefined);
         }).catch((error: Error) : void => {
           reject(error);
@@ -248,6 +248,7 @@ export namespace preferences {
     delete(key: string): Promise<void>;
     deleteSync(key: string): void;
     flush(callback: AsyncCallback<void>): void;
+    flush(): Promise<void>;
     clearSync(): void;
     clear(): Promise<void>;
     clear(callback: AsyncCallback<void>): void;
@@ -410,7 +411,7 @@ export namespace preferences {
       let p = new Promise<void>((resolve: (v: undefined) => void,
         reject: (error: Object) => void) : void => {
         let p1 = taskpool.execute(deleteSyncInner, this, key);
-          p1.then((e :NullishType) : void=>{
+          p1.then((e :NullishType) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In delete Promise, ret is: " + r);
             resolve(undefined);
@@ -438,6 +439,21 @@ export namespace preferences {
       });
     }
 
+    flush(): Promise<void> {
+      let p = new Promise<void>((resolve: (v: undefined) => void,
+        reject: (error: Object) => void) : void => {
+        let p1 = taskpool.execute(flushSync, this);
+          p1.then((e :NullishType) : void=> {
+            let r = e as int;
+            hilog.info(0x0000, 'preferences', "In flush Promise, ret is: " + r);
+            resolve(undefined);
+        }).catch((err: Error) : void => {
+          reject(err);
+        });
+      });
+      return p;
+    }
+
     clearSync(): void {
       let ret = clearSyncInner(this);
       hilog.info(0x0000, 'preferences', "clearSyncInner, ret is: " + ret);
@@ -447,7 +463,7 @@ export namespace preferences {
       let p = new Promise<void>((resolve: (v: undefined) => void,
         reject: (error: Object) => void) : void => {
         let p1 = taskpool.execute(clearSyncInner, this);
-          p1.then((e :NullishType) : void=>{
+          p1.then((e :NullishType) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In clear Promise, ret is: " + r);
             resolve(undefined);
