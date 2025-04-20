@@ -27,6 +27,7 @@
 #include <shared_mutex>
 #include "safe_block_queue.h"
 #include "preferences_base.h"
+#include "preferences_observer_stub.h"
 
 namespace OHOS {
 namespace NativePreferences {
@@ -97,6 +98,8 @@ private:
     std::unordered_map<std::string, PreferencesValue> valuesCache_;
 
     std::shared_ptr<SafeBlockQueue<uint64_t>> queue_;
+
+    std::shared_ptr<DataObsMgrClient> dataObsMgrClient_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS
