@@ -86,7 +86,7 @@ export namespace preferences {
 
   export function getPreferences(context: Context, name: string): Promise<Preferences> {
     let p = new Promise<Preferences>((resolve: (v: Preferences) => void,
-      reject: (error: Object) => void) => {
+      reject: (error: Error) => void) => {
         let p1 = taskpool.execute(executeGetByName, context, name);
         p1.then((e :NullishType)=>{
           let r =  e as Preferences;
@@ -100,7 +100,7 @@ export namespace preferences {
 
   export function getPreferences(context: Context, options: Options): Promise<Preferences> {
     let p = new Promise<Preferences>((resolve: (v: Preferences) => void,
-      reject: (error: Object) => void) => {
+      reject: (error: Error) => void) => {
         let p1 = taskpool.execute(executeGetByOpt, context, options);
         p1.then((e :NullishType)=>{
           let r =  e as Preferences;
@@ -279,7 +279,7 @@ export namespace preferences {
 
     get(key: string, defValue: ValueType): Promise<ValueType> {
       let p = new Promise<ValueType>((resolve: (v: ValueType) => void,
-        reject: (error: Object) => void) => {
+        reject: (error: Error) => void) => {
           let p1 = taskpool.execute(getInner, this, key, defValue);
           p1.then((e :NullishType)=>{
             let r =  e as ValueType;
@@ -315,7 +315,7 @@ export namespace preferences {
 
     getAll(): Promise<Object> {
       let p = new Promise<Object>((resolve: (v: Object) => void,
-        reject: (error: Object) => void) => {
+        reject: (error: Error) => void) => {
           let p1 = taskpool.execute(getAllSyncInner, this);
           p1.then((e :NullishType) : Object => {
             hilog.info(0x0000, 'preferences', "in getAll promise then.")
@@ -345,7 +345,7 @@ export namespace preferences {
 
     has(key: string): Promise<boolean> {
       let p = new Promise<boolean>((resolve: (v: boolean) => void,
-        reject: (error: Object) => void) => {
+        reject: (error: Error) => void) => {
           let p1 = taskpool.execute(hasSyncInner, this, key);
           p1.then((e :NullishType) : boolean =>{
               let r =  e as boolean;
