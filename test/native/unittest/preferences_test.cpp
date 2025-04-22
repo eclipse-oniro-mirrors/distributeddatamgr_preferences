@@ -1058,10 +1058,119 @@ HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
     Object object("{\"key1\":\"value1\",\"key2\":222}");
     Object retObjecte = PreferencesValue(object);
     EXPECT_EQ(object, retObjecte);
-    
+
     std::vector<uint64_t> words = { 1, 2, 3 };
     BigInt bigint(words, 0);
     BigInt retBigint = PreferencesValue(bigint);
     EXPECT_EQ(bigint, retBigint);
+}
+
+/**
+ * @tc.name: NativePreferencesTest_035
+ * @tc.desc: normal testcase of getAllData
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author: bty
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_035, TestSize.Level1)
+{
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test035", errCode);
+
+    std::map<std::string, PreferencesValue> map = { { KEY_TEST_INT_ELEMENT, 1 }, { KEY_TEST_FLOAT_ELEMENT, 0.1 },
+        { KEY_TEST_BOOL_ELEMENT, false }, { KEY_TEST_STRING_ELEMENT, "test" } };
+
+    for (auto i : map) {
+        pref1->Put(i.first, i.second);
+    }
+
+    auto ret = pref1->GetAllData();
+
+    EXPECT_EQ(map.size(), ret.second.size());
+    for (auto iter1 = ret.second.begin(); iter1 != ret.second.end(); ++iter1) {
+        auto iter2 = map.find(iter1->first);
+        EXPECT_NE(iter2, map.end());
+        bool isequa = false;
+        if (iter1->second == iter2->second) {
+            isequa = true;
+        }
+        EXPECT_TRUE(isequa);
+    }
+    pref1->Clear();
+    ret = pref1->GetAllData();
+    EXPECT_EQ(ret.second.size(), 0);
+    PreferencesHelper::DeletePreferences("/data/test/test035");
+}
+
+/**
+ * @tc.name: NativePreferencesTest_036
+ * @tc.desc: normal testcase of getAllDatas
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author: Na
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_036, TestSize.Level1)
+{
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test036", errCode);
+
+    std::map<std::string, PreferencesValue> map = { { KEY_TEST_INT_ELEMENT, 1 }, { KEY_TEST_FLOAT_ELEMENT, 0.1 },
+        { KEY_TEST_BOOL_ELEMENT, false }, { KEY_TEST_STRING_ELEMENT, "test" } };
+
+    for (auto i : map) {
+        pref1->Put(i.first, i.second);
+    }
+
+    auto ret = pref1->GetAllDatas();
+
+    EXPECT_EQ(map.size(), ret.size());
+    for (auto iter1 = ret.begin(); iter1 != ret.end(); ++iter1) {
+        auto iter2 = map.find(iter1->first);
+        EXPECT_NE(iter2, map.end());
+        bool isequa = false;
+        if (iter1->second == iter2->second) {
+            isequa = true;
+        }
+        EXPECT_TRUE(isequa);
+    }
+    pref1->Clear();
+    ret = pref1->GetAllDatas();
+    EXPECT_EQ(ret.size(), 0);
+    PreferencesHelper::DeletePreferences("/data/test/test036");
+}
+
+/**
+ * @tc.name: NativePreferencesTest_036
+ * @tc.desc: normal testcase of get value
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author: bty
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_037, TestSize.Level1)
+{
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test037", errCode);
+
+    std::map<std::string, PreferencesValue> map = { { KEY_TEST_INT_ELEMENT, 1 }, { KEY_TEST_FLOAT_ELEMENT, 0.1 },
+        { KEY_TEST_BOOL_ELEMENT, false }, { KEY_TEST_STRING_ELEMENT, "test" } };
+
+    for (auto i : map) {
+        pref1->Put(i.first, i.second);
+    }
+
+    PreferencesValue defValue(static_cast<int64_t>(0));
+    auto ret = pref1->GetValue("", defValue);
+    EXPECT_EQ(static_cast<int64_t>(ret.second), static_cast<int64_t>(defValue));
+    auto res = pref1->GetValue("test", defValue);
+    EXPECT_EQ(static_cast<int64_t>(res.second), static_cast<int64_t>(defValue));
+    res = pref1->GetValue(KEY_TEST_INT_ELEMENT, 0);
+    int val = res.second;
+    EXPECT_EQ(val, 1);
+    pref1->Clear();
+    res = pref1->GetValue(KEY_TEST_STRING_ELEMENT, "default");
+    std::string value = res.second;
+    EXPECT_EQ(value, "default");
+
+    PreferencesHelper::DeletePreferences("/data/test/test037");
 }
 } // namespace

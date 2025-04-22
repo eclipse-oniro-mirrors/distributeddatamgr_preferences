@@ -26,7 +26,6 @@
 
 #include "executor_pool.h"
 #include "log_print.h"
-#include "preferences_observer_stub.h"
 #include "preferences_xml_utils.h"
 #include "preferences_file_operation.h"
 #include "preferences_anonymous.h"
@@ -47,6 +46,7 @@ PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(optio
     isNeverUnlock_ = false;
     loadResult_= false;
     queue_ = std::make_shared<SafeBlockQueue<uint64_t>>(1);
+    dataObsMgrClient_ = DataObsMgrClient::GetInstance();
     isActive_.store(true);
     isCleared_.store(false);
 }
@@ -475,14 +475,13 @@ void PreferencesImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl>
     }
 
     ExecutorPool::Task task = [pref, keysModified] {
-        auto dataObsMgrClient = DataObsMgrClient::GetInstance();
-        if (dataObsMgrClient == nullptr) {
+        if (pref == nullptr || pref->dataObsMgrClient_ == nullptr) {
             return;
         }
         for (auto &key : *keysModified) {
             LOG_INFO("The %{public}s is changed, the observer needs to be triggered.",
                 Anonymous::ToBeAnonymous(key).c_str());
-            dataObsMgrClient->NotifyChange(pref->MakeUri(key));
+            pref->dataObsMgrClient_->NotifyChange(pref->MakeUri(key));
         }
     };
     executorPool_.Execute(std::move(task));
