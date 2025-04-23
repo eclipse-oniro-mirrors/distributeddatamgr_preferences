@@ -49,9 +49,18 @@ static void ThrowBusinessError(ani_env *env, int errCode, std::string&& errMsg)
     }
     ani_double aniErrCode = static_cast<ani_double>(errCode);
     ani_string errMsgStr;
-    env->String_NewUTF8(errMsg.c_str(), errMsg.size(), &errMsgStr);
-    env->Object_SetFieldByName_Double(errorObject, "code", aniErrCode);
-    env->Object_SetFieldByName_Ref(errorObject, "message", errMsgStr);
+    if (env->String_NewUTF8(errMsg.c_str(), errMsg.size(), &errMsgStr) != ANI_OK) {
+        LOG_ERROR("convert errMsg to ani_string failed");
+        return;
+    }
+    if (env->Object_SetFieldByName_Double(errorObject, "code", aniErrCode) != ANI_OK) {
+        LOG_ERROR("set error code failed");
+        return;
+    }
+    if (env->Object_SetPropertyByName_Ref(errorObject, "message", errMsgStr) != ANI_OK) {
+        LOG_ERROR("set error message failed");
+        return;
+    }
     env->ThrowError(static_cast<ani_error>(errorObject));
     return;
 }
