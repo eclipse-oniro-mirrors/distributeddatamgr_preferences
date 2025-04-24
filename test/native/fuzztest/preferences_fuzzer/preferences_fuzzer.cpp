@@ -64,7 +64,7 @@ void PreferencesFuzzTest::TearDown(void)
 bool PutIntFuzz(FuzzedDataProvider *provider)
 {
     std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeIntegral<int32_t>(size);
+    auto svalue = provider->ConsumeIntegral<int32_t>();
     int ret = PreferencesFuzzTest::Preferences_->PutInt(skey, svalue);
     if (ret != E_OK) {
         return false;
