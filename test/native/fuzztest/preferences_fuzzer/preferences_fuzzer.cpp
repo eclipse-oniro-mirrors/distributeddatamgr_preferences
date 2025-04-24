@@ -14,7 +14,7 @@
  */
 
 #include "preferences_fuzzer.h"
-
+#include <fuzzer/FuzzedDataProvider.h>
 #include <iostream>
 
 #include "preferences.h"
@@ -61,10 +61,10 @@ void PreferencesFuzzTest::TearDown(void)
 {
 }
 
-bool PutIntFuzz(const uint8_t *data, size_t size)
+bool PutIntFuzz(FuzzedDataProvider *provider)
 {
-    std::string skey(data, data + size);
-    auto svalue = static_cast<int>(size);
+    std::string skey = provider->ConsumeRandomLengthString();
+    uint32_t svalue = provider->ConsumeRandomLengthString()<int32_t>(size);
     int ret = PreferencesFuzzTest::Preferences_->PutInt(skey, svalue);
     if (ret != E_OK) {
         return false;
