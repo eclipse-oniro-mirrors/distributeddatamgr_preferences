@@ -73,7 +73,7 @@ bool PutIntFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool GetIntFuzz(const uint8_t *data, size_t size)
+bool GetIntFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = static_cast<int>(size);
@@ -86,7 +86,7 @@ bool GetIntFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool PutStringFuzz(const uint8_t *data, size_t size)
+bool PutStringFuzz(FuzzedDataProvider *provider)
 {
     bool result = false;
     std::string skey(data, data + size);
@@ -98,7 +98,7 @@ bool PutStringFuzz(const uint8_t *data, size_t size)
     return result;
 }
 
-bool GetStringFuzz(const uint8_t *data, size_t size)
+bool GetStringFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     std::string svalue(data, data + size);
@@ -111,7 +111,7 @@ bool GetStringFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool PutBoolFuzz(const uint8_t *data, size_t size)
+bool PutBoolFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = ((size % 2) == 0);
@@ -123,7 +123,7 @@ bool PutBoolFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool GetBoolFuzz(const uint8_t *data, size_t size)
+bool GetBoolFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = ((size % 2) == 0);
@@ -136,7 +136,7 @@ bool GetBoolFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool PutFloatFuzz(const uint8_t *data, size_t size)
+bool PutFloatFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = static_cast<float>(size);
@@ -148,7 +148,7 @@ bool PutFloatFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool GetFloatFuzz(const uint8_t *data, size_t size)
+bool GetFloatFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = static_cast<float>(size);
@@ -161,7 +161,7 @@ bool GetFloatFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool PutDoubleFuzz(const uint8_t *data, size_t size)
+bool PutDoubleFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = static_cast<double>(size);
@@ -173,7 +173,7 @@ bool PutDoubleFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool GetDoubleFuzz(const uint8_t *data, size_t size)
+bool GetDoubleFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = static_cast<double>(size);
@@ -186,7 +186,7 @@ bool GetDoubleFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool PutLongFuzz(const uint8_t *data, size_t size)
+bool PutLongFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = static_cast<double>(size);
@@ -198,7 +198,7 @@ bool PutLongFuzz(const uint8_t *data, size_t size)
     }
 }
 
-bool GetLongFuzz(const uint8_t *data, size_t size)
+bool GetLongFuzz(FuzzedDataProvider *provider)
 {
     std::string skey(data, data + size);
     auto svalue = static_cast<double>(size);
@@ -216,19 +216,20 @@ bool GetLongFuzz(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
+    FuzzedDataProvider provider(data, size);
     OHOS::PreferencesFuzzTest::SetUpTestCase();
-    OHOS::PutIntFuzz(data, size);
-    OHOS::GetIntFuzz(data, size);
-    OHOS::PutStringFuzz(data, size);
-    OHOS::GetStringFuzz(data, size);
-    OHOS::PutBoolFuzz(data, size);
-    OHOS::GetBoolFuzz(data, size);
-    OHOS::PutFloatFuzz(data, size);
-    OHOS::GetFloatFuzz(data, size);
-    OHOS::PutDoubleFuzz(data, size);
-    OHOS::PutLongFuzz(data, size);
-    OHOS::PutDoubleFuzz(data, size);
-    OHOS::GetLongFuzz(data, size);
+    OHOS::PutIntFuzz(&provider);
+    OHOS::GetIntFuzz(&provider);
+    OHOS::PutStringFuzz(&provider);
+    OHOS::GetStringFuzz(&provider);
+    OHOS::PutBoolFuzz(&provider);
+    OHOS::GetBoolFuzz(&provider);
+    OHOS::PutFloatFuzz(&provider);
+    OHOS::GetFloatFuzz(&provider);
+    OHOS::PutDoubleFuzz(&provider);
+    OHOS::PutLongFuzz(&provider);
+    OHOS::PutDoubleFuzz(&provider);
+    OHOS::GetLongFuzz(&provider);
     OHOS::PreferencesFuzzTest::TearDownTestCase();
     return 0;
 }
