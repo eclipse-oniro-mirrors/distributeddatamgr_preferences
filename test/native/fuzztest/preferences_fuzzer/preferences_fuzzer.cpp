@@ -61,10 +61,10 @@ void PreferencesFuzzTest::TearDown(void)
 {
 }
 
-bool PutIntFuzz(FuzzedDataProvider *provider)
+bool PutIntFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeIntegral<int32_t>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeIntegral<int32_t>();
     int ret = PreferencesFuzzTest::Preferences_->PutInt(skey, svalue);
     if (ret != E_OK) {
         return false;
@@ -73,10 +73,10 @@ bool PutIntFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool GetIntFuzz(FuzzedDataProvider *provider)
+bool GetIntFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeIntegral<int32_t>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeIntegral<int32_t>();
     PreferencesFuzzTest::Preferences_->PutInt(skey, svalue);
     int ret = PreferencesFuzzTest::Preferences_->GetInt(skey);
     if (ret != svalue) {
@@ -86,11 +86,11 @@ bool GetIntFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool PutStringFuzz(FuzzedDataProvider *provider)
+bool PutStringFuzz(FuzzedDataProvider &provider)
 {
     bool result = false;
-    std::string skey = provider->ConsumeRandomLengthString();
-    std::string svalue = provider->ConsumeRandomLengthString();
+    std::string skey = provider.ConsumeRandomLengthString();
+    std::string svalue = provider.ConsumeRandomLengthString();
     int ret = PreferencesFuzzTest::Preferences_->PutString(skey, svalue);
     if (!ret) {
         result = true;
@@ -98,10 +98,10 @@ bool PutStringFuzz(FuzzedDataProvider *provider)
     return result;
 }
 
-bool GetStringFuzz(FuzzedDataProvider *provider)
+bool GetStringFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    std::string svalue = provider->ConsumeRandomLengthString();
+    std::string skey = provider.ConsumeRandomLengthString();
+    std::string svalue = provider.ConsumeRandomLengthString();
     PreferencesFuzzTest::Preferences_->PutString(skey, svalue);
     std::string ret = PreferencesFuzzTest::Preferences_->GetString(skey);
     if (ret != svalue) {
@@ -111,10 +111,10 @@ bool GetStringFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool PutBoolFuzz(FuzzedDataProvider *provider)
+bool PutBoolFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeBool();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeBool();
     int ret = PreferencesFuzzTest::Preferences_->PutBool(skey, svalue);
     if (ret != E_OK) {
         return false;
@@ -123,10 +123,10 @@ bool PutBoolFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool GetBoolFuzz(FuzzedDataProvider *provider)
+bool GetBoolFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeBool();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeBool();
     PreferencesFuzzTest::Preferences_->PutBool(skey, svalue);
     bool ret = PreferencesFuzzTest::Preferences_->GetBool(skey);
     if (ret != svalue) {
@@ -136,10 +136,10 @@ bool GetBoolFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool PutFloatFuzz(FuzzedDataProvider *provider)
+bool PutFloatFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeFloatingPoint<float>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeFloatingPoint<float>();
     int ret = PreferencesFuzzTest::Preferences_->PutFloat(skey, svalue);
     if (ret != E_OK) {
         return false;
@@ -148,10 +148,10 @@ bool PutFloatFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool GetFloatFuzz(FuzzedDataProvider *provider)
+bool GetFloatFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeFloatingPoint<float>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeFloatingPoint<float>();
     PreferencesFuzzTest::Preferences_->PutFloat(skey, svalue);
     bool ret = PreferencesFuzzTest::Preferences_->GetFloat(skey);
     if (ret != svalue) {
@@ -161,10 +161,10 @@ bool GetFloatFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool PutDoubleFuzz(FuzzedDataProvider *provider)
+bool PutDoubleFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeFloatingPoint<double>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeFloatingPoint<double>();
     int ret = PreferencesFuzzTest::Preferences_->PutDouble(skey, svalue);
     if (ret != E_OK) {
         return false;
@@ -173,10 +173,10 @@ bool PutDoubleFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool GetDoubleFuzz(FuzzedDataProvider *provider)
+bool GetDoubleFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeFloatingPoint<double>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeFloatingPoint<double>();
     PreferencesFuzzTest::Preferences_->PutDouble(skey, svalue);
     bool ret = PreferencesFuzzTest::Preferences_->GetDouble(skey);
     if (ret != svalue) {
@@ -186,10 +186,10 @@ bool GetDoubleFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool PutLongFuzz(FuzzedDataProvider *provider)
+bool PutLongFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeFloatingPoint<double>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeFloatingPoint<double>();
     int ret = PreferencesFuzzTest::Preferences_->PutLong(skey, svalue);
     if (ret != E_OK) {
         return false;
@@ -198,10 +198,10 @@ bool PutLongFuzz(FuzzedDataProvider *provider)
     }
 }
 
-bool GetLongFuzz(FuzzedDataProvider *provider)
+bool GetLongFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider->ConsumeRandomLengthString();
-    auto svalue = provider->ConsumeFloatingPoint<double>();
+    std::string skey = provider.ConsumeRandomLengthString();
+    auto svalue = provider.ConsumeFloatingPoint<double>();
     PreferencesFuzzTest::Preferences_->PutLong(skey, svalue);
     bool ret = PreferencesFuzzTest::Preferences_->GetLong(skey);
     if (ret != svalue) {
@@ -218,18 +218,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     FuzzedDataProvider provider(data, size);
     OHOS::PreferencesFuzzTest::SetUpTestCase();
-    OHOS::PutIntFuzz(&provider);
-    OHOS::GetIntFuzz(&provider);
-    OHOS::PutStringFuzz(&provider);
-    OHOS::GetStringFuzz(&provider);
-    OHOS::PutBoolFuzz(&provider);
-    OHOS::GetBoolFuzz(&provider);
-    OHOS::PutFloatFuzz(&provider);
-    OHOS::GetFloatFuzz(&provider);
-    OHOS::PutDoubleFuzz(&provider);
-    OHOS::PutLongFuzz(&provider);
-    OHOS::PutDoubleFuzz(&provider);
-    OHOS::GetLongFuzz(&provider);
+    OHOS::PutIntFuzz(provider);
+    OHOS::GetIntFuzz(provider);
+    OHOS::PutStringFuzz(provider);
+    OHOS::GetStringFuzz(provider);
+    OHOS::PutBoolFuzz(provider);
+    OHOS::GetBoolFuzz(provider);
+    OHOS::PutFloatFuzz(provider);
+    OHOS::GetFloatFuzz(provider);
+    OHOS::PutDoubleFuzz(provider);
+    OHOS::PutLongFuzz(provider);
+    OHOS::PutDoubleFuzz(provider);
+    OHOS::GetLongFuzz(provider);
     OHOS::PreferencesFuzzTest::TearDownTestCase();
     return 0;
 }
