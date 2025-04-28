@@ -125,7 +125,7 @@ bool GetFloatFuzz(FuzzedDataProvider &provider)
     std::string skey = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeFloatingPoint<float>();
     PreferencesFuzzTest::Preferences_->PutFloat(skey, svalue);
-    bool ret = PreferencesFuzzTest::Preferences_->GetFloat(skey);
+    float ret = PreferencesFuzzTest::Preferences_->GetFloat(skey);
     return ret == svalue;
 }
 
@@ -142,7 +142,7 @@ bool GetDoubleFuzz(FuzzedDataProvider &provider)
     std::string skey = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeFloatingPoint<double>();
     PreferencesFuzzTest::Preferences_->PutDouble(skey, svalue);
-    bool ret = PreferencesFuzzTest::Preferences_->GetDouble(skey);
+    double ret = PreferencesFuzzTest::Preferences_->GetDouble(skey);
     return ret == svalue;
 }
 
@@ -159,7 +159,7 @@ bool GetLongFuzz(FuzzedDataProvider &provider)
     std::string skey = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeFloatingPoint<double>();
     PreferencesFuzzTest::Preferences_->PutLong(skey, svalue);
-    bool ret = PreferencesFuzzTest::Preferences_->GetLong(skey);
+    int64_t ret = PreferencesFuzzTest::Preferences_->GetLong(skey);
     return ret == svalue;
 }
 } // namespace OHOS
