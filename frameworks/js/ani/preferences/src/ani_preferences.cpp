@@ -119,6 +119,25 @@ static int GetContextPathFromName(ani_env *env, ani_object context, ani_string n
     return E_OK;
 }
 
+static std::string GetDataGroupId(ani_env *env, ani_ref dataGroupId)
+{
+    std::string dataGroupIdStr;
+    ani_boolean isNull = false;
+    if (env->Reference_IsNull(dataGroupId, &isNull) != ANI_OK) {
+        LOG_INFO("Object_GetFieldByName_Ref dataGroupId is NUll failed.");
+    }
+    ani_boolean isUndefined = false;
+    if (env->Reference_IsUndefined(dataGroupId, &isUndefined) != ANI_OK) {
+        LOG_INFO("Object_GetFieldByName_Ref dataGroupId is isUndefined failed.");
+    }
+    if (isNull || isUndefined) {
+        dataGroupIdStr = "";
+    } else {
+        dataGroupIdStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
+    }
+    return dataGroupIdStr;
+}
+
 static int GetContextPathFromOpt(ani_env *env, ani_object context, ani_object opt, std::string &path)
 {
     ani_ref nameTmp;
@@ -134,7 +153,7 @@ static int GetContextPathFromOpt(ani_env *env, ani_object context, ani_object op
     ani_ref dataGroupId;
     if (env->Object_GetPropertyByName_Ref(opt, "dataGroupId", &dataGroupId) == ANI_OK) {
         LOG_INFO("Object_GetFieldByName_Ref dataGroupId from opt succeed.");
-        dataGroupIdStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
+        dataGroupIdStr = GetDataGroupId(env, dataGroupId);
     }
     LOG_INFO("dataGroupId is: %{public}s.", dataGroupIdStr.c_str());
 
@@ -257,7 +276,7 @@ static ani_object ExecuteGetByOpt(ani_env *env, ani_object context, ani_object o
     ani_ref dataGroupId;
     if (env->Object_GetPropertyByName_Ref(opt, "dataGroupId", &dataGroupId) == ANI_OK) {
         LOG_INFO("Object_GetFieldByName_Ref dataGroupId from opt succeed.");
-        dataGroupIdStr = AniStringToStdStr(env, static_cast<ani_string>(dataGroupId));
+        dataGroupIdStr = GetDataGroupId(env, dataGroupId);
     }
     LOG_INFO("dataGroupId is: %{public}s.", dataGroupIdStr.c_str());
 
