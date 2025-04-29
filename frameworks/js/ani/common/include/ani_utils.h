@@ -112,7 +112,9 @@ std::string AniStringToStdStr(ani_env *env, ani_string aniStr)
 {
     ani_size  strSize;
     env->String_GetUTF8Size(aniStr, &strSize);
-
+    if (strSize == 0) {
+        return "";
+    }
     std::vector<char> buffer(strSize + 1);
     char* utf8Buffer = buffer.data();
 
