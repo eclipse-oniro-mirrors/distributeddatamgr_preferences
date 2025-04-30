@@ -1140,11 +1140,11 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_036, TestSize.Level1)
 }
 
 /**
- * @tc.name: NativePreferencesTest_036
+ * @tc.name: NativePreferencesTest_037
  * @tc.desc: normal testcase of get value
  * @tc.type: FUNC
  * @tc.require: Na
- * @tc.author: bty
+ * @tc.author:
  */
 HWTEST_F(PreferencesTest, NativePreferencesTest_037, TestSize.Level1)
 {
@@ -1172,5 +1172,69 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_037, TestSize.Level1)
     EXPECT_EQ(value, "default");
 
     PreferencesHelper::DeletePreferences("/data/test/test037");
+}
+
+/**
+ * @tc.name: NativePreferencesTest_038
+ * @tc.desc: normal testcase of has key
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author:
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_038, TestSize.Level1)
+{
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test038", errCode);
+
+    std::map<std::string, PreferencesValue> map = { { KEY_TEST_INT_ELEMENT, 1 }, { KEY_TEST_FLOAT_ELEMENT, 0.1 },
+        { KEY_TEST_BOOL_ELEMENT, false }, { KEY_TEST_STRING_ELEMENT, "test" } };
+
+    for (auto i : map) {
+        pref1->Put(i.first, i.second);
+    }
+
+    bool ret = pref1->HasKey(std::string());
+    EXPECT_EQ(ret, false);
+    ret = pref1->HasKey("test");
+    EXPECT_EQ(ret, false);
+    ret = pref1->HasKey(KEY_TEST_INT_ELEMENT);
+    EXPECT_EQ(ret, true);
+    pref1->Clear();
+    ret = pref1->HasKey(KEY_TEST_STRING_ELEMENT);
+    EXPECT_EQ(ret, false);
+
+    PreferencesHelper::DeletePreferences("/data/test/test038");
+}
+
+/**
+ * @tc.name: NativePreferencesTest_039
+ * @tc.desc: normal testcase of delete key
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author:
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_039, TestSize.Level1)
+{
+    int errCode;
+    auto pref1 = PreferencesHelper::GetPreferences("/data/test/test038", errCode);
+
+    std::map<std::string, PreferencesValue> map = { { KEY_TEST_INT_ELEMENT, 1 }, { KEY_TEST_FLOAT_ELEMENT, 0.1 },
+        { KEY_TEST_BOOL_ELEMENT, false }, { KEY_TEST_STRING_ELEMENT, "test" } };
+
+    for (auto i : map) {
+        pref1->Put(i.first, i.second);
+    }
+
+    int ret = pref1->Delete(std::string());
+    EXPECT_EQ(ret, E_KEY_EMPTY);
+    ret = pref1->Delete("test");
+    EXPECT_EQ(ret, E_OK);
+    ret = pref1->Delete(KEY_TEST_INT_ELEMENT);
+    EXPECT_EQ(ret, E_OK);
+    pref1->Clear();
+    ret = pref1->Delete(KEY_TEST_STRING_ELEMENT);
+    EXPECT_EQ(ret, E_OK);
+
+    PreferencesHelper::DeletePreferences("/data/test/test038");
 }
 } // namespace
