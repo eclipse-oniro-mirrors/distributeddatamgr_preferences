@@ -57,6 +57,7 @@ if (!is_mingw && !is_mac) {
       "ability_runtime:extensionkit_native",
       "ability_runtime:napi_base_context",
       "common_event_service:cesfwk_innerkits",
+      "c_utils:utils",
       "hilog:libhilog",
       "napi:ace_napi",
     ]
