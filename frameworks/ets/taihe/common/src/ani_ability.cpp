@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "ani_ability.h"
+
+#include "ani_base_context.h"
+#include "extension_context.h"
+#include "log_print.h"
+namespace OHOS {
+namespace PreferencesEtsKit {
+namespace EtsAbility {
+CONTEXT_MODE GetContextMode(ani_env* env, ani_object context)
+{
+    if (gContextNode == INIT) {
+        ani_boolean isStageMode;
+        ani_status status = OHOS::AbilityRuntime::IsStageContext(env, context, isStageMode);
+        LOG_INFO("GetContextMode is %{public}d", static_cast<bool>(isStageMode));
+        if (status == ANI_OK) {
+            gContextNode = isStageMode ? STAGE : FA;
+        }
+    }
+    return gContextNode;
+}
+
+std::shared_ptr<EtsError> GetContextInfo(ani_env* env, ani_object context,
+    const std::string &dataGroupId, ContextInfo &contextInfo)
+{
+    if (GetContextMode(env, context) == STAGE) {
+        LOG_INFO("mark-- GetContextMode, in stage.");// del
+        auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, context);
+        if (stageContext != nullptr) {
+            int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
+            if (errcode != 0) {
+                LOG_ERROR("GetSystemPreferencesDir failed, err = %{public}d", errcode);
+                return std::make_shared<InnerError>(E_DATA_GROUP_ID_INVALID);
+            }
+            contextInfo.bundleName = stageContext->GetBundleName();
+            return nullptr;
+        } else {
+            LOG_INFO("Failed to get the context of the stage model.");
+            return std::make_shared<ParamTypeError>("The context is invalid.");
+        }
+    }
+
+    if (!dataGroupId.empty()) {
+        LOG_ERROR("dataGroupId should be empty in fa mode");
+        return std::make_shared<InnerError>(E_NOT_STAGE_MODE);
+    }
+
+    auto ability = OHOS::AbilityRuntime::GetCurrentAbility(env);
+    if (ability == nullptr) {
+        LOG_ERROR("failed to get current ability.");
+        return std::make_shared<ParamTypeError>("The context is invalid.");
+    }
+
+    auto abilityContext = ability->GetAbilityContext();
+    if (ability == nullptr) {
+        LOG_ERROR("failed to get ability context.");
+        return std::make_shared<ParamTypeError>("The context is invalid.");
+    }
+    abilityContext->GetSystemPreferencesDir("", false, contextInfo.preferencesDir);
+    return nullptr;
+}
+} // namespace EtsAbility
+} // namespace PreferencesEtsKit
+} // namespace OHOS
