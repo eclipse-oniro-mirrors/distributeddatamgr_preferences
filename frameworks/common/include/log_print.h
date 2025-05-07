@@ -28,6 +28,13 @@ static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
 }
 }
 
+namespace PreferencesEtsKit {
+static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
+{
+    return { LOG_CORE, 0xD001653, "PreferencesEtsKit" };
+}
+}
+
 namespace NativePreferences {
 static inline OHOS::HiviewDFX::HiLogLabel LogLabel()
 {
