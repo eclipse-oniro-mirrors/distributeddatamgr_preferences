@@ -196,7 +196,7 @@ private:
 #define XML_CHECK(expr, msg)                                                                        \
     do {                                                                                            \
         if (!(expr)) {                                                                              \
-            xmlErrorPtr xmlErr = xmlGetLastError();                                                 \
+            const xmlError *xmlErr = xmlGetLastError();                                                 \
             LOG_ERROR("%{public}s. Error: %{public}s", msg, xmlErr ? xmlErr->message : "Unknown");  \
             return false;                                                                           \
         }                                                                                           \
@@ -441,7 +441,7 @@ static bool RenameFromBackupFile(
     auto bakDoc = std::shared_ptr<xmlDoc>(ReadFile(backupFileName, errCode),
         [](xmlDoc *bakDoc) { xmlFreeDoc(bakDoc); });
     if (bakDoc == nullptr) {
-        xmlErrorPtr xmlErr = xmlGetLastError();
+        const xmlError *xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
@@ -505,7 +505,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
         if (doc != nullptr) {
             return doc;
         }
-        xmlErrorPtr xmlErr = xmlGetLastError();
+        const xmlError *xmlErr = xmlGetLastError();
         errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
         LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
@@ -522,7 +522,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     if (RenameFromBackupFile(fileName, bundleName, isReport, isExist)) {
         int bakErrCode = 0;
         doc = ReadFile(fileName, bakErrCode);
-        xmlErrorPtr xmlErr = xmlGetLastError();
+        const xmlError *xmlErr = xmlGetLastError();
         std::string message = (xmlErr != nullptr) ? xmlErr->message : "null";
         errMessage.append(" bak: errno is " + std::to_string(bakErrCode) + ", errMessage is " + message);
     }
@@ -700,7 +700,7 @@ static void ReportSaveFileFault(const std::string fileName, const std::string &b
 {
     int errCode = errno;
     bool isExist = false;
-    xmlErrorPtr xmlErr = xmlGetLastError();
+    const xmlError *xmlErr = xmlGetLastError();
     std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
     LOG_ERROR("Failed to save file: %{public}s, errno is %{public}d, error is %{public}s.",
         ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
