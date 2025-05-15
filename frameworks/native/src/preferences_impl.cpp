@@ -221,7 +221,8 @@ bool PreferencesImpl::IsClose(const std::string &name)
         return false;
     }
 
-    LOG_WARN("file %{public}s is inactive.", ExtractFileName(options_.filePath).c_str());
+    LOG_WARN("file %{public}s is inactive when calling %{public}s.",
+        ExtractFileName(options_.filePath).c_str(), name.c_str());
     std::string operationMsg = " use after close.";
     ReportFaultParam reportParam = { "inactive object", options_.bundleName, NORMAL_DB,
         ExtractFileName(options_.filePath), E_OBJECT_NOT_ACTIVE, name + operationMsg };

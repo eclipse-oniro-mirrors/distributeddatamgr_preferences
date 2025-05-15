@@ -145,9 +145,8 @@ int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysn
 {
     int32_t rc = Utils::ConvertFromSendable(env, arg, context->key);
     PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("The key must be string."));
-    PRE_CHECK_RETURN_ERR_SET(context->key.length() <= MAX_KEY_LENGTH, std::make_shared<ParamTypeError>("The key must "
-                                                                                                       "be less than "
-                                                                                                       "80 bytes."));
+    PRE_CHECK_RETURN_ERR_SET(context->key.length() <= MAX_KEY_LENGTH,
+        std::make_shared<ParamTypeError>("The key must be less than 1024 bytes."));
     return OK;
 }
 

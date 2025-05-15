@@ -88,7 +88,6 @@ if (is_ohos) {
       "-stdlib=libc++",
       "-fvisibility=hidden",
     ]
-    all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
     sources += [
       "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
@@ -121,7 +120,6 @@ if (is_ohos) {
   }
 } else if (is_mingw || is_mac) {
   ohos_shared_library("native_preferences") {
-    all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
     sources += mock_sources
     innerapi_tags = [ "platformsdk" ]
@@ -163,7 +161,6 @@ if (is_ohos) {
   }
 } else if (is_android) {
   ohos_source_set("native_preferences") {
-    all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
     sources += mock_sources
 
@@ -187,7 +184,6 @@ if (is_ohos) {
   }
 } else if (is_ios) {
   ohos_source_set("native_preferences") {
-    all_dependent_configs = [ ":native_preferences_public_config" ]
     sources = base_sources
     sources += mock_sources
     defines = [
