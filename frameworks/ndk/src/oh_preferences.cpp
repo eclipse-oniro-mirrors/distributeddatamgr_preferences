@@ -130,7 +130,7 @@ static std::shared_ptr<OHOS::NativePreferences::Preferences> GetNativePreference
             (preferencesImpl == nullptr));
         return nullptr;
     }
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= preferencesImpl->GetNativePreferences();
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = preferencesImpl->GetNativePreferences();
     if (innerPreferences== nullptr) {
         LOG_ERROR("preference not open yet");
         return nullptr;
@@ -157,7 +157,7 @@ int OH_Preferences_Close(OH_Preferences *preference)
         LOG_ERROR("preferences close failed, preferences is null");
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= preferencesImpl->GetNativePreferences();
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = preferencesImpl->GetNativePreferences();
     if (innerPreferences== nullptr) {
         LOG_ERROR("preference not open yet");
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
@@ -177,7 +177,7 @@ int OH_Preferences_Close(OH_Preferences *preference)
 
 int OH_Preferences_GetInt(OH_Preferences *preference, const char *key, int *value)
 {
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= GetNativePreferencesFromOH(preference);
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
     if (innerPreferences== nullptr || key == nullptr || value == nullptr) {
         LOG_ERROR("get int failed, preference not open yet: %{public}d, key is null: %{public}d, "
             "value is null: %{public}d, err: %{public}d", (innerPreferences== nullptr), (key == nullptr),
@@ -206,7 +206,7 @@ int OH_Preferences_GetInt(OH_Preferences *preference, const char *key, int *valu
 int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char **value,
     uint32_t *valueLen)
 {
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= GetNativePreferencesFromOH(preference);
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
     if (innerPreferences== nullptr || key == nullptr || value == nullptr || valueLen == nullptr) {
         LOG_ERROR("get str failed, preference not open yet: %{public}d, key is null: %{public}d, "
             "value is null: %{public}d, valueLen is null: %{public}d, err: %{public}d",
@@ -264,7 +264,7 @@ void OH_Preferences_FreeString(char *string)
 
 int OH_Preferences_GetBool(OH_Preferences *preference, const char *key, bool *value)
 {
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= GetNativePreferencesFromOH(preference);
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
     if (innerPreferences== nullptr || key == nullptr || value == nullptr) {
         LOG_ERROR("get bool failed, preference not open yet: %{public}d, key is null: %{public}d, "
             "value is null: %{public}d, err: %{public}d", (innerPreferences== nullptr), (key == nullptr),
@@ -292,7 +292,7 @@ int OH_Preferences_GetBool(OH_Preferences *preference, const char *key, bool *va
 
 int OH_Preferences_SetInt(OH_Preferences *preference, const char *key, int value)
 {
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= GetNativePreferencesFromOH(preference);
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
     if (innerPreferences== nullptr || key == nullptr) {
         LOG_ERROR("set int failed, preference not open yet: %{public}d, key is null: %{public}d, err: %{public}d",
             (innerPreferences== nullptr), (key == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
@@ -308,7 +308,7 @@ int OH_Preferences_SetInt(OH_Preferences *preference, const char *key, int value
 
 int OH_Preferences_SetBool(OH_Preferences *preference, const char *key, bool value)
 {
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= GetNativePreferencesFromOH(preference);
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
     if (innerPreferences== nullptr || key == nullptr) {
         LOG_ERROR("set bool failed, preference not open yet: %{public}d, key is null: %{public}d, err: %{public}d",
             (innerPreferences== nullptr), (key == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
@@ -324,7 +324,7 @@ int OH_Preferences_SetBool(OH_Preferences *preference, const char *key, bool val
 
 int OH_Preferences_SetString(OH_Preferences *preference, const char *key, const char *value)
 {
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= GetNativePreferencesFromOH(preference);
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
     if (innerPreferences== nullptr || key == nullptr || value == nullptr) {
         LOG_ERROR("set str failed, preference not open yet: %{public}d, key is null: %{public}d, "
             "value is null: %{public}d, err: %{public}d", (innerPreferences== nullptr), (key == nullptr),
@@ -341,7 +341,7 @@ int OH_Preferences_SetString(OH_Preferences *preference, const char *key, const 
 
 int OH_Preferences_Delete(OH_Preferences *preference, const char *key)
 {
-    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences= GetNativePreferencesFromOH(preference);
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
     if (innerPreferences== nullptr || key == nullptr) {
         LOG_ERROR("delete failed, preference not open yet: %{public}d, key is null: %{public}d, err: %{public}d",
             (innerPreferences== nullptr), (key == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
@@ -370,7 +370,7 @@ int OH_Preferences_RegisterDataObserver(OH_Preferences *preference, void *contex
     for (uint32_t i = 0; i < keyCount; i++) {
         keysVec.push_back(keys[i]);
     }
-    
+ 
     return OHConvertor::NativeErrToNdk(preferencesImpl->RegisterDataObserver(observer, context, keysVec));
 }
 
