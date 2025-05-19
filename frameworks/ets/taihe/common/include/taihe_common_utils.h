@@ -35,7 +35,7 @@ PreferencesValue ConvertToPreferencesValue(const ValueType_t &value);
 
 ValueType_t ConvertToValueType(const PreferencesValue &value);
 
-::taihe::map_view<::taihe::string, ValueType_t> ConvertMapToTaiheMap(
+::taihe::map<::taihe::string, ValueType_t> ConvertMapToTaiheMap(
     const std::map<std::string, NativePreferences::PreferencesValue> &records);
 
 } // namespace EtsUtils

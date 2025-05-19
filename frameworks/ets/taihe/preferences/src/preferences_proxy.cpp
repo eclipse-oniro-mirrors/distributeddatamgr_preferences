@@ -37,15 +37,10 @@ PreferencesProxy::~PreferencesProxy()
     preferences_ = nullptr;
 }
 
-bool PreferencesProxy::CheckKey(const std::string &key) {
+bool PreferencesProxy::CheckKey(const std::string &key)
+{
     PRE_ANI_ASSERT_BASE(key.length() <= NativePreferences::Preferences::MAX_KEY_LENGTH,
         std::make_shared<ParamTypeError>("The key must be less than 1024 bytes."), false);
-    return true;
-}
-
-bool PreferencesProxy::CheckValue(const std::string &value) {  // todo
-    PRE_ANI_ASSERT_BASE(value.length() < NativePreferences::Preferences::MAX_VALUE_LENGTH,
-        std::make_shared<ParamTypeError>("The value must be less than 16 * 1024 * 1024 bytes."), false);
     return true;
 }
 
@@ -57,12 +52,11 @@ ValueType_t PreferencesProxy::GetSync(string_view key, ValueType_t const& defVal
     if (!CheckKey(keyStr)) {
         return defValue;
     }
-    NativePreferences::PreferencesValue preferencesValue;
+    NativePreferences::PreferencesValue preferencesValue();
     preferencesValue = preferences_->Get(keyStr, preferencesValue);
     if (std::holds_alternative<std::monostate>(preferencesValue.value_)) {
         return defValue;
     }
-    LOG_INFO("mark-- keyStr2: is %{public}s", keyStr.c_str()); // del
     return EtsUtils::ConvertToValueType(preferencesValue);
 }
 
@@ -93,8 +87,6 @@ void PreferencesProxy::PutSync(string_view key, ValueType_t const& value)
     if (!CheckKey(keyStr)) {
         return;
     }
-    LOG_INFO("mark-- keyStr: is %{public}s", keyStr.c_str()); // del
-    LOG_INFO("mark-- tag_t: is %{public}d", value.get_tag()); // del
     auto nativeValue = EtsUtils::ConvertToPreferencesValue(value);
     auto errCode = preferences_->Put(keyStr, nativeValue);
     PRE_ANI_ASSERT_RETURN_VOID(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode));
@@ -180,7 +172,8 @@ void PreferencesProxy::RegisteredObserver(RegisterMode mode, CallbackType callba
     return;
 }
 
-void PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &keys, CallbackType callback, uintptr_t opq) // todo class
+void PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &keys, CallbackType callback,
+    uintptr_t opq)
 {
     PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
         std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
@@ -208,10 +201,10 @@ void PreferencesProxy::OnChange(callback_view<void(string_view)> cb, uintptr_t o
     PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
         std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
     RegisteredObserver(RegisterMode::LOCAL_CHANGE, cb, opq);
-    LOG_ERROR("mark----come26666， %{public}p, %{public}p", reinterpret_cast<void*>(cb.data_ptr), reinterpret_cast<void*>(opq));
 }
 
-void PreferencesProxy::OnDataChange(array_view<string> keys, callback_view<void(map_view<string, ValueType_t>)> cb, uintptr_t opq)
+void PreferencesProxy::OnDataChange(array_view<string> keys, callback_view<void(map_view<string, ValueType_t>)> cb,
+    uintptr_t opq)
 {
     PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
         std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
@@ -245,7 +238,6 @@ void PreferencesProxy::UnRegisteredObserver(RegisterMode mode, uintptr_t opq)
             (*it)->ClearRef();
             it = observers.erase(it);
             LOG_DEBUG("The observer unsubscribed success.");
-            LOG_ERROR("MARK--- The observer unsubscribed success., SIZE: %{public}zu", observers.size());
             break; // specified observer is current iterator
         }
         ++it;
@@ -273,7 +265,7 @@ void PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
     }
     observers.clear();
     LOG_DEBUG("All observers unsubscribed success.");
-    PRE_ANI_ASSERT_RETURN_VOID(!hasFailed, std::make_shared<InnerError>(errCode)); 
+    PRE_ANI_ASSERT_RETURN_VOID(!hasFailed, std::make_shared<InnerError>(errCode));
 }
 
 void PreferencesProxy::OffChange(optional_view<uintptr_t> opq)
@@ -314,7 +306,7 @@ void PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &
         ++it;
     }
     LOG_DEBUG("The dataChange observer unsubscribed success.");
-    return; 
+    return;
 }
 
 void PreferencesProxy::UnRegisteredAllDataObserver(const std::vector<std::string> &keys)
@@ -327,7 +319,7 @@ void PreferencesProxy::UnRegisteredAllDataObserver(const std::vector<std::string
     while (it != observers.end()) {
         int32_t errCode = preferences_->UnRegisterDataObserver(*it, keys);
         PRE_ANI_ASSERT_RETURN_VOID(errCode == E_OK || errCode == E_OBSERVER_RESERVE,
-                std::make_shared<InnerError>(errCode));
+            std::make_shared<InnerError>(errCode));
         if (errCode == E_OK) {
             (*it)->ClearRef();
             it = observers.erase(it);
@@ -336,7 +328,7 @@ void PreferencesProxy::UnRegisteredAllDataObserver(const std::vector<std::string
         }
     }
     LOG_DEBUG("The dataChange observer unsubscribed success.");
-    return; 
+    return;
 }
 
 void PreferencesProxy::OffMultiProcessChange(optional_view<uintptr_t> opq)

@@ -16,6 +16,7 @@
 #ifndef PREFERENCES_FRAMEWORKS_ANI_ABILITY_H
 #define PREFERENCES_FRAMEWORKS_ANI_ABILITY_H
 
+#include <atomic>
 #include <string>
 
 #include "ability.h"
@@ -29,7 +30,7 @@ struct ContextInfo {
     std::string bundleName;
     std::string preferencesDir;
 };
-static CONTEXT_MODE gContextNode = INIT;
+static std::atomic<CONTEXT_MODE> gContextNode = INIT;
 
 CONTEXT_MODE GetContextMode(ani_env* env, ani_object object);
 

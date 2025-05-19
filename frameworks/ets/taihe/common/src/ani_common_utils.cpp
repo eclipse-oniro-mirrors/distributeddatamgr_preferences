@@ -94,7 +94,7 @@ static ani_object BoolToObject(ani_env *env, bool value)
     return aniObject;
 }
 
-static ani_object StringToObject(ani_env *env, std::string value)
+static ani_object StringToObject(ani_env *env, const std::string &value)
 {
     ani_string stringValue = StdStringToANIString(env, value);
     return static_cast<ani_object>(stringValue);
@@ -156,12 +156,12 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> va
     status = env->ArrayBuffer_GetInfo(static_cast<ani_arraybuffer>(buffer), &bufData, &bufLength);
     if (status != ANI_OK) {
         LOG_ERROR("ArrayBuffer_GetInfo failed, ret: %{public}d.", status);
-        // return aniObject;
+        return aniObject;
     }
     auto ret = memcpy_s(bufData, bufLength, values.data(), bufLength);
     if (ret != 0) {
         LOG_ERROR("memcpy_s failed, ret: %{public}d.", ret);
-        return nullptr;//??
+        return nullptr;
     }
     return aniObject;
 }
@@ -273,31 +273,7 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
 
 static ani_object ObjectToANIObject(ani_env *env, const Object &obj)
 {
-    // ani_string aniString = StdStringToANIString(env, obj.valueStr); // 有问题
-    // return static_cast<ani_object>(aniString);
-
-
-    ani_class cls;
-    ani_status status = env->FindClass(CLASS_NAME_JSON, &cls);
-    if (status != ANI_OK) {
-        LOG_ERROR("JSON not found, ret: %{public}d.", status);
-        return nullptr;
-    }
-    ani_static_method parse;
-    status = env->Class_FindStaticMethod(cls, METHOD_NAME_PARSE, "Lstd/core/String;Lstd/core/Type;:Lescompat/JSONValue;", &parse);
-    if (status != ANI_OK) {
-        LOG_ERROR("Parse not found, ret: %{public}d.", status);
-        return nullptr;
-    }
-
     return nullptr;
-    // ani_ref result;
-    // status = env->Class_CallStaticMethod_Ref(cls, parse, &result, StdStringToANIString(env, obj.valueStr), /*这里的参数*/); // 要得到一个Object
-    // if (status != ANI_OK) {
-    //     LOG_ERROR("JSON.parse run failed, ret: %{public}d.", status);
-    //     return nullptr;
-    // }
-    // return static_cast<ani_object>(result);
 }
 
 ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
@@ -423,7 +399,6 @@ PreferencesValue AniObjectToPreferencesValue(ani_env *env, uintptr_t object)
         return preferencesValue;
     }
     auto resStr = AniStringToStdStr(env, reinterpret_cast<ani_string>(result));
-    LOG_ERROR("mark--- JSON.stringify: %{public}s", resStr.c_str());
     return Object(std::move(resStr));
 }
 } // namespace EtsUtils

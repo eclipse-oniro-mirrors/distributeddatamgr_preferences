@@ -23,22 +23,21 @@ namespace PreferencesEtsKit {
 namespace EtsAbility {
 CONTEXT_MODE GetContextMode(ani_env* env, ani_object context)
 {
-    if (gContextNode == INIT) {
+    if (gContextNode.load() == INIT) {
         ani_boolean isStageMode;
         ani_status status = OHOS::AbilityRuntime::IsStageContext(env, context, isStageMode);
         LOG_INFO("GetContextMode is %{public}d", static_cast<bool>(isStageMode));
         if (status == ANI_OK) {
-            gContextNode = isStageMode ? STAGE : FA;
+            gContextNode.store(isStageMode ? STAGE : FA);
         }
     }
-    return gContextNode;
+    return gContextNode.load();
 }
 
 std::shared_ptr<EtsError> GetContextInfo(ani_env* env, ani_object context,
     const std::string &dataGroupId, ContextInfo &contextInfo)
 {
     if (GetContextMode(env, context) == STAGE) {
-        LOG_INFO("mark-- GetContextMode, in stage.");// del
         auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, context);
         if (stageContext != nullptr) {
             int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
@@ -53,20 +52,17 @@ std::shared_ptr<EtsError> GetContextInfo(ani_env* env, ani_object context,
             return std::make_shared<ParamTypeError>("The context is invalid.");
         }
     }
-
     if (!dataGroupId.empty()) {
         LOG_ERROR("dataGroupId should be empty in fa mode");
         return std::make_shared<InnerError>(E_NOT_STAGE_MODE);
     }
-
     auto ability = OHOS::AbilityRuntime::GetCurrentAbility(env);
     if (ability == nullptr) {
         LOG_ERROR("failed to get current ability.");
         return std::make_shared<ParamTypeError>("The context is invalid.");
     }
-
     auto abilityContext = ability->GetAbilityContext();
-    if (ability == nullptr) {
+    if (abilityContext == nullptr) {
         LOG_ERROR("failed to get ability context.");
         return std::make_shared<ParamTypeError>("The context is invalid.");
     }

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #include "ohos.data.preferences.impl.hpp"
+#include "ohos.data.preferences.impl.hpp"
 
 #include "ani_ability.h"
 #include "ani_common_utils.h"
@@ -54,7 +54,6 @@ PreferencesInfo ParseOptions(Options_t const& options)
     preferencesInfo.name = std::string(options.name);
     if (options.dataGroupId.holds_stringType()) {
         preferencesInfo.dataGroupId = std::string(options.dataGroupId.get_stringType_ref());
-        LOG_ERROR("mark--- has dataGroupId %{public}s.", preferencesInfo.dataGroupId.c_str());
     }
     if (options.storageType.holds_storageType()) {
         int32_t storageTypeVal = static_cast<int32_t>(options.storageType.get_storageType_ref());
@@ -63,7 +62,6 @@ PreferencesInfo ParseOptions(Options_t const& options)
         PRE_ANI_ASSERT_BASE(isValid, std::make_shared<ParamTypeError>("Storage type value invalid."), preferencesInfo);
         preferencesInfo.storageType = (storageTypeVal == static_cast<int32_t>(StorageType::XML)) ?
                 StorageType::XML : StorageType::GSKV;
-        LOG_ERROR("mark--- has storageType %{public}d.", static_cast<int32_t>(preferencesInfo.storageType));
         }
     return preferencesInfo;
 }
@@ -81,7 +79,6 @@ std::shared_ptr<EtsError> ParseContext(uintptr_t context, PreferencesInfo &prefe
     }
     preferencesInfo.path = contextInfo.preferencesDir.append("/").append(preferencesInfo.name);
     preferencesInfo.bundleName = contextInfo.bundleName;
-    LOG_INFO("mark-- path is %{public}s, bundleName is %{public}s.", preferencesInfo.path.c_str(), contextInfo.bundleName.c_str()); // del
     return nullptr;
 }
 
@@ -94,16 +91,17 @@ Preferences_t GetPreferences(uintptr_t context, PreferencesInfo &info)
     auto preferences = PreferencesHelper::GetPreferences(nativeOptions, errCode);
     PRE_ANI_ASSERT_BASE(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode),
         defaultPreferences);
-    LOG_INFO("mark-- GetPreferences success"); // del
     return make_holder<PreferencesProxy, Preferences_t>(preferences);
 }
 
-Preferences_t GetPreferencesSync(uintptr_t context, Options_t const& options) {
+Preferences_t GetPreferencesSync(uintptr_t context, Options_t const& options)
+{
     auto preferencesInfo = ParseOptions(options);
     return GetPreferences(context, preferencesInfo);
 }
 
-Preferences_t GetPreferencesSyncByName(uintptr_t context, string_view name) {
+Preferences_t GetPreferencesSyncByName(uintptr_t context, string_view name)
+{
     PreferencesInfo preferencesInfo = {
         .name = std::string(name)
     };
@@ -147,7 +145,8 @@ void RemovePreferencesFromCacheSync(uintptr_t context, string_view name) {
     RemovePreferencesFromCache(context, preferencesInfo);
 }
 
-void RemovePreferencesFromCacheSyncByOptions(uintptr_t context, Options_t const& options) {
+void RemovePreferencesFromCacheSyncByOptions(uintptr_t context, Options_t const& options)
+{
     auto preferencesInfo = ParseOptions(options);
     RemovePreferencesFromCache(context, preferencesInfo);
 }

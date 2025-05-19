@@ -83,8 +83,6 @@ private:
 
     bool CheckKey(const std::string &key);
 
-    bool CheckValue(const std::string &value);
-
     std::shared_ptr<Preferences> preferences_;
 
     std::mutex listMutex_ {};
