@@ -39,20 +39,24 @@ PreferencesProxy::~PreferencesProxy()
 
 bool PreferencesProxy::CheckKey(const std::string &key)
 {
-    PRE_ANI_ASSERT_BASE(key.length() <= NativePreferences::Preferences::MAX_KEY_LENGTH,
-        std::make_shared<ParamTypeError>("The key must be less than 1024 bytes."), false);
+    if (key.length() > NativePreferences::Preferences::MAX_KEY_LENGTH) {
+        SetBusinessError(std::make_shared<ParamTypeError>("The key must be less than 1024 bytes."));
+        return false;
+    }
     return true;
 }
 
 ValueType_t PreferencesProxy::GetSync(string_view key, ValueType_t const& defValue)
 {
-    PRE_ANI_ASSERT_BASE(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when get, the instance is nullptr."), defValue);
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return defValue;
+    }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
         return defValue;
     }
-    NativePreferences::PreferencesValue preferencesValue();
+    auto preferencesValue = NativePreferences::PreferencesValue();
     preferencesValue = preferences_->Get(keyStr, preferencesValue);
     if (std::holds_alternative<std::monostate>(preferencesValue.value_)) {
         return defValue;
@@ -62,16 +66,24 @@ ValueType_t PreferencesProxy::GetSync(string_view key, ValueType_t const& defVal
 
 uintptr_t PreferencesProxy::GetAllSync()
 {
-    PRE_ANI_ASSERT_BASE(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when getAll, the instance is nullptr."), 0);
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return 0;
+    }
     auto allElements = preferences_->GetAllDatas();
-    return reinterpret_cast<uintptr_t>(EtsUtils::PreferencesMapToObject(::taihe::get_env(), allElements));
+    auto mapObj = EtsUtils::PreferencesMapToObject(::taihe::get_env(), allElements);
+    if (mapObj == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to convert object."));
+    }
+    return reinterpret_cast<uintptr_t>(mapObj);
 }
 
 bool PreferencesProxy::HasSync(string_view key)
 {
-    PRE_ANI_ASSERT_BASE(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when has, the instance is nullptr."), false);
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return false;
+    }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
         return false;
@@ -81,43 +93,63 @@ bool PreferencesProxy::HasSync(string_view key)
 
 void PreferencesProxy::PutSync(string_view key, ValueType_t const& value)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when put, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
         return;
     }
     auto nativeValue = EtsUtils::ConvertToPreferencesValue(value);
+    if (std::holds_alternative<std::monostate>(nativeValue.value_)) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to parse value."));
+        return;
+    }
     auto errCode = preferences_->Put(keyStr, nativeValue);
-    PRE_ANI_ASSERT_RETURN_VOID(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode));
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+    }
 }
 
 void PreferencesProxy::DeleteSync(string_view key)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when delete, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
         return;
     }
     auto errCode = preferences_->Delete(keyStr);
-    PRE_ANI_ASSERT_RETURN_VOID(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode));
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+    }
 }
 
 void PreferencesProxy::ClearSync()
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when clear, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto errCode = preferences_->Clear();
-    PRE_ANI_ASSERT_RETURN_VOID(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode));
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+    }
 }
 
 void PreferencesProxy::FlushSync()
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when flush, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto errCode = preferences_->FlushSync();
-    PRE_ANI_ASSERT_RETURN_VOID(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode));
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+    }
 }
 
 bool PreferencesProxy::HasRegisteredObserver(ani_env *env, ani_ref callbackRef, RegisterMode mode)
@@ -137,7 +169,10 @@ bool PreferencesProxy::HasRegisteredObserver(ani_env *env, ani_ref callbackRef, 
 ani_ref PreferencesProxy::CreateGlobalReference(ani_env *env, uintptr_t opq)
 {
     ani_ref ref = nullptr;
-    PRE_ANI_ASSERT_BASE(env != nullptr, std::make_shared<InnerError>("Failed to get env."), ref);
+    if (env == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get env."));
+        return ref;
+    }
     auto aniStatus = env->GlobalReference_Create(reinterpret_cast<ani_object>(opq), &ref);
     if (aniStatus != ANI_OK) {
         LOG_ERROR("Failed to create ref, ret:%{public}d", static_cast<int32_t>(aniStatus));
@@ -150,8 +185,10 @@ ani_ref PreferencesProxy::CreateGlobalReference(ani_env *env, uintptr_t opq)
 
 void PreferencesProxy::RegisteredObserver(RegisterMode mode, CallbackType callback, uintptr_t opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto env = ::taihe::get_env();
     ani_ref callbackRef = CreateGlobalReference(env, opq);
     if (callbackRef == nullptr) {
@@ -163,7 +200,10 @@ void PreferencesProxy::RegisteredObserver(RegisterMode mode, CallbackType callba
     if (!HasRegisteredObserver(env, callbackRef, mode)) {
         auto observer = std::make_shared<TaihePreferencesObserver>(callback, callbackRef);
         int32_t errCode = preferences_->RegisterObserver(observer, mode);
-        PRE_ANI_ASSERT_RETURN_VOID(errCode == E_OK, std::make_shared<InnerError>(errCode));
+        if (errCode != OHOS::NativePreferences::E_OK) {
+            SetBusinessError(std::make_shared<InnerError>(errCode));
+            return;
+        }
         observers.push_back(observer);
     } else {
         env->GlobalReference_Delete(callbackRef);
@@ -175,8 +215,10 @@ void PreferencesProxy::RegisteredObserver(RegisterMode mode, CallbackType callba
 void PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &keys, CallbackType callback,
     uintptr_t opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto env = ::taihe::get_env();
     ani_ref callbackRef = CreateGlobalReference(env, opq);
     if (callbackRef == nullptr) {
@@ -187,7 +229,10 @@ void PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &ke
     if (!HasRegisteredObserver(env, callbackRef, RegisterMode::DATA_CHANGE)) {
         auto observer = std::make_shared<TaihePreferencesObserver>(callback, callbackRef);
         int32_t errCode = preferences_->RegisterDataObserver(observer, keys);
-        PRE_ANI_ASSERT_RETURN_VOID(errCode == E_OK, std::make_shared<InnerError>(errCode));
+        if (errCode != OHOS::NativePreferences::E_OK) {
+            SetBusinessError(std::make_shared<InnerError>(errCode));
+            return;
+        }
         observers.push_back(observer);
     } else {
         env->GlobalReference_Delete(callbackRef);
@@ -198,30 +243,26 @@ void PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &ke
 
 void PreferencesProxy::OnChange(callback_view<void(string_view)> cb, uintptr_t opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
     RegisteredObserver(RegisterMode::LOCAL_CHANGE, cb, opq);
 }
 
 void PreferencesProxy::OnDataChange(array_view<string> keys, callback_view<void(map_view<string, ValueType_t>)> cb,
     uintptr_t opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
     RegisteredDataObserver(std::vector<std::string>(keys.begin(), keys.end()), cb, opq);
 }
 
 void PreferencesProxy::OnMultiProcessChange(callback_view<void(string_view)> cb, uintptr_t opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when on, the instance is nullptr."));
     RegisteredObserver(RegisterMode::MULTI_PRECESS_CHANGE, cb, opq);
 }
 
 void PreferencesProxy::UnRegisteredObserver(RegisterMode mode, uintptr_t opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when off, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto env = ::taihe::get_env();
     ani_ref callbackRef = CreateGlobalReference(env, opq);
     if (callbackRef == nullptr) {
@@ -234,7 +275,10 @@ void PreferencesProxy::UnRegisteredObserver(RegisterMode mode, uintptr_t opq)
         ani_boolean isEqual = false;
         if (ANI_OK == env->Reference_StrictEquals(callbackRef, (*it)->GetRef(), &isEqual) && isEqual) {
             int32_t errCode = preferences_->UnRegisterObserver(*it, mode);
-            PRE_ANI_ASSERT_RETURN_VOID(errCode == E_OK, std::make_shared<InnerError>(errCode));
+            if (errCode != OHOS::NativePreferences::E_OK) {
+                SetBusinessError(std::make_shared<InnerError>(errCode));
+                return;
+            }
             (*it)->ClearRef();
             it = observers.erase(it);
             LOG_DEBUG("The observer unsubscribed success.");
@@ -247,8 +291,10 @@ void PreferencesProxy::UnRegisteredObserver(RegisterMode mode, uintptr_t opq)
 
 void PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when off, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     std::lock_guard<std::mutex> lck(listMutex_);
     auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
     bool hasFailed = false;
@@ -265,13 +311,13 @@ void PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
     }
     observers.clear();
     LOG_DEBUG("All observers unsubscribed success.");
-    PRE_ANI_ASSERT_RETURN_VOID(!hasFailed, std::make_shared<InnerError>(errCode));
+    if (hasFailed) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+    }
 }
 
 void PreferencesProxy::OffChange(optional_view<uintptr_t> opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when off, the instance is nullptr."));
     if (opq.has_value()) {
         UnRegisteredObserver(RegisterMode::LOCAL_CHANGE, opq.value());
     } else {
@@ -281,8 +327,10 @@ void PreferencesProxy::OffChange(optional_view<uintptr_t> opq)
 
 void PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &keys, uintptr_t opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when off, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     auto env = ::taihe::get_env();
     ani_ref callbackRef = CreateGlobalReference(env, opq);
     if (callbackRef == nullptr) {
@@ -295,8 +343,10 @@ void PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &
         ani_boolean isEqual = false;
         if (ANI_OK == env->Reference_StrictEquals(callbackRef, (*it)->GetRef(), &isEqual) && isEqual) {
             int32_t errCode = preferences_->UnRegisterDataObserver(*it, keys);
-            PRE_ANI_ASSERT_RETURN_VOID(errCode == E_OK || errCode == E_OBSERVER_RESERVE,
-                std::make_shared<InnerError>(errCode));
+            if (errCode != E_OK && errCode != E_OBSERVER_RESERVE) {
+                SetBusinessError(std::make_shared<InnerError>(errCode));
+                return;
+            }
             if (errCode == E_OK) {
                 (*it)->ClearRef();
                 it = observers.erase(it);
@@ -311,15 +361,19 @@ void PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &
 
 void PreferencesProxy::UnRegisteredAllDataObserver(const std::vector<std::string> &keys)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when off, the instance is nullptr."));
+    if (preferences_ == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
+        return;
+    }
     std::lock_guard<std::mutex> lck(listMutex_);
     auto &observers = dataObservers_;
     auto it = observers.begin();
     while (it != observers.end()) {
         int32_t errCode = preferences_->UnRegisterDataObserver(*it, keys);
-        PRE_ANI_ASSERT_RETURN_VOID(errCode == E_OK || errCode == E_OBSERVER_RESERVE,
-            std::make_shared<InnerError>(errCode));
+        if (errCode != E_OK && errCode != E_OBSERVER_RESERVE) {
+            SetBusinessError(std::make_shared<InnerError>(errCode));
+            return;
+        }
         if (errCode == E_OK) {
             (*it)->ClearRef();
             it = observers.erase(it);
@@ -342,8 +396,6 @@ void PreferencesProxy::OffMultiProcessChange(optional_view<uintptr_t> opq)
 
 void PreferencesProxy::OffDataChange(array_view<string> keys, optional_view<uintptr_t> opq)
 {
-    PRE_ANI_ASSERT_RETURN_VOID(preferences_ != nullptr,
-        std::make_shared<InnerError>("Failed to get instance when off, the instance is nullptr."));
     auto nativeKeys = std::vector<std::string>(keys.begin(), keys.end());
     if (opq.has_value()) {
         UnRegisteredDataObserver(nativeKeys, opq.value());

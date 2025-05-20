@@ -24,7 +24,6 @@
 namespace OHOS {
 namespace PreferencesEtsKit {
 constexpr int OK = 0;
-constexpr int NAPI_TYPE_ERROR = -3;
 
 constexpr int E_INVALID_PARAM = 401;
 constexpr int E_INNER_ERROR = 15500000;
@@ -41,24 +40,6 @@ struct EtsErrorCode {
 };
 
 const std::optional<EtsErrorCode> GetEtsErrorCode(int32_t errorCode);
-
-#define PRE_REVT_NOTHING
-
-#define PRE_ANI_ASSERT_BASE(assertion, error, retVal)                        \
-    do {                                                                           \
-        if (!(assertion)) {                                                        \
-            LOG_ERROR("throw error: code = %{public}d , message = %{public}s",     \
-                      (error)->GetCode(), (error)->GetMsg().c_str());          \
-            ::taihe::set_business_error((error)->GetCode(),    \
-                             (error)->GetMsg().c_str());                       \
-            return retVal;                                                         \
-        }                                                                          \
-    } while (0)
-
-#define PRE_ANI_ASSERT(assertion, error) PRE_ANI_ASSERT_BASE(assertion, error, nullptr)
-
-#define PRE_ANI_ASSERT_RETURN_VOID(assertion, error) \
-    PRE_ANI_ASSERT_BASE(assertion, error, PRE_REVT_NOTHING)
 
 class EtsError {
 public:
@@ -117,6 +98,8 @@ private:
     int code_;
     std::string msg_;
 };
+
+void SetBusinessError(std::shared_ptr<EtsError> error);
 } // namespace PreferencesEtsKit
 } // namespace OHOS
 

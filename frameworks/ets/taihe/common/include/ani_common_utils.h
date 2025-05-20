@@ -25,6 +25,8 @@ namespace PreferencesEtsKit {
 namespace EtsUtils {
 using namespace NativePreferences;
 
+ani_object ObjectToANIObject(ani_env *env, const Object &obj);
+
 ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res);
 
 ani_object PreferencesMapToObject(ani_env *env, std::unordered_map<std::string, PreferencesValue> &values);

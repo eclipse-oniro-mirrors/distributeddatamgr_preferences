@@ -57,9 +57,11 @@ PreferencesInfo ParseOptions(Options_t const& options)
     }
     if (options.storageType.holds_storageType()) {
         int32_t storageTypeVal = static_cast<int32_t>(options.storageType.get_storageType_ref());
-        bool isValid = storageTypeVal == static_cast<int32_t>(StorageType::XML) ||
-            storageTypeVal == static_cast<int32_t>(StorageType::GSKV);
-        PRE_ANI_ASSERT_BASE(isValid, std::make_shared<ParamTypeError>("Storage type value invalid."), preferencesInfo);
+        if (storageTypeVal != static_cast<int32_t>(StorageType::XML) &&
+            storageTypeVal != static_cast<int32_t>(StorageType::GSKV)) {
+            SetBusinessError(std::make_shared<ParamTypeError>("Storage type value invalid."));
+            return preferencesInfo;
+        }
         preferencesInfo.storageType = (storageTypeVal == static_cast<int32_t>(StorageType::XML)) ?
                 StorageType::XML : StorageType::GSKV;
         }
@@ -85,12 +87,17 @@ std::shared_ptr<EtsError> ParseContext(uintptr_t context, PreferencesInfo &prefe
 Preferences_t GetPreferences(uintptr_t context, PreferencesInfo &info)
 {
     auto err = ParseContext(context, info);
-    PRE_ANI_ASSERT_BASE(err == nullptr, err, defaultPreferences);
+    if (err != nullptr) {
+        SetBusinessError(err);
+        return make_holder<PreferencesProxy, Preferences_t>();
+    }
     Options nativeOptions(info.path, info.bundleName, info.dataGroupId, info.storageType == StorageType::GSKV);
     int32_t errCode = OHOS::NativePreferences::E_OK;
     auto preferences = PreferencesHelper::GetPreferences(nativeOptions, errCode);
-    PRE_ANI_ASSERT_BASE(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode),
-        defaultPreferences);
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+        return make_holder<PreferencesProxy, Preferences_t>();
+    }
     return make_holder<PreferencesProxy, Preferences_t>(preferences);
 }
 
@@ -111,9 +118,14 @@ Preferences_t GetPreferencesSyncByName(uintptr_t context, string_view name)
 void DeletePreferences(uintptr_t context, PreferencesInfo &info)
 {
     auto err = ParseContext(context, info);
-    PRE_ANI_ASSERT_RETURN_VOID(err == nullptr, err);
+    if (err != nullptr) {
+        SetBusinessError(err);
+        return;
+    }
     auto errCode = PreferencesHelper::DeletePreferences(info.path);
-    PRE_ANI_ASSERT_RETURN_VOID(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode));
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+    }
 }
 
 void DeletePreferencesSync(uintptr_t context, Options_t const& options)
@@ -133,12 +145,18 @@ void DeletePreferencesSyncByName(uintptr_t context, string_view name)
 void RemovePreferencesFromCache(uintptr_t context, PreferencesInfo &info)
 {
     auto err = ParseContext(context, info);
-    PRE_ANI_ASSERT_RETURN_VOID(err == nullptr, err);
+    if (err != nullptr) {
+        SetBusinessError(err);
+        return;
+    }
     auto errCode = PreferencesHelper::RemovePreferencesFromCache(info.path);
-    PRE_ANI_ASSERT_RETURN_VOID(errCode == OHOS::NativePreferences::E_OK, std::make_shared<InnerError>(errCode));
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        SetBusinessError(std::make_shared<InnerError>(errCode));
+    }
 }
 
-void RemovePreferencesFromCacheSync(uintptr_t context, string_view name) {
+void RemovePreferencesFromCacheSync(uintptr_t context, string_view name)
+{
     PreferencesInfo preferencesInfo = {
         .name = std::string(name)
     };

@@ -14,6 +14,9 @@
  */
 #include "taihe_preferences_error.h"
 
+#include "log_print.h"
+#include "taihe/runtime.hpp"
+
 namespace OHOS {
 namespace PreferencesEtsKit {
 
@@ -37,6 +40,12 @@ const std::optional<EtsErrorCode> GetEtsErrorCode(int32_t errorCode)
         return *iter;
     }
     return std::nullopt;
+}
+
+void SetBusinessError(std::shared_ptr<EtsError> error)
+{
+    LOG_ERROR("throw error: code=%{public}d, message=%{public}s", error->GetCode(), error->GetMsg().c_str());
+    ::taihe::set_business_error(error->GetCode(), error->GetMsg().c_str());
 }
 
 } // namespace PreferencesEtsKit

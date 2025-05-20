@@ -16,6 +16,7 @@
 #include "ani_common_utils.h"
 
 #include "log_print.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace PreferencesEtsKit {
@@ -25,15 +26,17 @@ using PreferencesValue = OHOS::NativePreferences::PreferencesValue;
 
 static constexpr const char* CLASS_NAME_DOUBLE = "Lstd/core/Double;";
 static constexpr const char* CLASS_NAME_BOOLEAN = "Lstd/core/Boolean;";
-static constexpr const char* CLASS_NAME_BIGINT = "Lescompat/BigInt;";
 static constexpr const char* CLASS_NAME_UINT8_ARRAY = "Lescompat/Uint8Array;";
 static constexpr const char* CLASS_NAME_ARRAY = "Lescompat/Array;";
 static constexpr const char* CLASS_NAME_RRECORD = "Lescompat/Record;";
 static constexpr const char* CLASS_NAME_JSON = "Lescompat/JSON;";
+
 static constexpr const char* METHOD_NAME_STRINGIFY = "stringify";
-static constexpr const char* METHOD_NAME_PARSE = "parse";
 static constexpr const char* METHOD_NAME_CONSTRUCTOR = "<ctor>";
 static constexpr const char* METHOD_NAME_SET = "$_set";
+
+static constexpr const char* NAMESPACE_NAME_PREFERENCES = "L@ohos/data/preferences/preferences;";
+static constexpr const char* FUNCTION_NAME_ARRAYBUFFER_TO_BIGINT = "fromArrayBufferToBigInt";
 
 static ani_string StdStringToANIString(ani_env* env, const std::string &str)
 {
@@ -41,6 +44,7 @@ static ani_string StdStringToANIString(ani_env* env, const std::string &str)
     ani_status status = env->String_NewUTF8(str.c_str(), str.size(), &stringAni);
     if (status != ANI_OK) {
         LOG_INFO("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, str.size());
+        return nullptr;
     }
     return stringAni;
 }
@@ -53,20 +57,35 @@ static ani_object DoubleToObject(ani_env *env, double value)
     ani_status status = env->FindClass(CLASS_NAME_DOUBLE, &aniClass);
     if (status != ANI_OK) {
         LOG_ERROR("Double not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     ani_method aniCtor;
     status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "D:V", &aniCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     status = env->Object_New(aniClass, aniCtor, &aniObject, doubleValue);
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     return aniObject;
+}
+
+static ani_object IntToObject(ani_env *env, int32_t value)
+{
+    return DoubleToObject(env, static_cast<double>(value));
+}
+
+static ani_object LongToObject(ani_env *env, int64_t value)
+{
+    return DoubleToObject(env, static_cast<double>(value));
+}
+
+static ani_object FloatToObject(ani_env *env, float value)
+{
+    return DoubleToObject(env, static_cast<double>(value));
 }
 
 static ani_object BoolToObject(ani_env *env, bool value)
@@ -77,19 +96,19 @@ static ani_object BoolToObject(ani_env *env, bool value)
     ani_status status = env->FindClass(CLASS_NAME_BOOLEAN, &aniClass);
     if (status != ANI_OK) {
         LOG_ERROR("Bool not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
 
     ani_method aniCtor;
     status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "Z:V", &aniCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     status = env->Object_New(aniClass, aniCtor, &aniObject, boolValue);
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     return aniObject;
 }
@@ -100,26 +119,39 @@ static ani_object StringToObject(ani_env *env, const std::string &value)
     return static_cast<ani_object>(stringValue);
 }
 
-static ani_object BigIntToObject(ani_env *env, int64_t value)
+static ani_object BigIntToObject(ani_env *env, BigInt value)
 {
-    ani_object aniObject = nullptr;
-    ani_class aniClass;
-    ani_status status = env->FindClass(CLASS_NAME_BIGINT, &aniClass);
+    ani_namespace aniNamespace;
+    ani_status status = env->FindNamespace(NAMESPACE_NAME_PREFERENCES, &aniNamespace);
     if (status != ANI_OK) {
-        LOG_ERROR("BigInt not found, ret: %{public}d.", status);
-        return aniObject;
+        LOG_ERROR("Namespace preferences not found, ret: %{public}d.", status);
+        return nullptr;
     }
-
-    ani_method aniCtor;
-    status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "J:V", &aniCtor);
+    ani_function castFunc;
+    status = env->Namespace_FindFunction(aniNamespace, FUNCTION_NAME_ARRAYBUFFER_TO_BIGINT, nullptr, &castFunc);
     if (status != ANI_OK) {
-        LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return aniObject;
+        LOG_ERROR("Function fromArrayBufferToBigIntmark not found, ret: %{public}d.", status);
+        return nullptr;
     }
-    status = env->Object_New(aniClass, aniCtor, &aniObject, value);
+    auto words = value.words_;
+    char* aniData = nullptr;
+    ani_arraybuffer arrBuffer;
+    auto bufferLength = words.size() * (sizeof(uint64_t) / sizeof(char));
+    status = env->CreateArrayBuffer(bufferLength, reinterpret_cast<void**>(&aniData), &arrBuffer);
     if (status != ANI_OK) {
-        LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return aniObject;
+        LOG_ERROR("CreateArrayBuffer failed, ret: %{public}d, size: %{public}zu.", status, bufferLength);
+        return nullptr;
+    }
+    auto ret = memcpy_s(aniData, bufferLength, words.data(), bufferLength);
+    if (ret != 0) {
+        LOG_ERROR("memcpy_s failed, ret: %{public}d, size: %{public}zu.", ret, bufferLength);
+        return nullptr;
+    }
+    ani_object aniObject;
+    status = env->Function_Call_Ref(castFunc, reinterpret_cast<ani_ref*>(&aniObject), arrBuffer);
+    if (status != ANI_OK) {
+        LOG_ERROR("Function_Call_Ref failed, ret: %{public}d.", status);
+        return nullptr;
     }
     return aniObject;
 }
@@ -131,36 +163,36 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> va
     ani_status status = env->FindClass(CLASS_NAME_UINT8_ARRAY, &arrayClass);
     if (status != ANI_OK) {
         LOG_ERROR("Uint8Array not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     ani_method arrayCtor;
     status = env->Class_FindMethod(arrayClass, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     auto valueSize = values.size();
     status = env->Object_New(arrayClass, arrayCtor, &aniObject, valueSize);
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     ani_ref buffer;
     status = env->Object_GetFieldByName_Ref(aniObject, "buffer", &buffer);
     if (status != ANI_OK) {
         LOG_ERROR("GetField failed, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     void *bufData;
     size_t bufLength;
     status = env->ArrayBuffer_GetInfo(static_cast<ani_arraybuffer>(buffer), &bufData, &bufLength);
     if (status != ANI_OK) {
         LOG_ERROR("ArrayBuffer_GetInfo failed, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     auto ret = memcpy_s(bufData, bufLength, values.data(), bufLength);
     if (ret != 0) {
-        LOG_ERROR("memcpy_s failed, ret: %{public}d.", ret);
+        LOG_ERROR("memcpy_s failed, ret: %{public}d, size: %{public}zu.", ret, bufLength);
         return nullptr;
     }
     return aniObject;
@@ -173,18 +205,18 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
     ani_status status = env->FindClass(CLASS_NAME_ARRAY, &arrayCls);
     if (status != ANI_OK) {
         LOG_ERROR("Array not found, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     ani_method arrayCtor;
     status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     status = env->Object_New(arrayCls, arrayCtor, &arrayObj, values.size());
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     ani_size index = 0;
     for (auto value : values) {
@@ -192,12 +224,12 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
         status = env->String_NewUTF8(value.c_str(), value.size(), &ani_str);
         if (status != ANI_OK) {
             LOG_ERROR("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, value.size());
-            break;
+            return nullptr;
         }
         status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "ILstd/core/Object;:V", index, ani_str);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
-            break;
+            return nullptr;
         }
         index++;
     }
@@ -211,19 +243,19 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     ani_status status = env->FindClass(CLASS_NAME_ARRAY, &arrayCls);
     if (status != ANI_OK) {
         LOG_ERROR("Array not found, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
 
     ani_method arrayCtor;
     status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     status = env->Object_New(arrayCls, arrayCtor, &arrayObj, values.size());
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     ani_size index = 0;
     for (auto value : values) {
@@ -231,7 +263,7 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
         status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "ILstd/core/Object;:V", index, aniValue);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
-            break;
+            return nullptr;
         }
         index++;
     }
@@ -245,18 +277,18 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     ani_status status = env->FindClass(CLASS_NAME_ARRAY, &arrayCls);
     if (status != ANI_OK) {
         LOG_ERROR("Array not found, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     ani_method arrayCtor;
     status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     status = env->Object_New(arrayCls, arrayCtor, &arrayObj, values.size());
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return arrayObj;
+        return nullptr;
     }
     ani_size index = 0;
     for (auto value : values) {
@@ -271,8 +303,9 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     return arrayObj;
 }
 
-static ani_object ObjectToANIObject(ani_env *env, const Object &obj)
+ani_object ObjectToANIObject(ani_env *env, const Object &obj)
 {
+    LOG_ERROR("ObjectToANIObject not implemented.");
     return nullptr;
 }
 
@@ -282,6 +315,15 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
         LOG_ERROR("Env is nullptr.");
         return nullptr;
     }
+    if (res.IsInt()) {
+        return IntToObject(env, res);
+    }
+    if (res.IsLong()) {
+        return LongToObject(env, res);
+    }
+    if (res.IsFloat()) {
+        return FloatToObject(env, res);
+    }
     if (res.IsDouble()) {
         return DoubleToObject(env, res);
     }
@@ -290,9 +332,6 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
     }
     if (res.IsString()) {
         return StringToObject(env, res);
-    }
-    if (res.IsLong()) {
-        return BigIntToObject(env, res);
     }
     if (res.IsUint8Array()) {
         return Uint8ArrayToObject(env, static_cast<std::vector<uint8_t>>(res));
@@ -306,6 +345,9 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
     if (res.IsDoubleArray()) {
         return DoubleArrayToObject(env, res);
     }
+    if (res.IsBigInt()) {
+        return BigIntToObject(env, res);
+    }
     if (res.IsObject()) {
         return ObjectToANIObject(env, res);
     }
@@ -317,40 +359,43 @@ ani_object PreferencesMapToObject(ani_env *env, std::unordered_map<std::string, 
     ani_object aniObject = nullptr;
     if (env == nullptr) {
         LOG_ERROR("Env is nullptr.");
-        return aniObject;
+        return nullptr;
     }
     ani_class cls;
     ani_status status = env->FindClass(CLASS_NAME_RRECORD, &cls);
     if (status != ANI_OK) {
         LOG_ERROR("Record not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
 
     ani_method aniCtor;
     status = env->Class_FindMethod(cls, METHOD_NAME_CONSTRUCTOR, ":V", &aniCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     status = env->Object_New(cls, aniCtor, &aniObject);
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
     ani_method setter;
     status = env->Class_FindMethod(cls, METHOD_NAME_SET, nullptr, &setter);
     if (status != ANI_OK) {
         LOG_ERROR("Method $_set not found, ret: %{public}d.", status);
-        return aniObject;
+        return nullptr;
     }
 
     for (auto& value : values) {
         ani_string aniKey = StdStringToANIString(env, value.first);
         ani_object aniObjVal = PreferencesValueToObject(env, value.second);
+        if (aniObjVal == nullptr) {
+            return nullptr;
+        }
         status = env->Object_CallMethod_Void(aniObject, setter, aniKey, aniObjVal);
         if (status != ANI_OK) {
             LOG_INFO("Call $_set failed, ret: %{public}d.", status);
-            break;
+            return nullptr;
         }
     }
     return aniObject;

@@ -23,10 +23,16 @@
 
 #include "ani_common_utils.h"
 #include "log_print.h"
+#include "taihe_preferences_error.h"
 namespace OHOS {
 namespace PreferencesEtsKit {
 namespace EtsUtils {
 constexpr int32_t OFFSET_OF_SIGN = 63;
+inline PreferencesValue ConvertToInt(const ValueType_t &valueType)
+{
+    return static_cast<int32_t>(valueType.get_intType_ref());
+}
+
 inline PreferencesValue ConvertToDouble(const ValueType_t &valueType)
 {
     return static_cast<double>(valueType.get_doubleType_ref());
@@ -40,6 +46,16 @@ inline PreferencesValue ConvertToString(const ValueType_t &valueType)
 inline PreferencesValue ConvertToBoolean(const ValueType_t &valueType)
 {
     return static_cast<bool>(valueType.get_booleanType_ref());
+}
+
+inline PreferencesValue ConvertToIntArray(const ::taihe::array<TypesInArray_t> &valueType)
+{
+    std::vector<double> result;
+    result.reserve(valueType.size());
+    std::transform(valueType.begin(), valueType.end(), std::back_inserter(result), [](const TypesInArray_t &item) {
+        return item.get_intType_ref();
+    });
+    return result;
 }
 
 inline PreferencesValue ConvertToDoubleArray(const ::taihe::array<TypesInArray_t> &valueType)
@@ -79,7 +95,9 @@ PreferencesValue ConvertToArray(const ValueType_t &valueType)
         return std::vector<double>();
     }
     auto tag = ref.at(0).get_tag();
-    if (tag == TypesInArray_t::tag_t::doubleType) {
+    if (tag == TypesInArray_t::tag_t::intType) {
+        return ConvertToIntArray(ref);
+    } else if (tag == TypesInArray_t::tag_t::doubleType) {
         return ConvertToDoubleArray(ref);
     } else if (tag == TypesInArray_t::tag_t::stringType) {
         return ConvertToStringArray(ref);
@@ -116,6 +134,7 @@ inline PreferencesValue ConvertToObject(const ValueType_t &valueType)
 PreferencesValue ConvertToPreferencesValue(const ValueType_t &valueType)
 {
     static std::map<ValueType_t::tag_t, std::function<PreferencesValue(const ValueType_t&)>> tag2FunctionMap = {
+        { ValueType_t::tag_t::intType, ConvertToInt },
         { ValueType_t::tag_t::doubleType, ConvertToDouble },
         { ValueType_t::tag_t::stringType, ConvertToString },
         { ValueType_t::tag_t::booleanType, ConvertToBoolean },
@@ -135,7 +154,7 @@ PreferencesValue ConvertToPreferencesValue(const ValueType_t &valueType)
 
 inline ValueType_t ConvertFromInt(int value)
 {
-    return ValueType_t::make_doubleType(static_cast<double>(value));
+    return ValueType_t::make_intType(value);
 }
 
 inline ValueType_t ConvertFromLong(int64_t value)
@@ -204,7 +223,10 @@ inline ValueType_t ConvertFromUint8Array(const std::vector<uint8_t> &value)
 
 inline ValueType_t ConvertFromObject(const PreferencesValue &value)
 {
-    ani_object obj = PreferencesValueToObject(::taihe::get_env(), value);
+    ani_object obj = ObjectToANIObject(::taihe::get_env(), value);
+    if (obj == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>("Failed to convert object."));
+    }
     return ValueType_t::make_objectType(reinterpret_cast<uintptr_t>(obj));
 }
 
