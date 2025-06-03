@@ -68,7 +68,7 @@ int PreferencesPutValue(std::shared_ptr<Preferences> pref, const std::string &in
  * @tc.type: FUNC
  * @tc.author: liulinna
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level0)
 {
     std::string file = "/data/test/test";
     std::string backupFile = "/data/test/test.bak";
@@ -103,7 +103,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: liulinna
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_002, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_002, TestSize.Level0)
 {
     std::string file = "/data/test/test";
     std::remove(file.c_str());
@@ -132,7 +132,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: liulinna
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_003, TestSize.Level0)
 {
     std::string file = "/data/test/test";
     int ret = PreferencesHelper::DeletePreferences(file);
@@ -249,7 +249,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_004, TestSize.Level3)
  * @tc.desc: normal testcase of fallback logic
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level0)
 {
     std::string path = "/data/test/file_test005";
     std::string file = path + "/test";
@@ -286,7 +286,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_005, TestSize.Level1)
  * @tc.desc: normal testcase of fallback logic
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level0)
 {
     std::string path = "/data/test/file_test006";
     std::string file = path + "/test";
@@ -332,7 +332,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_006, TestSize.Level1)
  * @tc.desc: normal testcase of fallback logic
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_007, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_007, TestSize.Level0)
 {
     std::string file = "/data/test/test";
     int ret = PreferencesHelper::DeletePreferences(file);
@@ -363,7 +363,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_007, TestSize.Level1)
  * @tc.desc: normal testcase of fallback logic
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_008, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_008, TestSize.Level0)
 {
     std::string file = "/data/test/test";
     int ret = PreferencesHelper::DeletePreferences(file);
@@ -406,7 +406,7 @@ HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_008, TestSize.Level1)
  * @tc.desc: normal testcase of fallback logic
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_009, TestSize.Level1)
+HWTEST_F(PreferencesFileTest, NativePreferencesFileTest_009, TestSize.Level0)
 {
     std::string file = "/data/test/test";
     int ret = PreferencesHelper::DeletePreferences(file);

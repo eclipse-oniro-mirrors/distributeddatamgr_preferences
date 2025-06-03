@@ -203,7 +203,7 @@ void CheckTargetTypeValues(OH_Preferences *pref, bool exist, PrefDataType pdt)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -231,7 +231,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_002, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -262,7 +262,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_003, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -291,7 +291,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_004, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -315,7 +315,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetTest_004, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesPutTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesPutTest_001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -345,7 +345,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesPutTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -374,7 +374,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_002, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -405,7 +405,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Song Yixiu
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_003, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -434,7 +434,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesUpdateTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Liu Xiaolong
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -464,7 +464,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Liu Xiaolong
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesDeleteTest_002, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -506,7 +506,7 @@ static void UnRegisterObsInFunc(OH_Preferences *pref)
  * @tc.require: NA
  * @tc.author: Liu Xiaolong
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -547,7 +547,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_002, TestSize.Level0)
 {
     // cannot get callback when unregister
     int errCode = PREFERENCES_OK;
@@ -580,7 +580,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_003, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -610,7 +610,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_004, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -653,7 +653,7 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_004, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_005, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverTest_005, TestSize.Level0)
 {
     // cancel part of all registerd key
     int errCode = PREFERENCES_OK;
@@ -727,7 +727,7 @@ void NullTestCallback(void *context, const OH_PreferencesPair *pairs, uint32_t c
  * @tc.require: NA
  * @tc.author: Liu Xiaolong
  */
-HWTEST_F(PreferencesNdkTest, NDKPreferencesNullInputTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkTest, NDKPreferencesNullInputTest_001, TestSize.Level0)
 {
     OH_Preferences_FreeString(nullptr);
 

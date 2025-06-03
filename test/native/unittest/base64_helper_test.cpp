@@ -54,7 +54,7 @@ void Base64HelperTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(Base64HelperTest, Base64HelperTest_001, TestSize.Level1)
+HWTEST_F(Base64HelperTest, Base64HelperTest_001, TestSize.Level0)
 {
     std::vector<uint8_t> emptyArray {};
     std::vector<uint8_t> oneArray { 'a' };
@@ -81,7 +81,7 @@ HWTEST_F(Base64HelperTest, Base64HelperTest_001, TestSize.Level1)
  * @tc.desc: normal testcase of base64 decode
  * @tc.type: FUNC
  */
-HWTEST_F(Base64HelperTest, Base64HelperTest_002, TestSize.Level1)
+HWTEST_F(Base64HelperTest, Base64HelperTest_002, TestSize.Level0)
 {
     std::vector<uint8_t> oneArray { 1 };
     std::vector<uint8_t> twoArray { 1, 2 };
@@ -103,7 +103,7 @@ HWTEST_F(Base64HelperTest, Base64HelperTest_002, TestSize.Level1)
  * @tc.desc: error testcase of base64 decode
  * @tc.type: FUNC
  */
-HWTEST_F(Base64HelperTest, Base64HelperTest_003, TestSize.Level1)
+HWTEST_F(Base64HelperTest, Base64HelperTest_003, TestSize.Level0)
 {
     std::string wrongText = "abc";
     std::vector<uint8_t> result {};
@@ -127,7 +127,7 @@ HWTEST_F(Base64HelperTest, Base64HelperTest_003, TestSize.Level1)
  * @tc.desc: error testcase of base64 decode
  * @tc.type: FUNC
  */
-HWTEST_F(Base64HelperTest, Base64HelperTest_004, TestSize.Level1)
+HWTEST_F(Base64HelperTest, Base64HelperTest_004, TestSize.Level0)
 {
     std::vector<uint8_t> array;
     for (size_t i = 0; i < 256; ++i) {
