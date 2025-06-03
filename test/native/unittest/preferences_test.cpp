@@ -166,7 +166,7 @@ void PreferencesObserverCrossProcess::OnChange(const std::string &key)
  * @tc.type: FUNC
  * @tc.author: lirui
  */
-HWTEST_F(PreferencesTest, NativePreferencesGroupIdTest_001, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesGroupIdTest_001, TestSize.Level0)
 {
     int errCode = E_OK;
     Options option = Options("/data/test/test1", "ohos.test.demo", "2002001");
@@ -186,7 +186,7 @@ HWTEST_F(PreferencesTest, NativePreferencesGroupIdTest_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_001, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_001, TestSize.Level0)
 {
     pref->PutInt(KEY_TEST_INT_ELEMENT, 2);
     pref->PutString(KEY_TEST_STRING_ELEMENT, "test");
@@ -204,7 +204,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_002, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_002, TestSize.Level0)
 {
     bool ret = pref->HasKey(LONG_KEY + 'x');
     EXPECT_EQ(ret, false);
@@ -227,7 +227,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_003, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_003, TestSize.Level0)
 {
     pref->PutString(KEY_TEST_STRING_ELEMENT, "test1");
 
@@ -245,7 +245,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_004, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_004, TestSize.Level0)
 {
     bool ret = pref->GetBool(LONG_KEY + 'x', true);
     EXPECT_EQ(ret, true);
@@ -270,7 +270,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_004, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_005, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_005, TestSize.Level0)
 {
     float ret = pref->GetFloat(LONG_KEY + 'x', 3.0f);
     EXPECT_EQ(ret, 3.0f);
@@ -295,7 +295,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_005, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_006, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_006, TestSize.Level0)
 {
     int ret = pref->GetInt(LONG_KEY + 'x', 35);
     EXPECT_EQ(ret, 35);
@@ -320,7 +320,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_006, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_007, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_007, TestSize.Level0)
 {
     int64_t ret = pref->GetLong(LONG_KEY + 'x', 35L);
     EXPECT_EQ(ret, 35L);
@@ -345,7 +345,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_007, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_008, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_008, TestSize.Level0)
 {
     std::string ret = pref->GetString(LONG_KEY + 'x', "test");
     EXPECT_EQ(ret, "test");
@@ -370,7 +370,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_008, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_009, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_009, TestSize.Level0)
 {
     int ret0 = pref->GetInt(KEY_TEST_INT_ELEMENT, -1);
     EXPECT_EQ(ret0, -1);
@@ -394,7 +394,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_009, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_010, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_010, TestSize.Level0)
 {
     pref->PutBool(LONG_KEY + 'x', true);
     pref->PutBool("", true);
@@ -421,7 +421,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_010, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_011, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_011, TestSize.Level0)
 {
     pref->PutFloat(LONG_KEY + 'x', 3.0f);
     pref->PutFloat("", 3.0f);
@@ -448,7 +448,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_011, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_012, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_012, TestSize.Level0)
 {
     pref->PutInt(LONG_KEY + 'x', 3);
     pref->PutInt("", 3);
@@ -475,7 +475,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_012, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_013, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_013, TestSize.Level0)
 {
     pref->PutLong(LONG_KEY + 'x', 3L);
     pref->PutLong("", 3L);
@@ -502,7 +502,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_013, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_014, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_014, TestSize.Level0)
 {
     pref->PutString(LONG_KEY + 'x', "test");
     pref->PutString("", "test");
@@ -529,7 +529,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_014, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_015, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_015, TestSize.Level0)
 {
     pref->PutString("test", "remove");
     pref->FlushSync();
@@ -551,7 +551,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_015, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_016, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_016, TestSize.Level0)
 {
     std::shared_ptr<PreferencesObserver> counter = std::make_shared<PreferencesObserverCounter>();
     pref->RegisterObserver(counter);
@@ -575,7 +575,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_016, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_017, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_017, TestSize.Level0)
 {
     std::shared_ptr<PreferencesObserver> counter = std::make_shared<PreferencesObserverCounter>();
     pref->RegisterObserver(counter);
@@ -599,7 +599,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_017, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_018, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_018, TestSize.Level0)
 {
     pref->PutString(KEY_TEST_STRING_ELEMENT, "test");
     pref->PutInt(KEY_TEST_INT_ELEMENT, 3);
@@ -625,7 +625,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_018, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: mang tsang
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_019, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_019, TestSize.Level0)
 {
     double ret = pref->GetDouble(LONG_KEY + 'x', 35.99999);
     EXPECT_EQ(ret, 35.99999);
@@ -651,7 +651,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_019, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: lijuntao
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_020, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_020, TestSize.Level0)
 {
     int errCode;
     std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -672,7 +672,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_020, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: lijuntao
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_021, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_021, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -698,7 +698,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_021, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: lijuntao
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_022, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_022, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -724,7 +724,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_022, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: lijuntao
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_023, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_023, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -750,7 +750,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_023, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: lijuntao
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_024, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_024, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -776,7 +776,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_024, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: lijuntao
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_025, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_025, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -802,7 +802,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_025, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: changjiaxing
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_026, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_026, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -846,7 +846,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_026, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: changjiaxing
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_027, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_027, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -881,7 +881,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_027, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: changjiaxing
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_028, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_028, TestSize.Level0)
 {
     std::shared_ptr<PreferencesObserverCrossProcess> counter = std::make_shared<PreferencesObserverCrossProcess>();
     int ret = pref->RegisterObserver(counter, RegisterMode::MULTI_PRECESS_CHANGE);
@@ -902,7 +902,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_028, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: changjiaxing
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_029, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_029, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -931,7 +931,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_029, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: changjiaxing
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_030, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_030, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -950,7 +950,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_030, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: bty
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_031, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_031, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test1", errCode);
@@ -974,7 +974,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_031, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: lirui
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_032, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_032, TestSize.Level0)
 {
     std::shared_ptr<PreferencesObserver> counter = std::make_shared<PreferencesObserverCounter>();
     std::vector<std::string> keys = { KEY_TEST_STRING_ELEMENT };
@@ -989,7 +989,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_032, TestSize.Level1)
  * @tc.desc: RegisterObserver testing
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_033, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_033, TestSize.Level0)
 {
     vector<std::shared_ptr<PreferencesObserverCrossProcess>> counters;
     for (int i = 0; i <= 50; i++) {
@@ -1013,7 +1013,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_033, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
+HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level0)
 {
     int valueInt = 1;
     int retInt = PreferencesValue(valueInt);
@@ -1072,7 +1072,7 @@ HWTEST_F(PreferencesTest, PreferencesValueTest_001, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: bty
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_035, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_035, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test035", errCode);
@@ -1109,7 +1109,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_035, TestSize.Level1)
  * @tc.require: Na
  * @tc.author: Na
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_036, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_036, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test036", errCode);
@@ -1146,7 +1146,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_036, TestSize.Level1)
  * @tc.require: Na
  * @tc.author:
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_037, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_037, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test037", errCode);
@@ -1181,7 +1181,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_037, TestSize.Level1)
  * @tc.require: Na
  * @tc.author:
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_038, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_038, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test038", errCode);
@@ -1213,7 +1213,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_038, TestSize.Level1)
  * @tc.require: Na
  * @tc.author:
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_039, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_039, TestSize.Level0)
 {
     int errCode;
     auto pref1 = PreferencesHelper::GetPreferences("/data/test/test038", errCode);

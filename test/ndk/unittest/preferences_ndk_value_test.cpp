@@ -93,7 +93,7 @@ int PreferencesFlush(OH_Preferences *store)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     std::string intKey = "ndktest_int_key";
@@ -133,7 +133,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_001, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_002, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     std::string stringKey = "ndktest_int_key";
@@ -186,7 +186,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_002, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_003, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -230,7 +230,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_003, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_004, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -267,7 +267,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_004, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_005, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_005, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     std::string boolKey = "ndktest_int_key";
@@ -302,7 +302,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTest_005, TestSize.Level1)
  * @tc.require: NA
  * @tc.author: Lirui
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestEmptyValueTest001, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestEmptyValueTest001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
@@ -329,7 +329,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestEmptyValueTest001, TestSize.
  * @tc.require: NA
  * @tc.author: bluhuang
  */
-HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestTypeTest001, TestSize.Level1)
+HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestTypeTest001, TestSize.Level0)
 {
     int errCode = PREFERENCES_OK;
     OH_PreferencesOption *option = GetCommonOption();
