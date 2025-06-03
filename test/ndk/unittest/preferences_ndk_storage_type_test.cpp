@@ -80,7 +80,7 @@ static bool IsFileExist(const std::string &path)
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_001, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_001, TestSize.Level0)
 {
     bool isSupport = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_XML, &isSupport);
@@ -107,7 +107,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_001, TestSize.Lev
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_002, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_002, TestSize.Level0)
 {
     // without setting storage type
     // it should be xml when not in enhance by default, or GSKV in enhance
@@ -142,7 +142,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeBaseTest_002, TestSize.Lev
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_003, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_003, TestSize.Level0)
 {
     // new with xml storage type
     // it should be xml in enhance or not
@@ -180,7 +180,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_003, TestSize.Leve
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_004, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_004, TestSize.Level0)
 {
     // GSKV exists, open in xml mode, should return invalid_args
     // create fake GSKV firstly
@@ -213,7 +213,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeXMLTest_004, TestSize.Leve
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_005, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_005, TestSize.Level0)
 {
     // new with GSKV mode
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
@@ -253,7 +253,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_005, TestSize.Lev
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_006, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_006, TestSize.Level0)
 {
     // xml exists but open with GSKV
     // create xml firstly
@@ -298,7 +298,7 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_006, TestSize.Lev
  * @tc.require: NA
  * @tc.author: huangboxin
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_007, TestSize.Level1)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_007, TestSize.Level0)
 {
     // GSKV exists, open in GSKV mode
     bool isEnhance = false;
