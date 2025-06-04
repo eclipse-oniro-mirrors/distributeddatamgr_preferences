@@ -18,7 +18,6 @@
 
 #include <list>
 
-#include "ohos.data.preferences.impl.hpp"
 #include "ohos.data.preferences.proj.hpp"
 #include "preferences.h"
 #include "preferences_value.h"
@@ -28,22 +27,22 @@
 
 namespace OHOS {
 namespace PreferencesEtsKit {
-using namespace NativePreferences;
-using namespace taihe;
-using ValueType_t = ohos::data::preferences::ValueType;
+using ValueTypeT = ohos::data::preferences::ValueType;
+using string_view = ::taihe::string_view;
+using RegisterMode = OHOS::NativePreferences::RegisterMode;
 class PreferencesProxy {
 public:
     PreferencesProxy();
 
-    PreferencesProxy(std::shared_ptr<Preferences> preferences);
+    PreferencesProxy(std::shared_ptr<NativePreferences::Preferences> preferences);
 
-    ValueType_t GetSync(string_view key, ValueType_t const& defValue);
+    ValueTypeT GetSync(string_view key, ValueTypeT const& defValue);
 
     uintptr_t GetAllSync();
 
     bool HasSync(string_view key);
 
-    void PutSync(string_view key, ValueType_t const& value);
+    void PutSync(string_view key, ValueTypeT const& value);
 
     void DeleteSync(string_view key);
 
@@ -51,21 +50,23 @@ public:
 
     void FlushSync();
 
-    void OnChange(callback_view<void(string_view)> cb, uintptr_t opq);
+    void OnChange(::taihe::callback_view<void(string_view)> cb, uintptr_t opq);
 
-    void OffChange(optional_view<uintptr_t> opq);
+    void OffChange(::taihe::optional_view<uintptr_t> opq);
 
-    void OnMultiProcessChange(callback_view<void(string_view)> cb, uintptr_t opq);
+    void OnMultiProcessChange(::taihe::callback_view<void(string_view)> cb, uintptr_t opq);
 
-    void OffMultiProcessChange(optional_view<uintptr_t> opq);
+    void OffMultiProcessChange(::taihe::optional_view<uintptr_t> opq);
 
-    void OnDataChange(array_view<string> keys, callback_view<void(map_view<string, ValueType_t>)> cb, uintptr_t opq);
+    void OnDataChange(::taihe::array_view<::taihe::string> keys,
+        ::taihe::callback_view<void(::taihe::map_view<::taihe::string, ValueTypeT>)> cb, uintptr_t opq);
 
-    void OffDataChange(array_view<string> keys, optional_view<uintptr_t> opq);
+    void OffDataChange(::taihe::array_view<::taihe::string> keys, ::taihe::optional_view<uintptr_t> opq);
 
     virtual ~PreferencesProxy();
 private:
-    ani_ref CreateGlobalReference(ani_env *env, uintptr_t opq);
+    std::shared_ptr<PreferencesJsKit::JSError> CreateGlobalReference(
+        ani_env *env, uintptr_t opq, ani_ref &callbackRef);
 
     void RegisteredObserver(RegisterMode mode, CallbackType callback, uintptr_t opq);
 
@@ -83,7 +84,7 @@ private:
 
     bool CheckKey(const std::string &key);
 
-    std::shared_ptr<Preferences> preferences_;
+    std::shared_ptr<NativePreferences::Preferences> preferences_;
 
     std::mutex listMutex_ {};
     std::list<std::shared_ptr<TaihePreferencesObserver>> localObservers_;

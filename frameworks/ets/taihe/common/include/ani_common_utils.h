@@ -23,15 +23,15 @@
 namespace OHOS {
 namespace PreferencesEtsKit {
 namespace EtsUtils {
-using namespace NativePreferences;
 
-ani_object ObjectToANIObject(ani_env *env, const Object &obj);
+ani_object ObjectToANIObject(ani_env *env, const NativePreferences::Object &obj);
 
-ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res);
+ani_object PreferencesValueToObject(ani_env *env, const NativePreferences::PreferencesValue &res);
 
-ani_object PreferencesMapToObject(ani_env *env, std::unordered_map<std::string, PreferencesValue> &values);
+ani_object PreferencesMapToObject(ani_env *env,
+    const std::unordered_map<std::string, NativePreferences::PreferencesValue> &values);
 
-PreferencesValue AniObjectToPreferencesValue(ani_env *env, uintptr_t object);
+NativePreferences::PreferencesValue AniObjectToPreferencesValue(ani_env *env, uintptr_t object);
 } // namespace EtsUtils
 } // namespace PreferencesEtsKit
 } // namespace OHOS

@@ -22,10 +22,10 @@
 
 namespace OHOS {
 namespace PreferencesEtsKit {
-using ValueType_t = ohos::data::preferences::ValueType;
-using StringCallback_t = ::taihe::callback<void(::taihe::string_view)>;
-using MapCallback_t = ::taihe::callback<void(::taihe::map_view<::taihe::string, ValueType_t>)>;
-using CallbackType = std::variant<StringCallback_t, MapCallback_t>;
+using ValueTypeT = ohos::data::preferences::ValueType;
+using StringCallback = ::taihe::callback<void(::taihe::string_view)>;
+using MapCallback = ::taihe::callback<void(::taihe::map_view<::taihe::string, ValueTypeT>)>;
+using CallbackType = std::variant<StringCallback, MapCallback>;
 
 class TaihePreferencesObserver : public OHOS::NativePreferences::PreferencesObserver {
 public:
@@ -34,7 +34,6 @@ public:
     void OnChange(const std::string &key) override;
     void OnChange(const std::map<std::string, NativePreferences::PreferencesValue> &records) override;
     ani_ref GetRef();
-    void ClearRef();
 private:
     CallbackType callback_;
     ani_ref ref_;

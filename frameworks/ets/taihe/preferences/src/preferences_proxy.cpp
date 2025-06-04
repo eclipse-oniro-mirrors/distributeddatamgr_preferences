@@ -18,12 +18,19 @@
 
 #include "ani_common_utils.h"
 #include "log_print.h"
+#include "napi_preferences_error.h"
 #include "taihe_common_utils.h"
-#include "taihe_preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesEtsKit {
+using namespace EtsUtils;
+using namespace taihe;
+using JSError = PreferencesJsKit::JSError;
+using ParamTypeError = PreferencesJsKit::ParamTypeError;
+using InnerError = PreferencesJsKit::InnerError;
 
+static constexpr const char* KEY_EXCEEDS_MAXIMUM_LENGTH = "The key must be less than 1024 bytes.";
+static constexpr const char* ENV_NOT_FOUND = "Failed to get env.";
 PreferencesProxy::PreferencesProxy() {}
 
 PreferencesProxy::PreferencesProxy(std::shared_ptr<NativePreferences::Preferences> preferences)
@@ -39,14 +46,10 @@ PreferencesProxy::~PreferencesProxy()
 
 bool PreferencesProxy::CheckKey(const std::string &key)
 {
-    if (key.length() > NativePreferences::Preferences::MAX_KEY_LENGTH) {
-        SetBusinessError(std::make_shared<ParamTypeError>("The key must be less than 1024 bytes."));
-        return false;
-    }
-    return true;
+    return key.length() <= NativePreferences::Preferences::MAX_KEY_LENGTH;
 }
 
-ValueType_t PreferencesProxy::GetSync(string_view key, ValueType_t const& defValue)
+ValueTypeT PreferencesProxy::GetSync(string_view key, ValueTypeT const& defValue)
 {
     if (preferences_ == nullptr) {
         SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
@@ -54,6 +57,7 @@ ValueType_t PreferencesProxy::GetSync(string_view key, ValueType_t const& defVal
     }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
+        SetBusinessError(std::make_shared<ParamTypeError>(KEY_EXCEEDS_MAXIMUM_LENGTH));
         return defValue;
     }
     auto preferencesValue = NativePreferences::PreferencesValue();
@@ -86,12 +90,13 @@ bool PreferencesProxy::HasSync(string_view key)
     }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
+        SetBusinessError(std::make_shared<ParamTypeError>(KEY_EXCEEDS_MAXIMUM_LENGTH));
         return false;
     }
     return preferences_->HasKey(keyStr);
 }
 
-void PreferencesProxy::PutSync(string_view key, ValueType_t const& value)
+void PreferencesProxy::PutSync(string_view key, ValueTypeT const& value)
 {
     if (preferences_ == nullptr) {
         SetBusinessError(std::make_shared<InnerError>("Failed to get instance."));
@@ -99,6 +104,7 @@ void PreferencesProxy::PutSync(string_view key, ValueType_t const& value)
     }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
+        SetBusinessError(std::make_shared<ParamTypeError>(KEY_EXCEEDS_MAXIMUM_LENGTH));
         return;
     }
     auto nativeValue = EtsUtils::ConvertToPreferencesValue(value);
@@ -107,7 +113,7 @@ void PreferencesProxy::PutSync(string_view key, ValueType_t const& value)
         return;
     }
     auto errCode = preferences_->Put(keyStr, nativeValue);
-    if (errCode != OHOS::NativePreferences::E_OK) {
+    if (errCode != NativePreferences::E_OK) {
         SetBusinessError(std::make_shared<InnerError>(errCode));
     }
 }
@@ -120,10 +126,11 @@ void PreferencesProxy::DeleteSync(string_view key)
     }
     auto keyStr = std::string(key);
     if (!CheckKey(keyStr)) {
+        SetBusinessError(std::make_shared<ParamTypeError>(KEY_EXCEEDS_MAXIMUM_LENGTH));
         return;
     }
     auto errCode = preferences_->Delete(keyStr);
-    if (errCode != OHOS::NativePreferences::E_OK) {
+    if (errCode != NativePreferences::E_OK) {
         SetBusinessError(std::make_shared<InnerError>(errCode));
     }
 }
@@ -135,7 +142,7 @@ void PreferencesProxy::ClearSync()
         return;
     }
     auto errCode = preferences_->Clear();
-    if (errCode != OHOS::NativePreferences::E_OK) {
+    if (errCode != NativePreferences::E_OK) {
         SetBusinessError(std::make_shared<InnerError>(errCode));
     }
 }
@@ -147,7 +154,7 @@ void PreferencesProxy::FlushSync()
         return;
     }
     auto errCode = preferences_->FlushSync();
-    if (errCode != OHOS::NativePreferences::E_OK) {
+    if (errCode != NativePreferences::E_OK) {
         SetBusinessError(std::make_shared<InnerError>(errCode));
     }
 }
@@ -166,21 +173,14 @@ bool PreferencesProxy::HasRegisteredObserver(ani_env *env, ani_ref callbackRef, 
     return false;
 }
 
-ani_ref PreferencesProxy::CreateGlobalReference(ani_env *env, uintptr_t opq)
+std::shared_ptr<JSError> PreferencesProxy::CreateGlobalReference(ani_env *env, uintptr_t opq, ani_ref &callbackRef)
 {
-    ani_ref ref = nullptr;
-    if (env == nullptr) {
-        SetBusinessError(std::make_shared<InnerError>("Failed to get env."));
-        return ref;
-    }
-    auto aniStatus = env->GlobalReference_Create(reinterpret_cast<ani_object>(opq), &ref);
+    auto aniStatus = env->GlobalReference_Create(reinterpret_cast<ani_object>(opq), &callbackRef);
     if (aniStatus != ANI_OK) {
         LOG_ERROR("Failed to create ref, ret:%{public}d", static_cast<int32_t>(aniStatus));
-        auto err = std::make_shared<InnerError>("Failed to create ref.");
-        ::taihe::set_business_error(err->GetCode(), err->GetMsg().c_str());
-        return ref;
+        return std::make_shared<InnerError>("Failed to create ref.");
     }
-    return ref;
+    return nullptr;
 }
 
 void PreferencesProxy::RegisteredObserver(RegisterMode mode, CallbackType callback, uintptr_t opq)
@@ -190,8 +190,14 @@ void PreferencesProxy::RegisteredObserver(RegisterMode mode, CallbackType callba
         return;
     }
     auto env = ::taihe::get_env();
-    ani_ref callbackRef = CreateGlobalReference(env, opq);
-    if (callbackRef == nullptr) {
+    if (env == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>(ENV_NOT_FOUND));
+        return;
+    }
+    ani_ref callbackRef;
+    auto errCode = CreateGlobalReference(env, opq, callbackRef);
+    if (errCode != nullptr) {
+        SetBusinessError(errCode);
         return;
     }
     std::lock_guard<std::mutex> lck(listMutex_);
@@ -200,7 +206,7 @@ void PreferencesProxy::RegisteredObserver(RegisterMode mode, CallbackType callba
     if (!HasRegisteredObserver(env, callbackRef, mode)) {
         auto observer = std::make_shared<TaihePreferencesObserver>(callback, callbackRef);
         int32_t errCode = preferences_->RegisterObserver(observer, mode);
-        if (errCode != OHOS::NativePreferences::E_OK) {
+        if (errCode != NativePreferences::E_OK) {
             SetBusinessError(std::make_shared<InnerError>(errCode));
             return;
         }
@@ -220,8 +226,14 @@ void PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &ke
         return;
     }
     auto env = ::taihe::get_env();
-    ani_ref callbackRef = CreateGlobalReference(env, opq);
-    if (callbackRef == nullptr) {
+    if (env == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>(ENV_NOT_FOUND));
+        return;
+    }
+    ani_ref callbackRef;
+    auto errCode = CreateGlobalReference(env, opq, callbackRef);
+    if (errCode != nullptr) {
+        SetBusinessError(errCode);
         return;
     }
     std::lock_guard<std::mutex> lck(listMutex_);
@@ -229,7 +241,7 @@ void PreferencesProxy::RegisteredDataObserver(const std::vector<std::string> &ke
     if (!HasRegisteredObserver(env, callbackRef, RegisterMode::DATA_CHANGE)) {
         auto observer = std::make_shared<TaihePreferencesObserver>(callback, callbackRef);
         int32_t errCode = preferences_->RegisterDataObserver(observer, keys);
-        if (errCode != OHOS::NativePreferences::E_OK) {
+        if (errCode != NativePreferences::E_OK) {
             SetBusinessError(std::make_shared<InnerError>(errCode));
             return;
         }
@@ -246,7 +258,7 @@ void PreferencesProxy::OnChange(callback_view<void(string_view)> cb, uintptr_t o
     RegisteredObserver(RegisterMode::LOCAL_CHANGE, cb, opq);
 }
 
-void PreferencesProxy::OnDataChange(array_view<string> keys, callback_view<void(map_view<string, ValueType_t>)> cb,
+void PreferencesProxy::OnDataChange(array_view<string> keys, callback_view<void(map_view<string, ValueTypeT>)> cb,
     uintptr_t opq)
 {
     RegisteredDataObserver(std::vector<std::string>(keys.begin(), keys.end()), cb, opq);
@@ -264,8 +276,14 @@ void PreferencesProxy::UnRegisteredObserver(RegisterMode mode, uintptr_t opq)
         return;
     }
     auto env = ::taihe::get_env();
-    ani_ref callbackRef = CreateGlobalReference(env, opq);
-    if (callbackRef == nullptr) {
+    if (env == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>(ENV_NOT_FOUND));
+        return;
+    }
+    ani_ref callbackRef;
+    auto errCode = CreateGlobalReference(env, opq, callbackRef);
+    if (errCode != nullptr) {
+        SetBusinessError(errCode);
         return;
     }
     std::lock_guard<std::mutex> lck(listMutex_);
@@ -275,11 +293,10 @@ void PreferencesProxy::UnRegisteredObserver(RegisterMode mode, uintptr_t opq)
         ani_boolean isEqual = false;
         if (ANI_OK == env->Reference_StrictEquals(callbackRef, (*it)->GetRef(), &isEqual) && isEqual) {
             int32_t errCode = preferences_->UnRegisterObserver(*it, mode);
-            if (errCode != OHOS::NativePreferences::E_OK) {
+            if (errCode != NativePreferences::E_OK) {
                 SetBusinessError(std::make_shared<InnerError>(errCode));
                 return;
             }
-            (*it)->ClearRef();
             it = observers.erase(it);
             LOG_DEBUG("The observer unsubscribed success.");
             break; // specified observer is current iterator
@@ -298,16 +315,15 @@ void PreferencesProxy::UnRegisteredAllObservers(RegisterMode mode)
     std::lock_guard<std::mutex> lck(listMutex_);
     auto &observers = (mode == RegisterMode::LOCAL_CHANGE) ? localObservers_ : multiProcessObservers_;
     bool hasFailed = false;
-    int32_t result = E_OK;
-    int32_t errCode = E_OK;
+    int32_t result = NativePreferences::E_OK;
+    int32_t errCode = NativePreferences::E_OK;
     for (auto &observer : observers) {
         result = preferences_->UnRegisterObserver(observer, mode);
-        if (result != E_OK) {
+        if (result != NativePreferences::E_OK) {
             hasFailed = true;
             LOG_ERROR("The observer unsubscribed has failed, errCode %{public}d.", result);
             errCode = result;
         }
-        observer->ClearRef();
     }
     observers.clear();
     LOG_DEBUG("All observers unsubscribed success.");
@@ -332,8 +348,14 @@ void PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &
         return;
     }
     auto env = ::taihe::get_env();
-    ani_ref callbackRef = CreateGlobalReference(env, opq);
-    if (callbackRef == nullptr) {
+    if (env == nullptr) {
+        SetBusinessError(std::make_shared<InnerError>(ENV_NOT_FOUND));
+        return;
+    }
+    ani_ref callbackRef;
+    auto errCode = CreateGlobalReference(env, opq, callbackRef);
+    if (errCode != nullptr) {
+        SetBusinessError(errCode);
         return;
     }
     std::lock_guard<std::mutex> lck(listMutex_);
@@ -343,12 +365,11 @@ void PreferencesProxy::UnRegisteredDataObserver(const std::vector<std::string> &
         ani_boolean isEqual = false;
         if (ANI_OK == env->Reference_StrictEquals(callbackRef, (*it)->GetRef(), &isEqual) && isEqual) {
             int32_t errCode = preferences_->UnRegisterDataObserver(*it, keys);
-            if (errCode != E_OK && errCode != E_OBSERVER_RESERVE) {
+            if (errCode != NativePreferences::E_OK && errCode != NativePreferences::E_OBSERVER_RESERVE) {
                 SetBusinessError(std::make_shared<InnerError>(errCode));
                 return;
             }
-            if (errCode == E_OK) {
-                (*it)->ClearRef();
+            if (errCode == NativePreferences::E_OK) {
                 it = observers.erase(it);
             }
             break;
@@ -370,12 +391,11 @@ void PreferencesProxy::UnRegisteredAllDataObserver(const std::vector<std::string
     auto it = observers.begin();
     while (it != observers.end()) {
         int32_t errCode = preferences_->UnRegisterDataObserver(*it, keys);
-        if (errCode != E_OK && errCode != E_OBSERVER_RESERVE) {
+        if (errCode != NativePreferences::E_OK && errCode != NativePreferences::E_OBSERVER_RESERVE) {
             SetBusinessError(std::make_shared<InnerError>(errCode));
             return;
         }
-        if (errCode == E_OK) {
-            (*it)->ClearRef();
+        if (errCode == NativePreferences::E_OK) {
             it = observers.erase(it);
         } else {
             ++it;

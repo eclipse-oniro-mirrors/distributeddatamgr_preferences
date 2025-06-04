@@ -18,7 +18,7 @@
 
 #include <map>
 
-#include "ohos.data.preferences.impl.hpp"
+#include "napi_preferences_error.h"
 #include "ohos.data.preferences.proj.hpp"
 #include "preferences_value.h"
 #include "taihe/runtime.hpp"
@@ -26,18 +26,17 @@
 namespace OHOS {
 namespace PreferencesEtsKit {
 namespace EtsUtils {
-using namespace OHOS::NativePreferences;
-using ValueType_t = ohos::data::preferences::ValueType;
-using TypesInArray_t = ohos::data::preferences::TypesInArray;
-using PreferencesValue = NativePreferences::PreferencesValue;
+using ValueTypeT = ohos::data::preferences::ValueType;
+using TypesInArrayT = ohos::data::preferences::TypesInArray;
 
-PreferencesValue ConvertToPreferencesValue(const ValueType_t &value);
+NativePreferences::PreferencesValue ConvertToPreferencesValue(const ValueTypeT &value);
 
-ValueType_t ConvertToValueType(const PreferencesValue &value);
+ValueTypeT ConvertToValueType(const NativePreferences::PreferencesValue &value);
 
-::taihe::map<::taihe::string, ValueType_t> ConvertMapToTaiheMap(
+::taihe::map<::taihe::string, ValueTypeT> ConvertMapToTaiheMap(
     const std::map<std::string, NativePreferences::PreferencesValue> &records);
 
+void SetBusinessError(std::shared_ptr<PreferencesJsKit::JSError> error);
 } // namespace EtsUtils
 } // namespace PreferencesEtsKit
 } // namespace OHOS

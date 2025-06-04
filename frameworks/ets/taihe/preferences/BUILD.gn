@@ -53,6 +53,7 @@ taihe_shared_library("preferences_taihe_native") {
     "include",
     "${preferences_base_path}/frameworks/common/include/",
     "${preferences_base_path}/frameworks/ets/taihe/common/include/",
+    "${preferences_base_path}/frameworks/js/napi/common/include/",
   ]
   sources = get_target_outputs(":run_taihe")
   sources += [
@@ -61,9 +62,9 @@ taihe_shared_library("preferences_taihe_native") {
     "src/preferences_proxy.cpp",
     "${preferences_base_path}/frameworks/ets/taihe/common/src/ani_ability.cpp",
     "${preferences_base_path}/frameworks/ets/taihe/common/src/ani_common_utils.cpp",
-    "${preferences_base_path}/frameworks/ets/taihe/common/src/taihe_preferences_error.cpp",
     "${preferences_base_path}/frameworks/ets/taihe/common/src/taihe_common_utils.cpp",
     "${preferences_base_path}/frameworks/ets/taihe/common/src/taihe_preferences_observer.cpp",
+    "${preferences_base_path}/frameworks/js/napi/common/src/napi_preferences_error.cpp",
   ]
   deps = [
     ":run_taihe",

@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace PreferencesEtsKit {
 namespace EtsUtils {
-using Object = OHOS::NativePreferences::Object;
+using namespace OHOS::NativePreferences;
 using PreferencesValue = OHOS::NativePreferences::PreferencesValue;
 
 static constexpr const char* CLASS_NAME_DOUBLE = "Lstd/core/Double;";
@@ -190,7 +190,7 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> va
         LOG_ERROR("ArrayBuffer_GetInfo failed, ret: %{public}d.", status);
         return nullptr;
     }
-    auto ret = memcpy_s(bufData, bufLength, values.data(), bufLength);
+    auto ret = memcpy_s(bufData, bufLength, values.data(), values.size());
     if (ret != 0) {
         LOG_ERROR("memcpy_s failed, ret: %{public}d, size: %{public}zu.", ret, bufLength);
         return nullptr;
@@ -219,7 +219,7 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
         return nullptr;
     }
     ani_size index = 0;
-    for (auto value : values) {
+    for (const auto &value : values) {
         ani_string ani_str;
         status = env->String_NewUTF8(value.c_str(), value.size(), &ani_str);
         if (status != ANI_OK) {
@@ -315,8 +315,14 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
         LOG_ERROR("Env is nullptr.");
         return nullptr;
     }
+    if (res.IsString()) {
+        return StringToObject(env, res);
+    }
     if (res.IsInt()) {
         return IntToObject(env, res);
+    }
+    if (res.IsBool()) {
+        return BoolToObject(env, res);
     }
     if (res.IsLong()) {
         return LongToObject(env, res);
@@ -326,12 +332,6 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
     }
     if (res.IsDouble()) {
         return DoubleToObject(env, res);
-    }
-    if (res.IsBool()) {
-        return BoolToObject(env, res);
-    }
-    if (res.IsString()) {
-        return StringToObject(env, res);
     }
     if (res.IsUint8Array()) {
         return Uint8ArrayToObject(env, static_cast<std::vector<uint8_t>>(res));
@@ -354,7 +354,7 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
     return nullptr;
 }
 
-ani_object PreferencesMapToObject(ani_env *env, std::unordered_map<std::string, PreferencesValue> &values)
+ani_object PreferencesMapToObject(ani_env *env, const std::unordered_map<std::string, PreferencesValue> &values)
 {
     ani_object aniObject = nullptr;
     if (env == nullptr) {
@@ -408,13 +408,12 @@ std::string AniStringToStdStr(ani_env *env, ani_string aniStr)
     if (strSize == 0) {
         return "";
     }
-    std::vector<char> buffer(strSize + 1);
-    char* utf8Buffer = buffer.data();
-
+    std::string content(strSize + 1, '\0');
     ani_size bytes_written = 0;
-    env->String_GetUTF8(aniStr, utf8Buffer, strSize + 1, &bytes_written);
-    utf8Buffer[bytes_written] = '\0';
-    std::string content = std::string(utf8Buffer);
+    env->String_GetUTF8(aniStr, &content[0], strSize + 1, &bytes_written);
+    content.resize(bytes_written);
+    LOG_ERROR("mark--- strSize:%{public}d, bytes_written:%{public}d, content::%{public}s.",
+        static_cast<int>(strSize), static_cast<int>(bytes_written), content.c_str());
     return content;
 }
 

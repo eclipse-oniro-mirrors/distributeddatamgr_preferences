@@ -31,7 +31,7 @@ TaihePreferencesObserver::~TaihePreferencesObserver()
 
 void TaihePreferencesObserver::OnChange(const std::string &key)
 {
-    StringCallback_t *callback = std::get_if<StringCallback_t>(&callback_);
+    StringCallback *callback = std::get_if<StringCallback>(&callback_);
     if (callback != nullptr) {
         (*callback)(key);
         LOG_DEBUG("OnChange key end");
@@ -40,7 +40,7 @@ void TaihePreferencesObserver::OnChange(const std::string &key)
 
 void TaihePreferencesObserver::OnChange(const std::map<std::string, NativePreferences::PreferencesValue> &records)
 {
-    MapCallback_t *callback = std::get_if<MapCallback_t>(&callback_);
+    MapCallback *callback = std::get_if<MapCallback>(&callback_);
     if (callback != nullptr) {
         (*callback)(EtsUtils::ConvertMapToTaiheMap(records));
         LOG_DEBUG("OnChange key end");
@@ -50,17 +50,6 @@ void TaihePreferencesObserver::OnChange(const std::map<std::string, NativePrefer
 ani_ref TaihePreferencesObserver::GetRef()
 {
     return ref_;
-}
-
-void TaihePreferencesObserver::ClearRef()
-{
-    if (ref_ == nullptr) {
-        return;
-    }
-    if (auto *env = ::taihe::get_env()) {
-        env->GlobalReference_Delete(ref_);
-    }
-    ref_ = nullptr;
 }
 } // namespace PreferencesEtsKit
 } // namespace OHOS

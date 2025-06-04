@@ -15,35 +15,42 @@
 
 #include "ani_ability.h"
 
+#include <atomic>
 #include "ani_base_context.h"
 #include "extension_context.h"
 #include "log_print.h"
 namespace OHOS {
 namespace PreferencesEtsKit {
 namespace EtsAbility {
-CONTEXT_MODE GetContextMode(ani_env* env, ani_object context)
+using JSError = PreferencesJsKit::JSError;
+using ParamTypeError = PreferencesJsKit::ParamTypeError;
+using InnerError = PreferencesJsKit::InnerError;
+
+static std::atomic<ContextMode> gContextNode = ContextMode::INIT;
+ContextMode GetContextMode(ani_env* env, ani_object context)
 {
-    if (gContextNode.load() == INIT) {
+    if (gContextNode.load() == ContextMode::INIT) {
         ani_boolean isStageMode;
         ani_status status = OHOS::AbilityRuntime::IsStageContext(env, context, isStageMode);
-        LOG_INFO("GetContextMode is %{public}d", static_cast<bool>(isStageMode));
+        LOG_INFO("isStageMode:%{public}d, status:%{public}d", static_cast<bool>(isStageMode),
+            static_cast<int32_t>(status));
         if (status == ANI_OK) {
-            gContextNode.store(isStageMode ? STAGE : FA);
+            gContextNode.store(isStageMode ? ContextMode::STAGE : ContextMode::FA);
         }
     }
     return gContextNode.load();
 }
 
-std::shared_ptr<EtsError> GetContextInfo(ani_env* env, ani_object context,
+std::shared_ptr<JSError> GetContextInfo(ani_env* env, ani_object context,
     const std::string &dataGroupId, ContextInfo &contextInfo)
 {
-    if (GetContextMode(env, context) == STAGE) {
+    if (GetContextMode(env, context) == ContextMode::STAGE) {
         auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, context);
         if (stageContext != nullptr) {
             int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
             if (errcode != 0) {
                 LOG_ERROR("GetSystemPreferencesDir failed, err = %{public}d", errcode);
-                return std::make_shared<InnerError>(E_DATA_GROUP_ID_INVALID);
+                return std::make_shared<InnerError>(PreferencesJsKit::E_DATA_GROUP_ID_INVALID);
             }
             contextInfo.bundleName = stageContext->GetBundleName();
             return nullptr;
@@ -54,7 +61,7 @@ std::shared_ptr<EtsError> GetContextInfo(ani_env* env, ani_object context,
     }
     if (!dataGroupId.empty()) {
         LOG_ERROR("dataGroupId should be empty in fa mode");
-        return std::make_shared<InnerError>(E_NOT_STAGE_MODE);
+        return std::make_shared<InnerError>(PreferencesJsKit::E_NOT_STAGE_MODE);
     }
     auto ability = OHOS::AbilityRuntime::GetCurrentAbility(env);
     if (ability == nullptr) {

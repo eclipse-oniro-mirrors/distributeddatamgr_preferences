@@ -13,14 +13,19 @@
  * limitations under the License.
  */
 #include "ohos.data.preferences.ani.hpp"
+#include "log_print.h"
+using namespace OHOS::PreferencesEtsKit;
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
     ani_env *env;
-    if (ANI_OK != vm->GetEnv(ANI_VERSION_1, &env)) {
+    ani_status status = vm->GetEnv(ANI_VERSION_1, &env);
+    if (status != ANI_OK) {
+        LOG_ERROR("Error from GetEnv, ret: %{public}d", static_cast<int32_t>(status));
         return ANI_ERROR;
     }
-    if (ANI_OK != ohos::data::preferences::ANIRegister(env)) {
-        std::cerr << "Error from ohos::data::preferences::ANIRegister" << std::endl;
+    status = ohos::data::preferences::ANIRegister(env);
+    if (status != ANI_OK) {
+        LOG_ERROR("Error from ohos::data::preferences::ANIRegister, ret: %{public}d", static_cast<int32_t>(status));
         return ANI_ERROR;
     }
     *result = ANI_VERSION_1;

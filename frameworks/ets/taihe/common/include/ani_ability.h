@@ -16,25 +16,23 @@
 #ifndef PREFERENCES_FRAMEWORKS_ANI_ABILITY_H
 #define PREFERENCES_FRAMEWORKS_ANI_ABILITY_H
 
-#include <atomic>
 #include <string>
 
 #include "ability.h"
-#include "taihe_preferences_error.h"
+#include "napi_preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesEtsKit {
 namespace EtsAbility {
-enum CONTEXT_MODE { INIT = -1, FA = 0, STAGE = 1 };
+enum class ContextMode { INIT = -1, FA = 0, STAGE = 1 };
 struct ContextInfo {
     std::string bundleName;
     std::string preferencesDir;
 };
-static std::atomic<CONTEXT_MODE> gContextNode = INIT;
 
-CONTEXT_MODE GetContextMode(ani_env* env, ani_object object);
+ContextMode GetContextMode(ani_env* env, ani_object object);
 
-std::shared_ptr<EtsError> GetContextInfo(ani_env* env, ani_object value,
+std::shared_ptr<PreferencesJsKit::JSError> GetContextInfo(ani_env* env, ani_object value,
     const std::string &dataGroupId, ContextInfo &contextInfo);
 } // namespace EtsAbility
 } // namespace PreferencesEtsKit

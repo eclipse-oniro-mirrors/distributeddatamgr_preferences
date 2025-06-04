@@ -17,6 +17,7 @@
 #include "ani_ability.h"
 #include "ani_common_utils.h"
 #include "log_print.h"
+#include "napi_preferences_error.h"
 #include "ohos.data.preferences.proj.hpp"
 #include "preferences.h"
 #include "preferences_helper.h"
@@ -24,20 +25,20 @@
 #include "preferences_value.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common_utils.h"
-#include "taihe_preferences_error.h"
 namespace {
 using namespace taihe;
 using namespace OHOS::NativePreferences;
+using namespace OHOS::PreferencesEtsKit::EtsUtils;
 
-using Preferences_t = ohos::data::preferences::Preferences;
+using PreferencesT = ohos::data::preferences::Preferences;
 using Options_t = ohos::data::preferences::Options;
 using StorageType_t = ohos::data::preferences::StorageType;
 using PreferencesProxy = OHOS::PreferencesEtsKit::PreferencesProxy;
-using ParamTypeError = OHOS::PreferencesEtsKit::ParamTypeError;
-using InnerError = OHOS::PreferencesEtsKit::InnerError;
-using EtsError = OHOS::PreferencesEtsKit::EtsError;
+using ParamTypeError = OHOS::PreferencesJsKit::ParamTypeError;
+using InnerError = OHOS::PreferencesJsKit::InnerError;
+using JSError = OHOS::PreferencesJsKit::JSError;
 
-static Preferences_t defaultPreferences = make_holder<PreferencesProxy, Preferences_t>();
+static PreferencesT defaultPreferences = make_holder<PreferencesProxy, PreferencesT>();
 
 struct PreferencesInfo {
     std::string path;
@@ -45,12 +46,10 @@ struct PreferencesInfo {
     std::string bundleName;
     std::string dataGroupId;
     StorageType storageType = StorageType::XML;
-    bool isStorageTypeSupported = false;
 };
 
-PreferencesInfo ParseOptions(Options_t const& options)
+std::shared_ptr<JSError> ParseOptions(Options_t const& options, PreferencesInfo &preferencesInfo)
 {
-    PreferencesInfo preferencesInfo;
     preferencesInfo.name = std::string(options.name);
     if (options.dataGroupId.holds_stringType()) {
         preferencesInfo.dataGroupId = std::string(options.dataGroupId.get_stringType_ref());
@@ -59,16 +58,15 @@ PreferencesInfo ParseOptions(Options_t const& options)
         int32_t storageTypeVal = static_cast<int32_t>(options.storageType.get_storageType_ref());
         if (storageTypeVal != static_cast<int32_t>(StorageType::XML) &&
             storageTypeVal != static_cast<int32_t>(StorageType::GSKV)) {
-            SetBusinessError(std::make_shared<ParamTypeError>("Storage type value invalid."));
-            return preferencesInfo;
+            return std::make_shared<ParamTypeError>("Storage type value invalid.");
         }
         preferencesInfo.storageType = (storageTypeVal == static_cast<int32_t>(StorageType::XML)) ?
-                StorageType::XML : StorageType::GSKV;
-        }
-    return preferencesInfo;
+            StorageType::XML : StorageType::GSKV;
+    }
+    return nullptr;
 }
 
-std::shared_ptr<EtsError> ParseContext(uintptr_t context, PreferencesInfo &preferencesInfo)
+std::shared_ptr<JSError> ParseContext(uintptr_t context, PreferencesInfo &preferencesInfo)
 {
     auto env = ::taihe::get_env();
     OHOS::PreferencesEtsKit::EtsAbility::ContextInfo contextInfo;
@@ -84,30 +82,35 @@ std::shared_ptr<EtsError> ParseContext(uintptr_t context, PreferencesInfo &prefe
     return nullptr;
 }
 
-Preferences_t GetPreferences(uintptr_t context, PreferencesInfo &info)
+PreferencesT GetPreferences(uintptr_t context, PreferencesInfo &info)
 {
     auto err = ParseContext(context, info);
     if (err != nullptr) {
         SetBusinessError(err);
-        return make_holder<PreferencesProxy, Preferences_t>();
+        return make_holder<PreferencesProxy, PreferencesT>();
     }
     Options nativeOptions(info.path, info.bundleName, info.dataGroupId, info.storageType == StorageType::GSKV);
     int32_t errCode = OHOS::NativePreferences::E_OK;
     auto preferences = PreferencesHelper::GetPreferences(nativeOptions, errCode);
     if (errCode != OHOS::NativePreferences::E_OK) {
         SetBusinessError(std::make_shared<InnerError>(errCode));
-        return make_holder<PreferencesProxy, Preferences_t>();
+        return make_holder<PreferencesProxy, PreferencesT>();
     }
-    return make_holder<PreferencesProxy, Preferences_t>(preferences);
+    return make_holder<PreferencesProxy, PreferencesT>(preferences);
 }
 
-Preferences_t GetPreferencesSync(uintptr_t context, Options_t const& options)
+PreferencesT GetPreferencesSync(uintptr_t context, Options_t const& options)
 {
-    auto preferencesInfo = ParseOptions(options);
+    PreferencesInfo preferencesInfo;
+    auto errCode = ParseOptions(options, preferencesInfo);
+    if (errCode != nullptr) {
+        SetBusinessError(errCode);
+        return make_holder<PreferencesProxy, PreferencesT>();
+    }
     return GetPreferences(context, preferencesInfo);
 }
 
-Preferences_t GetPreferencesSyncByName(uintptr_t context, string_view name)
+PreferencesT GetPreferencesSyncByName(uintptr_t context, string_view name)
 {
     PreferencesInfo preferencesInfo = {
         .name = std::string(name)
@@ -130,7 +133,12 @@ void DeletePreferences(uintptr_t context, PreferencesInfo &info)
 
 void DeletePreferencesSync(uintptr_t context, Options_t const& options)
 {
-    auto preferencesInfo = ParseOptions(options);
+    PreferencesInfo preferencesInfo;
+    auto errCode = ParseOptions(options, preferencesInfo);
+    if (errCode != nullptr) {
+        SetBusinessError(errCode);
+        return;
+    }
     DeletePreferences(context, preferencesInfo);
 }
 
@@ -165,7 +173,12 @@ void RemovePreferencesFromCacheSync(uintptr_t context, string_view name)
 
 void RemovePreferencesFromCacheSyncByOptions(uintptr_t context, Options_t const& options)
 {
-    auto preferencesInfo = ParseOptions(options);
+    PreferencesInfo preferencesInfo;
+    auto errCode = ParseOptions(options, preferencesInfo);
+    if (errCode != nullptr) {
+        SetBusinessError(errCode);
+        return;
+    }
     RemovePreferencesFromCache(context, preferencesInfo);
 }
 }  // namespace

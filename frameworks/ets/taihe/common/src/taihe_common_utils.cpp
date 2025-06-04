@@ -23,90 +23,71 @@
 
 #include "ani_common_utils.h"
 #include "log_print.h"
-#include "taihe_preferences_error.h"
+#include "napi_preferences_error.h"
 namespace OHOS {
 namespace PreferencesEtsKit {
 namespace EtsUtils {
+using namespace OHOS::NativePreferences;
 constexpr int32_t OFFSET_OF_SIGN = 63;
-inline PreferencesValue ConvertToInt(const ValueType_t &valueType)
+inline PreferencesValue ConvertToInt(const ValueTypeT &valueType)
 {
     return static_cast<int32_t>(valueType.get_intType_ref());
 }
 
-inline PreferencesValue ConvertToDouble(const ValueType_t &valueType)
+inline PreferencesValue ConvertToDouble(const ValueTypeT &valueType)
 {
     return static_cast<double>(valueType.get_doubleType_ref());
 }
 
-inline PreferencesValue ConvertToString(const ValueType_t &valueType)
+inline PreferencesValue ConvertToString(const ValueTypeT &valueType)
 {
     return std::string(valueType.get_stringType_ref());
 }
 
-inline PreferencesValue ConvertToBoolean(const ValueType_t &valueType)
+inline PreferencesValue ConvertToBoolean(const ValueTypeT &valueType)
 {
     return static_cast<bool>(valueType.get_booleanType_ref());
 }
 
-inline PreferencesValue ConvertToIntArray(const ::taihe::array<TypesInArray_t> &valueType)
+template<typename T, typename Getter>
+inline PreferencesValue ConvertToArrayWithType(const ::taihe::array<TypesInArrayT> &valueType, Getter getter)
 {
-    std::vector<double> result;
+    std::vector<T> result;
     result.reserve(valueType.size());
-    std::transform(valueType.begin(), valueType.end(), std::back_inserter(result), [](const TypesInArray_t &item) {
-        return item.get_intType_ref();
-    });
+    std::transform(valueType.begin(), valueType.end(), std::back_inserter(result),
+        [getter](const TypesInArrayT &item) {
+            return getter(item);
+        });
     return result;
 }
 
-inline PreferencesValue ConvertToDoubleArray(const ::taihe::array<TypesInArray_t> &valueType)
-{
-    std::vector<double> result;
-    result.reserve(valueType.size());
-    std::transform(valueType.begin(), valueType.end(), std::back_inserter(result), [](const TypesInArray_t &item) {
-        return item.get_doubleType_ref();
-    });
-    return result;
-}
-
-inline PreferencesValue ConvertToStringArray(const ::taihe::array<TypesInArray_t> &valueType)
-{
-    std::vector<std::string> result;
-    result.reserve(valueType.size());
-    std::transform(valueType.begin(), valueType.end(), std::back_inserter(result), [](const TypesInArray_t &item) {
-        return std::string(item.get_stringType_ref());
-    });
-    return result;
-}
-
-inline PreferencesValue ConvertToBooleanArray(const ::taihe::array<TypesInArray_t> &valueType)
-{
-    std::vector<bool> result;
-    result.reserve(valueType.size());
-    std::transform(valueType.begin(), valueType.end(), std::back_inserter(result), [](const TypesInArray_t &item) {
-        return item.get_booleanType_ref();
-    });
-    return result;
-}
-
-PreferencesValue ConvertToArray(const ValueType_t &valueType)
+PreferencesValue ConvertToArray(const ValueTypeT &valueType)
 {
     auto ref = valueType.get_arrayType_ref();
     if (ref.size() == 0) {
         return std::vector<double>();
     }
     auto tag = ref.at(0).get_tag();
-    if (tag == TypesInArray_t::tag_t::intType) {
-        return ConvertToIntArray(ref);
-    } else if (tag == TypesInArray_t::tag_t::doubleType) {
-        return ConvertToDoubleArray(ref);
-    } else if (tag == TypesInArray_t::tag_t::stringType) {
-        return ConvertToStringArray(ref);
+    if (tag == TypesInArrayT::tag_t::intType) {
+        return ConvertToArrayWithType<double>(ref, [](const TypesInArrayT &item) {
+            return item.get_intType_ref();
+        });
+    } else if (tag == TypesInArrayT::tag_t::doubleType) {
+        return ConvertToArrayWithType<double>(ref, [](const TypesInArrayT &item) {
+            return item.get_doubleType_ref();
+        });
+    } else if (tag == TypesInArrayT::tag_t::stringType) {
+        return ConvertToArrayWithType<std::string>(ref, [](const TypesInArrayT &item) {
+            return std::string(item.get_stringType_ref());
+        });
     } else {
-        return ConvertToBooleanArray(ref);
+        return ConvertToArrayWithType<bool>(ref, [](const TypesInArrayT &item) {
+            return item.get_booleanType_ref();
+        });
     }
 }
 
-inline PreferencesValue ConvertToUint8Array(const ValueType_t &valueType)
+inline PreferencesValue ConvertToUint8Array(const ValueTypeT &valueType)
 {
     auto ref = valueType.get_uint8ArrayType_ref();
     return std::vector<uint8_t>(ref.begin(), ref.end());
@@ -117,7 +98,7 @@ int GetBigintSign(std::vector<uint64_t> &bigintArray)
     return (bigintArray[bigintArray.size() - 1] >> OFFSET_OF_SIGN) == 0;
 }
 
-inline PreferencesValue ConvertToBigint(const ValueType_t &valueType)
+inline PreferencesValue ConvertToBigint(const ValueTypeT &valueType)
 {
     auto ref = valueType.get_bigintType_ref();
     auto words = std::vector<uint64_t>(ref.begin(), ref.end());
@@ -125,23 +106,23 @@ inline PreferencesValue ConvertToBigint(const ValueType_t &valueType)
     return NativePreferences::BigInt(std::move(words), sign);
 }
 
-inline PreferencesValue ConvertToObject(const ValueType_t &valueType)
+inline PreferencesValue ConvertToObject(const ValueTypeT &valueType)
 {
     auto ref = valueType.get_objectType_ref();
     return AniObjectToPreferencesValue(::taihe::get_env(), ref);
 }
 
-PreferencesValue ConvertToPreferencesValue(const ValueType_t &valueType)
+PreferencesValue ConvertToPreferencesValue(const ValueTypeT &valueType)
 {
-    static std::map<ValueType_t::tag_t, std::function<PreferencesValue(const ValueType_t&)>> tag2FunctionMap = {
-        { ValueType_t::tag_t::intType, ConvertToInt },
-        { ValueType_t::tag_t::doubleType, ConvertToDouble },
-        { ValueType_t::tag_t::stringType, ConvertToString },
-        { ValueType_t::tag_t::booleanType, ConvertToBoolean },
-        { ValueType_t::tag_t::arrayType, ConvertToArray },
-        { ValueType_t::tag_t::uint8ArrayType, ConvertToUint8Array },
-        { ValueType_t::tag_t::bigintType, ConvertToBigint },
-        { ValueType_t::tag_t::objectType, ConvertToObject }
+    static std::map<ValueTypeT::tag_t, std::function<PreferencesValue(const ValueTypeT&)>> tag2FunctionMap = {
+        { ValueTypeT::tag_t::intType, ConvertToInt },
+        { ValueTypeT::tag_t::doubleType, ConvertToDouble },
+        { ValueTypeT::tag_t::stringType, ConvertToString },
+        { ValueTypeT::tag_t::booleanType, ConvertToBoolean },
+        { ValueTypeT::tag_t::arrayType, ConvertToArray },
+        { ValueTypeT::tag_t::uint8ArrayType, ConvertToUint8Array },
+        { ValueTypeT::tag_t::bigintType, ConvertToBigint },
+        { ValueTypeT::tag_t::objectType, ConvertToObject }
     };
     auto tag = valueType.get_tag();
     auto it = tag2FunctionMap.find(tag);
@@ -152,91 +133,91 @@ PreferencesValue ConvertToPreferencesValue(const ValueType_t &valueType)
     }
 }
 
-inline ValueType_t ConvertFromInt(int value)
+inline ValueTypeT ConvertFromInt(int value)
 {
-    return ValueType_t::make_intType(value);
+    return ValueTypeT::make_intType(value);
 }
 
-inline ValueType_t ConvertFromLong(int64_t value)
+inline ValueTypeT ConvertFromLong(int64_t value)
 {
-    return ValueType_t::make_doubleType(static_cast<double>(value));
+    return ValueTypeT::make_doubleType(static_cast<double>(value));
 }
 
-inline ValueType_t ConvertFromFloat(float value)
+inline ValueTypeT ConvertFromFloat(float value)
 {
-    return ValueType_t::make_doubleType(static_cast<double>(value));
+    return ValueTypeT::make_doubleType(static_cast<double>(value));
 }
 
-inline ValueType_t ConvertFromDouble(double value)
+inline ValueTypeT ConvertFromDouble(double value)
 {
-    return ValueType_t::make_doubleType(value);
+    return ValueTypeT::make_doubleType(value);
 }
 
-inline ValueType_t ConvertFromString(const std::string &value)
+inline ValueTypeT ConvertFromString(const std::string &value)
 {
-    return ValueType_t::make_stringType(value);
+    return ValueTypeT::make_stringType(value);
 }
 
-inline ValueType_t ConvertFromBool(bool value)
+inline ValueTypeT ConvertFromBool(bool value)
 {
-    return ValueType_t::make_booleanType(value);
+    return ValueTypeT::make_booleanType(value);
 }
 
-inline ValueType_t ConvertFromDoubleArray(const std::vector<double> &value)
+inline ValueTypeT ConvertFromDoubleArray(const std::vector<double> &value)
 {
-    std::vector<TypesInArray_t> result;
+    std::vector<TypesInArrayT> result;
     result.reserve(value.size());
     std::transform(value.begin(), value.end(), std::back_inserter(result), [](auto item) {
-        return TypesInArray_t::make_doubleType(item);
+        return TypesInArrayT::make_doubleType(item);
     });
-    auto arr = ::taihe::array<TypesInArray_t>(::taihe::move_data_t{}, result.data(), result.size());
-    return ValueType_t::make_arrayType(std::move(arr));
+    auto arr = ::taihe::array<TypesInArrayT>(::taihe::move_data_t{}, result.data(), result.size());
+    return ValueTypeT::make_arrayType(std::move(arr));
 }
 
-inline ValueType_t ConvertFromStringArray(const std::vector<std::string> &value)
+inline ValueTypeT ConvertFromStringArray(const std::vector<std::string> &value)
 {
-    std::vector<TypesInArray_t> result;
+    std::vector<TypesInArrayT> result;
     result.reserve(value.size());
     std::transform(value.begin(), value.end(), std::back_inserter(result), [](auto item) {
-        return TypesInArray_t::make_stringType(item);
+        return TypesInArrayT::make_stringType(item);
     });
-    auto arr = ::taihe::array<TypesInArray_t>(::taihe::move_data_t{}, result.data(), result.size());
-    return ValueType_t::make_arrayType(std::move(arr));
+    auto arr = ::taihe::array<TypesInArrayT>(::taihe::move_data_t{}, result.data(), result.size());
+    return ValueTypeT::make_arrayType(std::move(arr));
 }
 
-inline ValueType_t ConvertFromBoolArray(const std::vector<bool> &value)
+inline ValueTypeT ConvertFromBoolArray(const std::vector<bool> &value)
 {
-    std::vector<TypesInArray_t> result;
+    std::vector<TypesInArrayT> result;
     result.reserve(value.size());
     std::transform(value.begin(), value.end(), std::back_inserter(result), [](auto item) {
-        return TypesInArray_t::make_booleanType(item);
+        return TypesInArrayT::make_booleanType(item);
     });
-    auto arr = ::taihe::array<TypesInArray_t>(::taihe::move_data_t{}, result.data(), result.size());
-    return ValueType_t::make_arrayType(std::move(arr));
+    auto arr = ::taihe::array<TypesInArrayT>(::taihe::move_data_t{}, result.data(), result.size());
+    return ValueTypeT::make_arrayType(std::move(arr));
 }
 
-inline ValueType_t ConvertFromUint8Array(const std::vector<uint8_t> &value)
+inline ValueTypeT ConvertFromUint8Array(const std::vector<uint8_t> &value)
 {
     auto arr = ::taihe::array<uint8_t>(::taihe::copy_data_t{}, value.data(), value.size());
-    return ValueType_t::make_uint8ArrayType(std::move(arr));
+    return ValueTypeT::make_uint8ArrayType(std::move(arr));
 }
 
-inline ValueType_t ConvertFromObject(const PreferencesValue &value)
+inline ValueTypeT ConvertFromObject(const PreferencesValue &value)
 {
     ani_object obj = ObjectToANIObject(::taihe::get_env(), value);
     if (obj == nullptr) {
-        SetBusinessError(std::make_shared<InnerError>("Failed to convert object."));
+        SetBusinessError(std::make_shared<PreferencesJsKit::InnerError>("Failed to convert object."));
     }
-    return ValueType_t::make_objectType(reinterpret_cast<uintptr_t>(obj));
+    return ValueTypeT::make_objectType(reinterpret_cast<uintptr_t>(obj));
 }
 
-inline ValueType_t ConvertFromBigint(const BigInt &value)
+inline ValueTypeT ConvertFromBigint(const BigInt &value)
 {
     auto arr = ::taihe::array<uint64_t>(::taihe::copy_data_t{}, value.words_.data(), value.words_.size());
-    return ValueType_t::make_bigintType(std::move(arr));
+    return ValueTypeT::make_bigintType(std::move(arr));
 }
 
-ValueType_t ConvertToValueType(const PreferencesValue &value)
+ValueTypeT ConvertToValueType(const PreferencesValue &value)
 {
     if (value.IsInt()) {
         return ConvertFromInt(value);
@@ -274,14 +255,20 @@ ValueType_t ConvertToValueType(const PreferencesValue &value)
     return ConvertFromObject(value);
 }
 
-::taihe::map<::taihe::string, ValueType_t> ConvertMapToTaiheMap(
+::taihe::map<::taihe::string, ValueTypeT> ConvertMapToTaiheMap(
     const std::map<std::string, NativePreferences::PreferencesValue> &records)
 {
-    ::taihe::map<::taihe::string, ValueType_t> result(records.size());
+    ::taihe::map<::taihe::string, ValueTypeT> result(records.size());
     for (const auto &[key, value] : records) {
         result.emplace(key, ConvertToValueType(value));
     }
     return result;
+}
+
+void SetBusinessError(std::shared_ptr<PreferencesJsKit::JSError> error)
+{
+    LOG_ERROR("throw error: code=%{public}d, message=%{public}s", error->GetCode(), error->GetMsg().c_str());
+    ::taihe::set_business_error(error->GetCode(), error->GetMsg().c_str());
 }
 } // namespace EtsUtils
 } // namespace PreferencesEtsKit
