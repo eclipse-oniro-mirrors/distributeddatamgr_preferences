@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,31 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H
-#define DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H
+#ifndef DISTRIBUTEDDATAMGR_PREFERENCES_JS_ANI_ABILITY_H
+#define DISTRIBUTEDDATAMGR_PREFERENCES_JS_ANI_ABILITY_H
+#include <ani.h>
 #include <iostream>
 #include <string>
 
 #include "preferences_error.h"
-
-#include "napi/native_api.h"
-#include "napi/native_common.h"
-#include "napi/native_node_api.h"
+#include "ability.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
 namespace JSAbility {
-enum CONTEXT_MODE { INIT = -1, FA = 0, STAGE = 1 };
+enum class CONTEXT_MODE { INIT = -1, FA = 0, STAGE = 1 };
 struct ContextInfo {
     std::string bundleName;
     std::string preferencesDir;
 };
-static CONTEXT_MODE gContextNode = INIT;
-CONTEXT_MODE GetContextMode(napi_env env, napi_value value);
-std::shared_ptr<JSError> GetContextInfo(napi_env env, napi_value value,
+CONTEXT_MODE GetContextMode(ani_env* env, ani_object object);
+std::shared_ptr<JSError> GetContextInfo(ani_env* env, ani_object value,
     const std::string &dataGroupId, ContextInfo &contextInfo);
-} // namespace JSAbility
+} // namespace JSAniAbility
 } // namespace PreferencesJsKit
 } // namespace OHOS
 
-#endif // DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H
+#endif // DISTRIBUTEDDATAMGR_PREFERENCES_JS_ANI_ABILITY_H

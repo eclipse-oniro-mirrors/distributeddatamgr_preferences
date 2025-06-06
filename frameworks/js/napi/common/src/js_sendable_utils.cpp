@@ -16,7 +16,7 @@
 #include "js_sendable_utils.h"
 
 #include "js_common_utils.h"
-#include "napi_preferences_error.h"
+#include "preferences_error.h"
 #include "node_api.h"
 
 namespace OHOS::Sendable::JSPreferences {

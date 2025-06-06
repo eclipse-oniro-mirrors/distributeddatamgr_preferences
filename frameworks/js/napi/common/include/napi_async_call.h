@@ -22,7 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
-#include "napi_preferences_error.h"
+#include "preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {

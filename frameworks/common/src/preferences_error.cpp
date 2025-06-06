@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "napi_preferences_error.h"
+#include "preferences_error.h"
 
 namespace OHOS {
 namespace PreferencesJsKit {
