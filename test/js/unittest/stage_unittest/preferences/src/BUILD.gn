@@ -13,8 +13,6 @@
 
 import("//build/test.gni")
 
-want_output_path = "preferences/jsStage"
-
 ohos_js_stage_unittest("stagePreferencesJsTest") {
   hap_profile = "entry/src/main/module.json"
   deps = [
@@ -26,7 +24,7 @@ ohos_js_stage_unittest("stagePreferencesJsTest") {
   hap_name = "stagePreferencesJsTest"
   subsystem_name = "distributeddatamgr"
   part_name = "preferences"
-  module_out_path = want_output_path
+  module_out_path = "preferences/preferences/jsStage"
 }
 
 ohos_app_scope("stageprejstest_app_profile") {

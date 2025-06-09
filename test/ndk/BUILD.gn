@@ -13,7 +13,7 @@
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
 
-module_output_path = "preferences/ndk_preferences"
+module_output_path = "preferences/preferences/ndk_preferences"
 
 ###############################################################################
 
