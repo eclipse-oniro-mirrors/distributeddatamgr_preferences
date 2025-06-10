@@ -77,7 +77,6 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
 
     int64_t kernelDataVersion = 0;
     if (db_->GetKernelDataVersion(kernelDataVersion) != E_OK) {
-        LOG_ERROR("PreferencesEnhanceImpl:Get failed, get kernel data version failed.");
         return defValue;
     }
     if (kernelDataVersion == cachedDataVersion_) {
@@ -94,12 +93,10 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
         return defValue;
     }
     if (errCode != E_OK) {
-        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return defValue;
     }
     auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
     if (item.first != E_OK) {
-        LOG_ERROR("get key failed, errCode=%{public}d", item.first);
         return defValue;
     }
     if (oriValue.size() >= CACHED_THRESHOLDS) {
@@ -122,7 +119,6 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
 
     int64_t kernelDataVersion = 0;
     if (db_->GetKernelDataVersion(kernelDataVersion) != E_OK) {
-        LOG_ERROR("PreferencesEnhanceImpl:HasKey failed, get kernel data version failed.");
         return false;
     }
     if (kernelDataVersion == cachedDataVersion_) {
@@ -139,13 +135,11 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
         return false;
     }
     if (errCode != E_OK) {
-        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return false;
     }
     if (oriValue.size() >= CACHED_THRESHOLDS) {
         auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
         if (item.first != E_OK) {
-            LOG_WARN("haskey unmarshall failed, haskey return true, errCode=%{public}d", item.first);
             return true;
         }
         largeCachedData_.insert_or_assign(key, item.second);
@@ -181,7 +175,6 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     errCode = db_->Put(oriKey, oriValue);
     if (errCode != E_OK) {
-        LOG_ERROR("put data failed, errCode=%{public}d", errCode);
         return errCode;
     }
 
@@ -218,7 +211,6 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     errCode = db_->Delete(oriKey);
     if (errCode != E_OK) {
-        LOG_ERROR("delete data failed, errCode=%{public}d", errCode);
         return errCode;
     }
 
@@ -247,7 +239,6 @@ std::pair<int, std::unordered_map<std::string, PreferencesValue>> PreferencesEnh
 
     int64_t kernelDataVersion = 0;
     if (db_->GetKernelDataVersion(kernelDataVersion) != E_OK) {
-        LOG_ERROR("PreferencesEnhanceImpl:GetAll failed, get kernel data version failed.");
         return std::make_pair(E_ERROR, map);
     }
 
@@ -255,7 +246,6 @@ std::pair<int, std::unordered_map<std::string, PreferencesValue>> PreferencesEnh
     std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> data;
     int errCode = db_->GetAll(data);
     if (errCode != E_OK) {
-        LOG_ERROR("get all failed, errCode=%{public}d", errCode);
         return std::make_pair(errCode, map);
     }
     for (auto it = data.begin(); it != data.end(); it++) {
@@ -263,7 +253,6 @@ std::pair<int, std::unordered_map<std::string, PreferencesValue>> PreferencesEnh
         auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(it->second);
         result.insert({key, item.second});
         if (item.first != E_OK) {
-            LOG_ERROR("get key failed, errCode=%{public}d", errCode);
             return std::make_pair(item.first, map);
         }
         if (it->second.size() >= CACHED_THRESHOLDS) {
@@ -340,7 +329,6 @@ int PreferencesEnhanceImpl::Clear()
 
     int errCode = db_->DropCollection();
     if (errCode != E_OK) {
-        LOG_ERROR("drop collection failed when clear, errCode=%{public}d", errCode);
         return errCode;
     }
 
@@ -353,7 +341,6 @@ int PreferencesEnhanceImpl::Clear()
 
     errCode = db_->CreateCollection();
     if (errCode != E_OK) {
-        LOG_ERROR("create collection failed when clear, errCode=%{public}d", errCode);
         return errCode;
     }
     largeCachedData_.clear();
@@ -370,7 +357,6 @@ int PreferencesEnhanceImpl::CloseDb()
     }
     int errCode = db_->CloseDb();
     if (errCode != E_OK) {
-        LOG_ERROR("PreferencesEnhanceImpl:CloseDb failed.");
         return errCode;
     }
     largeCachedData_.clear();
@@ -394,7 +380,6 @@ std::pair<int, PreferencesValue> PreferencesEnhanceImpl::GetValue(const std::str
 
     int64_t kernelDataVersion = 0;
     if (db_->GetKernelDataVersion(kernelDataVersion) != E_OK) {
-        LOG_ERROR("PreferencesEnhanceImpl:Get failed, get kernel data version failed.");
         return std::make_pair(E_ERROR, defValue);
     }
     if (kernelDataVersion == cachedDataVersion_) {
@@ -411,12 +396,10 @@ std::pair<int, PreferencesValue> PreferencesEnhanceImpl::GetValue(const std::str
         return std::make_pair(errCode, defValue);
     }
     if (errCode != E_OK) {
-        LOG_ERROR("get key failed, errCode=%{public}d", errCode);
         return std::make_pair(errCode, defValue);
     }
     auto item = PreferencesValueParcel::UnmarshallingPreferenceValue(oriValue);
     if (item.first != E_OK) {
-        LOG_ERROR("get key failed, errCode=%{public}d", item.first);
         return std::make_pair(item.first, defValue);
     }
     if (oriValue.size() >= CACHED_THRESHOLDS) {

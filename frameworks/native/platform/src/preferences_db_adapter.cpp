@@ -364,7 +364,6 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
         retryTimes--;
     } while (retryTimes > 0);
 
-    LOG_ERROR("rd put over retry times, errcode: :%{public}d", ret);
     return TransferGrdErrno(ret);
 }
 
@@ -398,7 +397,6 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
         retryTimes--;
     } while (retryTimes > 0);
 
-    LOG_ERROR("rd delete over retry times, errcode: :%{public}d", ret);
     return TransferGrdErrno(ret);
 }
 
@@ -436,7 +434,6 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
     } while (retryTimes > 0);
 
     if (retryTimes == 0) {
-        LOG_ERROR("rd get over retry times, errcode: :%{public}d", ret);
         return TransferGrdErrno(ret);
     }
     value.resize(innerVal.dataLen);
@@ -513,7 +510,6 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
         retryTimes--;
     } while (retryTimes > 0);
 
-    LOG_ERROR("rd get over retry times, errcode: :%{public}d", ret);
     return TransferGrdErrno(ret);
 }
 
