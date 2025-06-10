@@ -58,7 +58,7 @@ void PreferencesXmlUtilsTest::TearDown(void)
 * @tc.desc: normal testcase of ReadSettingXml
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_001, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_001, TestSize.Level0)
 {
     std::unordered_map<std::string, PreferencesValue> allDatas;
     bool ret = PreferencesXmlUtils::ReadSettingXml("", "", allDatas);
@@ -77,7 +77,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_001, TestSize.Level1)
 * @tc.desc: ReadSettingXml testcase of PreferencesXmlUtils, reading a corrupt file
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_002, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_002, TestSize.Level0)
 {
     std::string fileName = "/data/test/test01";
 
@@ -97,7 +97,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_002, TestSize.Level1)
 * @tc.desc: ReadSettingXml testcase of PreferencesXmlUtils, no empty dataGroupId
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_003, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_003, TestSize.Level0)
 {
     std::string file = "/data/test/test01";
 
@@ -121,7 +121,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_003, TestSize.Level1)
 * @tc.desc: unnormal testcase of ReadSettingXml
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, UnnormalReadSettingXml_001, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, UnnormalReadSettingXml_001, TestSize.Level0)
 {
     std::unordered_map<std::string, PreferencesValue> values;
     PreferencesXmlUtils::WriteSettingXml("", "", values);
@@ -147,7 +147,7 @@ HWTEST_F(PreferencesXmlUtilsTest, UnnormalReadSettingXml_001, TestSize.Level1)
 * @tc.desc: StringNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level0)
 {
     std::string file = "/data/test/test01";
     std::remove(file.c_str());
@@ -171,7 +171,7 @@ HWTEST_F(PreferencesXmlUtilsTest, StringNodeElementTest_001, TestSize.Level1)
 * @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_001, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_001, TestSize.Level0)
 {
     std::string file = "/data/test/test02";
     std::remove(file.c_str());
@@ -196,7 +196,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_001, TestSize.Level1)
 * @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_002, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_002, TestSize.Level0)
 {
     std::string file = "/data/test/test03";
     std::remove(file.c_str());
@@ -221,7 +221,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_002, TestSize.Level1)
 * @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level0)
 {
     std::string file = "/data/test/test04";
     std::remove(file.c_str());
@@ -246,7 +246,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_003, TestSize.Level1)
 * @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_004, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_004, TestSize.Level0)
 {
     std::string file = "/data/test/testttt05";
     std::remove(file.c_str());
@@ -273,7 +273,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_004, TestSize.Level1)
 * @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_005, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_005, TestSize.Level0)
 {
     std::string file = "/data/test/testttt06";
     std::remove(file.c_str());
@@ -300,7 +300,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_005, TestSize.Level1)
 * @tc.desc: ArrayNodeElement testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_006, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_006, TestSize.Level0)
 {
     std::string file = "/data/test/test07";
     std::remove(file.c_str());
@@ -327,7 +327,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ArrayNodeElementTest_006, TestSize.Level1)
 * @tc.desc: RenameToBrokenFile testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level0)
 {
     std::string fileName = "/data/test/test01";
     // construct an unreadable file
@@ -354,7 +354,7 @@ HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level1)
 * @tc.desc: RenameToBrokenFile testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_004, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_004, TestSize.Level0)
 {
     std::string fileName = "/data/test/test01";
     // construct an unreadable file
@@ -377,7 +377,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_004, TestSize.Level1)
 * @tc.desc: RenameToBrokenFile testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, WriteSettingXmlWhenFileIsNotExistTest_001, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, WriteSettingXmlWhenFileIsNotExistTest_001, TestSize.Level0)
 {
     std::string fileName = "/data/test/test01";
     std::unordered_map<std::string, PreferencesValue> values;
@@ -394,7 +394,7 @@ HWTEST_F(PreferencesXmlUtilsTest, WriteSettingXmlWhenFileIsNotExistTest_001, Tes
 * @tc.desc: Restore testcase of PreferencesXmlUtils
 * @tc.type: FUNC
 */
-HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_005, TestSize.Level1)
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_005, TestSize.Level0)
 {
     std::string fileName = "/data/test/test01";
     std::string bakFileName = "/data/test/test01.bak";

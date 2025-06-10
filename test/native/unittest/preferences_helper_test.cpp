@@ -60,7 +60,7 @@ void PreferencesHelperTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_001, TestSize.Level1)
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_001, TestSize.Level0)
 {
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("/data/test/test_helper", errCode);
@@ -85,7 +85,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_001, TestSize.Level1
  * @tc.desc: error testcase of Preferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level1)
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level0)
 {
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
@@ -110,7 +110,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level1
  * @tc.desc: error testcase of Preferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_003, TestSize.Level1)
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_003, TestSize.Level0)
 {
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
@@ -125,7 +125,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_003, TestSize.Level1
  * @tc.desc: error testcase of DeletePreferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level1)
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level0)
 {
     int pref = PreferencesHelper::DeletePreferences("");
     EXPECT_EQ(pref, E_EMPTY_FILE_PATH);
@@ -139,7 +139,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level1
  * @tc.desc: error testcase of GetRealPath
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level1)
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level0)
 {
     Options option = Options("test300", "com.hmos.uttest", "");
     int errCode = E_OK;
@@ -153,7 +153,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level1
  * @tc.desc: error testcase of GetRealPath
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level1)
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level0)
 {
     Options option = Options("/data/test/preferences/test01", "", "");
     int errCode = E_OK;
