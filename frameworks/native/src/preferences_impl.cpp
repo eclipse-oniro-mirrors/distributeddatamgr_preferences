@@ -221,8 +221,7 @@ bool PreferencesImpl::IsClose(const std::string &name)
         return false;
     }
 
-    LOG_WARN("file %{public}s is inactive when calling %{public}s.",
-        ExtractFileName(options_.filePath).c_str(), name.c_str());
+    LOG_WARN("%{public}s closed:%{public}s.", ExtractFileName(options_.filePath).c_str(), name.c_str());
     std::string operationMsg = " use after close.";
     ReportFaultParam reportParam = { "inactive object", options_.bundleName, NORMAL_DB,
         ExtractFileName(options_.filePath), E_OBJECT_NOT_ACTIVE, name + operationMsg };
@@ -326,7 +325,6 @@ int PreferencesImpl::WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref)
             *writeToDiskMap = pref->valuesCache_;
         } else {
             // Cache has not changed, Not need to write persistent files.
-            LOG_INFO("No data to update persistent file");
             return E_OK;
         }
     }
@@ -480,8 +478,7 @@ void PreferencesImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl>
             return;
         }
         for (auto &key : *keysModified) {
-            LOG_INFO("The %{public}s is changed, the observer needs to be triggered.",
-                Anonymous::ToBeAnonymous(key).c_str());
+            LOG_INFO("notify %{public}s", Anonymous::ToBeAnonymous(key).c_str());
             pref->dataObsMgrClient_->NotifyChange(pref->MakeUri(key));
         }
     };

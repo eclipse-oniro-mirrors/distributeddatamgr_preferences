@@ -443,7 +443,7 @@ static bool RenameFromBackupFile(
     if (bakDoc == nullptr) {
         const xmlError *xmlErr = xmlGetLastError();
         std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-        LOG_ERROR("restore XML file: %{public}s failed, errno is %{public}d, error is %{public}s.",
+        LOG_ERROR("%{public}s restore failed, errno:%{public}d, error:%{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         std::remove(backupFileName.c_str());
         if (ReportNonCorruptError("read bak failed", fileName, bundleName, errCode)) {
@@ -465,7 +465,7 @@ static bool RenameFromBackupFile(
     ReportFaultParam reportParam = { "read failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
         E_XML_RESTORED_FROM_BACKUP_FILE, appindex };
     PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::RESTORE_FROM_BAK);
-    LOG_INFO("restore XML file %{public}s successfully.", ExtractFileName(fileName).c_str());
+    LOG_INFO("%{public}s restored", ExtractFileName(fileName).c_str());
     return true;
 }
 
@@ -473,7 +473,7 @@ static bool RenameFile(const std::string &fileName, const std::string &fileType)
 {
     std::string name = MakeFilePath(fileName, fileType);
     if (std::rename(fileName.c_str(), name.c_str())) {
-        LOG_ERROR("failed to rename file to %{public}s file %{public}d.", fileType.c_str(), errno);
+        LOG_ERROR("failed to rename to %{public}s, err:%{public}d.", fileType.c_str(), errno);
         return false;
     }
     return true;
@@ -499,15 +499,14 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     int errCode = 0;
     std::string errMessage;
     if (IsFileExist(fileName)) {
-        LOG_INFO("read xml file:%{public}s, muti processing status is %{public}d.", ExtractFileName(fileName).c_str(),
-            isMultiProcessing);
+        LOG_INFO("file:%{public}s, m:%{public}d.", ExtractFileName(fileName).c_str(), isMultiProcessing);
         doc = ReadFile(fileName, errCode);
         if (doc != nullptr) {
             return doc;
         }
         const xmlError *xmlErr = xmlGetLastError();
         errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-        LOG_ERROR("failed to read XML format file: %{public}s, errno is %{public}d, error is %{public}s.",
+        LOG_ERROR("failed to read:%{public}s, errno:%{public}d, error:%{public}s.",
             ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
         if (ReportNonCorruptError("read failed", fileName, bundleName, errCode)) {
             return nullptr;
@@ -702,7 +701,7 @@ static void ReportSaveFileFault(const std::string fileName, const std::string &b
     bool isExist = false;
     const xmlError *xmlErr = xmlGetLastError();
     std::string errMessage = (xmlErr != nullptr) ? xmlErr->message : "null";
-    LOG_ERROR("Failed to save file: %{public}s, errno is %{public}d, error is %{public}s.",
+    LOG_ERROR("Save:%{public}s, errno:%{public}d, error:%{public}s.",
         ExtractFileName(fileName).c_str(), errCode, errMessage.c_str());
     if (IsFileExist(fileName)) {
         RenameToBrokenFile(fileName);
@@ -732,24 +731,24 @@ static bool SaveXmlFile(const std::string &fileName, const std::string &bundleNa
     bool isMultiProcessing = false;
     PreferencesFileLock fileLock(fileName);
     fileLock.WriteLock(isMultiProcessing);
-    LOG_INFO("save xml file:%{public}s, process is %{public}d.", ExtractFileName(fileName).c_str(), isMultiProcessing);
+    LOG_INFO("file:%{public}s, m:%{public}d.", ExtractFileName(fileName).c_str(), isMultiProcessing);
     if (IsFileExist(fileName) && !RenameToBackupFile(fileName)) {
         return false;
     }
     int fd = Open(fileName.c_str());
     if (fd == -1) {
-        LOG_ERROR("failed open xml file:%{public}s", ExtractFileName(fileName).c_str());
+        LOG_ERROR("failed open:%{public}s", ExtractFileName(fileName).c_str());
         ReportSaveFileFault(fileName, bundleName, isReport, isMultiProcessing);
         return false;
     }
     if (Write(fd, buf->content, buf->use) < 0) {
-        LOG_ERROR("Failed to write file: %{public}s", ExtractFileName(fileName).c_str());
+        LOG_ERROR("Failed write:%{public}s", ExtractFileName(fileName).c_str());
         ReportSaveFileFault(fileName, bundleName, isReport, isMultiProcessing);
         Close(fd);
         return false;
     }
     if (!Fsync(fd)) {
-        LOG_WARN("Failed to write the file to the disk.");
+        LOG_WARN("Failed to write to the disk.");
     }
     Close(fd);
     RemoveBackupFile(fileName);
