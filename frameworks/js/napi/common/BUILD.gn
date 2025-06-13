@@ -48,7 +48,7 @@ if (is_ohos) {
       "${preferences_napi_path}/common/src/js_observer.cpp",
       "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
       "${preferences_napi_path}/common/src/napi_async_call.cpp",
-      "${preferences_napi_path}/common/src/napi_preferences_error.cpp",
+      "${preferences_base_path}/frameworks/common/src/preferences_error.cpp",
       "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
       "${preferences_napi_path}/common/src/uv_queue.cpp",
     ]

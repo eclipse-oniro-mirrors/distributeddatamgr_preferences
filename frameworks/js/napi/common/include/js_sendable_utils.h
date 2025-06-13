@@ -29,7 +29,7 @@
 #include "js_native_api_types.h"
 #include "log_print.h"
 #include "napi/native_node_api.h"
-#include "napi_preferences_error.h"
+#include "preferences_error.h"
 #include "preferences_value.h"
 
 namespace OHOS::Sendable::JSPreferences {

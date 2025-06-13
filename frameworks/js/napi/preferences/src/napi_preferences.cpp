@@ -23,7 +23,7 @@
 #include <list>
 
 #include "napi_async_call.h"
-#include "napi_preferences_error.h"
+#include "preferences_error.h"
 #include "preferences.h"
 #include "preferences_errno.h"
 #include "preferences_value.h"

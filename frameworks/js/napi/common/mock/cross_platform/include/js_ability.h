@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "napi_preferences_error.h"
+#include "preferences_error.h"
 
 #include "context.h"
 #include "napi/native_api.h"
