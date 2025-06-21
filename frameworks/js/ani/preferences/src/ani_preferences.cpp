@@ -116,7 +116,6 @@ static int GetContextPathFromName(ani_env *env, ani_object context, ani_string n
         LOG_ERROR("GetContextPath failed.");
         return E_ERROR;
     }
-    LOG_INFO("in GetContextPathFromName contextPath is: %{public}s.", contextPath.c_str());
     std::string nameStr = AniStringToStdStr(env, name);
     path = contextPath.append("/").append(nameStr);
     return E_OK;
