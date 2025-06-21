@@ -240,7 +240,7 @@ bool ClearFuzz(FuzzedDataProvider &provider)
     auto svalue = provider.ConsumeFloatingPoint<double>();
     PreferencesFuzzTest::Preferences_->PutLong(skey, svalue);
     int64_t ret = PreferencesFuzzTest::Preferences_->Clear();
-    return ret == NativePreferences::E_OK;;
+    return ret == NativePreferences::E_OK;
 }
 
 bool FlushFuzz(FuzzedDataProvider &provider)
@@ -251,7 +251,7 @@ bool FlushFuzz(FuzzedDataProvider &provider)
     PreferencesFuzzTest::Preferences_->Flush();
     int64_t ret = PreferencesFuzzTest::Preferences_->GetLong(skey);
     PreferencesHelper::DeletePreferences("/data/test/test");
-    return ret == NativePreferences::E_OK;;
+    return ret == NativePreferences::E_OK;
 }
 
 bool FlushSyncFuzz(FuzzedDataProvider &provider)
@@ -262,7 +262,7 @@ bool FlushSyncFuzz(FuzzedDataProvider &provider)
     PreferencesFuzzTest::Preferences_->FlushSync();
     int64_t ret = PreferencesFuzzTest::Preferences_->GetLong(skey);
     PreferencesHelper::DeletePreferences("/data/test/test");
-    return ret == NativePreferences::E_OK;;
+    return ret == NativePreferences::E_OK;
 }
 } // namespace OHOS
 
