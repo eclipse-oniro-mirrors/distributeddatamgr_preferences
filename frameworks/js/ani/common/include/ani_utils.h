@@ -174,7 +174,7 @@ bool UnionAccessor::TryConvert<ani_boolean>(ani_boolean &value)
     if (!IsInstanceOf("Lstd/core/Boolean;")) {
         return false;
     }
-    return ANI_OK == env_->Object_CallMethodByName_Boolean(obj_, "booleanValue", nullptr, &value);
+    return ANI_OK == env_->Object_CallMethodByName_Boolean(obj_, "unboxed", nullptr, &value);
 }
 
 template<>
