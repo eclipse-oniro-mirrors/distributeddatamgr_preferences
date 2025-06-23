@@ -58,7 +58,9 @@ void NdkPreferencesFuzzTest::TearDown(void)
 void NdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &path)
 {
     std::string::size_type pos = path.find_last_of('/');
-
+    if (pos == std::string::npos || path.front() != '/') {
+        printf("path can not be relative path.\n");
+    }
     std::string dir = path.substr(0, pos);
 
     std::string tempDirectory = dir;
@@ -80,6 +82,7 @@ void NdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &path)
         databaseDirectory = databaseDirectory + "/" + directory;
         if (OHOS::NativePreferences::Access(databaseDirectory.c_str()) != F_OK) {
             if (OHOS::NativePreferences::Mkdir(databaseDirectory)) {
+                printf("failed to mkdir, errno %d, %s \n", errno, databaseDirectory.c_str());
                 return;
             }
         }
@@ -88,13 +91,13 @@ void NdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &path)
 
 void PutIntFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider.ConsumeRandomLengthString();
+    std::string key = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeIntegral<int32_t>();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    OH_Preferences_SetInt(pref, skey.c_str(), svalue);
+    OH_Preferences_SetInt(pref, key.c_str(), svalue);
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -102,15 +105,15 @@ void PutIntFuzz(FuzzedDataProvider &provider)
 
 void GetIntFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider.ConsumeRandomLengthString();
+    std::string key = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeIntegral<int32_t>();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetInt(pref, skey.c_str(), svalue);
+    (void)OH_Preferences_SetInt(pref, key.c_str(), svalue);
     int value = 10;
-    OH_Preferences_GetInt(pref, skey.c_str(), &value);
+    OH_Preferences_GetInt(pref, key.c_str(), &value);
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -118,13 +121,13 @@ void GetIntFuzz(FuzzedDataProvider &provider)
 
 void PutStringFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider.ConsumeRandomLengthString();
+    std::string key = provider.ConsumeRandomLengthString();
     std::string svalue = provider.ConsumeRandomLengthString();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    OH_Preferences_SetString(pref, skey.c_str(), svalue.c_str());
+    OH_Preferences_SetString(pref, key.c_str(), svalue.c_str());
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -132,17 +135,17 @@ void PutStringFuzz(FuzzedDataProvider &provider)
 
 void GetStringFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider.ConsumeRandomLengthString();
+    std::string key = provider.ConsumeRandomLengthString();
     std::string svalue = provider.ConsumeRandomLengthString();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetString(pref, skey.c_str(), svalue.c_str());
+    (void)OH_Preferences_SetString(pref, key.c_str(), svalue.c_str());
     (void)OH_PreferencesOption_Destroy(option);
     uint32_t len = 0;
     char *value = nullptr;
-    OH_Preferences_GetString(pref, skey.c_str(), &value, &len);
+    OH_Preferences_GetString(pref, key.c_str(), &value, &len);
     OH_Preferences_FreeString(value);
     (void)OH_Preferences_Close(pref);
     return;
@@ -150,13 +153,13 @@ void GetStringFuzz(FuzzedDataProvider &provider)
 
 void PutBoolFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider.ConsumeRandomLengthString();
+    std::string key = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeBool();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    OH_Preferences_SetBool(pref, skey.c_str(), svalue);
+    OH_Preferences_SetBool(pref, key.c_str(), svalue);
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -164,31 +167,31 @@ void PutBoolFuzz(FuzzedDataProvider &provider)
 
 void GetBoolFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider.ConsumeRandomLengthString();
+    std::string key = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeBool();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetBool(pref, skey.c_str(), svalue);
+    (void)OH_Preferences_SetBool(pref, key.c_str(), svalue);
     (void)OH_PreferencesOption_Destroy(option);
     bool value = false;
-    OH_Preferences_GetBool(pref, skey.c_str(), &value);
+    OH_Preferences_GetBool(pref, key.c_str(), &value);
     OH_Preferences_Close(pref);
     return;
 }
 
 void DeleteFuzz(FuzzedDataProvider &provider)
 {
-    std::string skey = provider.ConsumeRandomLengthString();
+    std::string key = provider.ConsumeRandomLengthString();
     auto svalue = provider.ConsumeBool();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetBool(pref, skey.c_str(), svalue);
+    (void)OH_Preferences_SetBool(pref, key.c_str(), svalue);
     (void)OH_PreferencesOption_Destroy(option);
-    OH_Preferences_Delete(pref, skey.c_str());
+    OH_Preferences_Delete(pref, key.c_str());
     OH_Preferences_Close(pref);
     return;
 }
