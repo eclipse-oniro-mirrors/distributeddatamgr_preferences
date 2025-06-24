@@ -92,12 +92,12 @@ void NdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &path)
 void PutIntFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
-    auto svalue = provider.ConsumeIntegral<int32_t>();
+    auto value = provider.ConsumeIntegral<int32_t>();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    OH_Preferences_SetInt(pref, key.c_str(), svalue);
+    OH_Preferences_SetInt(pref, key.c_str(), value);
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -106,14 +106,14 @@ void PutIntFuzz(FuzzedDataProvider &provider)
 void GetIntFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
-    auto svalue = provider.ConsumeIntegral<int32_t>();
+    auto value = provider.ConsumeIntegral<int32_t>();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetInt(pref, key.c_str(), svalue);
-    int value = 10;
-    OH_Preferences_GetInt(pref, key.c_str(), &value);
+    (void)OH_Preferences_SetInt(pref, key.c_str(), value);
+    int values = 10;
+    OH_Preferences_GetInt(pref, key.c_str(), &values);
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -122,12 +122,12 @@ void GetIntFuzz(FuzzedDataProvider &provider)
 void PutStringFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
-    std::string svalue = provider.ConsumeRandomLengthString();
+    std::string value = provider.ConsumeRandomLengthString();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    OH_Preferences_SetString(pref, key.c_str(), svalue.c_str());
+    OH_Preferences_SetString(pref, key.c_str(), value.c_str());
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -136,17 +136,17 @@ void PutStringFuzz(FuzzedDataProvider &provider)
 void GetStringFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
-    std::string svalue = provider.ConsumeRandomLengthString();
+    std::string value = provider.ConsumeRandomLengthString();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetString(pref, key.c_str(), svalue.c_str());
+    (void)OH_Preferences_SetString(pref, key.c_str(), value.c_str());
     (void)OH_PreferencesOption_Destroy(option);
     uint32_t len = 0;
-    char *value = nullptr;
-    OH_Preferences_GetString(pref, key.c_str(), &value, &len);
-    OH_Preferences_FreeString(value);
+    char *values = nullptr;
+    OH_Preferences_GetString(pref, key.c_str(), &values, &len);
+    OH_Preferences_FreeString(values);
     (void)OH_Preferences_Close(pref);
     return;
 }
@@ -154,12 +154,12 @@ void GetStringFuzz(FuzzedDataProvider &provider)
 void PutBoolFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
-    auto svalue = provider.ConsumeBool();
+    auto value = provider.ConsumeBool();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    OH_Preferences_SetBool(pref, key.c_str(), svalue);
+    OH_Preferences_SetBool(pref, key.c_str(), value);
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Close(pref);
     return;
@@ -168,15 +168,15 @@ void PutBoolFuzz(FuzzedDataProvider &provider)
 void GetBoolFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
-    auto svalue = provider.ConsumeBool();
+    auto value = provider.ConsumeBool();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetBool(pref, key.c_str(), svalue);
+    (void)OH_Preferences_SetBool(pref, key.c_str(), value);
     (void)OH_PreferencesOption_Destroy(option);
-    bool value = false;
-    OH_Preferences_GetBool(pref, key.c_str(), &value);
+    bool values = false;
+    OH_Preferences_GetBool(pref, key.c_str(), &values);
     OH_Preferences_Close(pref);
     return;
 }
@@ -184,12 +184,12 @@ void GetBoolFuzz(FuzzedDataProvider &provider)
 void DeleteFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
-    auto svalue = provider.ConsumeBool();
+    auto value = provider.ConsumeBool();
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetBool(pref, key.c_str(), svalue);
+    (void)OH_Preferences_SetBool(pref, key.c_str(), value);
     (void)OH_PreferencesOption_Destroy(option);
     OH_Preferences_Delete(pref, key.c_str());
     OH_Preferences_Close(pref);

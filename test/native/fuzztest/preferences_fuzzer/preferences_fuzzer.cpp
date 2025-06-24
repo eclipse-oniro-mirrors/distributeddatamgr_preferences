@@ -25,7 +25,7 @@ using namespace OHOS::NativePreferences;
 
 namespace OHOS {
 constexpr size_t NUM_MIN = 1;
-constexpr size_t NUM_MAX = 50;
+constexpr size_t NUM_MAX = 32 * 1024 * 1024;
 class PreferencesFuzzTest {
 public:
     static void SetUpTestCase(void);
