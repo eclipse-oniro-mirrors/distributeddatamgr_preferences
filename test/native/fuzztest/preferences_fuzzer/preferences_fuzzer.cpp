@@ -24,6 +24,8 @@
 using namespace OHOS::NativePreferences;
 
 namespace OHOS {
+constexpr size_t NUM_MIN = 1;
+constexpr size_t NUM_MAX = 50;
 class PreferencesFuzzTest {
 public:
     static void SetUpTestCase(void);
@@ -59,6 +61,25 @@ void PreferencesFuzzTest::SetUp(void)
 
 void PreferencesFuzzTest::TearDown(void)
 {
+}
+
+void PutVectorFuzz(FuzzedDataProvider &provider)
+{
+    std::string key = provider.ConsumeRandomLengthString();
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(NUM_MIN, NUM_MAX);
+    std::vector<uint8_t> value = provider.ConsumeBytes<uint8_t>(bytesSize);
+    PreferencesFuzzTest::Preferences_->Put(key, value);
+    return;
+}
+
+void GetVectorFuzz(FuzzedDataProvider &provider)
+{
+    std::string key = provider.ConsumeRandomLengthString();
+    size_t bytesSize = provider.ConsumeIntegralInRange<size_t>(NUM_MIN, NUM_MAX);
+    std::vector<uint8_t> value = provider.ConsumeBytes<uint8_t>(bytesSize);
+    PreferencesFuzzTest::Preferences_->Put(key, value);
+    PreferencesFuzzTest::Preferences_->Get(key, 0);
+    return;
 }
 
 void HasFuzz(FuzzedDataProvider &provider)
@@ -255,6 +276,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     FuzzedDataProvider provider(data, size);
     OHOS::PreferencesFuzzTest::SetUpTestCase();
+    OHOS::PutVectorFuzz(provider);
+    OHOS::GetVectorFuzz(provider);
     OHOS::HasFuzz(provider);
     OHOS::GetValueFuzz(provider);
     OHOS::GetAllFuzz(provider);
