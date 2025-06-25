@@ -22,7 +22,6 @@ std::shared_ptr<ApplicationContext> Context::applicationContext_ = nullptr;
 
 std::shared_ptr<ApplicationContext> Context::GetApplicationContext()
 {
-    printf("mock Context success.\n");
     applicationContext_ = std::make_shared<ApplicationContext>();
     return applicationContext_;
 }

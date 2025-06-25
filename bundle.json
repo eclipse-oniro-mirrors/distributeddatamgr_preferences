@@ -115,7 +115,8 @@
                 "//foundation/distributeddatamgr/preferences/test/js:unittest",
                 "//foundation/distributeddatamgr/preferences/test/js:performancetest",
                 "//foundation/distributeddatamgr/preferences/test/js:stage_unittest",
-                "//foundation/distributeddatamgr/preferences/test/native/fuzztest/preferences_fuzzer:PreferencesFuzzTest"
+                "//foundation/distributeddatamgr/preferences/test/native:fuzztest",
+                "//foundation/distributeddatamgr/preferences/test/ndk:fuzztest"
             ]
         }
     }

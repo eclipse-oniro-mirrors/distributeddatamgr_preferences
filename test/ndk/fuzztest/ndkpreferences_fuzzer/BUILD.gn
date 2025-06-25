@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,15 +10,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
-
-module_output_path = "preferences/preferences/ndk_preferences"
-
-###############################################################################
-
 config("module_private_config") {
   visibility = [ ":*" ]
+
   include_dirs = [
     "${preferences_base_path}/frameworks/ndk/include",
     "${preferences_base_path}/frameworks/common/include",
@@ -32,19 +31,11 @@ config("module_private_config") {
   ]
 }
 
-ohos_unittest("NDKPreferencesTest") {
-  defines = []
-  if (!defined(global_parts_info) ||
-      defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
-    defines += [ "ARKDATA_DATABASE_CORE_ENABLE" ]
-  }
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
+##############################fuzztest##########################################
+ohos_fuzztest("NdkPreferencesFuzzTest") {
+  module_out_path = "preferences/preference"
+
+  fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/ndk/fuzztest/ndkpreferences_fuzzer"
 
   sources = [
     "${preferences_native_path}/mock/ability_base/zuri/src/uri.cpp",
@@ -68,15 +59,17 @@ ohos_unittest("NDKPreferencesTest") {
     "${preferences_ndk_path}/src/oh_preferences.cpp",
     "${preferences_ndk_path}/src/oh_preferences_option.cpp",
     "${preferences_ndk_path}/src/oh_preferences_value.cpp",
-    "mock/application_context.cpp",
-    "unittest/preferences_ndk_storage_type_test.cpp",
-    "unittest/preferences_ndk_test.cpp",
-    "unittest/preferences_ndk_value_test.cpp",
-    "unittest/preferences_test_utils.cpp",
+    "../../mock/application_context.cpp",
+    "ndkpreferences_fuzzer.cpp",
   ]
 
   configs = [ ":module_private_config" ]
+
+  deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
+
   external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hilog:libhilog",
@@ -88,15 +81,12 @@ ohos_unittest("NDKPreferencesTest") {
 }
 
 ###############################################################################
-group("unittest") {
-  testonly = true
-
-  deps = [ ":NDKPreferencesTest" ]
-}
-###############################################################################
 group("fuzztest") {
   testonly = true
   deps = []
-  deps += [ "fuzztest/ndkpreferences_fuzzer:fuzztest" ]
+  deps += [
+    # deps file
+    ":NdkPreferencesFuzzTest",
+  ]
 }
 ###############################################################################
