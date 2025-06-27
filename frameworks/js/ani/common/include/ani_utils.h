@@ -171,7 +171,7 @@ private:
 template<>
 bool UnionAccessor::TryConvert<ani_boolean>(ani_boolean &value)
 {
-    if (!IsInstanceOf("Lstd/core/Boolean;")) {
+    if (!IsInstanceOf("std.core.Boolean")) {
         return false;
     }
     return ANI_OK == env_->Object_CallMethodByName_Boolean(obj_, "unboxed", nullptr, &value);
@@ -180,7 +180,7 @@ bool UnionAccessor::TryConvert<ani_boolean>(ani_boolean &value)
 template<>
 bool UnionAccessor::TryConvert<ani_double>(ani_double &value)
 {
-    if (!IsInstanceOf("Lstd/core/Double;")) {
+    if (!IsInstanceOf("std.core.Double")) {
         std::cerr << "Not found 'Lstd/core/Double;'" << std::endl;
         return false;
     }
@@ -190,7 +190,7 @@ bool UnionAccessor::TryConvert<ani_double>(ani_double &value)
 template<>
 bool UnionAccessor::TryConvert<std::string>(std::string &value)
 {
-    if (!IsInstanceOf("Lstd/core/String;")) {
+    if (!IsInstanceOf("std.core.String")) {
         return false;
     }
     value = AniStringToStdStr(env_, static_cast<ani_string>(obj_));
@@ -200,17 +200,17 @@ bool UnionAccessor::TryConvert<std::string>(std::string &value)
 template<>
 bool UnionAccessor::TryConvert<ani_long>(ani_long &value)
 {
-    if (!IsInstanceOf("Lescompat/BigInt;")) {
+    if (!IsInstanceOf("escompat.BigInt")) {
         return false;
     }
     ani_class bigIntCls;
-    const char* className = "Lescompat/BigInt;";
+    const char* className = "escompat.BigInt";
     if (ANI_OK != env_->FindClass(className, &bigIntCls)) {
         std::cerr << "Not found '" << className << "'" << std::endl;
         return false;
     }
     ani_method getLongMethod;
-    if (ANI_OK != env_->Class_FindMethod(bigIntCls, "getLong", ":J", &getLongMethod)) {
+    if (ANI_OK != env_->Class_FindMethod(bigIntCls, "getLong", ":l", &getLongMethod)) {
         std::cerr << "Class_GetMethod Failed '" << className << "'" << std::endl;
         return false;
     }
@@ -232,11 +232,11 @@ bool UnionAccessor::TryConvert<std::vector<double>>(std::vector<double> &value)
     }
     for (int i = 0; i < int(length); i++) {
         ani_ref arrayRef;
-        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "I:Lstd/core/Object;", &arrayRef, (ani_int)i)) {
+        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:C{std.core.Object}", &arrayRef, (ani_int)i)) {
             std::cerr << "Object_GetPropertyByName_Ref Failed" << std::endl;
             return false;
         }
-        if (!IsInstanceOf("Lstd/core/Double;", static_cast<ani_object>(arrayRef))) {
+        if (!IsInstanceOf("std.core.Double", static_cast<ani_object>(arrayRef))) {
             std::cerr << "Not found 'Lstd/core/Double;'" << std::endl;
             return false;
         }
@@ -261,11 +261,11 @@ bool UnionAccessor::TryConvert<std::vector<std::string>>(std::vector<std::string
     }
     for (int i = 0; i < int(length); i++) {
         ani_ref arrayRef;
-        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "I:Lstd/core/Object;", &arrayRef, (ani_int)i)) {
+        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:C{std.core.Object}", &arrayRef, (ani_int)i)) {
             std::cerr << "Object_GetPropertyByName_Ref Failed" << std::endl;
             return false;
         }
-        if (!IsInstanceOf("Lstd/core/String;", static_cast<ani_object>(arrayRef))) {
+        if (!IsInstanceOf("std.core.String", static_cast<ani_object>(arrayRef))) {
             std::cerr << "Not found 'Lstd/core/String;'" << std::endl;
             return false;
         }
@@ -284,11 +284,11 @@ bool UnionAccessor::TryConvert<std::vector<bool>>(std::vector<bool> &value)
     }
     for (int i = 0; i < int(length); i++) {
         ani_ref arrayRef;
-        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "I:Lstd/core/Object;", &arrayRef, (ani_int)i)) {
+        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:C{std.core.Object}", &arrayRef, (ani_int)i)) {
             std::cerr << "Object_GetPropertyByName_Ref Failed" << std::endl;
             return false;
         }
-        if (!IsInstanceOf("Lstd/core/Boolean;", static_cast<ani_object>(arrayRef))) {
+        if (!IsInstanceOf("std.core.Boolean", static_cast<ani_object>(arrayRef))) {
             std::cerr << "Not found 'Lstd/core/Boolean;'" << std::endl;
             return false;
         }
