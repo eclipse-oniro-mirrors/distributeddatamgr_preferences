@@ -34,13 +34,9 @@ public:
     void TearDown();
 
     static std::shared_ptr<Preferences> Preferences_;
-
-    static const std::string LONG_KEY;
 };
 
 std::shared_ptr<Preferences> DBPreferencesFuzzTest::Preferences_ = nullptr;
-
-const std::string DBPreferencesFuzzTest::LONG_KEY = std::string(Preferences::MAX_KEY_LENGTH, std::toupper('a'));
 
 void DBPreferencesFuzzTest::SetUpTestCase(void)
 {
