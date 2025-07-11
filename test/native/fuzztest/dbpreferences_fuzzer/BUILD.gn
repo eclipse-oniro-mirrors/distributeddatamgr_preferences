@@ -19,40 +19,25 @@ config("module_private_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    "${preferences_base_path}/frameworks/ndk/include",
-    "${preferences_base_path}/frameworks/common/include",
-    "${preferences_native_path}/include",
-    "${preferences_native_path}/platform/include/",
-    "${preferences_interfaces_path}/ndk/include/",
-    "${preferences_base_path}/test/ndk/mock",
-    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
-    "${preferences_native_path}/mock/ability_base/zuri/include",
+    "//foundation/distributeddatamgr/preferences/interfaces/inner_api/include",
   ]
 }
 
 ##############################fuzztest##########################################
-ohos_fuzztest("NdkPreferencesFuzzTest") {
+ohos_fuzztest("DBPreferencesFuzzTest") {
   module_out_path = "preferences/preference"
 
-  fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/ndk/fuzztest/ndkpreferences_fuzzer"
+  fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/native/fuzztest/dbpreferences_fuzzer"
 
-  sources = [
-    "${preferences_base_path}/test/ndk/mock/application_context.cpp",
-    "${preferences_native_path}/mock/ability_base/zuri/src/uri.cpp",
-    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/data_ability_observer_stub.cpp",
-    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/dataobs_mgr_client.cpp",
-    "${preferences_native_path}/src/preferences_impl.cpp",
-    "${preferences_ndk_path}/src/oh_convertor.cpp",
-    "${preferences_ndk_path}/src/oh_preferences.cpp",
-    "${preferences_ndk_path}/src/oh_preferences_option.cpp",
-    "ndkpreferences_fuzzer.cpp",
-  ]
+  sources = [ "dbpreferences_fuzzer.cpp" ]
 
   configs = [ ":module_private_config" ]
 
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
 
   external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
     "c_utils:utils",
     "hilog:libhilog",
   ]
@@ -64,7 +49,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":NdkPreferencesFuzzTest",
+    ":DBPreferencesFuzzTest",
   ]
 }
 ###############################################################################

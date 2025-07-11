@@ -93,10 +93,14 @@ group("unittest") {
 
   deps = [ ":NDKPreferencesTest" ]
 }
+
 ###############################################################################
 group("fuzztest") {
   testonly = true
   deps = []
-  deps += [ "fuzztest/ndkpreferences_fuzzer:fuzztest" ]
+  deps += [
+    "fuzztest/gskvndkpreferences_fuzzer:fuzztest",
+    "fuzztest/ndkpreferences_fuzzer:fuzztest",
+  ]
 }
 ###############################################################################

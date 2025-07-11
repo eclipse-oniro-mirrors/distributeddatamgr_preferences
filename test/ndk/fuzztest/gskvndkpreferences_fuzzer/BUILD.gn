@@ -31,10 +31,10 @@ config("module_private_config") {
 }
 
 ##############################fuzztest##########################################
-ohos_fuzztest("NdkPreferencesFuzzTest") {
+ohos_fuzztest("GskvNdkPreferencesFuzzTest") {
   module_out_path = "preferences/preference"
 
-  fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/ndk/fuzztest/ndkpreferences_fuzzer"
+  fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/ndk/fuzztest/gskvndkpreferences_fuzzer"
 
   sources = [
     "${preferences_base_path}/test/ndk/mock/application_context.cpp",
@@ -45,7 +45,7 @@ ohos_fuzztest("NdkPreferencesFuzzTest") {
     "${preferences_ndk_path}/src/oh_convertor.cpp",
     "${preferences_ndk_path}/src/oh_preferences.cpp",
     "${preferences_ndk_path}/src/oh_preferences_option.cpp",
-    "ndkpreferences_fuzzer.cpp",
+    "gskvndkpreferences_fuzzer.cpp",
   ]
 
   configs = [ ":module_private_config" ]
@@ -64,7 +64,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":NdkPreferencesFuzzTest",
+    ":GskvNdkPreferencesFuzzTest",
   ]
 }
 ###############################################################################
