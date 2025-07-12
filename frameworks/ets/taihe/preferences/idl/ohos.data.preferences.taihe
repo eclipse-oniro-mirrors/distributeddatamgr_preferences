@@ -157,6 +157,7 @@ function RemovePreferencesFromCacheSync(context: @sts_type("BaseContext") Opaque
 
 @gen_async("removePreferencesFromCache")
 @gen_promise("removePreferencesFromCache")
+@overload("removePreferencesFromCacheSync")
 function RemovePreferencesFromCacheSyncByOptions(context: @sts_type("BaseContext") Opaque, options: Options): void;
 
 @!sts_inject("""
