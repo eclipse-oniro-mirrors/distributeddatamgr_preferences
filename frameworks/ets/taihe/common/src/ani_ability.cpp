@@ -17,7 +17,6 @@
 
 #include <atomic>
 #include "ani_base_context.h"
-#include "extension_context.h"
 #include "log_print.h"
 namespace OHOS {
 namespace PreferencesEtsKit {
@@ -44,37 +43,23 @@ ContextMode GetContextMode(ani_env* env, ani_object context)
 std::shared_ptr<JSError> GetContextInfo(ani_env* env, ani_object context,
     const std::string &dataGroupId, ContextInfo &contextInfo)
 {
-    if (GetContextMode(env, context) == ContextMode::STAGE) {
-        auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, context);
-        if (stageContext != nullptr) {
-            int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
-            if (errcode != 0) {
-                LOG_ERROR("GetSystemPreferencesDir failed, err = %{public}d", errcode);
-                return std::make_shared<InnerError>(PreferencesJsKit::E_DATA_GROUP_ID_INVALID);
-            }
-            contextInfo.bundleName = stageContext->GetBundleName();
-            return nullptr;
-        } else {
-            LOG_INFO("Failed to get the context of the stage model.");
-            return std::make_shared<ParamTypeError>("The context is invalid.");
+    if (GetContextMode(env, context) != ContextMode::STAGE) {
+        LOG_ERROR("Not supporting fa mode");
+        return nullptr;
+    }
+    auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, context);
+    if (stageContext != nullptr) {
+        int errcode = stageContext->GetSystemPreferencesDir(dataGroupId, false, contextInfo.preferencesDir);
+        if (errcode != 0) {
+            LOG_ERROR("GetSystemPreferencesDir failed, err = %{public}d", errcode);
+            return std::make_shared<InnerError>(PreferencesJsKit::E_DATA_GROUP_ID_INVALID);
         }
-    }
-    if (!dataGroupId.empty()) {
-        LOG_ERROR("dataGroupId should be empty in fa mode");
-        return std::make_shared<InnerError>(PreferencesJsKit::E_NOT_STAGE_MODE);
-    }
-    auto ability = OHOS::AbilityRuntime::GetCurrentAbility(env);
-    if (ability == nullptr) {
-        LOG_ERROR("failed to get current ability.");
+        contextInfo.bundleName = stageContext->GetBundleName();
+        return nullptr;
+    } else {
+        LOG_INFO("Failed to get the context of the stage model.");
         return std::make_shared<ParamTypeError>("The context is invalid.");
     }
-    auto abilityContext = ability->GetAbilityContext();
-    if (abilityContext == nullptr) {
-        LOG_ERROR("failed to get ability context.");
-        return std::make_shared<ParamTypeError>("The context is invalid.");
-    }
-    abilityContext->GetSystemPreferencesDir("", false, contextInfo.preferencesDir);
-    return nullptr;
 }
 } // namespace EtsAbility
 } // namespace PreferencesEtsKit
