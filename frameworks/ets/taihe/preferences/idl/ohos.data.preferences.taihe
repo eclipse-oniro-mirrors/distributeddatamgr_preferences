@@ -1,0 +1,175 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!sts_inject("""
+static { loadLibrary("preferences_taihe_native.z") }
+""")
+@!namespace("@ohos.data.preferences", "preferences")
+@!sts_inject_into_module("import BaseContext from 'application.BaseContext';")
+
+union ArrayValueType {
+    intType: i32;
+    doubleType: f64;
+    stringType: String;
+    booleanType: bool;
+}
+
+union ValueType {
+    intType: i32;
+    doubleType: f64;
+    stringType: String;
+    booleanType: bool;
+    arrayType: Array<ArrayValueType>;
+    uint8ArrayType: @typedarray Array<u8>;
+    bigintType: @bigint Array<u64>;
+    objectType: Opaque;
+}
+
+@const
+enum MAX_LENGTH: i32 {
+  MAX_KEY_LENGTH = 1024,
+  MAX_VALUE_LENGTH = 16 * 1024 * 1024,
+}
+
+enum StorageType: i32 {
+  XML = 0,
+  GSKV = 1,
+}
+
+union OptionalString {
+    stringType: String;
+    @null nullType;
+    @undefined undefinedType;
+}
+union OptionalStorageType {
+    storageType: StorageType;
+    @null nullType;
+    @undefined undefinedType;
+}
+struct Options {
+    name: String;
+    dataGroupId: OptionalString;
+    storageType: OptionalStorageType;
+}
+
+interface Preferences {
+    @gen_async("get")
+    @gen_promise("get")
+    GetSync(key: String, defValue: ValueType): ValueType;
+
+    @gen_async("getAll")
+    @gen_promise("getAll")
+    GetAllSync(): Opaque;
+
+    @gen_async("has")
+    @gen_promise("has")
+    HasSync(key: String): bool;
+
+    @gen_async("put")
+    @gen_promise("put")
+    PutSync(key: String, value: ValueType);
+
+    @gen_async("delete")
+    @gen_promise("delete")
+    DeleteSync(key: String): void;
+
+    @gen_async("clear")
+    @gen_promise("clear")
+    ClearSync(): void;
+
+    @gen_async("flush")
+    @gen_promise("flush")
+    FlushSync(): void;
+
+    @!sts_inject_into_interface("""
+        on(type: string, callback: (key: string) => void): void;
+        off(type: string, callback?: (key: string) => void): void;
+        on(type: string, keys: Array<string>, callback: (info: Record<string, ValueType>) => void): void;
+        off(type: string, keys: Array<string>, callback?: (info: Record<string, ValueType>) => void): void;
+    """)
+    @!sts_inject_into_class("""
+        on(type: string, cb: (key: string) => void) {
+            switch(type) {
+                case "change": return this.onChange(cb, cb);
+                case "multiProcessChange": return this.onMultiProcessChange(cb, cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        }
+        off(type: string, cb?: (key: string) => void) {
+            switch(type) {
+                case "change": return this.offChange(cb);
+                case "multiProcessChange": return this.offMultiProcessChange(cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        }
+        on(type: string, keys: Array<string>, cb: (info: Record<string, ValueType>) => void) {
+            switch(type) {
+                case "dataChange": return this.onDataChange(keys, cb, cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        }
+        off(type: string, keys: Array<string>, cb?: (info: Record<string, ValueType>) => void) {
+            switch(type) {
+                case "dataChange": return this.offDataChange(keys, cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        }
+    """)
+    OnChange(cb: (key: String) => void, opq: Opaque);
+    OffChange(opq: Optional<Opaque>);
+    OnMultiProcessChange(cb: (key: String) => void, opq: Opaque);
+    OffMultiProcessChange(opq: Optional<Opaque>);
+    OnDataChange(keys: Array<String>, cb: (data: @record Map<String, ValueType>) => void, opq: Opaque);
+    OffDataChange(keys: Array<String>, opq: Optional<Opaque>);
+}
+
+@gen_async("getPreferences")
+@gen_promise("getPreferences")
+function GetPreferencesSync(context: @sts_type("BaseContext") Opaque, options: Options): Preferences;
+
+@gen_async("getPreferences")
+@gen_promise("getPreferences")
+function GetPreferencesSyncByName(context: @sts_type("BaseContext") Opaque, name: String): Preferences;
+
+@gen_async("deletePreferences")
+@gen_promise("deletePreferences")
+function DeletePreferencesSync(context: @sts_type("BaseContext") Opaque, options: Options): void;
+
+@gen_async("deletePreferences")
+@gen_promise("deletePreferences")
+function DeletePreferencesSyncByName(context: @sts_type("BaseContext") Opaque, name: String): void;
+
+@gen_async("removePreferencesFromCache")
+@gen_promise("removePreferencesFromCache")
+function RemovePreferencesFromCacheSync(context: @sts_type("BaseContext") Opaque, name: String): void;
+
+@gen_async("removePreferencesFromCache")
+@gen_promise("removePreferencesFromCache")
+@overload("removePreferencesFromCacheSync")
+function RemovePreferencesFromCacheSyncByOptions(context: @sts_type("BaseContext") Opaque, options: Options): void;
+
+@!sts_inject("""
+function fromArrayBufferToBigInt(arr: ArrayBuffer): BigInt {
+    let res: BigInt = 0n;
+    for (let i: int = 0; i < arr.getByteLength(); i++) {
+        res |= BigInt(arr.at(i) as long & 0xff) << BigInt(i * 8);
+    }
+    let m: int = arr.getByteLength();
+    if (arr.at(m - 1) < 0) {
+        res |= -1n << BigInt(m * 8 - 1);
+    }
+    return res;
+}
+""")
