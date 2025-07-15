@@ -1237,4 +1237,27 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_039, TestSize.Level0)
 
     PreferencesHelper::DeletePreferences("/data/test/test038");
 }
+
+/**
+ * @tc.name: NativePreferencesTest_040
+ * @tc.desc: normal testcase of delete key
+ * @tc.type: FUNC
+ * @tc.require: Na
+ * @tc.author:
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_040, TestSize.Level0)
+{
+    int errCode;
+    auto pref = PreferencesHelper::GetPreferences("/data/test/test040", errCode);
+    EXPECT_NE(pref, nullptr);
+
+    Object object("{\"key1\":\"value1\",\"key2\":222}");
+    EXPECT_EQ(pref->ReportDataType("test"), false); // !IsObject !objectReported
+    EXPECT_EQ(pref->ReportDataType(object), true); // IsObject !objectReported
+    EXPECT_EQ(pref->ReportDataType(object), false); // IsObject objectReported
+    EXPECT_EQ(pref->ReportDataType("test"), false); // !IsObject objectReported
+
+    PreferencesHelper::DeletePreferences("/data/test/test040");
+}
+
 } // namespace

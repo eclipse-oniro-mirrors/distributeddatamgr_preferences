@@ -36,6 +36,7 @@ ExecutorPool PreferencesBase::executorPool_ = ExecutorPool(1, 0);
 
 PreferencesBase::PreferencesBase(const Options &options) : options_(options)
 {
+    objectReported.store(false);
 }
 
 PreferencesBase::~PreferencesBase()
@@ -311,6 +312,22 @@ Uri PreferencesBase::MakeUri(const std::string &key)
         uriStr = uriStr + STR_QUERY + key;
     }
     return Uri(uriStr);
+}
+
+bool PreferencesBase::ReportDataType(const PreferencesValue &value)
+{
+    if (value.IsObject() && !objectReported.load()) {
+        ReportParam reportParam = { 
+            .bundleName = options_.bundleName,
+            .dbType = isEnhance ? ENHANCE_DB : NORMAL_DB,
+            .storeName = ExtractFileName(options_.filePath),
+            .appendix = "type: Object"
+        };
+        PreferencesDfxManager::Report(reportParam, EVENT_NAME_VALUETYPE_STATISTICS);
+        objectReported.store(true);
+        return true;
+    }
+    return false;
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS
