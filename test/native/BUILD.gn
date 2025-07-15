@@ -68,9 +68,10 @@ group("unittest") {
 group("fuzztest") {
   testonly = true
   deps = []
-  deps += [
-    "fuzztest/dbpreferences_fuzzer:fuzztest",
-    "fuzztest/preferences_fuzzer:fuzztest",
-  ]
+  deps += [ "fuzztest/preferences_fuzzer:fuzztest" ]
+  if (!defined(global_parts_info) ||
+        defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
+      deps += [ "fuzztest/dbpreferences_fuzzer:fuzztest" ]
+  }
 }
 ###############################################################################

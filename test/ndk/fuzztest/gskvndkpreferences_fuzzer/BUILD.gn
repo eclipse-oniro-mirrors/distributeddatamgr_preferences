@@ -32,7 +32,7 @@ config("module_private_config") {
 
 ##############################fuzztest##########################################
 ohos_fuzztest("GskvNdkPreferencesFuzzTest") {
-  module_out_path = "preferences/preference"
+  module_out_path = "preferences/preferences"
 
   fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/ndk/fuzztest/gskvndkpreferences_fuzzer"
 

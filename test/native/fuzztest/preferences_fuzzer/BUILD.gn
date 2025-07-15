@@ -25,7 +25,7 @@ config("module_private_config") {
 
 ##############################fuzztest##########################################
 ohos_fuzztest("PreferencesFuzzTest") {
-  module_out_path = "preferences/preference"
+  module_out_path = "preferences/preferences"
 
   fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/native/fuzztest/preferences_fuzzer"
 
