@@ -56,7 +56,6 @@ ohos_unittest("NativePreferencesTest") {
 
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
   defines = [
-    "private = public",
     "protected = public",
   ]
 }
