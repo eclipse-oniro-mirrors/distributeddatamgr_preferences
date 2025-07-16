@@ -98,6 +98,7 @@ void PutIntFuzz(FuzzedDataProvider &provider)
     bool isEnhance = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
         return;
     }
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
@@ -118,6 +119,7 @@ void GetIntFuzz(FuzzedDataProvider &provider)
     bool isEnhance = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
         return;
     }
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
@@ -140,6 +142,7 @@ void PutStringFuzz(FuzzedDataProvider &provider)
     bool isEnhance = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
         return;
     }
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
@@ -160,6 +163,7 @@ void GetStringFuzz(FuzzedDataProvider &provider)
     bool isEnhance = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
         return;
     }
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
@@ -184,6 +188,7 @@ void PutBoolFuzz(FuzzedDataProvider &provider)
     bool isEnhance = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
         return;
     }
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
@@ -204,6 +209,7 @@ void GetBoolFuzz(FuzzedDataProvider &provider)
     bool isEnhance = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
         return;
     }
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
@@ -226,6 +232,7 @@ void DeleteFuzz(FuzzedDataProvider &provider)
     bool isEnhance = false;
     int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
         return;
     }
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
