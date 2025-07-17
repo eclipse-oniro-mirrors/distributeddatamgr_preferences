@@ -50,13 +50,11 @@ ohos_unittest("NativePreferencesTest") {
   external_deps = [
     "ability_base:zuri",
     "ability_runtime:dataobs_manager",
-    "hilog:libhilog",
     "googletest:gtest_main",
+    "hilog:libhilog",
   ]
 
-  deps = [
-    "${preferences_innerapi_path}:native_preferences_static",
-  ]
+  deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
 }
 
 ###############################################################################
@@ -71,5 +69,9 @@ group("fuzztest") {
   testonly = true
   deps = []
   deps += [ "fuzztest/preferences_fuzzer:fuzztest" ]
+  if (!defined(global_parts_info) ||
+        defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
+      deps += [ "fuzztest/dbpreferences_fuzzer:fuzztest" ]
+  }
 }
 ###############################################################################

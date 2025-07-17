@@ -23,7 +23,6 @@ config("module_private_config") {
     "${preferences_base_path}/frameworks/common/include",
     "${preferences_native_path}/include",
     "${preferences_native_path}/platform/include/",
-    "${preferences_interfaces_path}/inner_api/include/",
     "${preferences_interfaces_path}/ndk/include/",
     "${preferences_base_path}/test/ndk/mock",
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
@@ -33,33 +32,19 @@ config("module_private_config") {
 
 ##############################fuzztest##########################################
 ohos_fuzztest("NdkPreferencesFuzzTest") {
-  module_out_path = "preferences/preference"
+  module_out_path = "preferences/preferences"
 
   fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/ndk/fuzztest/ndkpreferences_fuzzer"
 
   sources = [
+    "${preferences_base_path}/test/ndk/mock/application_context.cpp",
     "${preferences_native_path}/mock/ability_base/zuri/src/uri.cpp",
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/data_ability_observer_stub.cpp",
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/dataobs_mgr_client.cpp",
-    "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
-    "${preferences_native_path}/platform/src/preferences_dfx_adapter.cpp",
-    "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
-    "${preferences_native_path}/platform/src/preferences_thread.cpp",
-    "${preferences_native_path}/src/base64_helper.cpp",
-    "${preferences_native_path}/src/preferences_base.cpp",
-    "${preferences_native_path}/src/preferences_enhance_impl.cpp",
-    "${preferences_native_path}/src/preferences_helper.cpp",
     "${preferences_native_path}/src/preferences_impl.cpp",
-    "${preferences_native_path}/src/preferences_observer.cpp",
-    "${preferences_native_path}/src/preferences_utils.cpp",
-    "${preferences_native_path}/src/preferences_value.cpp",
-    "${preferences_native_path}/src/preferences_value_parcel.cpp",
-    "${preferences_native_path}/src/preferences_xml_utils.cpp",
     "${preferences_ndk_path}/src/oh_convertor.cpp",
     "${preferences_ndk_path}/src/oh_preferences.cpp",
     "${preferences_ndk_path}/src/oh_preferences_option.cpp",
-    "${preferences_ndk_path}/src/oh_preferences_value.cpp",
-    "../../mock/application_context.cpp",
     "ndkpreferences_fuzzer.cpp",
   ]
 
@@ -68,15 +53,8 @@ ohos_fuzztest("NdkPreferencesFuzzTest") {
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
 
   external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:dataobs_manager",
-    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "hitrace:hitrace_meter",
-    "ipc:ipc_core",
-    "libxml2:libxml2",
   ]
 }
 
