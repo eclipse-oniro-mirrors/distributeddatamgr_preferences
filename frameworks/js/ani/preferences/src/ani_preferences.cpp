@@ -217,15 +217,9 @@ static ani_object CreatePreferencesObj(ani_env *env, Options &options)
         return nullptr;
     }
 
-    ani_namespace ns {};
-    if (ANI_OK != env->FindNamespace("L@ohos/data/preferences/preferences;", &ns)) {
-        LOG_ERROR("Not found namespace 'Lpreferences'");
-        return nullptr;
-    }
-
-    static const char *className = "LPreferencesImpl;";
+    static const char *className = "@ohos.data.preferences.preferences.PreferencesImpl";
     ani_class cls;
-    if (ANI_OK != env->Namespace_FindClass(ns, className, &cls)) {
+    if (ANI_OK != env->FindClass(className, &cls)) {
         LOG_ERROR("Not found className %{public}s.", className);
         return nullptr;
     }
