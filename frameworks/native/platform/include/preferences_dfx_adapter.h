@@ -30,7 +30,6 @@ static constexpr const char *EVENT_NAME_DB_CORRUPTED = "DATABASE_CORRUPTED";
 static constexpr const char *EVENT_NAME_PREFERENCES_FAULT = "PREFERENCES_FAULT";
 static constexpr const char *EVENT_NAME_ARKDATA_PREFERENCES_FAULT = "ARKDATA_PREFERENCES_FAULT";
 static constexpr const char *DISTRIBUTED_DATAMGR = "DISTDATAMGR";
-static constexpr const char *EVENT_NAME_VALUETYPE_STATISTICS = "VALUETYPE_STATISTICS";
 
 enum class ReportedFaultBitMap {
     RESTORE_FROM_BAK,

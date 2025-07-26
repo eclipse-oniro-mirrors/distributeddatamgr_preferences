@@ -256,7 +256,7 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
     }
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
-    ReportDataType(value);
+    ReportObjectUsage(shared_from_this(), value);
 
     std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
     if (isCleared_.load()) { // has cleared.

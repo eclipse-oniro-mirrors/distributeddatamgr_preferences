@@ -37,6 +37,7 @@ static const char *STR_LOCK = ".lock";
 static const char *STR_QUERY = "?";
 static const char *STR_SLASH = "/";
 static const char *STR_SCHEME = "sharepreferences://";
+static const char *STR_OBJECT_FLAG = ".objectFlag";
 
 std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
 

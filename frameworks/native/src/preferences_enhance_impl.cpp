@@ -158,6 +158,7 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     if (errCode != E_OK) {
         return errCode;
     }
+    ReportObjectUsage(shared_from_this(), value);
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:Put failed, db has been closed.");
@@ -172,7 +173,6 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
         LOG_ERROR("marshalling value failed, errCode=%{public}d", errCode);
         return errCode;
     }
-    ReportDataType(value);
     std::vector<uint8_t> oriKey(key.begin(), key.end());
     errCode = db_->Put(oriKey, oriValue);
     if (errCode != E_OK) {

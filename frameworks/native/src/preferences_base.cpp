@@ -36,7 +36,7 @@ ExecutorPool PreferencesBase::executorPool_ = ExecutorPool(1, 0);
 
 PreferencesBase::PreferencesBase(const Options &options) : options_(options)
 {
-    objectReported.store(false);
+    objectReported_.store(false);
 }
 
 PreferencesBase::~PreferencesBase()
@@ -314,20 +314,41 @@ Uri PreferencesBase::MakeUri(const std::string &key)
     return Uri(uriStr);
 }
 
-bool PreferencesBase::ReportDataType(const PreferencesValue &value)
+void PreferencesBase::ReportObjectUsage(std::shared_ptr<PreferencesBase> pref, const PreferencesValue &value)
 {
-    if (value.IsObject() && !objectReported.load()) {
-        ReportParam reportParam = { 
-            .bundleName = options_.bundleName,
-            .dbType = isEnhance ? ENHANCE_DB : NORMAL_DB,
-            .storeName = ExtractFileName(options_.filePath),
-            .appendix = "type: Object"
-        };
-        PreferencesDfxManager::Report(reportParam, EVENT_NAME_VALUETYPE_STATISTICS);
-        objectReported.store(true);
-        return true;
+    if (!value.IsObject() || pref == nullptr || pref->objectReported_.load()) {
+        return;
     }
-    return false;
+    ExecutorPool::Task task = [pref] {
+        std::string filePath = pref->options_.filePath;
+        std::string flagFilePath = MakeFilePath(filePath, STR_OBJECT_FLAG);
+        if (Access(flagFilePath) == 0) {
+            pref->objectReported_.store(true);
+            return;
+        }
+
+        std::string::size_type pos = filePath.find_last_of('/');
+        std::string baseDir = filePath.substr(0, pos);
+        if (Access(baseDir) != 0) {
+            return;
+        }
+        ReportFaultParam reportParam = {
+            .faultType = "use object type",
+            .bundleName = pref->options_.bundleName,
+            .dbType = pref->options_.isEnhance ? ENHANCE_DB : NORMAL_DB,
+            .storeName = ExtractFileName(filePath)
+        };
+        PreferencesDfxManager::ReportFault(reportParam);
+        pref->objectReported_.store(true);
+
+        int fd = Open(flagFilePath.c_str());
+        if (fd == -1) {
+            LOG_ERROR("failed open:%{public}s", ExtractFileName(flagFilePath).c_str());
+            return;
+        }
+        OHOS::NativePreferences::Close(fd);
+    };
+    executorPool_.Execute(std::move(task));
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS
