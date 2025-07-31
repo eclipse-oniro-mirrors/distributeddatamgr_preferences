@@ -1296,5 +1296,4 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_041, TestSize.Level0)
     PreferencesHelper::DeletePreferences(path);
     pref = nullptr;
 }
-
 } // namespace

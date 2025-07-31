@@ -31,13 +31,13 @@ static constexpr uint32_t MAX_KEY_LENGTH = 1024;
  */
 static constexpr uint32_t MAX_VALUE_LENGTH = 16 * 1024 * 1024;
 
-static const char *STR_BROKEN = ".broken";
-static const char *STR_BACKUP = ".bak";
-static const char *STR_LOCK = ".lock";
-static const char *STR_QUERY = "?";
-static const char *STR_SLASH = "/";
-static const char *STR_SCHEME = "sharepreferences://";
-static const char *STR_OBJECT_FLAG = ".objectFlag";
+static constexpr const char *STR_BROKEN = ".broken";
+static constexpr const char *STR_BACKUP = ".bak";
+static constexpr const char *STR_LOCK = ".lock";
+static constexpr const char *STR_QUERY = "?";
+static constexpr const char *STR_SLASH = "/";
+static constexpr const char *STR_SCHEME = "sharepreferences://";
+static constexpr const char *STR_OBJECT_FLAG = ".objectFlag";
 
 std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
 

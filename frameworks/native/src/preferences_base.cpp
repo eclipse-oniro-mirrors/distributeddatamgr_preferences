@@ -316,30 +316,29 @@ Uri PreferencesBase::MakeUri(const std::string &key)
 
 void PreferencesBase::ReportObjectUsage(std::shared_ptr<PreferencesBase> pref, const PreferencesValue &value)
 {
-    if (!value.IsObject() || pref == nullptr || pref->objectReported_.load()) {
+    if (!value.IsObject() || pref == nullptr || pref->objectReported_.exchange(true)) {
         return;
     }
     ExecutorPool::Task task = [pref] {
         std::string filePath = pref->options_.filePath;
-        std::string flagFilePath = MakeFilePath(filePath, STR_OBJECT_FLAG);
-        if (Access(flagFilePath) == 0) {
-            pref->objectReported_.store(true);
-            return;
-        }
-
         std::string::size_type pos = filePath.find_last_of('/');
         std::string baseDir = filePath.substr(0, pos);
         if (Access(baseDir) != 0) {
+            pref->objectReported_.store(false);
             return;
         }
+        std::string flagFilePath = MakeFilePath(filePath, STR_OBJECT_FLAG);
+        if (Access(flagFilePath) == 0) {
+            return;
+        }
+
         ReportFaultParam reportParam = {
-            .faultType = "use object type",
+            .faultType = "object usage",
             .bundleName = pref->options_.bundleName,
             .dbType = pref->options_.isEnhance ? ENHANCE_DB : NORMAL_DB,
             .storeName = ExtractFileName(filePath)
         };
         PreferencesDfxManager::ReportFault(reportParam);
-        pref->objectReported_.store(true);
 
         int fd = Open(flagFilePath.c_str());
         if (fd == -1) {
