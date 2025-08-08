@@ -25,19 +25,19 @@ namespace NativePreferences {
 /**
 * @brief The constant Indicates the maximum length of the key in the preferences.
 */
-static constexpr uint32_t MAX_KEY_LENGTH = 1024;
+constexpr uint32_t MAX_KEY_LENGTH = 1024;
 /**
  * @brief The constant Indicates the maximum length of the value in the preferences.
  */
-static constexpr uint32_t MAX_VALUE_LENGTH = 16 * 1024 * 1024;
+constexpr uint32_t MAX_VALUE_LENGTH = 16 * 1024 * 1024;
 
-static constexpr const char *STR_BROKEN = ".broken";
-static constexpr const char *STR_BACKUP = ".bak";
-static constexpr const char *STR_LOCK = ".lock";
-static constexpr const char *STR_QUERY = "?";
-static constexpr const char *STR_SLASH = "/";
-static constexpr const char *STR_SCHEME = "sharepreferences://";
-static constexpr const char *STR_OBJECT_FLAG = ".objectFlag";
+constexpr const char *STR_BROKEN = ".broken";
+constexpr const char *STR_BACKUP = ".bak";
+constexpr const char *STR_LOCK = ".lock";
+constexpr const char *STR_QUERY = "?";
+constexpr const char *STR_SLASH = "/";
+constexpr const char *STR_SCHEME = "sharepreferences://";
+constexpr const char *STR_OBJECT_FLAG = ".objectFlag";
 
 std::string MakeFilePath(const std::string &prefPath, const std::string &suffix);
 
