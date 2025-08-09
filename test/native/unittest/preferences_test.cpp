@@ -27,8 +27,10 @@
 
 #include "log_print.h"
 #include "preferences_errno.h"
+#include "preferences_file_operation.h"
 #include "preferences_helper.h"
 #include "preferences_observer.h"
+#include "preferences_utils.h"
 #include "preferences_value.h"
 
 using namespace testing::ext;
@@ -1236,5 +1238,62 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_039, TestSize.Level0)
     EXPECT_EQ(ret, E_OK);
 
     PreferencesHelper::DeletePreferences("/data/test/test038");
+}
+
+/**
+ * @tc.name: NativePreferencesTest_040
+ * @tc.desc: normal testcase of report object type
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_040, TestSize.Level0)
+{
+    std::string path = "/data/test/test040";
+    std::string testKey = "testKey";
+    int errCode;
+    auto pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_NE(pref, nullptr);
+    EXPECT_EQ(errCode, E_OK);
+
+    Object object("{\"key1\":\"value1\",\"key2\":222}");
+    pref->Put(testKey, "testValue");
+    pref->Put(testKey, object);
+    pref->Put(testKey, object);
+    pref->Put(testKey, "testValue");
+    // Waiting for asynchronous task to create file
+    sleep(1);
+    std::string flagFilePath = PreferencesUtils::MakeFilePath(path, PreferencesUtils::STR_OBJECT_FLAG);
+    EXPECT_EQ(Access(flagFilePath), 0);
+
+    PreferencesHelper::RemovePreferencesFromCache(path);
+    pref = PreferencesHelper::GetPreferences(path, errCode);
+    // There is a flag file created previously
+    pref->Put(testKey, object);
+
+    PreferencesHelper::DeletePreferences(path);
+    pref = nullptr;
+    EXPECT_NE(Access(flagFilePath), 0);
+}
+
+/**
+ * @tc.name: NativePreferencesTest_041
+ * @tc.desc: abnormal testcase of report object type
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTest_041, TestSize.Level0)
+{
+    std::string path = "/invalid/test/test041";
+    std::string testKey = "testKey";
+    int errCode;
+    auto pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_NE(pref, nullptr);
+    EXPECT_EQ(errCode, E_OK);
+
+    Object object("{\"key1\":\"value1\",\"key2\":222}");
+    pref->Put(testKey, object);
+    std::string flagFilePath = PreferencesUtils::MakeFilePath(path, PreferencesUtils::STR_OBJECT_FLAG);
+    EXPECT_NE(Access(flagFilePath), 0);
+
+    PreferencesHelper::DeletePreferences(path);
+    pref = nullptr;
 }
 } // namespace

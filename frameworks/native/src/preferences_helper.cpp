@@ -251,9 +251,10 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     }
 
     std::string filePath = realPath.c_str();
-    std::string backupPath = MakeFilePath(filePath, STR_BACKUP);
-    std::string brokenPath = MakeFilePath(filePath, STR_BROKEN);
-    std::string lockFilePath = MakeFilePath(filePath, STR_LOCK);
+    std::string backupPath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_BACKUP);
+    std::string brokenPath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_BROKEN);
+    std::string lockFilePath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_LOCK);
+    std::string objFlagPath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_OBJECT_FLAG);
 
     bool isMultiProcessing = false;
     PreferencesFileLock fileLock(filePath);
@@ -267,6 +268,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     std::remove(backupPath.c_str());
     std::remove(brokenPath.c_str());
     std::remove(lockFilePath.c_str());
+    std::remove(objFlagPath.c_str());
     if (RemoveEnhanceDbFileIfNeed(path) != E_OK) {
         return E_DELETE_FILE_FAIL;
     }

@@ -48,7 +48,7 @@ static const std::chrono::milliseconds WAIT_CONNECT_TIMEOUT(20);
 static const int ATTEMPTS = 50;
 PreferencesFileLock::PreferencesFileLock(const std::string &path)
 {
-    filePath_ = MakeFilePath(path, STR_LOCK);
+    filePath_ = PreferencesUtils::MakeFilePath(path, PreferencesUtils::STR_LOCK);
     inProcessMutex_ = PreferencesLockManager::Get(filePath_);
     inProcessMutex_->lock();
 }

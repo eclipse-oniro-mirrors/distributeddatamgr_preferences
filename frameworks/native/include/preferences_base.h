@@ -120,6 +120,7 @@ public:
 
 protected:
     Uri MakeUri(const std::string &key = "");
+    void ReportObjectUsage(std::shared_ptr<PreferencesBase> pref, const PreferencesValue &value);
     struct WeakPtrCompare {
         bool operator()(const std::weak_ptr<PreferencesObserver> &a, const std::weak_ptr<PreferencesObserver> &b) const
         {
@@ -138,6 +139,7 @@ protected:
     const Options options_;
 
     static ExecutorPool executorPool_;
+    std::atomic<bool> objectReported_ = false;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

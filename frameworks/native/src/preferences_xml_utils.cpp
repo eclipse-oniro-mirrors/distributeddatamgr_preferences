@@ -382,7 +382,7 @@ static bool IsFileExist(const std::string &inputPath)
 
 static void RemoveBackupFile(const std::string &fileName)
 {
-    std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
+    std::string backupFileName = PreferencesUtils::MakeFilePath(fileName, PreferencesUtils::STR_BACKUP);
     if (IsFileExist(backupFileName) && std::remove(backupFileName.c_str())) {
         LOG_WARN("failed to delete backup file %{public}d.", errno);
     }
@@ -429,7 +429,7 @@ static bool ReportNonCorruptError(
 static bool RenameFromBackupFile(
     const std::string &fileName, const std::string &bundleName, bool &isReportCorrupt, bool &isBakFileExist)
 {
-    std::string backupFileName = MakeFilePath(fileName, STR_BACKUP);
+    std::string backupFileName = PreferencesUtils::MakeFilePath(fileName, PreferencesUtils::STR_BACKUP);
     if (!IsFileExist(backupFileName)) {
         isBakFileExist = false;
         LOG_DEBUG("the backup file does not exist.");
@@ -471,7 +471,7 @@ static bool RenameFromBackupFile(
 
 static bool RenameFile(const std::string &fileName, const std::string &fileType)
 {
-    std::string name = MakeFilePath(fileName, fileType);
+    std::string name = PreferencesUtils::MakeFilePath(fileName, fileType);
     if (std::rename(fileName.c_str(), name.c_str())) {
         LOG_ERROR("failed to rename to %{public}s, err:%{public}d.", fileType.c_str(), errno);
         return false;
@@ -481,12 +481,12 @@ static bool RenameFile(const std::string &fileName, const std::string &fileType)
 
 static bool RenameToBackupFile(const std::string &fileName)
 {
-    return RenameFile(fileName, STR_BACKUP);
+    return RenameFile(fileName, PreferencesUtils::STR_BACKUP);
 }
 
 static bool RenameToBrokenFile(const std::string &fileName)
 {
-    return RenameFile(fileName, STR_BROKEN);
+    return RenameFile(fileName, PreferencesUtils::STR_BROKEN);
 }
 
 static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundleName)

@@ -154,7 +154,7 @@ void PreferencesImpl::AwaitLoadFile()
 
 PreferencesValue PreferencesImpl::Get(const std::string &key, const PreferencesValue &defValue)
 {
-    if (CheckKey(key) != E_OK) {
+    if (PreferencesUtils::CheckKey(key) != E_OK) {
         return defValue;
     }
 
@@ -231,7 +231,7 @@ bool PreferencesImpl::IsClose(const std::string &name)
 
 bool PreferencesImpl::HasKey(const std::string &key)
 {
-    if (CheckKey(key) != E_OK) {
+    if (PreferencesUtils::CheckKey(key) != E_OK) {
         return false;
     }
 
@@ -246,16 +246,17 @@ bool PreferencesImpl::HasKey(const std::string &key)
 
 int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
 {
-    int errCode = CheckKey(key);
+    int errCode = PreferencesUtils::CheckKey(key);
     if (errCode != E_OK) {
         return errCode;
     }
-    errCode = CheckValue(value);
+    errCode = PreferencesUtils::CheckValue(value);
     if (errCode != E_OK) {
         return errCode;
     }
     AwaitLoadFile();
     IsClose(std::string(__FUNCTION__));
+    ReportObjectUsage(shared_from_this(), value);
 
     std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
     if (isCleared_.load()) { // has cleared.
@@ -282,7 +283,7 @@ int PreferencesImpl::Put(const std::string &key, const PreferencesValue &value)
 
 int PreferencesImpl::Delete(const std::string &key)
 {
-    int errCode = CheckKey(key);
+    int errCode = PreferencesUtils::CheckKey(key);
     if (errCode != E_OK) {
         return errCode;
     }
@@ -392,7 +393,7 @@ int PreferencesImpl::FlushSync()
 
 std::pair<int, PreferencesValue> PreferencesImpl::GetValue(const std::string &key, const PreferencesValue &defValue)
 {
-    int errCode = CheckKey(key);
+    int errCode = PreferencesUtils::CheckKey(key);
     if (errCode != E_OK) {
         return std::make_pair(errCode, defValue);
     }
