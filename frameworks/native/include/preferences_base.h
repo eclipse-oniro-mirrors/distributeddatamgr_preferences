@@ -139,7 +139,7 @@ protected:
     const Options options_;
 
     static ExecutorPool executorPool_;
-    std::atomic<bool> objectReported_;
+    std::atomic<bool> objectReported_ = false;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

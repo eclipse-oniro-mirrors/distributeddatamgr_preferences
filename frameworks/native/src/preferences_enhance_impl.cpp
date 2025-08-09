@@ -65,7 +65,7 @@ int PreferencesEnhanceImpl::Init()
 
 PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const PreferencesValue &defValue)
 {
-    if (CheckKey(key) != E_OK) {
+    if (PreferencesUtils::CheckKey(key) != E_OK) {
         return defValue;
     }
     // write lock here, get not support concurrence
@@ -108,7 +108,7 @@ PreferencesValue PreferencesEnhanceImpl::Get(const std::string &key, const Prefe
 
 bool PreferencesEnhanceImpl::HasKey(const std::string &key)
 {
-    if (CheckKey(key) != E_OK) {
+    if (PreferencesUtils::CheckKey(key) != E_OK) {
         return false;
     }
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
@@ -150,11 +150,11 @@ bool PreferencesEnhanceImpl::HasKey(const std::string &key)
 
 int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &value)
 {
-    int errCode = CheckKey(key);
+    int errCode = PreferencesUtils::CheckKey(key);
     if (errCode != E_OK) {
         return errCode;
     }
-    errCode = CheckValue(value);
+    errCode = PreferencesUtils::CheckValue(value);
     if (errCode != E_OK) {
         return errCode;
     }
@@ -199,7 +199,7 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
 
 int PreferencesEnhanceImpl::Delete(const std::string &key)
 {
-    int errCode = CheckKey(key);
+    int errCode = PreferencesUtils::CheckKey(key);
     if (errCode != E_OK) {
         return errCode;
     }
@@ -368,7 +368,7 @@ int PreferencesEnhanceImpl::CloseDb()
 std::pair<int, PreferencesValue> PreferencesEnhanceImpl::GetValue(const std::string &key,
     const PreferencesValue &defValue)
 {
-    int errCode = CheckKey(key);
+    int errCode = PreferencesUtils::CheckKey(key);
     if (errCode != E_OK) {
         return std::make_pair(errCode, defValue);
     }

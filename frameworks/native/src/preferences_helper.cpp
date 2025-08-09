@@ -251,10 +251,10 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     }
 
     std::string filePath = realPath.c_str();
-    std::string backupPath = MakeFilePath(filePath, STR_BACKUP);
-    std::string brokenPath = MakeFilePath(filePath, STR_BROKEN);
-    std::string lockFilePath = MakeFilePath(filePath, STR_LOCK);
-    std::string objFlagPath = MakeFilePath(filePath, STR_OBJECT_FLAG);
+    std::string backupPath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_BACKUP);
+    std::string brokenPath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_BROKEN);
+    std::string lockFilePath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_LOCK);
+    std::string objFlagPath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_OBJECT_FLAG);
 
     bool isMultiProcessing = false;
     PreferencesFileLock fileLock(filePath);

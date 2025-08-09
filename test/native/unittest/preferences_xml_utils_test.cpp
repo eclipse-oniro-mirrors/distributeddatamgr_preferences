@@ -336,7 +336,8 @@ HWTEST_F(PreferencesXmlUtilsTest, RenameToBrokenFileTest_001, TestSize.Level0)
 
     std::unordered_map<std::string, PreferencesValue> values;
     values.insert({"intKey", 2});
-    PreferencesXmlUtils::WriteSettingXml(MakeFilePath(fileName, STR_BACKUP), "", values);
+    PreferencesXmlUtils::WriteSettingXml(PreferencesUtils::MakeFilePath(fileName, PreferencesUtils::STR_BACKUP), "",
+        values);
 
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(fileName, errCode);
@@ -361,7 +362,7 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_004, TestSize.Level0)
     std::ofstream oss(fileName);
     oss << "corrupted";
 
-    std::ofstream ossBak(MakeFilePath(fileName, STR_BACKUP));
+    std::ofstream ossBak(PreferencesUtils::MakeFilePath(fileName, PreferencesUtils::STR_BACKUP));
     ossBak << "corruptedBak";
 
     std::unordered_map<std::string, PreferencesValue> values;
@@ -404,7 +405,8 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_005, TestSize.Level0)
 
     std::unordered_map<std::string, PreferencesValue> values;
     values.insert({"stringKey", ""});
-    bool result = PreferencesXmlUtils::WriteSettingXml(MakeFilePath(fileName, STR_BACKUP), "", values);
+    bool result = PreferencesXmlUtils::WriteSettingXml(
+        PreferencesUtils::MakeFilePath(fileName, PreferencesUtils::STR_BACKUP), "", values);
     EXPECT_EQ(result, true);
 
     std::unordered_map<std::string, PreferencesValue> allDatas;

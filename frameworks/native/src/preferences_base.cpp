@@ -36,7 +36,6 @@ ExecutorPool PreferencesBase::executorPool_ = ExecutorPool(1, 0);
 
 PreferencesBase::PreferencesBase(const Options &options) : options_(options)
 {
-    objectReported_.store(false);
 }
 
 PreferencesBase::~PreferencesBase()
@@ -303,13 +302,13 @@ Uri PreferencesBase::MakeUri(const std::string &key)
 {
     std::string uriStr;
     if (options_.dataGroupId.empty()) {
-        uriStr = STR_SCHEME + options_.bundleName + STR_SLASH + options_.filePath;
+        uriStr = PreferencesUtils::STR_SCHEME + options_.bundleName + PreferencesUtils::STR_SLASH + options_.filePath;
     } else {
-        uriStr = STR_SCHEME + options_.dataGroupId + STR_SLASH + options_.filePath;
+        uriStr = PreferencesUtils::STR_SCHEME + options_.dataGroupId + PreferencesUtils::STR_SLASH + options_.filePath;
     }
 
     if (!key.empty()) {
-        uriStr = uriStr + STR_QUERY + key;
+        uriStr = uriStr + PreferencesUtils::STR_QUERY + key;
     }
     return Uri(uriStr);
 }
@@ -319,7 +318,11 @@ void PreferencesBase::ReportObjectUsage(std::shared_ptr<PreferencesBase> pref, c
     if (!value.IsObject() || pref == nullptr || pref->objectReported_.exchange(true)) {
         return;
     }
-    ExecutorPool::Task task = [pref] {
+    ExecutorPool::Task task = [weakPref = std::weak_ptr<PreferencesBase>(pref)] {
+        auto pref = weakPref.lock();
+        if (pref == nullptr) {
+            return;
+        }
         std::string filePath = pref->options_.filePath;
         std::string::size_type pos = filePath.find_last_of('/');
         std::string baseDir = filePath.substr(0, pos);
@@ -327,7 +330,7 @@ void PreferencesBase::ReportObjectUsage(std::shared_ptr<PreferencesBase> pref, c
             pref->objectReported_.store(false);
             return;
         }
-        std::string flagFilePath = MakeFilePath(filePath, STR_OBJECT_FLAG);
+        std::string flagFilePath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_OBJECT_FLAG);
         if (Access(flagFilePath) == 0) {
             return;
         }

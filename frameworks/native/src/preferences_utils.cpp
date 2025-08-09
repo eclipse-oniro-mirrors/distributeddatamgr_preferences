@@ -23,12 +23,12 @@
 namespace OHOS {
 namespace NativePreferences {
 
-std::string MakeFilePath(const std::string &prefPath, const std::string &suffix)
+std::string PreferencesUtils::MakeFilePath(const std::string &prefPath, const std::string &suffix)
 {
     return prefPath + suffix;
 }
 
-int CheckKey(const std::string &key)
+int PreferencesUtils::CheckKey(const std::string &key)
 {
     if (key.empty()) {
         LOG_ERROR("The key string is null or empty.");
@@ -41,7 +41,7 @@ int CheckKey(const std::string &key)
     return E_OK;
 }
 
-int CheckValue(const PreferencesValue &value)
+int PreferencesUtils::CheckValue(const PreferencesValue &value)
 {
     auto lengthCheck = [] (uint32_t length, const std::string &errMsg) {
         if (MAX_VALUE_LENGTH < length) {

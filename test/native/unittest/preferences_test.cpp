@@ -1261,7 +1261,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_040, TestSize.Level0)
     pref->Put(testKey, "testValue");
     // Waiting for asynchronous task to create file
     sleep(1);
-    std::string flagFilePath = MakeFilePath(path, STR_OBJECT_FLAG);
+    std::string flagFilePath = PreferencesUtils::MakeFilePath(path, PreferencesUtils::STR_OBJECT_FLAG);
     EXPECT_EQ(Access(flagFilePath), 0);
 
     PreferencesHelper::RemovePreferencesFromCache(path);
@@ -1290,7 +1290,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_041, TestSize.Level0)
 
     Object object("{\"key1\":\"value1\",\"key2\":222}");
     pref->Put(testKey, object);
-    std::string flagFilePath = MakeFilePath(path, STR_OBJECT_FLAG);
+    std::string flagFilePath = PreferencesUtils::MakeFilePath(path, PreferencesUtils::STR_OBJECT_FLAG);
     EXPECT_NE(Access(flagFilePath), 0);
 
     PreferencesHelper::DeletePreferences(path);
