@@ -602,7 +602,14 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
         return ParseArrayNodeElement(node, element);
     }
 
-    LOG_ERROR("An unsupported element type was encountered in parsing = %{public}s.", node->name);
+    std::string keyName;
+    xmlChar *key = xmlGetProp(node, (const xmlChar *)ATTR_KEY);
+    if (key != nullptr) {
+        keyName = std::string(reinterpret_cast<char *>(key));
+        xmlFree(key);
+    }
+    LOG_ERROR("An unsupported element type was encountered in parsing = %{public}s, keyName = %{public}s.", node->name,
+        Anonymous::ToBeAnonymous(keyName).c_str());
     return false;
 }
 
