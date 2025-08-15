@@ -59,6 +59,7 @@ if (!is_mingw && !is_mac) {
       "common_event_service:cesfwk_innerkits",
       "c_utils:utils",
       "hilog:libhilog",
+      "ipc:ipc_single",
       "napi:ace_napi",
     ]
 

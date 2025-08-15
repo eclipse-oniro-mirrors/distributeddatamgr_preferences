@@ -111,7 +111,7 @@ if (is_ohos) {
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
-      "ipc:ipc_core",
+      "ipc:ipc_single",
       "libxml2:libxml2",
     ]
     public_configs = [ ":native_preferences_public_config" ]
@@ -270,7 +270,7 @@ ohos_static_library("native_preferences_static") {
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
-      "ipc:ipc_core",
+      "ipc:ipc_single",
       "libxml2:libxml2",
     ]
   }
