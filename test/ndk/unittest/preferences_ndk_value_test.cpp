@@ -323,7 +323,7 @@ HWTEST_F(PreferencesNdkValueTest, NDKPreferencesTestEmptyValueTest001, TestSize.
 }
 
 /**
- * @tc.name: NDKPreferencesTestEmptyValueTest001
+ * @tc.name: NDKPreferencesTestTypeTest001
  * @tc.desc: test key and value
  * @tc.type: FUNC
  * @tc.require: NA
