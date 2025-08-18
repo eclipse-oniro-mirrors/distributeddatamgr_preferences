@@ -347,11 +347,11 @@ export namespace preferences {
       let p = new Promise<boolean>((resolve: (v: boolean) => void,
         reject: (error: Error) => void) => {
           let p1 = taskpool.execute(hasSyncInner, this, key);
-          p1.then((e :NullishType) : boolean =>{
+          p1.then((e :NullishType) : void =>{
               let r =  e as boolean;
               hilog.info(0x0000, 'preferences', "in promise then, r is: " + r)
               resolve(r);
-          }).catch((err: Error) : boolean => {
+          }).catch((err: Error) : void => {
             reject(err);
           });
       });

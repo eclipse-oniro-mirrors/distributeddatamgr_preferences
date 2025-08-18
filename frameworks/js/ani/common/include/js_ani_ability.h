@@ -18,6 +18,7 @@
 #include <ani.h>
 #include <iostream>
 #include <string>
+#include <mutex>
 
 #include "preferences_error.h"
 #include "ability.h"

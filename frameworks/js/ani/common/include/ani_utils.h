@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef PREFRENCES_ANI_COMMON_INCLUDE_ANI_UTILS_H
-#define PREFRENCES_ANI_COMMON_INCLUDE_ANI_UTILS_H
+#ifndef PREFERENCES_ANI_COMMON_INCLUDE_ANI_UTILS_H
+#define PREFERENCES_ANI_COMMON_INCLUDE_ANI_UTILS_H
 
 #include <ani.h>
 
@@ -72,6 +72,9 @@ std::string AniStringToStdStr(ani_env *env, ani_string aniStr)
 
     ani_size bytesWritten = 0;
     env->String_GetUTF8(aniStr, utf8Buffer, strSize + 1, &bytesWritten);
+    if (bytesWritten > strSize) {
+        bytesWritten = strSize;
+    }
     utf8Buffer[bytesWritten] = '\0';
     std::string content = std::string(utf8Buffer);
     return content;
@@ -177,7 +180,10 @@ bool UnionAccessor::TryConvert<std::vector<double>>(std::vector<double> &value)
     if (ANI_OK != env_->Object_GetPropertyByName_Double(obj_, "length", &length)) {
         return false;
     }
-    for (int i = 0; i < int(length); i++) {
+    if (length > static_cast<ani_double>(INT_MAX)) {
+        return false;
+    }
+    for (int i = 0; i < static_cast<int>(length); i++) {
         ani_ref arrayRef;
         if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "I:Lstd/core/Object;", &arrayRef, (ani_int)i)) {
             return false;
@@ -235,7 +241,7 @@ bool UnionAccessor::TryConvert<std::vector<bool>>(std::vector<bool> &value)
             &boolValue)) {
             return false;
         }
-        value.push_back(static_cast<double>(boolValue));
+        value.push_back(static_cast<bool>(boolValue));
     }
     return true;
 }
@@ -257,4 +263,4 @@ bool UnionAccessor::TryConvert<std::vector<uint8_t>>(std::vector<uint8_t> &value
     }
     return true;
 }
-#endif
+#endif // PREFERENCES_ANI_COMMON_INCLUDE_ANI_UTILS_H
