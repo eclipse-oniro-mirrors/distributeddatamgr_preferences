@@ -439,4 +439,27 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_006, TestSize.Level1)
     int ret = PreferencesHelper::DeletePreferences(fileName);
     EXPECT_EQ(ret, E_OK);
 }
+
+/**
+* @tc.name: ReadSettingXmlTest_007
+* @tc.desc: Test for unsupported data types and no key in the element
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_007, TestSize.Level1)
+{
+    std::string fileName = "/data/test/test01";
+    // construct an abnormal file
+    std::string abnormalContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        "<preferences version=\"1.0\"><text value=\"1\"/></preferences>";
+    std::ofstream file(fileName);
+    file << abnormalContent;
+    file.close();
+
+    std::unordered_map<std::string, PreferencesValue> values;
+    bool res = PreferencesXmlUtils::ReadSettingXml(fileName, "", values);
+    EXPECT_EQ(res, false);
+
+    int ret = PreferencesHelper::DeletePreferences(fileName);
+    EXPECT_EQ(ret, E_OK);
+}
 }
