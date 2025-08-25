@@ -630,13 +630,7 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             mPreference.on('dataChange', ['key1', 'key2'], observer1);
             await mPreference.put("key2", 222)
             await mPreference.put("key1", "value1")
-            await mPreference.delete("key2", (err) => {
-                if (err) {
-                    console.log("delete err =" + err + ", code =" + err.code +", message =" + err.message)
-                    expect().assertFail()
-                }
-                console.log("delete err")
-            });
+            await mPreference.delete("key2");
             await mPreference.flush()
         } catch (err) {
             console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
