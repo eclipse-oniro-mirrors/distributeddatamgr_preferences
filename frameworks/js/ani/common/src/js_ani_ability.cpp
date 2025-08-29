@@ -21,9 +21,11 @@ namespace OHOS {
 namespace PreferencesJsKit {
 namespace JSAbility {
 static CONTEXT_MODE gContextNode = CONTEXT_MODE::INIT;
+std::mutex g_contextModeMutex;
 
 CONTEXT_MODE GetContextMode(ani_env* env, ani_object context)
 {
+    std::lock_guard<std::mutex> lock(g_contextModeMutex);
     if (gContextNode == CONTEXT_MODE::INIT) {
         ani_boolean isStageMode;
         ani_status status = OHOS::AbilityRuntime::IsStageContext(env, context, isStageMode);

@@ -47,7 +47,7 @@ static void ThrowBusinessError(ani_env *env, int errCode, std::string&& errMsg)
     ani_object errorObject;
     status = env->Object_New(cls, ctor, &errorObject);
     if (status != ANI_OK) {
-        LOG_ERROR("create BusinessError object failed, status = %{public}d", status);
+        LOG_ERROR("Object_New errorObject failed, status = %{public}d", status);
         return;
     }
     ani_double aniErrCode = static_cast<ani_double>(errCode);
@@ -76,6 +76,7 @@ static ani_string StdStringToANIString(ani_env* env, const std::string& str)
     ani_string stringAni = nullptr;
     if (ANI_OK != env->String_NewUTF8(str.c_str(), str.size(), &stringAni)) {
         LOG_INFO("String_NewUTF8 Failed");
+        return nullptr;
     }
     return stringAni;
 }
@@ -303,7 +304,7 @@ static ani_object MapToObject(ani_env *env, std::map<std::string, PreferencesVal
     ani_method setter;
     if (ANI_OK != env->Class_FindMethod(cls, "$_set", nullptr, &setter)) {
         LOG_ERROR("Class_GetMethod set Failed '%{public}s'.", className);
-        return aniObject;
+        return nullptr;
     }
 
     for (auto& value : values) {
@@ -311,7 +312,7 @@ static ani_object MapToObject(ani_env *env, std::map<std::string, PreferencesVal
         ani_object aniObjVal = PreferencesValueToObject(env, value.second);
         if (env->Object_CallMethod_Void(aniObject, setter, aniKey, aniObjVal) != ANI_OK) {
             LOG_INFO("Object_CallMethodByName_Void  $_set Faild ");
-            break;
+            return nullptr;
         }
     }
     return aniObject;
@@ -539,8 +540,10 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> va
     retCode = env->ArrayBuffer_GetInfo(static_cast<ani_arraybuffer>(buffer), &bufData, &bufLength);
     if (retCode != ANI_OK) {
         LOG_INFO("Failed: env->ArrayBuffer_GetInfo()");
+        return nullptr;
     }
-    auto ret = memcpy_s(bufData, bufLength, values.data(), bufLength);
+    size_t copySize = std::min(bufLength, valueSize);
+    auto ret = memcpy_s(bufData, bufLength, values.data(), copySize);
     if (ret != 0) {
         return nullptr;
     }
@@ -654,37 +657,21 @@ static ani_object PreferencesValueToObject(ani_env *env, PreferencesValue &res)
     ani_object aniObjectRet = nullptr;
     if (res.IsDouble()) {
         aniObjectRet = DoubleToObject(env, res);
-    }
-
-    if (res.IsBool()) {
+    } else if (res.IsBool()) {
         aniObjectRet = BoolToObject(env, res);
-    }
-
-    if (res.IsString()) {
+    } else if (res.IsString()) {
         aniObjectRet = StringToObject(env, res);
-    }
-
-    if (res.IsLong()) {
+    } else if (res.IsLong()) {
         aniObjectRet = BigIntToObject(env, res);
-    }
-
-    if (res.IsUint8Array()) {
+    } else if (res.IsUint8Array()) {
         aniObjectRet = Uint8ArrayToObject(env, static_cast<std::vector<uint8_t>>(res));
-    }
-
-    if (res.IsStringArray()) {
+    } else if (res.IsStringArray()) {
         aniObjectRet = StringArrayToObject(env, res);
-    }
-
-    if (res.IsBoolArray()) {
+    } else if (res.IsBoolArray()) {
         aniObjectRet = BoolArrayToObject(env, res);
-    }
-
-    if (res.IsDoubleArray()) {
+    } else if (res.IsDoubleArray()) {
         aniObjectRet = DoubleArrayToObject(env, res);
-    }
-
-    if (res.IsObject()) {
+    } else if (res.IsObject()) {
         aniObjectRet = ObjectToANIObject(env, res);
     }
     return aniObjectRet;
@@ -716,7 +703,7 @@ static int PutInner(ani_env *env, ani_object obj, ani_string key, ani_object uni
     auto keyValue = AniStringToStdStr(env, key);
     PreferencesValue defValue = ParsePreferencesValue(env, unionValue);
     errCode = preferences->Put(keyValue, defValue);
-    if (preferences->Put(keyValue, defValue) != 0) {
+    if (errCode != 0) {
         LOG_INFO("PutInner: put failed errCode is %{public}d.", errCode);
     }
     return errCode;
