@@ -42,8 +42,7 @@ PreferencesEnhanceImpl::PreferencesEnhanceImpl(const Options &options): Preferen
 
 PreferencesEnhanceImpl::~PreferencesEnhanceImpl()
 {
-    std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
-    db_ = nullptr;
+    CloseDb();
 }
 
 int PreferencesEnhanceImpl::Init()
