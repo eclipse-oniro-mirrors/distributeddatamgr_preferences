@@ -49,14 +49,14 @@ enum StorageType: i32 {
 }
 
 union OptionalString {
+    @undefined undefinedType;
     stringType: String;
     @null nullType;
-    @undefined undefinedType;
 }
 union OptionalStorageType {
+    @undefined undefinedType;
     storageType: StorageType;
     @null nullType;
-    @undefined undefinedType;
 }
 struct Options {
     name: String;
