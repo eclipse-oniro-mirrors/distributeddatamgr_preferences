@@ -412,8 +412,6 @@ std::string AniStringToStdStr(ani_env *env, ani_string aniStr)
     ani_size bytes_written = 0;
     env->String_GetUTF8(aniStr, &content[0], strSize + 1, &bytes_written);
     content.resize(bytes_written);
-    LOG_ERROR("mark--- strSize:%{public}d, bytes_written:%{public}d, content::%{public}s.",
-        static_cast<int>(strSize), static_cast<int>(bytes_written), content.c_str());
     return content;
 }
 
