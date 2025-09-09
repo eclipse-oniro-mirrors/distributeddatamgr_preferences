@@ -126,7 +126,6 @@ napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context, 
         if (context->callback_ == nullptr) {
             napi_reject_deferred(env, context->defer_, promise);
         }
-        return promise;
     }
     auto end_time = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
