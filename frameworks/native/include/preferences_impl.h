@@ -82,6 +82,8 @@ private:
     inline void AwaitLoadFile();
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
     bool ReadSettingXml(std::unordered_map<std::string, PreferencesValue> &conMap);
+    static void ExecuteNotifyChange(std::shared_ptr<PreferencesImpl> pref,
+        std::shared_ptr<std::unordered_set<std::string>> keysModified);
 
     std::atomic<bool> loaded_;
     bool isNeverUnlock_;

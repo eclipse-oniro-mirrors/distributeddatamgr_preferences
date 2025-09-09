@@ -474,16 +474,21 @@ void PreferencesImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl>
             }
         }
     }
+    ExecuteNotifyChange(pref, keysModified);
+}
 
+void PreferencesImpl::ExecuteNotifyChange(std::shared_ptr<PreferencesImpl> pref,
+    std::shared_ptr<std::unordered_set<std::string>> keysModified)
+{
     ExecutorPool::Task task = [pref, keysModified] {
         if (pref == nullptr || pref->dataObsMgrClient_ == nullptr) {
             return;
         }
+        std::stringstream ss;
         for (auto &key : *keysModified) {
             ss << Anonymous::ToBeAnonymous(key) << ". ";
             if (ss.tellp() > MAX_LOG_LENGTH) {
                 LOG_INFO("key length too long, notify %{public}s", ss.str().c_str());
-                ss.str("");
                 ss.clear();
             }
             pref->dataObsMgrClient_->NotifyChange(pref->MakeUri(key));
