@@ -22,7 +22,7 @@
 #include <functional>
 #include <thread>
 #include <chrono>
-#include <cinttypes>
+#include <sstream>
 
 #include "executor_pool.h"
 #include "log_print.h"
@@ -40,6 +40,7 @@ using namespace std::chrono;
 constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
 constexpr int32_t LOAD_XML_LOG_TIME = 1000;
+constexpr int32_t MAX_LOG_LENGTH = 3000;
 PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options)
 {
     loaded_.store(false);
@@ -479,8 +480,16 @@ void PreferencesImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl>
             return;
         }
         for (auto &key : *keysModified) {
-            LOG_INFO("notify %{public}s", Anonymous::ToBeAnonymous(key).c_str());
+            ss << Anonymous::ToBeAnonymous(key) << ". ";
+            if (ss.tellp() > MAX_LOG_LENGTH) {
+                LOG_INFO("key length too long, notify %{public}s", ss.str().c_str());
+                ss.str("");
+                ss.clear();
+            }
             pref->dataObsMgrClient_->NotifyChange(pref->MakeUri(key));
+        }
+        if (!ss.str().empty()) {
+            LOG_INFO("notify %{public}s", ss.str().c_str());
         }
     };
     executorPool_.Execute(std::move(task));
