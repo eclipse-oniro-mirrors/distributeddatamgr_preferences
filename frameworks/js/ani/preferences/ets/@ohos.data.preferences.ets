@@ -138,13 +138,13 @@ export namespace preferences {
   }
 
   export function deletePreferences(context: Context, name: string): Promise<void> {
-    let p = new Promise<void>((resolve: (v: undefined) => void,
-      reject: (error: Object) => void) : void => {
+    let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+      reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(delPreByName, context, name);
         p1.then((e : NullishType) : void =>{
           let ret =  e as int;
           hilog.info(0x0000, 'preferences', "in deletePreferences by name promised then. ret is " + ret);
-          resolve(undefined);
+          resolve(Promise.resolve());
         }).catch((error: Error) : void => {
           reject(error);
         });
@@ -153,13 +153,13 @@ export namespace preferences {
   }
 
   export function deletePreferences(context: Context, options: Options): Promise<void> {
-    let p = new Promise<void>((resolve: (v: undefined) => void,
-      reject: (error: Object) => void) : void => {
+    let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+      reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(delPreByOpt, context, options);
         p1.then((e : NullishType) : void=> {
           let ret =  e as int;
           hilog.info(0x0000, 'preferences', "in deletePreferences by opt promised then. ret is " + ret);
-          resolve(undefined);
+          resolve(Promise.resolve());
         }).catch((error: Error) : void => {
           reject(error);
         });
@@ -204,11 +204,11 @@ export namespace preferences {
   };
 
   export function removePreferencesFromCache(context: Context, name: string): Promise<void> {
-    let p = new Promise<void>((resolve: (v: undefined) => void,
-      reject: (error: Object) => void) : void => {
+    let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+      reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(executeRemoveByName, context, name);
         p1.then((e : NullishType) : void =>{
-          resolve(undefined);
+          resolve(Promise.resolve());
         }).catch((error: Error) : void => {
           reject(error);
         });
@@ -217,11 +217,11 @@ export namespace preferences {
   };
 
   export function removePreferencesFromCache(context: Context, options: Options): Promise<void> {
-    let p = new Promise<void>((resolve: (v: undefined) => void,
-      reject: (error: Object) => void) : void => {
+    let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+      reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(executeRemoveByOpt, context, options);
         p1.then((e : NullishType) : void=> {
-          resolve(undefined);
+          resolve(Promise.resolve());
         }).catch((error: Error) : void => {
           reject(error);
         });
@@ -376,12 +376,12 @@ export namespace preferences {
     }
 
     put(key: string, value: ValueType): Promise<void> {
-      let p = new Promise<void>((resolve: (v: undefined) => void,
-        reject: (error: Object) => void) : void => {
+      let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+        reject: (error: Error) => void) : void => {
           let p1 = taskpool.execute(putSyncFunc, this, key, value);
           p1.then((e :NullishType) : void =>{
             hilog.info(0x0000, 'preferences', "end put in promise thread.")
-            resolve(undefined);
+            resolve(Promise.resolve());
           }).catch((err: Error) : void => {
             reject(err);
           });
@@ -407,13 +407,13 @@ export namespace preferences {
     }
 
     delete(key: string): Promise<void> {
-      let p = new Promise<void>((resolve: (v: undefined) => void,
-        reject: (error: Object) => void) : void => {
+      let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+        reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(deleteSyncInner, this, key);
           p1.then((e :NullishType) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In delete Promise, ret is: " + r);
-            resolve(undefined);
+            resolve(Promise.resolve());
         }).catch((err: Error) : void => {
           reject(err);
         });
@@ -439,13 +439,13 @@ export namespace preferences {
     }
 
     flush(): Promise<void> {
-      let p = new Promise<void>((resolve: (v: undefined) => void,
-        reject: (error: Object) => void) : void => {
+      let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+        reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(flushSync, this);
           p1.then((e :NullishType) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In flush Promise, ret is: " + r);
-            resolve(undefined);
+            resolve(Promise.resolve());
         }).catch((err: Error) : void => {
           reject(err);
         });
@@ -459,13 +459,13 @@ export namespace preferences {
     };
 
     clear(): Promise<void> {
-      let p = new Promise<void>((resolve: (v: undefined) => void,
-        reject: (error: Object) => void) : void => {
+      let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
+        reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(clearSyncInner, this);
           p1.then((e :NullishType) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In clear Promise, ret is: " + r);
-            resolve(undefined);
+            resolve(Promise.resolve());
         }).catch((err: Error) : void => {
           reject(err);
         });
