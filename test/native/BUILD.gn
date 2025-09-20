@@ -71,7 +71,12 @@ group("fuzztest") {
   deps += [ "fuzztest/preferences_fuzzer:fuzztest" ]
   if (!defined(global_parts_info) ||
         defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
-      deps += [ "fuzztest/dbpreferences_fuzzer:fuzztest" ]
+      deps += [
+        "fuzztest/dbpreferences_fuzzer:fuzztest",
+        "fuzztest/dbpreferencesbasevalue_fuzzer:fuzztest",
+        "fuzztest/dbpreferencesget_fuzzer:fuzztest",
+        "fuzztest/dbpreferencesvector_fuzzer:fuzztest",
+      ]
   }
 }
 ###############################################################################

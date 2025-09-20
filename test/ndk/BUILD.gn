@@ -100,7 +100,11 @@ group("fuzztest") {
   deps = []
   deps += [
     "fuzztest/gskvndkpreferences_fuzzer:fuzztest",
+    "fuzztest/gskvndkpreferencesget_fuzzer:fuzztest",
+    "fuzztest/gskvndkpreferencesput_fuzzer:fuzztest",
     "fuzztest/ndkpreferences_fuzzer:fuzztest",
+    "fuzztest/ndkpreferencesget_fuzzer:fuzztest",
+    "fuzztest/ndkpreferencesput_fuzzer:fuzztest",
   ]
 }
 ###############################################################################
