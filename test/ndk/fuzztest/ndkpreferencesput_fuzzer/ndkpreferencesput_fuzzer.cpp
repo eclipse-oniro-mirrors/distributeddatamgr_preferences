@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ndkpreferences_fuzzer.h"
+#include "ndkpreferencesput_fuzzer.h"
 #include <fuzzer/FuzzedDataProvider.h>
 #include <iostream>
 
@@ -27,7 +27,7 @@
 using namespace OHOS::NativePreferences;
 
 namespace OHOS {
-class NdkPreferencesFuzzTest {
+class NdkPreferencesPutFuzzTest {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -37,24 +37,25 @@ public:
     static void CreateDirectoryRecursively(const std::string &path);
 };
 
-void NdkPreferencesFuzzTest::SetUpTestCase(void)
+void NdkPreferencesPutFuzzTest::SetUpTestCase(void)
 {
     CreateDirectoryRecursively("/data/test/");
 }
 
-void NdkPreferencesFuzzTest::TearDownTestCase(void)
+void NdkPreferencesPutFuzzTest::TearDownTestCase(void)
 {
 }
 
-void NdkPreferencesFuzzTest::SetUp(void)
+void NdkPreferencesPutFuzzTest::SetUp(void)
+{
+    CreateDirectoryRecursively("/data/test/");
+}
+
+void NdkPreferencesPutFuzzTest::TearDown(void)
 {
 }
 
-void NdkPreferencesFuzzTest::TearDown(void)
-{
-}
-
-void NdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &path)
+void NdkPreferencesPutFuzzTest::CreateDirectoryRecursively(const std::string &path)
 {
     std::string::size_type pos = path.find_last_of('/');
     if (pos == std::string::npos || path.front() != '/') {
@@ -88,7 +89,35 @@ void NdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &path)
     }
 }
 
-void DeleteFuzz(FuzzedDataProvider &provider)
+void PutIntFuzz(FuzzedDataProvider &provider)
+{
+    std::string key = provider.ConsumeRandomLengthString();
+    auto value = provider.ConsumeIntegral<int32_t>();
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    OH_PreferencesOption_SetFileName(option, "test");
+    int32_t errCode = 0;
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    OH_Preferences_SetInt(pref, key.c_str(), value);
+    (void)OH_PreferencesOption_Destroy(option);
+    OH_Preferences_Close(pref);
+    return;
+}
+
+void PutStringFuzz(FuzzedDataProvider &provider)
+{
+    std::string key = provider.ConsumeRandomLengthString();
+    std::string value = provider.ConsumeRandomLengthString();
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    OH_PreferencesOption_SetFileName(option, "test");
+    int32_t errCode = 0;
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    OH_Preferences_SetString(pref, key.c_str(), value.c_str());
+    (void)OH_PreferencesOption_Destroy(option);
+    OH_Preferences_Close(pref);
+    return;
+}
+
+void PutBoolFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
     auto value = provider.ConsumeBool();
@@ -96,9 +125,8 @@ void DeleteFuzz(FuzzedDataProvider &provider)
     OH_PreferencesOption_SetFileName(option, "test");
     int32_t errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetBool(pref, key.c_str(), value);
+    OH_Preferences_SetBool(pref, key.c_str(), value);
     (void)OH_PreferencesOption_Destroy(option);
-    OH_Preferences_Delete(pref, key.c_str());
     OH_Preferences_Close(pref);
     return;
 }
@@ -109,8 +137,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     FuzzedDataProvider provider(data, size);
-    OHOS::NdkPreferencesFuzzTest::SetUpTestCase();
-    OHOS::DeleteFuzz(provider);
-    OHOS::NdkPreferencesFuzzTest::TearDownTestCase();
+    OHOS::NdkPreferencesPutFuzzTest::SetUpTestCase();
+    OHOS::PutIntFuzz(provider);
+    OHOS::PutStringFuzz(provider);
+    OHOS::PutBoolFuzz(provider);
+    OHOS::NdkPreferencesPutFuzzTest::TearDownTestCase();
     return 0;
 }

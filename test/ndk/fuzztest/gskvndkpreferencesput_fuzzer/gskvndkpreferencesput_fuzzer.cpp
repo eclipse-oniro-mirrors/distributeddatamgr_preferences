@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "gskvndkpreferences_fuzzer.h"
+#include "gskvndkpreferencesput_fuzzer.h"
 #include <fuzzer/FuzzedDataProvider.h>
 #include <iostream>
 
@@ -27,7 +27,7 @@
 using namespace OHOS::NativePreferences;
 
 namespace OHOS {
-class GskvNdkPreferencesFuzzTest {
+class DBPreferencesPutFuzzTest {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -37,24 +37,25 @@ public:
     static void CreateDirectoryRecursively(const std::string &path);
 };
 
-void GskvNdkPreferencesFuzzTest::SetUpTestCase(void)
+void DBPreferencesPutFuzzTest::SetUpTestCase(void)
 {
     CreateDirectoryRecursively("/data/test/");
 }
 
-void GskvNdkPreferencesFuzzTest::TearDownTestCase(void)
+void DBPreferencesPutFuzzTest::TearDownTestCase(void)
 {
 }
 
-void GskvNdkPreferencesFuzzTest::SetUp(void)
+void DBPreferencesPutFuzzTest::SetUp(void)
+{
+    CreateDirectoryRecursively("/data/test/");
+}
+
+void DBPreferencesPutFuzzTest::TearDown(void)
 {
 }
 
-void GskvNdkPreferencesFuzzTest::TearDown(void)
-{
-}
-
-void GskvNdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &path)
+void DBPreferencesPutFuzzTest::CreateDirectoryRecursively(const std::string &path)
 {
     std::string::size_type pos = path.find_last_of('/');
     if (pos == std::string::npos || path.front() != '/') {
@@ -88,7 +89,49 @@ void GskvNdkPreferencesFuzzTest::CreateDirectoryRecursively(const std::string &p
     }
 }
 
-void DeleteFuzz(FuzzedDataProvider &provider)
+void PutIntFuzz(FuzzedDataProvider &provider)
+{
+    std::string key = provider.ConsumeRandomLengthString();
+    auto value = provider.ConsumeIntegral<int32_t>();
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    OH_PreferencesOption_SetFileName(option, "test");
+    bool isEnhance = false;
+    int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
+    if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
+        return;
+    }
+    OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
+    errCode = 0;
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    OH_Preferences_SetInt(pref, key.c_str(), value);
+    (void)OH_PreferencesOption_Destroy(option);
+    OH_Preferences_Close(pref);
+    return;
+}
+
+void PutStringFuzz(FuzzedDataProvider &provider)
+{
+    std::string key = provider.ConsumeRandomLengthString();
+    std::string value = provider.ConsumeRandomLengthString();
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    OH_PreferencesOption_SetFileName(option, "test");
+    bool isEnhance = false;
+    int errCode = OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
+    if (errCode != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        (void)OH_PreferencesOption_Destroy(option);
+        return;
+    }
+    OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
+    errCode = 0;
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    OH_Preferences_SetString(pref, key.c_str(), value.c_str());
+    (void)OH_PreferencesOption_Destroy(option);
+    OH_Preferences_Close(pref);
+    return;
+}
+
+void PutBoolFuzz(FuzzedDataProvider &provider)
 {
     std::string key = provider.ConsumeRandomLengthString();
     auto value = provider.ConsumeBool();
@@ -103,9 +146,8 @@ void DeleteFuzz(FuzzedDataProvider &provider)
     OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
     errCode = 0;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
-    (void)OH_Preferences_SetBool(pref, key.c_str(), value);
+    OH_Preferences_SetBool(pref, key.c_str(), value);
     (void)OH_PreferencesOption_Destroy(option);
-    OH_Preferences_Delete(pref, key.c_str());
     OH_Preferences_Close(pref);
     return;
 }
@@ -116,8 +158,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     FuzzedDataProvider provider(data, size);
-    OHOS::GskvNdkPreferencesFuzzTest::SetUpTestCase();
-    OHOS::DeleteFuzz(provider);
-    OHOS::GskvNdkPreferencesFuzzTest::TearDownTestCase();
+    OHOS::DBPreferencesPutFuzzTest::SetUpTestCase();
+    OHOS::PutIntFuzz(provider);
+    OHOS::PutStringFuzz(provider);
+    OHOS::PutBoolFuzz(provider);
+    OHOS::DBPreferencesPutFuzzTest::TearDownTestCase();
     return 0;
 }
