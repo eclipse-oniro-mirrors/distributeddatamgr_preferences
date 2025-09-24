@@ -25,19 +25,18 @@ using JSError = PreferencesJsKit::JSError;
 using ParamTypeError = PreferencesJsKit::ParamTypeError;
 using InnerError = PreferencesJsKit::InnerError;
 
-static std::atomic<ContextMode> gContextNode = ContextMode::INIT;
 ContextMode GetContextMode(ani_env* env, ani_object context)
 {
-    if (gContextNode.load() == ContextMode::INIT) {
+    if (gContextNode == ContextMode::INIT) {
         ani_boolean isStageMode;
         ani_status status = OHOS::AbilityRuntime::IsStageContext(env, context, isStageMode);
         LOG_INFO("isStageMode:%{public}d, status:%{public}d", static_cast<bool>(isStageMode),
             static_cast<int32_t>(status));
         if (status == ANI_OK) {
-            gContextNode.store(isStageMode ? ContextMode::STAGE : ContextMode::FA);
+            gContextNode = isStageMode ? ContextMode::STAGE : ContextMode::FA;
         }
     }
-    return gContextNode.load();
+    return gContextNode;
 }
 
 std::shared_ptr<JSError> GetContextInfo(ani_env* env, ani_object context,

@@ -30,6 +30,7 @@ struct ContextInfo {
     std::string preferencesDir;
 };
 
+static ContextMode gContextNode = ContextMode::INIT;
 ContextMode GetContextMode(ani_env* env, ani_object object);
 
 std::shared_ptr<PreferencesJsKit::JSError> GetContextInfo(ani_env* env, ani_object value,

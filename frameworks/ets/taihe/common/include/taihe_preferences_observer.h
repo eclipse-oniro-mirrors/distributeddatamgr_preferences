@@ -36,7 +36,7 @@ public:
     ani_ref GetRef();
 private:
     CallbackType callback_;
-    ani_ref ref_;
+    ani_ref ref_ = nullptr;
 };
 } // namespace PreferencesEtsKit
 } // namespace OHOS

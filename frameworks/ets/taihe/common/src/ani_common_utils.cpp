@@ -40,6 +40,10 @@ static constexpr const char* FUNCTION_NAME_ARRAYBUFFER_TO_BIGINT = "fromArrayBuf
 
 static ani_string StdStringToANIString(ani_env* env, const std::string &str)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_string stringAni = nullptr;
     ani_status status = env->String_NewUTF8(str.c_str(), str.size(), &stringAni);
     if (status != ANI_OK) {
@@ -51,6 +55,10 @@ static ani_string StdStringToANIString(ani_env* env, const std::string &str)
 
 static ani_object DoubleToObject(ani_env *env, double value)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     ani_double doubleValue = static_cast<ani_double>(value);
     ani_class aniClass;
@@ -90,6 +98,10 @@ static ani_object FloatToObject(ani_env *env, float value)
 
 static ani_object BoolToObject(ani_env *env, bool value)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     ani_boolean boolValue = static_cast<bool>(value);
     ani_class aniClass;
@@ -121,6 +133,10 @@ static ani_object StringToObject(ani_env *env, const std::string &value)
 
 static ani_object BigIntToObject(ani_env *env, BigInt value)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_namespace aniNamespace;
     ani_status status = env->FindNamespace(NAMESPACE_NAME_PREFERENCES, &aniNamespace);
     if (status != ANI_OK) {
@@ -156,8 +172,12 @@ static ani_object BigIntToObject(ani_env *env, BigInt value)
     return aniObject;
 }
 
-static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> values)
+static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> &values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     ani_class arrayClass;
     ani_status status = env->FindClass(CLASS_NAME_UINT8_ARRAY, &arrayClass);
@@ -200,6 +220,10 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> va
 
 static ani_object StringArrayToObject(ani_env *env, const std::vector<std::string> values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
     ani_status status = env->FindClass(CLASS_NAME_ARRAY, &arrayCls);
@@ -238,6 +262,10 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
 
 static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
     ani_status status = env->FindClass(CLASS_NAME_ARRAY, &arrayCls);
@@ -272,6 +300,10 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
 
 static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
     ani_status status = env->FindClass(CLASS_NAME_ARRAY, &arrayCls);
@@ -403,6 +435,10 @@ ani_object PreferencesMapToObject(ani_env *env, const std::unordered_map<std::st
 
 std::string AniStringToStdStr(ani_env *env, ani_string aniStr)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return "";
+    }
     ani_size strSize;
     env->String_GetUTF8Size(aniStr, &strSize);
     if (strSize == 0) {

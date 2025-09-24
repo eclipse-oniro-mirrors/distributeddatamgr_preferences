@@ -30,6 +30,10 @@ static ani_object PreferencesValueToObject(ani_env *env, PreferencesValue &res);
 
 static void ThrowBusinessError(ani_env *env, int errCode, std::string&& errMsg)
 {
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return;
+    }
     LOG_INFO("into ThrowBusinessError.");
     static const char *errorClsName = "L@ohos/base/BusinessError;";
     ani_class cls {};
@@ -73,6 +77,10 @@ static void ThrowBusinessError(ani_env *env, int errCode, std::string&& errMsg)
 
 static ani_string StdStringToANIString(ani_env* env, const std::string& str)
 {
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return nullptr;
+    }
     ani_string stringAni = nullptr;
     if (ANI_OK != env->String_NewUTF8(str.c_str(), str.size(), &stringAni)) {
         LOG_INFO("String_NewUTF8 Failed");
@@ -142,6 +150,10 @@ static int GetContextPathFromName(ani_env *env, ani_object context, ani_string n
 
 static std::string GetDataGroupId(ani_env *env, ani_ref dataGroupId)
 {
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return nullptr;
+    }
     std::string dataGroupIdStr;
     ani_boolean isNull = false;
     if (env->Reference_IsNull(dataGroupId, &isNull) != ANI_OK) {
@@ -161,6 +173,10 @@ static std::string GetDataGroupId(ani_env *env, ani_ref dataGroupId)
 
 static int GetContextPathFromOpt(ani_env *env, ani_object context, ani_object opt, std::string &path)
 {
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return E_ERROR;
+    }
     ani_ref nameTmp;
     if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "name", &nameTmp)) {
         LOG_ERROR("Object_GetFieldByName_Ref name from opt Faild");
@@ -228,6 +244,10 @@ static int DelPreferencesByName(ani_env *env, ani_object context, ani_string nam
 
 static ani_object CreatePreferencesObj(ani_env *env, Options &options)
 {
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return nullptr;
+    }
     int errCode = E_OK;
     std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(options, errCode);
     if (preferences == nullptr) {
@@ -277,6 +297,10 @@ static ani_object ExecuteGetByName(ani_env *env, ani_object context, ani_string 
 
 static ani_object ExecuteGetByOpt(ani_env *env, ani_object context, ani_object opt)
 {
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return nullptr;
+    }
     ani_ref nameTmp;
     if (ANI_OK != env->Object_GetPropertyByName_Ref(opt, "name", &nameTmp)) {
         LOG_ERROR("Object_GetFieldByName_Ref name from opt Faild");
@@ -302,6 +326,10 @@ static ani_object ExecuteGetByOpt(ani_env *env, ani_object context, ani_object o
 
 static ani_object MapToObject(ani_env *env, std::map<std::string, PreferencesValue> &values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     static const char *className = "Lescompat/Record;";
     ani_class cls;
@@ -458,6 +486,10 @@ static PreferencesValue ParsePreferencesValue(ani_env *env, ani_object unionValu
 
 static ani_object DoubleToObject(ani_env *env, double value)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     ani_double doubleValue = static_cast<ani_double>(value);
     static const char *className = "Lstd/core/Double;";
@@ -481,6 +513,10 @@ static ani_object DoubleToObject(ani_env *env, double value)
 
 static ani_object BoolToObject(ani_env *env, bool value)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     ani_boolean boolValue = static_cast<bool>(value);
     static const char *className = "Lstd/core/Boolean;";
@@ -510,6 +546,10 @@ static ani_object StringToObject(ani_env *env, std::string value)
 
 static ani_object BigIntToObject(ani_env *env, int64_t value)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     static const char *className = "Lescompat/BigInt;";
     ani_class aniClass;
@@ -530,8 +570,12 @@ static ani_object BigIntToObject(ani_env *env, int64_t value)
     return aniObject;
 }
 
-static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> values)
+static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> &values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object aniObject = nullptr;
     ani_class arrayClass;
     ani_status retCode = env->FindClass("Lescompat/Uint8Array;", &arrayClass);
@@ -570,6 +614,10 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> va
 
 static ani_object StringArrayToObject(ani_env *env, const std::vector<std::string> values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
     if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
@@ -604,6 +652,10 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
 
 static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
     if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
@@ -635,6 +687,10 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
 
 static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> values)
 {
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
     if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
@@ -740,6 +796,10 @@ static int ClearSyncInner(ani_env *env, ani_object obj)
 
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
+    if (vm == nullptr) {
+        LOG_ERROR("vm is nullptr.");
+        return ANI_ERROR;
+    }
     ani_env *env;
     if (ANI_OK != vm->GetEnv(ANI_VERSION_1, &env)) {
         LOG_ERROR("Unsupported ANI_VERSION_1");
