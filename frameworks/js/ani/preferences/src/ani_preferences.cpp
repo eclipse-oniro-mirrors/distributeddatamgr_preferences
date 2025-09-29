@@ -486,7 +486,7 @@ static ani_object StringToObject(ani_env *env, std::string value)
 static ani_object BigIntToObject(ani_env *env, int64_t value)
 {
     ani_object aniObject = nullptr;
-    static const char *className = "escompat.BigInt";
+    static const char *className = "std.core.BigInt";
     ani_class aniClass;
     if (ANI_OK != env->FindClass(className, &aniClass)) {
         LOG_ERROR("Not found '%{public}s'.", className);
