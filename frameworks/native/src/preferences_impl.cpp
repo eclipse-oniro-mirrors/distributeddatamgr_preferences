@@ -489,6 +489,7 @@ void PreferencesImpl::ExecuteNotifyChange(std::shared_ptr<PreferencesImpl> pref,
             ss << Anonymous::ToBeAnonymous(key) << ". ";
             if (ss.tellp() > MAX_LOG_LENGTH) {
                 LOG_INFO("key length too long, notify %{public}s", ss.str().c_str());
+                ss.str("");
                 ss.clear();
             }
             pref->dataObsMgrClient_->NotifyChange(pref->MakeUri(key));
