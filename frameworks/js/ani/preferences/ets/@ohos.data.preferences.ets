@@ -58,11 +58,11 @@ export namespace preferences {
 
   export function getPreferences(context: Context, name: string, callback: AsyncCallback<Preferences>): void {
     let p1 = taskpool.execute(executeGetByName, context, name);
-    p1.then((data: NullishType) => {
+    p1.then((data: Any) => {
       let r =  data as Preferences;
       let err : BusinessError<void>
       callback(err, r);
-    }).catch((error: NullishType) => {
+    }).catch((error: Any) => {
       let err =  error as BusinessError<void>;
       let data = new PreferencesImpl(0);
       callback(err, data);
@@ -72,11 +72,11 @@ export namespace preferences {
   export function getPreferences(context: Context, options: Options,
     callback: AsyncCallback<Preferences>): void {
       let p1 = taskpool.execute(executeGetByOpt, context, options);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         let r =  data as Preferences;
         let err : BusinessError<void>
         callback(err, r);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         let err =  error as BusinessError<void>;
         let data = new PreferencesImpl(0);
         callback(err, data);
@@ -87,7 +87,7 @@ export namespace preferences {
     let p = new Promise<Preferences>((resolve: (v: Preferences) => void,
       reject: (error: Error) => void) => {
         let p1 = taskpool.execute(executeGetByName, context, name);
-        p1.then((e :NullishType)=>{
+        p1.then((e :Any)=>{
           let r =  e as Preferences;
           resolve(r);
         }).catch((error: Error) : Preferences => {
@@ -101,7 +101,7 @@ export namespace preferences {
     let p = new Promise<Preferences>((resolve: (v: Preferences) => void,
       reject: (error: Error) => void) => {
         let p1 = taskpool.execute(executeGetByOpt, context, options);
-        p1.then((e :NullishType)=>{
+        p1.then((e :Any)=>{
           let r =  e as Preferences;
           resolve(r);
         }).catch((error: Error) : Preferences => {
@@ -113,12 +113,12 @@ export namespace preferences {
 
   export function deletePreferences(context: Context, name: string, callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute(delPreByName, context, name);
-    p1.then((data: NullishType) => {
+    p1.then((data: Any) => {
       let ret =  data as int;
       hilog.info(0x0000, 'preferences', "in deletePreferences by name callback then. ret is " + ret);
       let err : BusinessError<void>
       callback(err, undefined);
-    }).catch((error: NullishType) => {
+    }).catch((error: Any) => {
       let err =  error as BusinessError<void>;
       callback(err, undefined);
     });
@@ -126,12 +126,12 @@ export namespace preferences {
 
   export function deletePreferences(context: Context, options: Options, callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute(delPreByOpt, context, options);
-    p1.then((data: NullishType) => {
+    p1.then((data: Any) => {
       let ret =  data as int;
       hilog.info(0x0000, 'preferences', "in deletePreferences by opt callback then. ret is " + ret);
       let err : BusinessError<void>
       callback(err, undefined);
-    }).catch((error: NullishType) => {
+    }).catch((error: Any) => {
       let err =  error as BusinessError<void>;
       callback(err, undefined);
     });
@@ -141,7 +141,7 @@ export namespace preferences {
     let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
       reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(delPreByName, context, name);
-        p1.then((e : NullishType) : void =>{
+        p1.then((e : Any) : void =>{
           let ret =  e as int;
           hilog.info(0x0000, 'preferences', "in deletePreferences by name promised then. ret is " + ret);
           resolve(Promise.resolve());
@@ -156,7 +156,7 @@ export namespace preferences {
     let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
       reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(delPreByOpt, context, options);
-        p1.then((e : NullishType) : void=> {
+        p1.then((e : Any) : void=> {
           let ret =  e as int;
           hilog.info(0x0000, 'preferences', "in deletePreferences by opt promised then. ret is " + ret);
           resolve(Promise.resolve());
@@ -177,13 +177,13 @@ export namespace preferences {
 
   export function removePreferencesFromCache(context: Context, name: string, callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute(executeRemoveByName, context, name);
-    p1.then((data: NullishType) => {
+    p1.then((data: Any) => {
       let ret =  data as int;
       hilog.info(0x0000, 'preferences', "in removePreferencesFromCache by name callback then. ret is " + ret)
       let err : BusinessError<void>
       callback(err, undefined);
     })
-    .catch((error: NullishType) => {
+    .catch((error: Any) => {
       let err =  error as BusinessError<void>;
       callback(err, undefined);
     });
@@ -192,12 +192,12 @@ export namespace preferences {
   export function removePreferencesFromCache(context: Context, options: Options,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute(executeRemoveByOpt, context, options);
-    p1.then((data: NullishType) => {
+    p1.then((data: Any) => {
       let ret =  data as int;
       hilog.info(0x0000, 'preferences', "in removePreferencesFromCache by Options callback then. ret is " + ret)
       let err : BusinessError<void>
       callback(err, undefined);
-    }).catch((error: NullishType) => {
+    }).catch((error: Any) => {
       let err =  error as BusinessError<void>;
       callback(err, undefined);
     });
@@ -207,7 +207,7 @@ export namespace preferences {
     let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
       reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(executeRemoveByName, context, name);
-        p1.then((e : NullishType) : void =>{
+        p1.then((e : Any) : void =>{
           resolve(Promise.resolve());
         }).catch((error: Error) : void => {
           reject(error);
@@ -220,7 +220,7 @@ export namespace preferences {
     let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
       reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(executeRemoveByOpt, context, options);
-        p1.then((e : NullishType) : void=> {
+        p1.then((e : Any) : void=> {
           resolve(Promise.resolve());
         }).catch((error: Error) : void => {
           reject(error);
@@ -266,11 +266,11 @@ export namespace preferences {
 
     get(key: string, defValue: ValueType, callback: AsyncCallback<ValueType>): void {
       let p1 = taskpool.execute(getInner, this, key, defValue);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         let ret =  data as ValueType;
         let err : BusinessError<void>
         callback(err, ret);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         let err =  error as BusinessError<void>;
         let data : ValueType;
         callback(err, data);
@@ -281,7 +281,7 @@ export namespace preferences {
       let p = new Promise<ValueType>((resolve: (v: ValueType) => void,
         reject: (error: Error) => void) => {
           let p1 = taskpool.execute(getInner, this, key, defValue);
-          p1.then((e :NullishType)=>{
+          p1.then((e :Any)=>{
             let r =  e as ValueType;
             resolve(r);
           }).catch((err: Error) : ValueType => {
@@ -301,12 +301,12 @@ export namespace preferences {
 
     getAll(callback: AsyncCallback<Object>): void {
       let p1 = taskpool.execute(getAllSyncInner, this);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         hilog.info(0x0000, 'preferences', "getAll in get callback then.")
         let ret =  data as Object;
         let err : BusinessError<void>
         callback(err, ret);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         let err =  error as BusinessError<void>;
         let data : Object;
         callback(err, data);
@@ -317,7 +317,7 @@ export namespace preferences {
       let p = new Promise<Object>((resolve: (v: Object) => void,
         reject: (error: Error) => void) => {
           let p1 = taskpool.execute(getAllSyncInner, this);
-          p1.then((e :NullishType) : Object => {
+          p1.then((e :Any) : Object => {
             hilog.info(0x0000, 'preferences', "in getAll promise then.")
             let ret =  e as Object;
             resolve(ret);
@@ -330,12 +330,12 @@ export namespace preferences {
 
     has(key: string, callback: AsyncCallback<boolean>): void {
       let p1 = taskpool.execute(hasSyncInner, this, key);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         hilog.info(0x0000, 'preferences', "has in get callback then. data is " + data)
         let ret =  data as boolean;
         let err : BusinessError<void>
         callback(err, ret);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         hilog.info(0x0000, 'preferences', "has in get callback then error.")
         let err =  error as BusinessError<void>;
         let data : boolean;
@@ -347,7 +347,7 @@ export namespace preferences {
       let p = new Promise<boolean>((resolve: (v: boolean) => void,
         reject: (error: Error) => void) => {
           let p1 = taskpool.execute(hasSyncInner, this, key);
-          p1.then((e :NullishType) : boolean =>{
+          p1.then((e :Any) : boolean =>{
               let r =  e as boolean;
               hilog.info(0x0000, 'preferences', "in promise then, r is: " + r)
               resolve(r);
@@ -364,12 +364,12 @@ export namespace preferences {
 
     put(key: string, value: ValueType, callback: AsyncCallback<void>): void {
       let p1 = taskpool.execute(putSyncFunc, this, key, value);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         let ret =  data as int;
         hilog.info(0x0000, 'preferences', "put in get callback then. ret is " + ret)
         let err : BusinessError<void>
         callback(err, undefined);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         let err =  error as BusinessError<void>;
         callback(err, undefined);
       });
@@ -379,7 +379,7 @@ export namespace preferences {
       let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
         reject: (error: Error) => void) : void => {
           let p1 = taskpool.execute(putSyncFunc, this, key, value);
-          p1.then((e :NullishType) : void =>{
+          p1.then((e :Any) : void =>{
             hilog.info(0x0000, 'preferences', "end put in promise thread.")
             resolve(Promise.resolve());
           }).catch((err: Error) : void => {
@@ -395,12 +395,12 @@ export namespace preferences {
 
     delete(key: string, callback: AsyncCallback<void>): void {
       let p1 = taskpool.execute(deleteSyncInner, this, key);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         let ret =  data as int;
         hilog.info(0x0000, 'preferences', "delete in get callback then. ret is " + ret)
         let err : BusinessError<void>
         callback(err, undefined);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         let err =  error as BusinessError<void>;
         callback(err, undefined);
       });
@@ -410,7 +410,7 @@ export namespace preferences {
       let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
         reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(deleteSyncInner, this, key);
-          p1.then((e :NullishType) : void=> {
+          p1.then((e :Any) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In delete Promise, ret is: " + r);
             resolve(Promise.resolve());
@@ -427,12 +427,12 @@ export namespace preferences {
 
     flush(callback: AsyncCallback<void>): void {
       let p1 = taskpool.execute(flushSync, this);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         let ret =  data as int;
         hilog.info(0x0000, 'preferences', "flush in get callback then. ret is " + ret)
         let err : BusinessError<void>
         callback(err, undefined);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         let err =  error as BusinessError<void>;
         callback(err, undefined);
       });
@@ -442,7 +442,7 @@ export namespace preferences {
       let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
         reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(flushSync, this);
-          p1.then((e :NullishType) : void=> {
+          p1.then((e :Any) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In flush Promise, ret is: " + r);
             resolve(Promise.resolve());
@@ -462,7 +462,7 @@ export namespace preferences {
       let p = new Promise<void>((resolve: (v: PromiseLike<void>) => void,
         reject: (error: Error) => void) : void => {
         let p1 = taskpool.execute(clearSyncInner, this);
-          p1.then((e :NullishType) : void=> {
+          p1.then((e :Any) : void=> {
             let r = e as int;
             hilog.info(0x0000, 'preferences', "In clear Promise, ret is: " + r);
             resolve(Promise.resolve());
@@ -475,12 +475,12 @@ export namespace preferences {
 
     clear(callback: AsyncCallback<void>): void {
       let p1 = taskpool.execute(clearSyncInner, this);
-      p1.then((data: NullishType) => {
+      p1.then((data: Any) => {
         let ret =  data as int;
         hilog.info(0x0000, 'preferences', "clear in get callback then. ret is " + ret)
         let err : BusinessError<void>
         callback(err, undefined);
-      }).catch((error: NullishType) => {
+      }).catch((error: Any) => {
         let err =  error as BusinessError<void>;
         callback(err, undefined);
       });
