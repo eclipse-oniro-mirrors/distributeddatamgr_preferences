@@ -566,7 +566,7 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
             LOG_INFO("String_NewUTF8 Faild ");
             break;
         }
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, ani_str)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, ani_str)) {
             LOG_INFO("Object_CallMethodByName_Void  $_set Faild ");
             break;
         }
@@ -597,7 +597,7 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = BoolToObject(env, value);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniValue)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniValue)) {
             LOG_INFO("Object_CallMethodByName_Void  $_set Faild ");
             break;
         }
@@ -628,7 +628,7 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = DoubleToObject(env, value);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniValue)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniValue)) {
             LOG_INFO("Object_CallMethodByName_Void  $_set Faild ");
             break;
         }
