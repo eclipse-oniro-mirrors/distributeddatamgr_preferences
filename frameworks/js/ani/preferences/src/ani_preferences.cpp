@@ -545,8 +545,8 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
 {
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
-        LOG_INFO("FindClass Lescompat/Array; Failed");
+    if (ANI_OK != env->FindClass("std.core.Array", &arrayCls)) {
+        LOG_INFO("FindClass Lstd/core/Array; Failed");
     }
 
     ani_method arrayCtor;
@@ -579,8 +579,8 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
 {
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
-        LOG_ERROR("FindClass Lescompat/Array; Failed");
+    if (ANI_OK != env->FindClass("std.core.Array", &arrayCls)) {
+        LOG_ERROR("FindClass Lstd/core/Array; Failed");
         return arrayObj;
     }
 
@@ -610,8 +610,8 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
 {
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
-        LOG_ERROR("FindClass Lescompat/Array; Failed");
+    if (ANI_OK != env->FindClass("std.core.Array", &arrayCls)) {
+        LOG_ERROR("FindClass Lstd/core/Array; Failed");
         return arrayObj;
     }
 
