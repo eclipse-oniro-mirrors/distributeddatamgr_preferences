@@ -60,7 +60,11 @@ PreferencesValue::PreferencesValue(bool value)
 
 PreferencesValue::PreferencesValue(const char *value)
 {
-    value_ = std::string(value);
+    if (value != nullptr) {
+        value_ = std::string(value);
+    } else {
+        value_ = std::string();
+    }
 }
 
 PreferencesValue::PreferencesValue(std::string value)

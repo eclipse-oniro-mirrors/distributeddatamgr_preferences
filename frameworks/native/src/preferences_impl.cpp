@@ -58,21 +58,18 @@ PreferencesImpl::~PreferencesImpl()
 
 int PreferencesImpl::Init()
 {
-    if (!StartLoadFromDisk()) {
-        return E_ERROR;
-    }
+    StartLoadFromDisk();
     return E_OK;
 }
 
-bool PreferencesImpl::StartLoadFromDisk()
+void PreferencesImpl::StartLoadFromDisk()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     loaded_.store(false);
     isNeverUnlock_ = false;
     loadResult_ = false;
 
-    ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
-    return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
+    PreferencesImpl::LoadFromDisk(shared_from_this());
 }
 
 /* static */
@@ -81,7 +78,6 @@ void PreferencesImpl::LoadFromDisk(std::shared_ptr<PreferencesImpl> pref)
     if (pref->loaded_.load()) {
         return;
     }
-    std::lock_guard<std::mutex> lock(pref->mutex_);
     if (!pref->loaded_.load()) {
         std::string::size_type pos = pref->options_.filePath.find_last_of('/');
         std::string filePath = pref->options_.filePath.substr(0, pos);

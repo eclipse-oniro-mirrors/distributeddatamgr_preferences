@@ -161,4 +161,51 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level0
     EXPECT_EQ(errCode, E_OK);
     preferences = nullptr;
 }
+
+/**
+ * @tc.name: NativePreferencesHelperTest_007
+ * @tc.desc: normal testcase of DeletePreferences
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_007, TestSize.Level0)
+{
+    int errCode = E_OK;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("/data/test/test_helper_normal", errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    pref->PutInt("normal_key1", 200);
+    pref->PutString("normal_key2", "test_normal");
+    int ret = pref->FlushSync();
+    EXPECT_EQ(ret, E_OK);
+    auto resStr = pref->GetString("normal_key2", "string_default");
+    EXPECT_EQ(resStr, "test_normal");
+    auto resInt = pref->GetInt("normal_key1", 0);
+    EXPECT_EQ(resInt, 200);
+
+    ret = PreferencesHelper::DeletePreferences("/data/test/test_helper_normal");
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+ * @tc.name: NativeCreateMultipleHelper
+ * @tc.desc: normal testcase of create multiple helper
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativeCreateMultipleHelper, TestSize.Level0)
+{
+    int errCode = E_OK;
+    std::string path = "/data/test/test_helper_normal";
+    for (int i = 0; i < 50; i++) {
+        std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path + std::to_string(i), errCode);
+        EXPECT_EQ(errCode, E_OK);
+        pref->PutInt("normal_key1_test", 200);
+        pref->PutString("normal_key2_test", "test_normal_2");
+        int ret = pref->FlushSync();
+        EXPECT_EQ(ret, E_OK);
+    }
+    for (int i = 0; i < 50; i++) {
+        int ret = PreferencesHelper::DeletePreferences(path + std::to_string(i));
+        EXPECT_EQ(ret, E_OK);
+    }
+}
 }
