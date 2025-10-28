@@ -1296,4 +1296,19 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_041, TestSize.Level0)
     PreferencesHelper::DeletePreferences(path);
     pref = nullptr;
 }
+
+/**
+ * @tc.name: PreferencesValueTest_002
+ * @tc.desc: normal testcase of PreferencesValue Operator
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesTest, PreferencesValueTest_002, TestSize.Level0)
+{
+    string valueString = "test_str";
+    string retString = PreferencesValue(valueString);
+    EXPECT_EQ(valueString, retString);
+
+    string retNull = PreferencesValue(nullptr);
+    EXPECT_EQ(retNull, "");
+}
 } // namespace
