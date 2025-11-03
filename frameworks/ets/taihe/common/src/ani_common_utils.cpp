@@ -335,10 +335,24 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     return arrayObj;
 }
 
+static ani_string StdStringToANIString(ani_env* env, const std::string& str)
+{
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return nullptr;
+    }
+    ani_string stringAni = nullptr;
+    if (ANI_OK != env->String_NewUTF8(str.c_str(), str.size(), &stringAni)) {
+        LOG_ERROR("String_NewUTF8 Failed");
+        return nullptr;
+    }
+    return stringAni;
+}
+
 ani_object ObjectToANIObject(ani_env *env, const Object &obj)
 {
-    LOG_ERROR("ObjectToANIObject not implemented.");
-    return nullptr;
+    ani_string aniString = StdStringToANIString(env, obj.valueStr);
+    return static_cast<ani_object>(aniString);
 }
 
 ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
