@@ -47,7 +47,7 @@ static ani_string StdStringToANIString(ani_env* env, const std::string &str)
     ani_string stringAni = nullptr;
     ani_status status = env->String_NewUTF8(str.c_str(), str.size(), &stringAni);
     if (status != ANI_OK) {
-        LOG_INFO("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, str.size());
+        LOG_ERROR("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, str.size());
         return nullptr;
     }
     return stringAni;
@@ -333,20 +333,6 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
         index++;
     }
     return arrayObj;
-}
-
-static ani_string StdStringToANIString(ani_env* env, const std::string& str)
-{
-    if (env == nullptr) {
-        LOG_ERROR("env is nullptr.");
-        return nullptr;
-    }
-    ani_string stringAni = nullptr;
-    if (ANI_OK != env->String_NewUTF8(str.c_str(), str.size(), &stringAni)) {
-        LOG_ERROR("String_NewUTF8 Failed");
-        return nullptr;
-    }
-    return stringAni;
 }
 
 ani_object ObjectToANIObject(ani_env *env, const Object &obj)
