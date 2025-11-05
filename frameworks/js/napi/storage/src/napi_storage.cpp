@@ -281,6 +281,7 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAs
     // get input key
     char *key = new (std::nothrow) char[keyBufferSize + 1];
     if (key == nullptr) {
+        LOG_ERROR("Failed to new key");
         std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("Failed to new key.");
         asyncContext->SetError(paramError);
         return ERR;
