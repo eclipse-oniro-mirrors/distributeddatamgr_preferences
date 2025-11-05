@@ -43,7 +43,7 @@ std::tuple<int32_t, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* 
         return {E_ERROR, path};
     }
     int32_t errcode = 0;
-    auto tempContext = std::make_shared<HelperAysncContext>();
+    auto tempContext = std::make_shared<HelperAsyncContext>();
     tempContext->bundleName = context->GetBundleName();
     tempContext->name = name;
     std::string preferencesDir;

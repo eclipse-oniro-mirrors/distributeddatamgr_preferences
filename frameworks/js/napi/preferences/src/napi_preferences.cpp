@@ -35,7 +35,7 @@ namespace PreferencesJsKit {
 #define MAX_KEY_LENGTH Preferences::MAX_KEY_LENGTH
 #define MAX_VALUE_LENGTH Preferences::MAX_VALUE_LENGTH
 
-struct PreferencesAysncContext : public BaseContext {
+struct PreferencesAsyncContext : public BaseContext {
     std::weak_ptr<Preferences> instance_;
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int64_t>(0));
@@ -44,10 +44,10 @@ struct PreferencesAysncContext : public BaseContext {
     bool hasKey = false;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
 
-    PreferencesAysncContext()
+    PreferencesAsyncContext()
     {
     }
-    virtual ~PreferencesAysncContext(){};
+    virtual ~PreferencesAsyncContext(){};
 };
 
 static __thread napi_ref constructor_;
@@ -145,7 +145,7 @@ napi_value PreferencesProxy::New(napi_env env, napi_callback_info info)
     return thiz;
 }
 
-int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysncContext> context)
+int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAsyncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, arg, context->key);
     PRE_CHECK_RETURN_ERR_SET(rc == napi_ok, std::make_shared<ParamTypeError>("The key must be string."));
@@ -154,7 +154,7 @@ int ParseKey(napi_env env, const napi_value arg, std::shared_ptr<PreferencesAysn
     return OK;
 }
 
-int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<PreferencesAysncContext> context)
+int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<PreferencesAsyncContext> context)
 {
     int32_t rc = JSUtils::Convert2NativeValue(env, jsVal, context->defValue.value_);
     if (rc == EXCEED_MAX_LENGTH) {
@@ -170,7 +170,7 @@ bool IsPureDigits(const std::string& str)
     return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
-int GetAllExecute(napi_env env, std::shared_ptr<PreferencesAysncContext> context, napi_value &result)
+int GetAllExecute(napi_env env, std::shared_ptr<PreferencesAsyncContext> context, napi_value &result)
 {
     std::vector<napi_property_descriptor> descriptors;
     descriptors.reserve(context->allElements.size());
@@ -207,7 +207,7 @@ std::pair<PreferencesProxy *, std::weak_ptr<Preferences>> PreferencesProxy::GetS
 
 napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<PreferencesAysncContext>();
+    auto context = std::make_shared<PreferencesAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
@@ -234,7 +234,7 @@ napi_value PreferencesProxy::GetAll(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<PreferencesAysncContext>();
+    auto context = std::make_shared<PreferencesAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -270,7 +270,7 @@ napi_value PreferencesProxy::GetValue(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<PreferencesAysncContext>();
+    auto context = std::make_shared<PreferencesAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -300,7 +300,7 @@ napi_value PreferencesProxy::SetValue(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<PreferencesAysncContext>();
+    auto context = std::make_shared<PreferencesAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -329,7 +329,7 @@ napi_value PreferencesProxy::Delete(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<PreferencesAysncContext>();
+    auto context = std::make_shared<PreferencesAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -359,7 +359,7 @@ napi_value PreferencesProxy::HasKey(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<PreferencesAysncContext>();
+    auto context = std::make_shared<PreferencesAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);
@@ -387,7 +387,7 @@ napi_value PreferencesProxy::Flush(napi_env env, napi_callback_info info)
 
 napi_value PreferencesProxy::Clear(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<PreferencesAysncContext>();
+    auto context = std::make_shared<PreferencesAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         std::tie(context->boundObj, context->instance_) = GetSelfInstance(env, self);

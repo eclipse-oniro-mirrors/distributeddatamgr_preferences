@@ -179,7 +179,7 @@ public:
      *
      * This constructor is used to convert the BigInt input parameter to a value of type PreferencesValue.
      *
-     * @param value Indicates a vector<uint8_t> input parameter.
+     * @param value Indicates a BigInt input parameter.
      */
     PREF_API_EXPORT PreferencesValue(BigInt value);
 

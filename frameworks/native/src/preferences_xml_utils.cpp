@@ -413,7 +413,7 @@ static bool ReportNonCorruptError(
 {
     if (errCode == REQUIRED_KEY_NOT_AVAILABLE || errCode == REQUIRED_KEY_REVOKED) {
         ReportFaultParam reportParam = { faultType, bundleName, NORMAL_DB, ExtractFileName(fileName),
-            E_OPERAT_IS_LOCKED, faultType + " the screen is locked." };
+            E_OPERATE_IS_LOCKED, faultType + " the screen is locked." };
         PreferencesDfxManager::ReportAbnormalOperation(reportParam, ReportedFaultBitMap::USE_WHEN_SCREEN_LOCKED);
         return true;
     }
@@ -527,7 +527,7 @@ static xmlDoc *XmlReadFile(const std::string &fileName, const std::string &bundl
     }
     if (isMultiProcessing) {
         ReportFaultParam param = { "read failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
-            E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
+            E_OPERATE_IS_CROSS_PROCESS, "Cross-process operations." };
         PreferencesDfxManager::ReportFault(param);
         return doc;
     }
@@ -720,7 +720,7 @@ static void ReportSaveFileFault(const std::string fileName, const std::string &b
     }
     if (isMultiProcessing) {
         ReportFaultParam param = { "write failed", bundleName, NORMAL_DB, ExtractFileName(fileName),
-            E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
+            E_OPERATE_IS_CROSS_PROCESS, "Cross-process operations." };
         PreferencesDfxManager::ReportFault(param);
         return;
     }

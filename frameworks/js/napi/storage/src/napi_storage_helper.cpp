@@ -29,12 +29,12 @@ using namespace OHOS::PreferencesJsKit;
 
 namespace OHOS {
 namespace StorageJsKit {
-struct HelperAysncContext : public BaseContext {
+struct HelperAsyncContext : public BaseContext {
     std::string path;
-    HelperAysncContext()
+    HelperAsyncContext()
     {
     }
-    virtual ~HelperAysncContext(){};
+    virtual ~HelperAsyncContext(){};
 };
 
 napi_value GetStorageSync(napi_env env, napi_callback_info info)
@@ -49,7 +49,7 @@ napi_value GetStorageSync(napi_env env, napi_callback_info info)
     return instance;
 }
 
-int ParseString(const napi_env env, const napi_value value, std::shared_ptr<HelperAysncContext> asyncContext)
+int ParseString(const napi_env env, const napi_value value, std::shared_ptr<HelperAsyncContext> asyncContext)
 {
     if (asyncContext == nullptr) {
         LOG_WARN("error input");
@@ -61,7 +61,11 @@ int ParseString(const napi_env env, const napi_value value, std::shared_ptr<Help
         return ERR;
     }
     size_t pathLen = 0;
-    napi_get_value_string_utf8(env, value, path, PATH_MAX, &pathLen);
+    napi_status ret = napi_get_value_string_utf8(env, value, path, PATH_MAX, &pathLen);
+    if (ret != napi_ok) {
+        delete[] path;
+        return ERR;
+    }
     asyncContext->path = path;
     delete[] path;
     return OK;
@@ -70,7 +74,7 @@ int ParseString(const napi_env env, const napi_value value, std::shared_ptr<Help
 napi_value GetStorage(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("GetStorage start");
-    auto context = std::make_shared<HelperAysncContext>();
+    auto context = std::make_shared<HelperAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseString(env, argv[0], context) == OK);
@@ -117,6 +121,10 @@ napi_status GetInputPath(napi_env env, napi_callback_info info, std::string &pat
     }
     size_t pathLen = 0;
     ret = napi_get_value_string_utf8(env, args[0], path, PATH_MAX, &pathLen);
+    if (ret != napi_ok) {
+        delete[] path;
+        return napi_arraybuffer_expected;
+    }
     pathString = path;
     delete[] path;
     return ret;
@@ -143,7 +151,7 @@ napi_value DeleteStorageSync(napi_env env, napi_callback_info info)
 napi_value DeleteStorage(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("DeletePreferences start");
-    auto context = std::make_shared<HelperAysncContext>();
+    auto context = std::make_shared<HelperAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseString(env, argv[0], context) == OK);
@@ -189,7 +197,7 @@ napi_value RemoveStorageFromCacheSync(napi_env env, napi_callback_info info)
 napi_value RemoveStorageFromCache(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("RemovePreferencesFromCache start");
-    auto context = std::make_shared<HelperAysncContext>();
+    auto context = std::make_shared<HelperAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseString(env, argv[0], context) == OK);

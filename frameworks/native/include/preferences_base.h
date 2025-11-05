@@ -129,7 +129,7 @@ protected:
     };
     using DataObserverMap = std::map<std::weak_ptr<PreferencesObserver>, std::set<std::string>, WeakPtrCompare>;
     std::mutex mutex_;
-    std::shared_mutex obseverMetux_;
+    std::shared_mutex observerMutex_;
     std::condition_variable cond_;
 
     std::vector<std::weak_ptr<PreferencesObserver>> localObservers_;

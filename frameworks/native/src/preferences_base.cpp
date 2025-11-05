@@ -164,7 +164,7 @@ int PreferencesBase::FlushSync()
 int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
 {
     IsClose(std::string(__FUNCTION__));
-    std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
+    std::unique_lock<std::shared_mutex> writeLock(observerMutex_);
     if (mode == RegisterMode::LOCAL_CHANGE) {
         std::weak_ptr<PreferencesObserver> weakPreferencesObserver = preferencesObserver;
         localObservers_.push_back(weakPreferencesObserver);
@@ -174,6 +174,9 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
             return E_GET_DATAOBSMGRCLIENT_FAIL;
         }
         sptr<DataPreferencesObserverStub> observer(new (std::nothrow) DataPreferencesObserverStub(preferencesObserver));
+        if (observer == nullptr) {
+            return E_INNER_ERROR;
+        }
         int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
         if (errcode != 0) {
             LOG_ERROR("RegisterObserver multiProcessChange failed, errCode %{public}d", errcode);
@@ -193,7 +196,7 @@ int PreferencesBase::UnRegisterDataObserver(std::shared_ptr<PreferencesObserver>
     const std::vector<std::string> &keys)
 {
     IsClose(std::string(__FUNCTION__));
-    std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
+    std::unique_lock<std::shared_mutex> writeLock(observerMutex_);
     auto it = dataObserversMap_.find(preferencesObserver);
     if (it == dataObserversMap_.end()) {
         return E_OK;
@@ -246,7 +249,7 @@ int PreferencesBase::RegisterDataObserver(std::shared_ptr<PreferencesObserver> p
     const std::vector<std::string> &keys)
 {
     IsClose(std::string(__FUNCTION__));
-    std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
+    std::unique_lock<std::shared_mutex> writeLock(observerMutex_);
     auto it = dataObserversMap_.find(preferencesObserver);
     if (it == dataObserversMap_.end()) {
         std::set<std::string> callKeys(keys.begin(), keys.end());
@@ -266,7 +269,7 @@ std::unordered_map<std::string, PreferencesValue> PreferencesBase::GetAllDatas()
 int PreferencesBase::UnRegisterObserver(std::shared_ptr<PreferencesObserver> preferencesObserver, RegisterMode mode)
 {
     IsClose(std::string(__FUNCTION__));
-    std::unique_lock<std::shared_mutex> writeLock(obseverMetux_);
+    std::unique_lock<std::shared_mutex> writeLock(observerMutex_);
     if (mode == RegisterMode::LOCAL_CHANGE) {
         for (auto it = localObservers_.begin(); it != localObservers_.end(); ++it) {
             std::weak_ptr<PreferencesObserver> weakPreferencesObserver = *it;

@@ -476,7 +476,7 @@ int OH_PreferencesImpl::UnregisterDataObserver(OH_PreferencesDataObserver observ
     const std::vector<std::string> &keys)
 {
     std::unique_lock<std::shared_mutex> writeLock(obsMutex_);
-    for (size_t i = 0; i < dataObservers_.size(); i++) {
+    for (int i = static_cast<int>(dataObservers_.size()) - 1; i >= 0; i--) {
         if (!dataObservers_[i].first->ObserverCompare(observer) || dataObservers_[i].second != context) {
             continue;
         }

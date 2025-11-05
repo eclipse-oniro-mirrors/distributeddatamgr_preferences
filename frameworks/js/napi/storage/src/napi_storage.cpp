@@ -33,7 +33,7 @@ namespace StorageJsKit {
 #define MAX_KEY_LENGTH Preferences::MAX_KEY_LENGTH
 #define MAX_VALUE_LENGTH Preferences::MAX_VALUE_LENGTH
 
-struct StorageAysncContext : public BaseContext {
+struct StorageAsyncContext : public BaseContext {
     std::string key;
     PreferencesValue defValue = PreferencesValue(static_cast<int>(0));
     std::unordered_map<std::string, PreferencesValue> allElements;
@@ -41,10 +41,10 @@ struct StorageAysncContext : public BaseContext {
     std::list<std::string> keysModified;
     std::vector<std::weak_ptr<PreferencesObserver>> preferencesObservers;
 
-    StorageAysncContext() : hasKey(false)
+    StorageAsyncContext() : hasKey(false)
     {
     }
-    virtual ~StorageAysncContext(){};
+    virtual ~StorageAsyncContext(){};
 };
 
 static __thread napi_ref constructor_;
@@ -254,7 +254,7 @@ napi_value StorageProxy::GetValueSync(napi_env env, napi_callback_info info)
     return output;
 }
 
-int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAysncContext> asyncContext)
+int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAsyncContext> asyncContext)
 {
     napi_valuetype keyType = napi_undefined;
     napi_typeof(env, arg, &keyType);
@@ -281,6 +281,8 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAy
     // get input key
     char *key = new (std::nothrow) char[keyBufferSize + 1];
     if (key == nullptr) {
+        std::shared_ptr<JSError> paramError = std::make_shared<ParamTypeError>("Failed to new key.");
+        asyncContext->SetError(paramError);
         return ERR;
     }
     size_t keySize = 0;
@@ -298,7 +300,7 @@ int ParseKey(const napi_env env, const napi_value arg, std::shared_ptr<StorageAy
     return OK;
 }
 
-int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<StorageAysncContext> asyncContext)
+int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<StorageAsyncContext> asyncContext)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, jsVal, &valueType);
@@ -352,7 +354,7 @@ int ParseDefValue(const napi_env env, const napi_value jsVal, std::shared_ptr<St
 napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("GetValue start");
-    auto context = std::make_shared<StorageAysncContext>();
+    auto context = std::make_shared<StorageAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -442,7 +444,7 @@ napi_value StorageProxy::SetValueSync(napi_env env, napi_callback_info info)
 napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("SetValue start");
-    auto context = std::make_shared<StorageAysncContext>();
+    auto context = std::make_shared<StorageAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -499,7 +501,7 @@ napi_value StorageProxy::DeleteSync(napi_env env, napi_callback_info info)
 napi_value StorageProxy::Delete(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("Delete start");
-    auto context = std::make_shared<StorageAysncContext>();
+    auto context = std::make_shared<StorageAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -547,7 +549,7 @@ napi_value StorageProxy::HasKeySync(napi_env env, napi_callback_info info)
 napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("HasKeySync start");
-    auto context = std::make_shared<StorageAysncContext>();
+    auto context = std::make_shared<StorageAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
@@ -573,7 +575,7 @@ napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
 napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
 {
     LOG_DEBUG("Flush start");
-    auto context = std::make_shared<StorageAysncContext>();
+    auto context = std::make_shared<StorageAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
@@ -620,8 +622,8 @@ napi_value StorageProxy::ClearSync(napi_env env, napi_callback_info info)
 
 napi_value StorageProxy::Clear(napi_env env, napi_callback_info info)
 {
-    LOG_DEBUG("Flush start");
-    auto context = std::make_shared<StorageAysncContext>();
+    LOG_DEBUG("Clear start");
+    auto context = std::make_shared<StorageAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);

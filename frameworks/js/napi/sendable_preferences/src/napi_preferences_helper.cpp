@@ -31,20 +31,20 @@ namespace OHOS::Sendable::JSPreferences {
 constexpr const char *DATA_GROUP_ID = "dataGroupId";
 constexpr const char *NAME = "name";
 
-struct HelperAysncContext : public BaseContext {
+struct HelperAsyncContext : public BaseContext {
     std::string path;
     std::string name;
     std::string bundleName;
     std::string dataGroupId;
     std::shared_ptr<NativePreferences::Preferences> proxy;
 
-    HelperAysncContext()
+    HelperAsyncContext()
     {
     }
-    virtual ~HelperAysncContext(){};
+    virtual ~HelperAsyncContext(){};
 };
 
-int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<HelperAysncContext> context)
+int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<HelperAsyncContext> context)
 {
     if (Utils::ConvertFromSendable(env, argv[1], context->name) != napi_ok) {
         napi_value temp = nullptr;
@@ -76,7 +76,7 @@ int ParseParameters(const napi_env env, napi_value *argv, std::shared_ptr<Helper
 
 napi_value GetPreferences(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<HelperAysncContext>();
+    auto context = std::make_shared<HelperAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
         PRE_CHECK_RETURN_VOID(ParseParameters(env, argv, context) == OK);
@@ -100,7 +100,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
 
 napi_value DeletePreferences(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<HelperAysncContext>();
+    auto context = std::make_shared<HelperAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
         PRE_CHECK_RETURN_VOID(ParseParameters(env, argv, context) == OK);
@@ -119,7 +119,7 @@ napi_value DeletePreferences(napi_env env, napi_callback_info info)
 
 napi_value RemovePreferencesFromCache(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<HelperAysncContext>();
+    auto context = std::make_shared<HelperAsyncContext>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 2, std::make_shared<ParamNumError>("2 or 3"));
         PRE_CHECK_RETURN_VOID(ParseParameters(env, argv, context) == OK);
