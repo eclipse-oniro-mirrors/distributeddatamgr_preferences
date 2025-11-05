@@ -175,7 +175,7 @@ int PreferencesBase::RegisterObserver(std::shared_ptr<PreferencesObserver> prefe
         }
         sptr<DataPreferencesObserverStub> observer(new (std::nothrow) DataPreferencesObserverStub(preferencesObserver));
         if (observer == nullptr) {
-            return E_INNER_ERROR;
+            return E_ERROR;
         }
         int errcode = dataObsMgrClient->RegisterObserver(MakeUri(), observer);
         if (errcode != 0) {
