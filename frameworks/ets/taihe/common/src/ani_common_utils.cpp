@@ -226,7 +226,7 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
             LOG_ERROR("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, value.size());
             return nullptr;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, ani_str);
+        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iY:", index, ani_str);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
             return nullptr;
@@ -260,7 +260,7 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = BoolToObject(env, value);
-        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, aniValue);
+        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iY:", index, aniValue);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
             return nullptr;
@@ -293,7 +293,7 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = DoubleToObject(env, value);
-        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, aniValue);
+        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iY:", index, aniValue);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
             break;
@@ -430,7 +430,7 @@ PreferencesValue AniObjectToPreferencesValue(ani_env *env, uintptr_t object)
     }
     ani_static_method stringify;
     status = env->Class_FindStaticMethod(cls, METHOD_NAME_STRINGIFY,
-                                         "C{std.core.Object}:C{std.core.String}", &stringify);
+                                         "Y:C{std.core.String}", &stringify);
     if (status != ANI_OK) {
         LOG_ERROR("Stringify not found, ret: %{public}d.", status);
         return preferencesValue;

@@ -179,7 +179,7 @@ bool UnionAccessor::TryConvert<std::vector<double>>(std::vector<double> &value)
     }
     for (int i = 0; i < int(length); i++) {
         ani_ref arrayRef;
-        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:C{std.core.Object}", &arrayRef, (ani_int)i)) {
+        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:Y", &arrayRef, (ani_int)i)) {
             return false;
         }
         if (!IsInstanceOf("std.core.Double", static_cast<ani_object>(arrayRef))) {
@@ -204,7 +204,7 @@ bool UnionAccessor::TryConvert<std::vector<std::string>>(std::vector<std::string
     }
     for (int i = 0; i < int(length); i++) {
         ani_ref arrayRef;
-        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:C{std.core.Object}", &arrayRef, (ani_int)i)) {
+        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:Y", &arrayRef, (ani_int)i)) {
             return false;
         }
         if (!IsInstanceOf("std.core.String", static_cast<ani_object>(arrayRef))) {
@@ -224,7 +224,7 @@ bool UnionAccessor::TryConvert<std::vector<bool>>(std::vector<bool> &value)
     }
     for (int i = 0; i < int(length); i++) {
         ani_ref arrayRef;
-        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:C{std.core.Object}", &arrayRef, (ani_int)i)) {
+        if (ANI_OK != env_->Object_CallMethodByName_Ref(obj_, "$_get", "i:Y", &arrayRef, (ani_int)i)) {
             return false;
         }
         if (!IsInstanceOf("std.core.Boolean", static_cast<ani_object>(arrayRef))) {
