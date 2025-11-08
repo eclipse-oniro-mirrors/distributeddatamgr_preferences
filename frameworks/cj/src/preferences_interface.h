@@ -55,17 +55,17 @@ struct ValueTypes {
     int64_t size;
 };
 
-struct HelperAsyncContext {
+struct HelperAysncContext {
     std::string path;
     std::string name;
     std::string bundleName;
     std::string dataGroupId;
     std::shared_ptr<NativePreferences::Preferences> proxy;
 
-    HelperAsyncContext()
+    HelperAysncContext()
     {
     }
-    virtual ~HelperAsyncContext(){};
+    virtual ~HelperAysncContext(){};
 };
 
 } // namespace Preferences

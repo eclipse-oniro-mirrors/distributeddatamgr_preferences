@@ -261,7 +261,7 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     fileLock.WriteLock(isMultiProcessing);
     if (isMultiProcessing) {
         ReportFaultParam param = { "DeletePreferences error", bundleName, NORMAL_DB, ExtractFileName(filePath),
-            E_OPERATE_IS_CROSS_PROCESS, "Cross-process operations." };
+            E_OPERAT_IS_CROSS_PROESS, "Cross-process operations." };
         PreferencesDfxManager::ReportFault(param);
     }
     std::remove(filePath.c_str());

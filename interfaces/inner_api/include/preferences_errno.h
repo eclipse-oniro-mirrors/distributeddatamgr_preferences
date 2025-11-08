@@ -167,12 +167,12 @@ constexpr int E_XML_RESTORED_FROM_BACKUP_FILE = (E_BASE + 23);
 /**
 * @brief This code is used for operating XML file when the screen os locked.
 */
-constexpr int E_OPERATE_IS_LOCKED = (E_BASE + 24);
+constexpr int E_OPERAT_IS_LOCKED = (E_BASE + 24);
 
 /**
 * @brief This code is used for operating XML file when there is a cross process operation.
 */
-constexpr int E_OPERATE_IS_CROSS_PROCESS = (E_BASE + 25);
+constexpr int E_OPERAT_IS_CROSS_PROESS = (E_BASE + 25);
 
 /**
 * @brief This code is subscribe failed.
