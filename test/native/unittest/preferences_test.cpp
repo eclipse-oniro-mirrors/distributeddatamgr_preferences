@@ -1313,15 +1313,17 @@ HWTEST_F(PreferencesTest, PreferencesValueTest_002, TestSize.Level0)
 }
 
 /**
- * @tc.name: NativePreferencesTestRegister
+ * @tc.name: NativePreferencesRegisterTest
  * @tc.desc: normal testcase of Register Observer and Notify
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesTest, NativePreferencesTestRegister, TestSize.Level0)
+HWTEST_F(PreferencesTest, NativePreferencesRegisterTest, TestSize.Level0)
 {
     std::shared_ptr<PreferencesObserver> observer = std::make_shared<PreferencesObserverCounter>();
+    EXPECT_NE(pref, nullptr);
     pref->PutString(KEY_TEST_STRING_ELEMENT, "string_value");
     pref->FlushSync();
+    EXPECT_NE(static_cast<PreferencesObserverCounter *>(observer.get()), nullptr);
     EXPECT_EQ(static_cast<PreferencesObserverCounter *>(observer.get())->notifyTimes, 0);
     
     pref->RegisterObserver(observer);
@@ -1330,14 +1332,18 @@ HWTEST_F(PreferencesTest, NativePreferencesTestRegister, TestSize.Level0)
     pref->PutBool(KEY_TEST_BOOL_ELEMENT, true);
     pref->FlushSync();
     EXPECT_EQ(static_cast<PreferencesObserverCounter *>(observer.get())->notifyTimes, 3);
-    int ret1 = pref->GetInt(KEY_TEST_INT_ELEMENT, 0);
-    EXPECT_EQ(ret1, 999);
+    int retInt = pref->GetInt(KEY_TEST_INT_ELEMENT, 0);
+    EXPECT_EQ(retInt, 999);
 
-    std::string ret2 = pref->GetString(KEY_TEST_STRING_ELEMENT, "default");
-    EXPECT_EQ(ret2, "string_value_2");
+    std::string retStr = pref->GetString(KEY_TEST_STRING_ELEMENT, "default");
+    EXPECT_EQ(retStr, "string_value_2");
 
-    bool ret3 = pref->GetBool(KEY_TEST_BOOL_ELEMENT, false);
-    EXPECT_EQ(ret3, true);
+    bool retBool = pref->GetBool(KEY_TEST_BOOL_ELEMENT, false);
+    EXPECT_EQ(retBool, true);
     pref->UnRegisterObserver(observer);
+    // after UnRegisterObserver, notifyTimes should not change
+    pref->PutInt(KEY_TEST_INT_ELEMENT, 99999);
+    pref->FlushSync();
+    EXPECT_EQ(static_cast<PreferencesObserverCounter *>(observer.get())->notifyTimes, 3);
 }
 } // namespace
