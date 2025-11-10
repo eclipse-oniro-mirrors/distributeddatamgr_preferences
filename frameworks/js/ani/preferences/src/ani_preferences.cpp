@@ -278,7 +278,7 @@ static ani_object ExecuteGetByOpt(ani_env *env, ani_object context, ani_object o
 static ani_object MapToObject(ani_env *env, std::map<std::string, PreferencesValue> &values)
 {
     ani_object aniObject = nullptr;
-    static const char *className = "escompat.Record";
+    static const char *className = "std.core.Record";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
         LOG_ERROR("Not found '%{public}s'.", className);
