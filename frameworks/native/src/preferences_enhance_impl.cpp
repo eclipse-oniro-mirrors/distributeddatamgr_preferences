@@ -277,7 +277,7 @@ std::map<std::string, PreferencesValue> PreferencesEnhanceImpl::GetAll()
 void PreferencesEnhanceImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesEnhanceImpl> pref,
     const std::string &key, const PreferencesValue &value)
 {
-    std::shared_lock<std::shared_mutex> readLock(pref->obseverMetux_);
+    std::shared_lock<std::shared_mutex> readLock(pref->observerMutex_);
     LOG_DEBUG("notify observer size:%{public}zu", pref->dataObserversMap_.size());
     for (const auto &[weakPrt, keys] : pref->dataObserversMap_) {
         auto itKey = keys.find(key);

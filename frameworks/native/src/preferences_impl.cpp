@@ -129,7 +129,7 @@ bool PreferencesImpl::PreLoad()
     if (!loaded_.load()) {
         return true;
     }
-    if (isNeverUnlock_ || (!isNeverUnlock_ && !loadResult_)) {
+    if (isNeverUnlock_ || !loadResult_) {
         if (Access(options_.filePath) == 0) {
             return ReloadFromDisk();
         }
@@ -443,7 +443,7 @@ void PreferencesImpl::NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl>
     if (keysModified->empty()) {
         return;
     }
-    std::shared_lock<std::shared_mutex> autoLock(pref->obseverMetux_);
+    std::shared_lock<std::shared_mutex> autoLock(pref->observerMutex_);
     for (const auto &[weakPrt, keys] : pref->dataObserversMap_) {
         std::map<std::string, PreferencesValue> records;
         for (auto &key : *keysModified) {

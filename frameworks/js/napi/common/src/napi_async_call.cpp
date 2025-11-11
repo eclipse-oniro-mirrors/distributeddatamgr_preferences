@@ -20,7 +20,7 @@ namespace OHOS {
 namespace PreferencesJsKit {
 bool g_async = true;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
 bool g_sync = !g_async;  // do not reset the value, used in DECLARE_NAPI_FUNCTION_WITH_DATA only
-static constexpr int64_t ASYNC_PROCESS_WARING_TIME = 500;
+static constexpr int64_t ASYNC_PROCESS_WARNING_TIME = 500;
 
 void BaseContext::SetAction(
     napi_env env, napi_callback_info info, InputAction input, ExecuteAction exec, OutputAction output)
@@ -129,7 +129,7 @@ napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context, 
     }
     auto end_time = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-    if (duration.count() > ASYNC_PROCESS_WARING_TIME) {
+    if (duration.count() > ASYNC_PROCESS_WARNING_TIME) {
         LOG_ERROR("The execution time of %{public}s is %{public}lld.", name.c_str(), duration.count());
     }
     return promise;
