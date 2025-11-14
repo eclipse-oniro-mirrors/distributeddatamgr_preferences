@@ -117,6 +117,14 @@ TaihePreferences GetPreferencesSyncByName(uintptr_t context, string_view name)
     return GetPreferences(context, preferencesInfo);
 }
 
+bool isStorageTypeSupported(ohos::data::preferences::StorageType newtype)
+{
+    int32_t storageTypeVal = static_cast<int32_t>(newtype.get_value());
+    StorageType storageType = (storageTypeVal == static_cast<int32_t>(StorageType::XML)) ?
+            StorageType::XML : StorageType::GSKV;
+    return PreferencesHelper::IsStorageTypeSupported(storageType);
+}
+
 void DeletePreferences(uintptr_t context, PreferencesInfo &info)
 {
     auto err = ParseContext(context, info);
@@ -186,6 +194,7 @@ void RemovePreferencesFromCacheSyncByOptions(uintptr_t context, TaiheOptions con
 // NOLINTBEGIN
 TH_EXPORT_CPP_API_GetPreferencesSync(GetPreferencesSync);
 TH_EXPORT_CPP_API_GetPreferencesSyncByName(GetPreferencesSyncByName);
+TH_EXPORT_CPP_API_isStorageTypeSupported(isStorageTypeSupported);
 TH_EXPORT_CPP_API_DeletePreferencesSync(DeletePreferencesSync);
 TH_EXPORT_CPP_API_DeletePreferencesSyncByName(DeletePreferencesSyncByName);
 TH_EXPORT_CPP_API_RemovePreferencesFromCacheSync(RemovePreferencesFromCacheSync);
