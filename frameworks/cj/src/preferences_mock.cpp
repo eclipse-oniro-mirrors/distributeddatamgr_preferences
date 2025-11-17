@@ -19,6 +19,9 @@ extern "C" {
 FFI_EXPORT int FfiOHOSPreferencesGetPreferences = 0;
 FFI_EXPORT int FfiOHOSPreferencesDeletePreferences = 0;
 FFI_EXPORT int FfiOHOSPreferencesRemovePreferencesFromCache = 0;
+FFI_EXPORT int FfiOHOSPreferencesGetPreferencesV1 = 0;
+FFI_EXPORT int FfiOHOSPreferencesDeletePreferencesV1 = 0;
+FFI_EXPORT int FfiOHOSPreferencesRemovePreferencesFromCacheV1 = 0;
 FFI_EXPORT int FfiOHOSPreferencesDelete = 0;
 FFI_EXPORT int FfiOHOSPreferencesHas = 0;
 FFI_EXPORT int FfiOHOSPreferencesOn = 0;
@@ -29,4 +32,6 @@ FFI_EXPORT int FfiOHOSPreferencesPut = 0;
 FFI_EXPORT int FfiOHOSPreferencesGetAll = 0;
 FFI_EXPORT int FfiOHOSPreferencesFlush = 0;
 FFI_EXPORT int FfiOHOSPreferencesClear = 0;
+FFI_EXPORT int FfiOHOSPreferencesFreeValueType = 0;
+FFI_EXPORT int FfiOHOSPreferencesFreeValueTypes = 0;
 }

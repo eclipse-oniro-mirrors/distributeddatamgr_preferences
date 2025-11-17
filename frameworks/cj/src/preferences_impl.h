@@ -16,12 +16,21 @@
 #define PREFERENCES_IMPL_H
 
 #include <string>
-
+#include <list>
 #include "preferences.h"
 #include "preferences_interface.h"
 #include "ffi_remote_data.h"
-#include "ability_context.h"
 #include "preferences_observer.h"
+
+#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
+namespace OHOS {
+namespace AbilityRuntime {
+    typedef void Context;
+}
+}
+#else
+#include "ability_context.h"
+#endif
 
 namespace OHOS {
 namespace Preferences {

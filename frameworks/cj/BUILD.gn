@@ -26,27 +26,49 @@ base_sources = [
 ohos_shared_library("cj_preferences_ffi") {
   include_dirs = base_include
   sources = base_sources
-  sanitize = {
-    boundary_sanitize = true
-    ubsan = true
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
+
+  if (is_mingw || is_mac) {
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+    ]
+    if (is_mac) {
+      defines = [ "MAC_PLATFORM" ]
+    } else {
+      defines = [ "WINDOWS_PLATFORM" ]
+    }
+  } else {
+    sanitize = {
+      boundary_sanitize = true
+      ubsan = true
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
   }
 
   deps = [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
 
-  external_deps = [
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:napi_base_context",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "napi:ace_napi",
-    "napi:cj_bind_ffi",
-    "napi:cj_bind_native",
-  ]
-
+  if (is_mingw || is_mac) {
+    external_deps = [
+      "hilog:libhilog",
+      "napi:ace_napi",
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+    ]
+  } else {
+    external_deps = [
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:napi_base_context",
+      "c_utils:utils",
+      "hilog:libhilog",
+      "ipc:ipc_single",
+      "napi:ace_napi",
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+    ]
+  }
+  
   subsystem_name = "distributeddatamgr"
   part_name = "preferences"
   innerapi_tags = [ "platformsdk" ]

@@ -26,7 +26,6 @@
 #include "preferences_impl.h"
 #include "preferences_value.h"
 #include "preferences_utils.h"
-#include "preferences_errno.h"
 #include "preferences_log.h"
 
 using namespace OHOS::Preferences;
@@ -37,6 +36,29 @@ namespace OHOS::Preferences {
 std::tuple<int32_t, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* context, const std::string &name,
     const std::string &dataGroupId)
 {
+#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
+    if (!dataGroupId.empty()) {
+        return {E_NOT_SUPPORTED, ""};
+    }
+
+    std::string preferencesDir = "";
+#ifdef WINDOWS_PLATFORM
+    std::string baseDir = getenv("TEMP");
+    if (!baseDir.empty()) {
+        preferencesDir = baseDir + "\\HuaweiDevEcoStudioPreferences";
+    }
+#endif
+
+#ifdef MAC_PLATFORM
+    std::string baseDir = getenv("LOGNAME");
+    if (!baseDir.empty()) {
+        baseDir = "/Users/" + baseDir + "/Library/Caches";
+        preferencesDir = baseDir + "/HuaweiDevEcoStudioPreferences";
+    }
+#endif
+    preferencesDir = preferencesDir.append("/").append(name);
+    return {E_OK, preferencesDir};
+#else
     std::string path;
     if (context == nullptr) {
         LOGE("The context is nullptr.");
@@ -53,22 +75,31 @@ std::tuple<int32_t, std::string> GetInstancePath(OHOS::AbilityRuntime::Context* 
     }
     tempContext->path = preferencesDir.append("/").append(tempContext->name);
     return {E_OK, tempContext->path};
+#endif
 }
 
 PreferencesImpl::PreferencesImpl(OHOS::AbilityRuntime::Context* context,
     const std::string& name, const std::string& dataGroupId, int32_t* errCode)
 {
     if (context == nullptr) {
+#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
+        LOGI("WARNING: Failed to get native context instance");
+#else
         LOGE("Failed to get native context instance");
         *errCode = -1;
         return;
+#endif
     }
     auto [code, path] = GetInstancePath(context, name, dataGroupId);
     if (code != E_OK) {
         *errCode = code;
         return;
     }
+#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
+    NativePreferences::Options options(path, "", dataGroupId);
+#else
     NativePreferences::Options options(path, context->GetBundleName(), dataGroupId);
+#endif
     int err;
     auto proxy = PreferencesHelper::GetPreferences(options, err);
     *errCode = err;

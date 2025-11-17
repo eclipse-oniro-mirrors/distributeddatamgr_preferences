@@ -17,13 +17,20 @@
 #include <map>
 #include <cinttypes>
 
+#include "preferences_utils.h"
 #include "preferences_ffi.h"
 #include "preferences_impl.h"
 #include "preferences_log.h"
+#include "preferences_errno.h"
 #include "cj_lambda.h"
 
 using namespace OHOS::FFI;
 using namespace OHOS::Preferences;
+using namespace OHOS::NativePreferences;
+
+extern "C" {
+    void* FFIGetContext(int64_t id);
+}
 
 namespace OHOS {
 namespace Preferences {
@@ -47,6 +54,52 @@ int32_t FfiOHOSPreferencesDeletePreferences(OHOS::AbilityRuntime::Context* conte
 int32_t FfiOHOSPreferencesRemovePreferencesFromCache(OHOS::AbilityRuntime::Context* context, const char* name,
     const char* dataGroupId)
 {
+    return PreferencesImpl::RemovePreferencesFromCache(context, name, dataGroupId);
+}
+
+int64_t FfiOHOSPreferencesGetPreferencesV1(int64_t ctxId, const char* name,
+    const char* dataGroupId, int32_t* errCode)
+{
+    OHOS::AbilityRuntime::Context* context = nullptr;
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
+    context = reinterpret_cast<OHOS::AbilityRuntime::Context *>(FFIGetContext(ctxId));
+    if (context == nullptr) {
+        if (errCode != nullptr) {
+            *errCode = E_ERROR;
+        }
+        return 0;
+    }
+#endif
+    auto nativePreferences = FFIData::Create<PreferencesImpl>(context, name, dataGroupId, errCode);
+    if (!nativePreferences) {
+        return 0;
+    }
+    return nativePreferences->GetID();
+}
+
+int32_t FfiOHOSPreferencesDeletePreferencesV1(int64_t ctxId, const char* name,
+    const char* dataGroupId)
+{
+    OHOS::AbilityRuntime::Context* context = nullptr;
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
+    context = reinterpret_cast<OHOS::AbilityRuntime::Context *>(FFIGetContext(ctxId));
+    if (context == nullptr) {
+        return E_ERROR;
+    }
+#endif
+    return PreferencesImpl::DeletePreferences(context, name, dataGroupId);
+}
+
+int32_t FfiOHOSPreferencesRemovePreferencesFromCacheV1(int64_t ctxId, const char* name,
+    const char* dataGroupId)
+{
+    OHOS::AbilityRuntime::Context* context = nullptr;
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
+    context = reinterpret_cast<OHOS::AbilityRuntime::Context *>(FFIGetContext(ctxId));
+    if (context == nullptr) {
+        return E_ERROR;
+    }
+#endif
     return PreferencesImpl::RemovePreferencesFromCache(context, name, dataGroupId);
 }
 
@@ -152,6 +205,58 @@ int32_t FfiOHOSPreferencesOffAll(int64_t id, const char* mode)
         return ERR_INVALID_INSTANCE_CODE;
     }
     return instance->UnRegisteredAllObservers(mode);
+}
+
+void FfiOHOSPreferencesFreeValueType(ValueType* pValue)
+{
+    if (pValue == nullptr) {
+        return;
+    }
+    auto &value = *pValue;
+    if (value.tag == TYPE_STR) {
+        free(value.string);
+        value.string = nullptr;
+    } else if (value.tag == TYPE_BOOLARR) {
+        free(value.boolArray.head);
+        value.boolArray.head = nullptr;
+        value.boolArray.size = 0;
+    } else if (value.tag == TYPE_DOUARR) {
+        free(value.doubleArray.head);
+        value.doubleArray.head = nullptr;
+        value.doubleArray.size = 0;
+    } else if (value.tag == TYPE_STRARR) {
+        if (value.stringArray.head != nullptr) {
+            for (auto i = 0; i < value.stringArray.size; i++) {
+                free(value.stringArray.head[i]);
+            }
+            free(value.stringArray.head);
+            value.stringArray.head = nullptr;
+        }
+        value.stringArray.size = 0;
+    }
+}
+
+void FfiOHOSPreferencesFreeValueTypes(ValueTypes* pValues)
+{
+    if (pValues == nullptr) {
+        return;
+    }
+    auto &values = *pValues;
+    if (values.key != nullptr) {
+        for (auto i = 0; i < values.size; i++) {
+            free(values.key[i]);
+        }
+        free(values.key);
+        values.key = nullptr;
+    }
+    if (values.head != nullptr) {
+        for (auto i = 0; i < values.size; i++) {
+            FfiOHOSPreferencesFreeValueType(&values.head[i]);
+        }
+        free(values.head);
+        values.head = nullptr;
+    }
+    values.size = 0;
 }
 }
 }
