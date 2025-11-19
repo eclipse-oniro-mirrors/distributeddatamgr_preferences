@@ -380,7 +380,7 @@ static PreferencesValue ParsePreferencesValue(ani_env *env, ani_object unionValu
     UnionAccessor unionAccessor(env, unionValue);
     ani_double value = 0.0;
     if (unionAccessor.IsInstanceOf("std.core.Double")) {
-        env->Object_CallMethodByName_Double(unionValue, "unboxed", nullptr, &value);
+        env->Object_CallMethodByName_Double(unionValue, "toDouble", nullptr, &value);
         return static_cast<double>(value);
     }
 
@@ -391,7 +391,7 @@ static PreferencesValue ParsePreferencesValue(ani_env *env, ani_object unionValu
 
     ani_boolean boolValue = 0;
     if (unionAccessor.IsInstanceOf("std.core.Boolean")) {
-        if (ANI_OK != env->Object_CallMethodByName_Boolean(unionValue, "unboxed", nullptr, &boolValue)) {
+        if (ANI_OK != env->Object_CallMethodByName_Boolean(unionValue, "toBoolean", nullptr, &boolValue)) {
             LOG_ERROR("Object_CallMethodByName_Double unbox Failed");
             return false;
         }

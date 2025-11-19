@@ -135,7 +135,7 @@ bool UnionAccessor::TryConvert<ani_double>(ani_double &value)
     if (!IsInstanceOf("std.core.Double")) {
         return false;
     }
-    return ANI_OK == env_->Object_CallMethodByName_Double(obj_, "unboxed", nullptr, &value);
+    return ANI_OK == env_->Object_CallMethodByName_Double(obj_, "toDouble", nullptr, &value);
 }
 
 template<>
@@ -186,7 +186,7 @@ bool UnionAccessor::TryConvert<std::vector<double>>(std::vector<double> &value)
             return false;
         }
         ani_double doubleValue;
-        if (ANI_OK != env_->Object_CallMethodByName_Double(static_cast<ani_object>(arrayRef), "unboxed",
+        if (ANI_OK != env_->Object_CallMethodByName_Double(static_cast<ani_object>(arrayRef), "toDouble",
             nullptr, &doubleValue)) {
             return false;
         }
@@ -231,7 +231,7 @@ bool UnionAccessor::TryConvert<std::vector<bool>>(std::vector<bool> &value)
             return false;
         }
         ani_boolean boolValue;
-        if (ANI_OK != env_->Object_CallMethodByName_Boolean(static_cast<ani_object>(arrayRef), "unboxed", nullptr,
+        if (ANI_OK != env_->Object_CallMethodByName_Boolean(static_cast<ani_object>(arrayRef), "toBoolean", nullptr,
             &boolValue)) {
             return false;
         }
