@@ -47,7 +47,7 @@ static ani_string StdStringToANIString(ani_env* env, const std::string &str)
     ani_string stringAni = nullptr;
     ani_status status = env->String_NewUTF8(str.c_str(), str.size(), &stringAni);
     if (status != ANI_OK) {
-        LOG_INFO("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, str.size());
+        LOG_ERROR("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, str.size());
         return nullptr;
     }
     return stringAni;
@@ -337,8 +337,8 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
 
 ani_object ObjectToANIObject(ani_env *env, const Object &obj)
 {
-    LOG_ERROR("ObjectToANIObject not implemented.");
-    return nullptr;
+    ani_string aniString = StdStringToANIString(env, obj.valueStr);
+    return static_cast<ani_object>(aniString);
 }
 
 ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
