@@ -17,10 +17,14 @@
 
 #include <cstdint>
 
-#include "napi_base_context.h"
 #include "ffi_remote_data.h"
 #include "cj_common_ffi.h"
 #include "preferences_interface.h"
+#include "preferences_impl.h"
+
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM)
+#include "napi_base_context.h"
+#endif
 
 namespace OHOS {
 namespace Preferences {
@@ -33,6 +37,15 @@ extern "C" {
         const char* dataGroupId);
 
     FFI_EXPORT int32_t FfiOHOSPreferencesRemovePreferencesFromCache(OHOS::AbilityRuntime::Context* context,
+        const char* name, const char* dataGroupId);
+
+    FFI_EXPORT int64_t FfiOHOSPreferencesGetPreferencesV1(int64_t ctxId, const char* name,
+        const char* dataGroupId, int32_t* errCode);
+
+    FFI_EXPORT int32_t FfiOHOSPreferencesDeletePreferencesV1(int64_t ctxId, const char* name,
+        const char* dataGroupId);
+
+    FFI_EXPORT int32_t FfiOHOSPreferencesRemovePreferencesFromCacheV1(int64_t ctxId,
         const char* name, const char* dataGroupId);
 
     FFI_EXPORT int32_t FfiOHOSPreferencesDelete(int64_t id, const char* key);
@@ -54,6 +67,10 @@ extern "C" {
     FFI_EXPORT void FfiOHOSPreferencesFlush(int64_t id);
 
     FFI_EXPORT void FfiOHOSPreferencesClear(int64_t id);
+
+    FFI_EXPORT void FfiOHOSPreferencesFreeValueType(ValueType* pValue);
+
+    FFI_EXPORT void FfiOHOSPreferencesFreeValueTypes(ValueTypes* pValues);
 }
 
 } // namespace Preferences
