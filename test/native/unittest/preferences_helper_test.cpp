@@ -161,4 +161,93 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level0
     EXPECT_EQ(errCode, E_OK);
     preferences = nullptr;
 }
+
+/**
+ * @tc.name: NativePreferencesHelperTestNormal
+ * @tc.desc: normal testcase of DeletePreferences
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTestNormal, TestSize.Level0)
+{
+    int errCode = E_OK;
+    std::string path = "/data/test/test_helper_normal";
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    pref->PutInt("normal_key1", 200);
+    pref->PutString("normal_key2", "test_normal");
+    int ret = pref->FlushSync();
+    EXPECT_EQ(ret, E_OK);
+    auto resStr = pref->GetString("normal_key2", "string_default");
+    EXPECT_EQ(resStr, "test_normal");
+    auto resInt = pref->GetInt("normal_key1", 0);
+    EXPECT_EQ(resInt, 200);
+
+    ret = PreferencesHelper::DeletePreferences(path);
+    EXPECT_EQ(ret, E_OK);
+}
+
+/**
+ * @tc.name: NativeCreateMultipleHelper
+ * @tc.desc: normal testcase of create multiple helper
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativeCreateMultipleHelper, TestSize.Level0)
+{
+    int errCode = E_OK;
+    std::string path = "/data/test/test_helper_normal";
+    for (int i = 0; i < 50; i++) {
+        std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path + std::to_string(i), errCode);
+        EXPECT_EQ(errCode, E_OK);
+        pref->PutInt("normal_key1_test" + std::to_string(i), i);
+        pref->PutString("normal_key2_test" + std::to_string(i), "test_normal_" + std::to_string(i));
+        int ret = pref->FlushSync();
+        EXPECT_EQ(ret, E_OK);
+    }
+    for (int i = 0; i < 50; i++) {
+        std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path + std::to_string(i), errCode);
+        EXPECT_EQ(errCode, E_OK);
+        auto resStr = pref->GetString("normal_key2_test" + std::to_string(i), "string_default");
+        EXPECT_EQ(resStr, "test_normal_" + std::to_string(i));
+        auto resInt = pref->GetInt("normal_key1_test" + std::to_string(i), 0);
+        EXPECT_EQ(resInt, i);
+        int ret = PreferencesHelper::DeletePreferences(path + std::to_string(i));
+        EXPECT_EQ(ret, E_OK);
+    }
+}
+
+/**
+ * @tc.name: NativePreferencesHelperAndRemoveCache
+ * @tc.desc: normal testcase of RemoveCache and DeletePreferences
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperAndRemoveCache, TestSize.Level0)
+{
+    int errCode = E_OK;
+    std::string path = "/data/test/helper_normal";
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_EQ(errCode, E_OK);
+
+    pref->PutInt("normal_key1", 200);
+    pref->PutString("normal_key2", "test_normal");
+    int ret = pref->FlushSync();
+    EXPECT_EQ(ret, E_OK);
+    auto resStr = pref->GetString("normal_key2", "string_default");
+    EXPECT_EQ(resStr, "test_normal");
+    auto resInt = pref->GetInt("normal_key1", 0);
+    EXPECT_EQ(resInt, 200);
+
+    ret = PreferencesHelper::RemovePreferencesFromCache();
+    EXPECT_EQ(ret, E_OK);
+
+    pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    resStr = pref->GetString("normal_key2", "string_default");
+    EXPECT_EQ(resStr, "test_normal");
+    resInt = pref->GetInt("normal_key1", 0);
+    EXPECT_EQ(resInt, 200);
+
+    ret = PreferencesHelper::DeletePreferences(path);
+    EXPECT_EQ(ret, E_OK);
+}
 }
