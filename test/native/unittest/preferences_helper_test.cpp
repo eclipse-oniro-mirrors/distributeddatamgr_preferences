@@ -237,7 +237,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperAndRemoveCache, TestSize.
     auto resInt = pref->GetInt("normal_key1", 0);
     EXPECT_EQ(resInt, 200);
 
-    ret = PreferencesHelper::RemovePreferencesFromCache();
+    ret = PreferencesHelper::RemovePreferencesFromCache(path);
     EXPECT_EQ(ret, E_OK);
 
     pref = PreferencesHelper::GetPreferences(path, errCode);

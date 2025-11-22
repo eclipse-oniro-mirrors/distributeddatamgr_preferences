@@ -87,7 +87,7 @@ void PreferencesImpl::LoadFromDisk()
         std::unordered_map<std::string, PreferencesValue> values;
         bool loadResult = ReadSettingXml(values);
         if (!loadResult) {
-            LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(pref->options_.filePath).c_str());
+            LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(options_.filePath).c_str());
         } else {
             std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
             valuesCache_ = std::move(values);
