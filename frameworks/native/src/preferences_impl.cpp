@@ -69,34 +69,23 @@ void PreferencesImpl::StartLoadFromDisk()
     isNeverUnlock_ = false;
     loadResult_ = false;
 
-    PreferencesImpl::LoadFromDisk();
-}
-
-/* static */
-void PreferencesImpl::LoadFromDisk()
-{
-    if (loaded_.load()) {
-        return;
+    std::string::size_type pos = options_.filePath.find_last_of('/');
+    std::string filePath = options_.filePath.substr(0, pos);
+    if (Access(filePath) != 0) {
+        isNeverUnlock_ = true;
     }
-    if (!loaded_.load()) {
-        std::string::size_type pos = options_.filePath.find_last_of('/');
-        std::string filePath = options_.filePath.substr(0, pos);
-        if (Access(filePath) != 0) {
-            isNeverUnlock_ = true;
-        }
-        std::unordered_map<std::string, PreferencesValue> values;
-        bool loadResult = ReadSettingXml(values);
-        if (!loadResult) {
-            LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(options_.filePath).c_str());
-        } else {
-            std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
-            valuesCache_ = std::move(values);
-            loadResult_ = true;
-            isNeverUnlock_ = false;
-        }
-        loaded_.store(true);
-        cond_.notify_all();
+    std::unordered_map<std::string, PreferencesValue> values;
+    bool loadResult = ReadSettingXml(values);
+    if (!loadResult) {
+        LOG_WARN("The settingXml %{public}s load failed.", ExtractFileName(options_.filePath).c_str());
+    } else {
+        std::unique_lock<decltype(cacheMutex_)> lock(cacheMutex_);
+        valuesCache_ = std::move(values);
+        loadResult_ = true;
+        isNeverUnlock_ = false;
     }
+    loaded_.store(true);
+    cond_.notify_all();
 }
 
 bool PreferencesImpl::ReloadFromDisk()

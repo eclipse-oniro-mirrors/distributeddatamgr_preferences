@@ -173,6 +173,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTestNormal, TestSize.Leve
     std::string path = "/data/test/test_helper_normal";
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_OK);
+    ASSERT_NE(pref, nullptr);
 
     pref->PutInt("normal_key1", 200);
     pref->PutString("normal_key2", "test_normal");
@@ -192,13 +193,14 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTestNormal, TestSize.Leve
  * @tc.desc: normal testcase of create multiple helper
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativeCreateMultipleHelper, TestSize.Level0)
+HWTEST_F(PreferencesHelperTest, NativeCreateMultipleHelper, TestSize.Level1)
 {
     int errCode = E_OK;
     std::string path = "/data/test/test_helper_normal";
     for (int i = 0; i < 50; i++) {
         std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path + std::to_string(i), errCode);
         EXPECT_EQ(errCode, E_OK);
+        ASSERT_NE(pref, nullptr);
         pref->PutInt("normal_key1_test" + std::to_string(i), i);
         pref->PutString("normal_key2_test" + std::to_string(i), "test_normal_" + std::to_string(i));
         int ret = pref->FlushSync();
@@ -207,6 +209,7 @@ HWTEST_F(PreferencesHelperTest, NativeCreateMultipleHelper, TestSize.Level0)
     for (int i = 0; i < 50; i++) {
         std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path + std::to_string(i), errCode);
         EXPECT_EQ(errCode, E_OK);
+        ASSERT_NE(pref, nullptr);
         auto resStr = pref->GetString("normal_key2_test" + std::to_string(i), "string_default");
         EXPECT_EQ(resStr, "test_normal_" + std::to_string(i));
         auto resInt = pref->GetInt("normal_key1_test" + std::to_string(i), 0);
@@ -227,6 +230,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperAndRemoveCache, TestSize.
     std::string path = "/data/test/helper_normal";
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_OK);
+    ASSERT_NE(pref, nullptr);
 
     pref->PutInt("normal_key1", 200);
     pref->PutString("normal_key2", "test_normal");
@@ -241,6 +245,7 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperAndRemoveCache, TestSize.
     EXPECT_EQ(ret, E_OK);
 
     pref = PreferencesHelper::GetPreferences(path, errCode);
+    ASSERT_NE(pref, nullptr);
     EXPECT_EQ(errCode, E_OK);
     resStr = pref->GetString("normal_key2", "string_default");
     EXPECT_EQ(resStr, "test_normal");

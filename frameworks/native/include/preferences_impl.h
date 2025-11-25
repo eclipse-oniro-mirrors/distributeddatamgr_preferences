@@ -76,7 +76,6 @@ private:
     void StartLoadFromDisk();
     bool PreLoad();
 
-    void LoadFromDisk();
     bool ReloadFromDisk();
     inline void AwaitLoadFile();
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
