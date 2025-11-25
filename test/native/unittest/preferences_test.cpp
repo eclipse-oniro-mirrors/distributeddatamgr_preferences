@@ -64,29 +64,24 @@ std::shared_ptr<Preferences> PreferencesTest::pref = nullptr;
 
 void PreferencesTest::SetUpTestCase(void)
 {
+}
+
+void PreferencesTest::TearDownTestCase(void)
+{
+}
+
+void PreferencesTest::SetUp(void)
+{
     int errCode = E_OK;
     pref = PreferencesHelper::GetPreferences("/data/test/test", errCode);
     EXPECT_EQ(errCode, E_OK);
 }
 
-void PreferencesTest::TearDownTestCase(void)
+void PreferencesTest::TearDown(void)
 {
     pref = nullptr;
     int ret = PreferencesHelper::DeletePreferences("/data/test/test");
     EXPECT_EQ(ret, E_OK);
-}
-
-void PreferencesTest::SetUp(void)
-{
-}
-
-void PreferencesTest::TearDown(void)
-{
-    /* clear all data after every case */
-    if (pref) {
-        pref->Clear();
-        pref->FlushSync();
-    }
 }
 
 class PreferencesObserverCounter : public PreferencesObserver {
