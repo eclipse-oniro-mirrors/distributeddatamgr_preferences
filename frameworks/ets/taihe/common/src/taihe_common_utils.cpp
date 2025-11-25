@@ -34,6 +34,11 @@ inline PreferencesValue ConvertToInt(const ValueType &valueType)
     return static_cast<int32_t>(valueType.get_intType_ref());
 }
 
+inline PreferencesValue ConvertToLong(const ValueType &valueType)
+{
+    return static_cast<int64_t>(valueType.get_longType_ref());
+}
+
 inline PreferencesValue ConvertToDouble(const ValueType &valueType)
 {
     return static_cast<double>(valueType.get_doubleType_ref());
@@ -71,6 +76,10 @@ PreferencesValue ConvertToArray(const ValueType &valueType)
     if (tag == ArrayValueType::tag_t::intType) {
         return ConvertToArrayWithType<double>(ref, [](const ArrayValueType &item) {
             return item.get_intType_ref();
+        });
+    } else if (tag == ArrayValueType::tag_t::longType) {
+        return ConvertToArrayWithType<double>(ref, [](const ArrayValueType &item) {
+            return item.get_longType_ref();
         });
     } else if (tag == ArrayValueType::tag_t::doubleType) {
         return ConvertToArrayWithType<double>(ref, [](const ArrayValueType &item) {
@@ -116,6 +125,7 @@ PreferencesValue ConvertToPreferencesValue(const ValueType &valueType)
 {
     static std::map<ValueType::tag_t, std::function<PreferencesValue(const ValueType&)>> tag2FunctionMap = {
         { ValueType::tag_t::intType, ConvertToInt },
+        { ValueType::tag_t::longType, ConvertToLong },
         { ValueType::tag_t::doubleType, ConvertToDouble },
         { ValueType::tag_t::stringType, ConvertToString },
         { ValueType::tag_t::booleanType, ConvertToBoolean },

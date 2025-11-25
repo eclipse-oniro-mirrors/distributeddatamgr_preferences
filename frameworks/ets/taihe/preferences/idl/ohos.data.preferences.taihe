@@ -21,6 +21,7 @@ static { loadLibraryWithPermissionCheck("preferences_taihe_native.z", "@ohos.dat
 
 union ArrayValueType {
     intType: i32;
+    longType: i64;
     doubleType: f64;
     stringType: String;
     booleanType: bool;
@@ -28,6 +29,7 @@ union ArrayValueType {
 
 union ValueType {
     intType: i32;
+    longType: i64;
     doubleType: f64;
     stringType: String;
     booleanType: bool;
