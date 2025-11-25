@@ -24,10 +24,12 @@
 #include "oh_preferences_value.h"
 #include "preferences_file_operation.h"
 #include "preferences_helper.h"
+#include "preferences_observer.h"
 #include "securec.h"
 
 using namespace OHOS::PreferencesNdk;
 using namespace OHOS::AbilityRuntime;
+using RegisterMode = OHOS::NativePreferences::PreferencesObserver::RegisterMode;
 
 OH_PreferencesImpl::OH_PreferencesImpl
     (std::shared_ptr<OHOS::NativePreferences::Preferences> preferences) : preferences_(preferences)
@@ -175,6 +177,180 @@ int OH_Preferences_Close(OH_Preferences *preference)
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 
+int OH_Preferences_DeletePreferences(OH_PreferencesOption *option)
+{
+    if (option == nullptr || option->fileName.empty() || !NDKPreferencesUtils::PreferencesStructValidCheck(
+        option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("delete preference error, option is null: %{public}d, fileName is null: %{public}d, ",
+            (option == nullptr), (option == nullptr) ? 1 : option->fileName.empty());
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    auto dirRes = GetPreferencesDir(option);
+    if (dirRes.first != OH_Preferences_ErrCode::PREFERENCES_OK || dirRes.second.empty()) {
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    int errCode = OHOS::NativePreferences::PreferencesHelper::DeletePreferences(
+        dirRes.second.append("/").append(option->fileName));
+    return OHConvertor::NativeErrToNdk(errCode);
+}
+
+int OH_Preferences_SetValue(OH_Preferences *preference, const char *key, OH_PreferencesValue *value)
+{
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
+    if (innerPreferences== nullptr || key == nullptr || value == nullptr) {
+        LOG_ERROR("set value failed, preference not open yet: %{public}d, key is null: %{public}d, "
+            "value is null: %{public}d, err: %{public}d", (innerPreferences== nullptr), (key == nullptr),
+            (value == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    std::string keyStr(key);
+    int errCode = innerPreferences->Put(keyStr, static_cast<OH_PreferencesValueImpl*>(value)->value_);
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("put value impl failed");
+        return PREFERENCES_ERROR_STORAGE;
+    }
+    return PREFERENCES_OK;
+}
+
+int OH_Preferences_GetValue(OH_Preferences *preference, const char *key, OH_PreferencesValue **value)
+{
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
+    if (innerPreferences== nullptr || key == nullptr || value == nullptr) {
+        LOG_ERROR("get value failed, preference not open yet: %{public}d, key is null: %{public}d, "
+            "value is null: %{public}d, err: %{public}d", (innerPreferences== nullptr), (key == nullptr),
+            (value == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    std::string keyStr(key);
+    OHOS::NativePreferences::PreferencesValue prefValue = innerPreferences->Get(keyStr,
+        OHOS::NativePreferences::PreferencesValue());
+    if (prefValue == nullptr) {
+        LOG_ERROR("get value impl failed");
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    static_cast<OH_PreferencesValueImpl*>(*value)->value_ = prefValue;
+    return PREFERENCES_OK;
+}
+
+uint32_t OH_PreferencesImpl::PackData(OH_PreferencesPair **pairs, std::unordered_map<std::string,
+    OHOS::NativePreferences::PreferencesValue> &res)
+{
+    uint32_t i = 0;
+    for (auto &[key, value] : res) {
+        (*pairs)[i].key = strdup(key.c_str());
+        if ((*pairs)[i].key == nullptr) {
+            LOG_ERROR("malloc key failed");
+            delete((*pairs)[i].key);
+            return i;
+        }
+        OH_PreferencesValueImpl* valueImpl = new (std::nothrow) OH_PreferencesValueImpl();
+        if (valueImpl == nullptr) {
+            LOG_ERROR("malloc value impl failed");
+            return i;
+        }
+        valueImpl->cid = PreferencesNdkStructId::PREFERENCES_OH_VALUE_CID;
+        valueImpl->value_ = value;
+        (*pairs)[i].value = reinterpret_cast<OH_PreferencesValue*>(valueImpl);
+        i++;
+    }
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int OH_Preferences_GetAll(OH_Preferences *preference, OH_PreferencesPair **pairs, uint32_t *count)
+{
+    auto preferencesImpl = GetPreferencesImpl(preference);
+    if (preferencesImpl == nullptr || pairs == nullptr || count == nullptr ||
+        !NDKPreferencesUtils::PreferencesStructValidCheck(
+            preference->cid, PreferencesNdkStructId::PREFERENCES_OH_PREFERENCES_CID)) {
+        LOG_ERROR("preferences is null: preference not open yet: %{public}d, pairs is null: %{public}d, "
+            "count is null: %{public}d, err: %{public}d", (preferencesImpl == nullptr), (pairs == nullptr),
+            (count == nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = preferencesImpl->GetNativePreferences();
+    if (innerPreferences== nullptr) {
+        LOG_ERROR("preference not open yet");
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    auto res = innerPreferences->GetAllDatas();
+    if (res.empty()) {
+        LOG_ERROR("get all data failed");
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_KEY_NOT_FOUND;
+    }
+
+    *count = res.size();
+    *pairs = (OH_PreferencesPair *)malloc(res.size() * sizeof(OH_PreferencesPair));
+    if (*pairs == nullptr) {
+        LOG_ERROR("malloc pairs failed");
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
+    }
+
+    uint32_t iCount = preferencesImpl->PackData(pairs, res);
+    if (iCount != OH_Preferences_ErrCode::PREFERENCES_OK) {
+        OH_PreferencesPair_Destroy(*pairs, iCount);
+        free(*pairs);
+        *pairs = nullptr;
+        LOG_ERROR("malloc pairs failed");
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
+    }
+
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+bool OH_Preferences_HasKey(OH_Preferences *preference, const char *key)
+{
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
+    if (innerPreferences== nullptr || key == nullptr) {
+        LOG_ERROR("has key failed, preference not open yet: %{public}d, key is null: %{public}d, "
+            "err: %{public}d", (innerPreferences== nullptr), (key == nullptr),
+            OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return false;
+    }
+    std::string keyStr(key);
+    return innerPreferences->HasKey(keyStr);
+}
+
+int OH_Preferences_Flush(OH_Preferences *preference)
+{
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
+    if (innerPreferences == nullptr) {
+        LOG_ERROR("flush failed, preference not open yet: %{public}d, "
+            "err: %{public}d", (innerPreferences== nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    int errCode = innerPreferences->FlushSync();
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("preference flush failed: %{public}d", errCode);
+        return OHConvertor::NativeErrToNdk(errCode);
+    }
+
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int OH_Preferences_ClearCache(OH_Preferences *preference)
+{
+    std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
+    if (innerPreferences == nullptr) {
+        LOG_ERROR("clear cache failed, preference not open yet: %{public}d, "
+            "err: %{public}d", (innerPreferences== nullptr), OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    int errCode = innerPreferences->Clear();
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("preference clear cache failed: %{public}d", errCode);
+        return OHConvertor::NativeErrToNdk(errCode);
+    }
+
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
 int OH_Preferences_GetInt(OH_Preferences *preference, const char *key, int *value)
 {
     std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences = GetNativePreferencesFromOH(preference);
@@ -228,7 +404,7 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
             LOG_ERROR(" string length overlimit: %{public}zu", strLen);
             return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
         }
-        void *ptr = malloc(strLen + 1); // free by caller
+        void *ptr = malloc(strLen + 1);
         if (ptr == nullptr) {
             LOG_ERROR("malloc failed when get string, errno: %{public}d", errno);
             return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
@@ -374,6 +550,20 @@ int OH_Preferences_RegisterDataObserver(OH_Preferences *preference, void *contex
     return OHConvertor::NativeErrToNdk(preferencesImpl->RegisterDataObserver(observer, context, keysVec));
 }
 
+int OH_Preferences_RegisterMultiProcessDataObserver(OH_Preferences *preference, void *context,
+    OH_PreferencesDataObserver observer)
+{
+    auto preferencesImpl = GetPreferencesImpl(preference);
+    if (preferencesImpl == nullptr || observer == nullptr) {
+        LOG_ERROR("register failed, sp is null ? %{public}d, obs is null ? %{public}d, err: %{public}d",
+            (preferencesImpl == nullptr), (observer == nullptr),
+            OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+
+    return OHConvertor::NativeErrToNdk(preferencesImpl->RegisterMultiProcessDataObserver(observer, context));
+}
+
 int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *context,
     OH_PreferencesDataObserver observer, const char *keys[], uint32_t keyCount)
 {
@@ -389,6 +579,19 @@ int OH_Preferences_UnregisterDataObserver(OH_Preferences *preference, void *cont
         keysVec.push_back(keys[i]);
     }
     return OHConvertor::NativeErrToNdk(preferencesImpl->UnregisterDataObserver(observer, context, keysVec));
+}
+
+int OH_Preferences_UnregisterMultiProcessDataObserver(OH_Preferences *preference, void *context,
+    OH_PreferencesDataObserver observer)
+{
+    auto preferencesImpl = GetPreferencesImpl(preference);
+    if (preferencesImpl == nullptr || observer == nullptr) {
+        LOG_ERROR("unregister failed, sp is null ? %{public}d, obs is null ? %{public}d, err: %{public}d",
+            (preferencesImpl == nullptr), (observer == nullptr),
+            OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    return OHConvertor::NativeErrToNdk(preferencesImpl->UnregisterMultiProcessDataObserver(observer, context));
 }
 
 int OH_Preferences_IsStorageTypeSupported(Preferences_StorageType type, bool *isSupported)
@@ -419,6 +622,18 @@ int OH_PreferencesImpl::RegisterDataObserver(
         LOG_ERROR("register failed, err: %{public}d", errCode);
     } else {
         dataObservers_.emplace_back(std::make_pair(std::move(ndkObserver), context));
+    }
+    return OHConvertor::NativeErrToNdk(errCode);
+}
+
+int OH_PreferencesImpl::RegisterMultiProcessDataObserver(OH_PreferencesDataObserver observer, void *context)
+{
+    std::unique_lock<std::shared_mutex> writeLock(obsMutex_);
+
+    auto ndkObserver = std::make_shared<NDKPreferencesObserver>(observer, context);
+    int errCode = preferences_->RegisterObserver(ndkObserver, RegisterMode::MULTI_PRECESS_CHANGE);
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("register failed, err: %{public}d", errCode);
     }
     return OHConvertor::NativeErrToNdk(errCode);
 }
@@ -493,6 +708,17 @@ int OH_PreferencesImpl::UnregisterDataObserver(OH_PreferencesDataObserver observ
             dataObservers_[i] = { nullptr, nullptr };
             dataObservers_.erase(dataObservers_.begin() + i);
         }
+    }
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int OH_PreferencesImpl::UnregisterMultiProcessDataObserver(OH_PreferencesDataObserver observer, void *context)
+{
+    auto ndkObserver = std::make_shared<NDKPreferencesObserver>(observer, context);
+    int errCode = preferences_->UnRegisterObserver(ndkObserver, RegisterMode::MULTI_PRECESS_CHANGE);
+    if (errCode != OHOS::NativePreferences::E_OK) {
+        LOG_ERROR("un register observer failed, err: %{public}d", errCode);
+        return OHConvertor::NativeErrToNdk(errCode);
     }
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
