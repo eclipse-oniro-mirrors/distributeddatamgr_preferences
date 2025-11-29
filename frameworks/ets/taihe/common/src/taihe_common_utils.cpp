@@ -156,7 +156,7 @@ inline ValueType ConvertFromInt(int value)
 inline ValueType ConvertFromLong(int64_t value)
 {
     LOG_ERROR("wjq ConvertFromLong");
-    return ValueType::make_longType(static_cast<int64_t>(value));
+    return ValueType::make_longType(value);
 }
 
 inline ValueType ConvertFromFloat(float value)
