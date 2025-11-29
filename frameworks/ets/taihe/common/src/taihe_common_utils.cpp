@@ -31,19 +31,16 @@ using namespace OHOS::NativePreferences;
 constexpr int32_t OFFSET_OF_SIGN = 63;
 inline PreferencesValue ConvertToInt(const ValueType &valueType)
 {
-    LOG_ERROR("wjq ConvertToInt ~~~~");
     return static_cast<int32_t>(valueType.get_intType_ref());
 }
 
 inline PreferencesValue ConvertToLong(const ValueType &valueType)
 {
-    LOG_ERROR("wjq ConvertToLong ~~~~");
     return static_cast<int64_t>(valueType.get_longType_ref());
 }
 
 inline PreferencesValue ConvertToDouble(const ValueType &valueType)
 {
-    LOG_ERROR("wjq ConvertToDouble ~~~~");
     return static_cast<double>(valueType.get_doubleType_ref());
 }
 
@@ -126,7 +123,6 @@ inline PreferencesValue ConvertToObject(const ValueType &valueType)
 
 PreferencesValue ConvertToPreferencesValue(const ValueType &valueType)
 {
-    LOG_ERROR("wjq ConvertToPreferencesValue");
     static std::map<ValueType::tag_t, std::function<PreferencesValue(const ValueType&)>> tag2FunctionMap = {
         { ValueType::tag_t::intType, ConvertToInt },
         { ValueType::tag_t::longType, ConvertToLong },
@@ -149,25 +145,21 @@ PreferencesValue ConvertToPreferencesValue(const ValueType &valueType)
 
 inline ValueType ConvertFromInt(int value)
 {
-    LOG_ERROR("wjq ConvertFromInt");
     return ValueType::make_intType(value);
 }
 
 inline ValueType ConvertFromLong(int64_t value)
 {
-    LOG_ERROR("wjq ConvertFromLong");
     return ValueType::make_longType(value);
 }
 
 inline ValueType ConvertFromFloat(float value)
 {
-    LOG_ERROR("wjq ConvertFromFloat ----- ");
     return ValueType::make_doubleType(static_cast<double>(value));
 }
 
 inline ValueType ConvertFromDouble(double value)
 {
-    LOG_ERROR("wjq ConvertFromDouble ++++++++++ ");
     return ValueType::make_doubleType(value);
 }
 
