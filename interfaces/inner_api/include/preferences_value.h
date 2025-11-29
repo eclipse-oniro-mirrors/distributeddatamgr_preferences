@@ -182,6 +182,23 @@ public:
      * @param value Indicates a BigInt input parameter.
      */
     PREF_API_EXPORT PreferencesValue(BigInt value);
+    /**
+     * @brief Constructor.
+     *
+     * This constructor is used to convert the vector<int> input parameter to a value of type PreferencesValue.
+     *
+     * @param value Indicates a vector<int> input parameter.
+     */
+    PREF_API_EXPORT PreferencesValue(std::vector<int> value);
+
+    /**
+     * @brief Constructor.
+     *
+     * This constructor is used to convert the vector<int64_t> input parameter to a value of type PreferencesValue.
+     *
+     * @param value Indicates a vector<int64_t> input parameter.
+     */
+    PREF_API_EXPORT PreferencesValue(std::vector<int64_t> value);
 
     /**
      * @brief Move assignment operator overloaded function.
@@ -273,6 +290,20 @@ public:
     PREF_API_EXPORT bool IsBigInt() const;
 
     /**
+     * @brief Determines whether the int array type PreferencesValue is currently used.
+     *
+     * @return Returning true means it is, false means it isn't.
+     */
+    PREF_API_EXPORT bool IsIntArray() const;
+
+    /**
+     * @brief Determines whether the int64 array type PreferencesValue is currently used.
+     *
+     * @return Returning true means it is, false means it isn't.
+     */
+    PREF_API_EXPORT bool IsInt64Array() const;
+
+    /**
      * @brief Type conversion function.
      *
      * @return The int type PreferencesValue.
@@ -352,6 +383,20 @@ public:
     PREF_API_EXPORT operator BigInt() const;
 
     /**
+     * @brief Type conversion function.
+     *
+     * @return Returns vector<uint> type PreferencesValue.
+     */
+    PREF_API_EXPORT operator std::vector<int>() const;
+
+    /**
+     * @brief Type conversion function.
+     *
+     * @return Returns vector<uint64_t> type PreferencesValue.
+     */
+    PREF_API_EXPORT operator std::vector<int64_t>() const;
+
+    /**
      * @brief Overloaded operator "==".
      *
      * This function is used to determine whether the input value is equal to the current PreferencesValue.
@@ -363,7 +408,8 @@ public:
     PREF_API_EXPORT bool operator==(const PreferencesValue &value);
 
     std::variant<std::monostate, int, int64_t, float, double, bool, std::string, std::vector<std::string>,
-        std::vector<bool>, std::vector<double>, std::vector<uint8_t>, Object, BigInt> value_;
+        std::vector<bool>, std::vector<double>, std::vector<uint8_t>, Object, BigInt,
+        std::vector<int>, std::vector<int64_t>> value_;
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

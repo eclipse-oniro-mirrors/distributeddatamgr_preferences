@@ -878,7 +878,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_027, TestSize.Level0)
  * @tc.require: Na
  * @tc.author: changjiaxing
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_028, TestSize.Level0)
+HWTEST_F(PreferencesTest, NativePreferencesTest_028, TestSize.Level1)
 {
     std::shared_ptr<PreferencesObserverCrossProcess> counter = std::make_shared<PreferencesObserverCrossProcess>();
     int ret = pref->RegisterObserver(counter, RegisterMode::MULTI_PRECESS_CHANGE);

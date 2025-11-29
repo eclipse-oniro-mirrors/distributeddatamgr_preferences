@@ -64,9 +64,13 @@ public:
         OH_PreferencesDataObserver observer, void *context, const std::vector<std::string> &keys = {});
     int UnregisterDataObserver(OH_PreferencesDataObserver observer, void *context,
         const std::vector<std::string> &keys = {});
+    int RegisterMultiProcessDataObserver(OH_PreferencesDataObserver observer, void *context);
+    int UnregisterMultiProcessDataObserver(OH_PreferencesDataObserver observer, void *context);
 
     void SetPreferencesStoreFilePath(const std::string &filePath);
     std::string GetPreferencesStoreFilePath();
+    uint32_t PackData(OH_PreferencesPair **pairs,
+        std::unordered_map<std::string, OHOS::NativePreferences::PreferencesValue> &res);
 
 private:
     std::shared_ptr<OHOS::NativePreferences::Preferences> preferences_;

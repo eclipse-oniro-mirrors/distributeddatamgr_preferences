@@ -150,6 +150,28 @@ struct ValueVisitor {
         arrayValues.push_back(std::to_string(static_cast<uint64_t>(val.sign_)));
     }
 
+    void operator()(const std::vector<int>& val)
+    {
+        typeTag = "intArray";
+        childrenTag = "int";
+        arrayValues.clear();
+        arrayValues.reserve(val.size());
+        for (const auto& i : val) {
+            arrayValues.push_back(std::to_string(i));
+        }
+    }
+
+    void operator()(const std::vector<int64_t>& val)
+    {
+        typeTag = "int64Array";
+        childrenTag = "int64";
+        arrayValues.clear();
+        arrayValues.reserve(val.size());
+        for (const auto& i : val) {
+            arrayValues.push_back(std::to_string(i));
+        }
+    }
+
     void operator()(const std::monostate&)
     {
         typeTag = "unknown";

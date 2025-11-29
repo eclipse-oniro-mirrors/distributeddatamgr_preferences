@@ -768,4 +768,484 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesNullInputTest_001, TestSize.Level0)
     EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
         OHOS::NativePreferences::E_OK);
 }
+
+
+/**
+ * @tc.name: NDKPreferencesDeletePreferencesTest_001
+ * @tc.desc: Test OH_Preferences_DeletePreferences with null and invalid parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesDeletePreferencesTest_001, TestSize.Level0)
+{
+    int ret = OH_Preferences_DeletePreferences(nullptr);
+    EXPECT_EQ(ret, PREFERENCES_ERROR_INVALID_PARAM);
+
+    OH_PreferencesOption* option = OH_PreferencesOption_Create();
+    ASSERT_NE(option, nullptr);
+
+    EXPECT_EQ(OH_PreferencesOption_SetBundleName(option, "com.test"), PREFERENCES_OK);
+
+    ret = OH_Preferences_DeletePreferences(option);
+    EXPECT_EQ(ret, PREFERENCES_ERROR_INVALID_PARAM);
+    
+    (void)OH_PreferencesOption_Destroy(option);
+}
+
+/**
+ * @tc.name: NDKPreferencesDeletePreferencesTest_002
+ * @tc.desc: Test OH_Preferences_DeletePreferences with valid parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesDeletePreferencesTest_002, TestSize.Level0)
+{
+    // First create a preferences file
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    EXPECT_EQ(OH_Preferences_SetInt(pref, "test_key", 123), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+
+    int ret = OH_Preferences_DeletePreferences(option);
+    EXPECT_EQ(ret, PREFERENCES_OK);
+
+    (void)OH_PreferencesOption_Destroy(option);
+}
+
+/**
+ * @tc.name: NDKPreferencesSetGetValueTest_001
+ * @tc.desc: Test OH_Preferences_SetValue and OH_Preferences_GetValue with null parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesSetGetValueTest_001, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    OH_PreferencesValue* value = OH_PreferencesValue_Create();
+    ASSERT_NE(value, nullptr);
+
+    EXPECT_EQ(OH_Preferences_SetValue(nullptr, "key", value), PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_Preferences_SetValue(pref, nullptr, value), PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_Preferences_SetValue(pref, "key", nullptr), PREFERENCES_ERROR_INVALID_PARAM);
+
+    OH_PreferencesValue* outValue = nullptr;
+    EXPECT_EQ(OH_Preferences_GetValue(nullptr, "key", &outValue), PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_Preferences_GetValue(pref, nullptr, &outValue), PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_Preferences_GetValue(pref, "key", nullptr), PREFERENCES_ERROR_INVALID_PARAM);
+
+    OH_PreferencesValue_Destroy(value);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesSetGetValueTest_002
+ * @tc.desc: Test OH_Preferences_SetValue and OH_Preferences_GetValue with different data types
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesSetGetValueTest_002, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    
+    // Test int value
+    OH_PreferencesValue* intValue = OH_PreferencesValue_Create();
+    ASSERT_NE(intValue, nullptr);
+    EXPECT_EQ(OH_PreferencesValue_SetInt(intValue, 456), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetValue(pref, "int_key", intValue), PREFERENCES_OK);
+    
+    OH_PreferencesValue* getIntValue = OH_PreferencesValue_Create();
+    EXPECT_EQ(OH_Preferences_GetValue(pref, "int_key", &getIntValue), PREFERENCES_OK);
+    ASSERT_NE(getIntValue, nullptr);
+
+    int intVal = 0;
+    EXPECT_EQ(OH_PreferencesValue_GetInt(getIntValue, &intVal), PREFERENCES_OK);
+    EXPECT_EQ(intVal, 456);
+    OH_PreferencesValue_Destroy(getIntValue);
+
+    // Test string value
+    OH_PreferencesValue* stringValue = OH_PreferencesValue_Create();
+    ASSERT_NE(stringValue, nullptr);
+    EXPECT_EQ(OH_PreferencesValue_SetString(stringValue, "test_string"), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetValue(pref, "string_key", stringValue), PREFERENCES_OK);
+
+    OH_PreferencesValue* getStringValue = OH_PreferencesValue_Create();
+    EXPECT_EQ(OH_Preferences_GetValue(pref, "string_key", &getStringValue), PREFERENCES_OK);
+    ASSERT_NE(getStringValue, nullptr);
+
+    char* strVal = nullptr;
+    uint32_t len = 0;
+    EXPECT_EQ(OH_PreferencesValue_GetString(stringValue, &strVal, &len), PREFERENCES_OK);
+    EXPECT_STREQ(strVal, "test_string");
+    OH_Preferences_FreeString(strVal);
+    OH_PreferencesValue_Destroy(getStringValue);
+
+    // Test bool value
+    OH_PreferencesValue* boolValue = OH_PreferencesValue_Create();
+    ASSERT_NE(boolValue, nullptr);
+    EXPECT_EQ(OH_PreferencesValue_SetBool(boolValue, true), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetValue(pref, "bool_key", boolValue), PREFERENCES_OK);
+    OH_PreferencesValue* getBoolValue = OH_PreferencesValue_Create();
+    EXPECT_EQ(OH_Preferences_GetValue(pref, "bool_key", &getBoolValue), PREFERENCES_OK);
+    ASSERT_NE(getBoolValue, nullptr);
+
+    OH_PreferencesValue_Destroy(intValue);
+    OH_PreferencesValue_Destroy(stringValue);
+    OH_PreferencesValue_Destroy(boolValue);
+    OH_PreferencesValue_Destroy(getBoolValue);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesSetGetValueTest_003
+ * @tc.desc: Test OH_Preferences_GetValue with non-existent key
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesSetGetValueTest_003, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    OH_PreferencesValue* value = OH_PreferencesValue_Create();
+    EXPECT_EQ(OH_Preferences_GetValue(pref, "non_existent_key", &value), PREFERENCES_OK);
+    ASSERT_NE(value, nullptr);
+
+    EXPECT_EQ(OH_PreferencesValue_GetValueType(value), PREFERENCE_TYPE_NULL);
+
+    OH_PreferencesValue_Destroy(value);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesGetAllTest_001
+ * @tc.desc: Test OH_Preferences_GetAll with null parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_001, TestSize.Level0)
+{
+    OH_PreferencesPair* pairs = nullptr;
+    uint32_t count = 0;
+    EXPECT_EQ(OH_Preferences_GetAll(nullptr, &pairs, &count), PREFERENCES_ERROR_INVALID_PARAM);
+    
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    
+    EXPECT_EQ(OH_Preferences_GetAll(pref, nullptr, &count), PREFERENCES_ERROR_INVALID_PARAM);
+    
+    EXPECT_EQ(OH_Preferences_GetAll(pref, &pairs, nullptr), PREFERENCES_ERROR_INVALID_PARAM);
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesGetAllTest_002
+ * @tc.desc: Test OH_Preferences_GetAll with empty database
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_002, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    OH_PreferencesPair* pairs = nullptr;
+    uint32_t count = 0;
+    int ret = OH_Preferences_GetAll(pref, &pairs, &count);
+
+    EXPECT_EQ(ret, PREFERENCES_ERROR_KEY_NOT_FOUND);
+    EXPECT_EQ(pairs, nullptr);
+    EXPECT_EQ(count, 0u);
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesGetAllTest_003
+ * @tc.desc: Test OH_Preferences_GetAll with data in database
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_003, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    SetAllValuesWithCheck(pref);
+
+    OH_PreferencesPair* pairs = nullptr;
+    uint32_t count = 0;
+    int ret = OH_Preferences_GetAll(pref, &pairs, &count);
+    
+    EXPECT_EQ(ret, PREFERENCES_OK);
+    EXPECT_NE(pairs, nullptr);
+    EXPECT_GT(count, 0u);
+
+    uint32_t expectedCount = g_intDataMap.size() + g_stringDataMap.size() + g_boolDataMap.size();
+    EXPECT_EQ(count, expectedCount);
+
+    if (pairs != nullptr) {
+        OH_PreferencesPair_Destroy(pairs, count);
+    }
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+    OH_PreferencesPair_Destroy(nullptr, 0);
+}
+
+/**
+ * @tc.name: NDKPreferencesHasKeyTest_001
+ * @tc.desc: Test OH_Preferences_HasKey with null parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesHasKeyTest_001, TestSize.Level0)
+{
+    bool result = OH_Preferences_HasKey(nullptr, "test_key");
+    EXPECT_EQ(result, false);
+
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    
+    result = OH_Preferences_HasKey(pref, nullptr);
+    EXPECT_EQ(result, false);
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesHasKeyTest_002
+ * @tc.desc: Test OH_Preferences_HasKey with existing and non-existing keys
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesHasKeyTest_002, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    
+    bool result = OH_Preferences_HasKey(pref, "non_existent_key");
+    EXPECT_EQ(result, false);
+    EXPECT_EQ(OH_Preferences_SetInt(pref, "test_key", 123), PREFERENCES_OK);
+    result = OH_Preferences_HasKey(pref, "test_key");
+    EXPECT_EQ(result, true);
+    result = OH_Preferences_HasKey(pref, "TEST_KEY");
+    EXPECT_EQ(result, false);
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesFlushTest_001
+ * @tc.desc: Test OH_Preferences_Flush with null parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesFlushTest_001, TestSize.Level0)
+{
+    EXPECT_EQ(OH_Preferences_Flush(nullptr), PREFERENCES_ERROR_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: NDKPreferencesFlushTest_002
+ * @tc.desc: Test OH_Preferences_Flush with valid preference
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesFlushTest_002, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    EXPECT_EQ(OH_Preferences_SetInt(pref, "flush_test_key", 789), PREFERENCES_OK);
+
+    EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    option = GetCommonOption();
+    pref = OH_Preferences_Open(option, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    int value = 0;
+    EXPECT_EQ(OH_Preferences_GetInt(pref, "flush_test_key", &value), PREFERENCES_OK);
+    EXPECT_EQ(value, 789);
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesClearCacheTest_001
+ * @tc.desc: Test OH_Preferences_ClearCache with null parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesClearCacheTest_001, TestSize.Level0)
+{
+    // Test with null preference
+    EXPECT_EQ(OH_Preferences_ClearCache(nullptr), PREFERENCES_ERROR_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: NDKPreferencesClearCacheTest_002
+ * @tc.desc: Test OH_Preferences_ClearCache with valid preference
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesClearCacheTest_002, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    SetAllValuesWithCheck(pref);
+
+    EXPECT_EQ(OH_Preferences_ClearCache(pref), PREFERENCES_OK);
+
+    for (auto &[key, value] : g_intDataMap) {
+        EXPECT_FALSE(OH_Preferences_HasKey(pref, key.c_str()));
+    }
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesMultiProcessObserverTest_001
+ * @tc.desc: Test multi-process observer registration with null parameters
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesMultiProcessObserverTest_001, TestSize.Level0)
+{
+    // Test Register with null parameters
+    EXPECT_EQ(OH_Preferences_RegisterMultiProcessDataObserver(nullptr, nullptr, DataChangeObserverCallback),
+        PREFERENCES_ERROR_INVALID_PARAM);
+
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    EXPECT_EQ(OH_Preferences_RegisterMultiProcessDataObserver(pref, nullptr, nullptr),
+        PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_Preferences_UnregisterMultiProcessDataObserver(nullptr, nullptr, DataChangeObserverCallback),
+        PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_Preferences_UnregisterMultiProcessDataObserver(pref, nullptr, nullptr),
+        PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesMultiProcessObserverTest_002
+ * @tc.desc: Test multi-process observer registration and unregistration
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesMultiProcessObserverTest_002, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    int ret = OH_Preferences_RegisterMultiProcessDataObserver(pref, nullptr, DataChangeObserverCallback);
+    EXPECT_TRUE(ret == PREFERENCES_OK || ret == PREFERENCES_ERROR_STORAGE);
+    if (ret == PREFERENCES_OK) {
+        EXPECT_EQ(OH_Preferences_UnregisterMultiProcessDataObserver(pref, nullptr, DataChangeObserverCallback),
+            PREFERENCES_OK);
+    }
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesMultiProcessObserverTest_003
+ * @tc.desc: Test multi-process observer with context
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesMultiProcessObserverTest_003, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+
+    int contextData = 42;
+    int ret = OH_Preferences_RegisterMultiProcessDataObserver(pref, &contextData, DataChangeObserverCallback);
+
+    if (ret == PREFERENCES_OK) {
+        EXPECT_EQ(OH_Preferences_UnregisterMultiProcessDataObserver(pref, &contextData, DataChangeObserverCallback),
+            PREFERENCES_OK);
+        int differentContext = 100;
+        EXPECT_EQ(OH_Preferences_UnregisterMultiProcessDataObserver(pref, &differentContext,
+            DataChangeObserverCallback), PREFERENCES_OK);
+    }
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
 }
