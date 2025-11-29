@@ -43,7 +43,7 @@ inline PreferencesValue ConvertToLong(const ValueType &valueType)
 
 inline PreferencesValue ConvertToDouble(const ValueType &valueType)
 {
-    LOG_ERROR("wjq ConvertToLong ~~~~");
+    LOG_ERROR("wjq ConvertToDouble ~~~~");
     return static_cast<double>(valueType.get_doubleType_ref());
 }
 
@@ -126,6 +126,7 @@ inline PreferencesValue ConvertToObject(const ValueType &valueType)
 
 PreferencesValue ConvertToPreferencesValue(const ValueType &valueType)
 {
+    LOG_ERROR("wjq ConvertToPreferencesValue");
     static std::map<ValueType::tag_t, std::function<PreferencesValue(const ValueType&)>> tag2FunctionMap = {
         { ValueType::tag_t::intType, ConvertToInt },
         { ValueType::tag_t::longType, ConvertToLong },
