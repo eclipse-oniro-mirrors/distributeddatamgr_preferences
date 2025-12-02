@@ -93,40 +93,12 @@ interface Preferences {
     @gen_promise("flush")
     FlushSync(): void;
 
-    @!sts_inject_into_interface("""
-        onChange(callback: (key: string) => void): void;
-        onMultiProcessChange(callback: (key: string) => void): void;
-        offChange(callback?: (key: string) => void): void;
-        offMultiProcessChange(callback?: (key: string) => void): void;
-        onDataChange(keys: Array<string>, callback: (info: Record<string, ValueType>) => void): void;
-        offDataChange(keys: Array<string>, callback?: (info: Record<string, ValueType>) => void): void;
-    """)
-    @!sts_inject_into_class("""
-        onChange(cb: (key: string) => void) {
-            return this.onChange(cb, cb);
-        }
-        onMultiProcessChange(cb: (key: string) => void) {
-            return this.onMultiProcessChange(cb, cb);
-        }
-        offChange(cb?: (key: string) => void) {
-            return this.offChange(cb);
-        }
-        offMultiProcessChange(cb?: (key: string) => void) {
-            return this.offMultiProcessChange(cb);
-        }
-        onDataChange(keys: Array<string>, cb: (info: Record<string, ValueType>) => void) {
-            return this.onDataChange(keys, cb, cb);
-        }
-        offDataChange(keys: Array<string>, cb?: (info: Record<string, ValueType>) => void) {
-            return this.offDataChange(keys, cb);
-        }
-    """)
-    OnChange(cb: (key: String) => void, opq: Opaque);
-    OffChange(opq: Optional<Opaque>);
-    OnMultiProcessChange(cb: (key: String) => void, opq: Opaque);
-    OffMultiProcessChange(opq: Optional<Opaque>);
-    OnDataChange(keys: Array<String>, cb: (data: @record Map<String, ValueType>) => void, opq: Opaque);
-    OffDataChange(keys: Array<String>, opq: Optional<Opaque>);
+    OnChange(cb: (key: String) => void, @sts_last opq: Opaque);
+    OffChange(opq: Optional<@sts_type("Function1<String, void>") Opaque>);
+    OnMultiProcessChange(cb: (key: String) => void, @sts_last opq: Opaque);
+    OffMultiProcessChange(opq: Optional<@sts_type("Function1<String, void>") Opaque>);
+    OnDataChange(keys: Array<String>, cb: (data: @record Map<String, ValueType>) => void, @sts_last opq: Opaque);
+    OffDataChange(keys: Array<String>, opq: Optional<@sts_type("Function1<Record<String, ValueType>, void>") Opaque>);
 }
 
 @gen_async("getPreferences")
