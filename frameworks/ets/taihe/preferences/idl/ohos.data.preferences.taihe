@@ -21,20 +21,25 @@ static { loadLibraryWithPermissionCheck("preferences_taihe_native.z", "@ohos.dat
 
 union ArrayValueType {
     intType: i32;
+    longType: i64;
     doubleType: f64;
     stringType: String;
     booleanType: bool;
 }
 
+@!sts_inject("""
+type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+""")
 union ValueType {
     intType: i32;
+    longType: i64;
     doubleType: f64;
     stringType: String;
     booleanType: bool;
     arrayType: Array<ArrayValueType>;
     uint8ArrayType: @typedarray Array<u8>;
     bigintType: @bigint Array<u64>;
-    objectType: Opaque;
+    objectType: @sts_type("RecordData") Opaque;
 }
 
 @const
