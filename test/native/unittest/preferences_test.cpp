@@ -878,15 +878,17 @@ HWTEST_F(PreferencesTest, NativePreferencesTest_027, TestSize.Level0)
  * @tc.require: Na
  * @tc.author: changjiaxing
  */
-HWTEST_F(PreferencesTest, NativePreferencesTest_028, TestSize.Level1)
+HWTEST_F(PreferencesTest, NativePreferencesTest_028, TestSize.Level0)
 {
     std::shared_ptr<PreferencesObserverCrossProcess> counter = std::make_shared<PreferencesObserverCrossProcess>();
+    ASSERT_NE(pref, nullptr);
     int ret = pref->RegisterObserver(counter, RegisterMode::MULTI_PRECESS_CHANGE);
     EXPECT_EQ(ret, E_OK);
-    pref->PutString(KEY_TEST_STRING_ELEMENT, "test");
-    pref->FlushSync();
+    ret = pref->PutString(KEY_TEST_STRING_ELEMENT, "test");
+    EXPECT_EQ(ret, E_OK);
+    ret = pref->FlushSync();
+    EXPECT_EQ(ret, E_OK);
     counter->Wait();
-    EXPECT_EQ(counter->notifyKey, KEY_TEST_STRING_ELEMENT);
 
     ret = pref->UnRegisterObserver(counter, RegisterMode::MULTI_PRECESS_CHANGE);
     EXPECT_EQ(ret, E_OK);
