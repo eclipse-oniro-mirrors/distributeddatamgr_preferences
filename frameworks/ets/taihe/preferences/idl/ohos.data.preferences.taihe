@@ -148,6 +148,8 @@ function GetPreferencesSync(context: @sts_type("BaseContext") Opaque, options: O
 @gen_promise("getPreferences")
 function GetPreferencesSyncByName(context: @sts_type("BaseContext") Opaque, name: String): Preferences;
 
+function isStorageTypeSupported(msg: StorageType): bool;
+
 @gen_async("deletePreferences")
 @gen_promise("deletePreferences")
 function DeletePreferencesSync(context: @sts_type("BaseContext") Opaque, options: Options): void;
