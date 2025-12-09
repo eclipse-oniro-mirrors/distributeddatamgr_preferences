@@ -98,46 +98,12 @@ interface Preferences {
     @gen_promise("flush")
     FlushSync(): void;
 
-    @!sts_inject_into_interface("""
-        on(type: string, callback: (key: string) => void): void;
-        off(type: string, callback?: (key: string) => void): void;
-        on(type: string, keys: Array<string>, callback: (info: Record<string, ValueType>) => void): void;
-        off(type: string, keys: Array<string>, callback?: (info: Record<string, ValueType>) => void): void;
-    """)
-    @!sts_inject_into_class("""
-        on(type: string, cb: (key: string) => void) {
-            switch(type) {
-                case "change": return this.onChange(cb, cb);
-                case "multiProcessChange": return this.onMultiProcessChange(cb, cb);
-                default: throw new Error(`Unknown type: ${type}`);
-            }
-        }
-        off(type: string, cb?: (key: string) => void) {
-            switch(type) {
-                case "change": return this.offChange(cb);
-                case "multiProcessChange": return this.offMultiProcessChange(cb);
-                default: throw new Error(`Unknown type: ${type}`);
-            }
-        }
-        on(type: string, keys: Array<string>, cb: (info: Record<string, ValueType>) => void) {
-            switch(type) {
-                case "dataChange": return this.onDataChange(keys, cb, cb);
-                default: throw new Error(`Unknown type: ${type}`);
-            }
-        }
-        off(type: string, keys: Array<string>, cb?: (info: Record<string, ValueType>) => void) {
-            switch(type) {
-                case "dataChange": return this.offDataChange(keys, cb);
-                default: throw new Error(`Unknown type: ${type}`);
-            }
-        }
-    """)
-    OnChange(cb: (key: String) => void, opq: Opaque);
-    OffChange(opq: Optional<Opaque>);
-    OnMultiProcessChange(cb: (key: String) => void, opq: Opaque);
-    OffMultiProcessChange(opq: Optional<Opaque>);
-    OnDataChange(keys: Array<String>, cb: (data: @record Map<String, ValueType>) => void, opq: Opaque);
-    OffDataChange(keys: Array<String>, opq: Optional<Opaque>);
+    OnChange(cb: (key: String) => void, @sts_last opq: Opaque);
+    OffChange(opq: Optional<@sts_type("Function1<String, void>") Opaque>);
+    OnMultiProcessChange(cb: (key: String) => void, @sts_last opq: Opaque);
+    OffMultiProcessChange(opq: Optional<@sts_type("Function1<String, void>") Opaque>);
+    OnDataChange(keys: Array<String>, cb: (data: @record Map<String, ValueType>) => void, @sts_last opq: Opaque);
+    OffDataChange(keys: Array<String>, opq: Optional<@sts_type("Function1<Record<String, ValueType>, void>") Opaque>);
 }
 
 @gen_async("getPreferences")
