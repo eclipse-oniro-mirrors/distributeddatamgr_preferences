@@ -43,7 +43,7 @@ static void ThrowBusinessError(ani_env *env, int errCode, std::string&& errMsg)
         return;
     }
     ani_method ctor;
-    status = env->Class_FindMethod(cls, "<ctor>", ":V", &ctor);
+    status = env->Class_FindMethod(cls, "<ctor>", ":", &ctor);
     if (status != ANI_OK) {
         LOG_ERROR("find method BusinessError.constructor failed, status = %{public}d", status);
         return;
@@ -257,12 +257,12 @@ static ani_object CreatePreferencesObj(ani_env *env, Options &options)
     }
 
     ani_namespace ns {};
-    if (ANI_OK != env->FindNamespace("L@ohos/data/preferences/preferences;", &ns)) {
+    if (ANI_OK != env->FindNamespace("@ohos.data.preferences.preferences", &ns)) {
         LOG_ERROR("Not found namespace 'Lpreferences'");
         return nullptr;
     }
 
-    static const char *className = "LPreferencesImpl;";
+    static const char *className = "PreferencesImpl";
     ani_class cls;
     if (ANI_OK != env->Namespace_FindClass(ns, className, &cls)) {
         LOG_ERROR("Not found className %{public}s.", className);
@@ -331,7 +331,7 @@ static ani_object MapToObject(ani_env *env, std::map<std::string, PreferencesVal
         return nullptr;
     }
     ani_object aniObject = nullptr;
-    static const char *className = "Lescompat/Record;";
+    static const char *className = "escompat.Record";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
         LOG_ERROR("Not found '%{public}s'.", className);
@@ -339,7 +339,7 @@ static ani_object MapToObject(ani_env *env, std::map<std::string, PreferencesVal
     }
 
     ani_method aniCtor;
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", ":V", &aniCtor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", ":", &aniCtor)) {
         LOG_ERROR("Class_GetMethod <ctor> Failed '%{public}s'.", className);
         return aniObject;
     }
@@ -410,12 +410,12 @@ static int FlushSync(ani_env *env, ani_object obj)
 static OHOS::NativePreferences::Object AniObjectToNativeObject(ani_env* env, ani_object unionValue)
 {
     ani_class objCls;
-    if (ANI_OK != env->FindClass("Lstd/core/Object;", &objCls)) {
-        LOG_ERROR("Not found class 'Lstd/core/Object;'");
+    if (ANI_OK != env->FindClass("std.core.Object", &objCls)) {
+        LOG_ERROR("Not found class 'std.core.Object'");
         return PreferencesValue(static_cast<int>(0));
     }
     ani_method toStringMethod;
-    if (ANI_OK != env->Class_FindMethod(objCls, "toString", ":Lstd/core/String;", &toStringMethod)) {
+    if (ANI_OK != env->Class_FindMethod(objCls, "toString", ":C{std.core.String}", &toStringMethod)) {
         LOG_ERROR("Class_GetMethod toString Failed.");
         return PreferencesValue(static_cast<int>(0));
     }
@@ -432,18 +432,18 @@ static PreferencesValue ParsePreferencesValue(ani_env *env, ani_object unionValu
 {
     UnionAccessor unionAccessor(env, unionValue);
     ani_double value = 0.0;
-    if (unionAccessor.IsInstanceOf("Lstd/core/Double;")) {
+    if (unionAccessor.IsInstanceOf("std.core.Double")) {
         env->Object_CallMethodByName_Double(unionValue, "unboxed", nullptr, &value);
         return static_cast<double>(value);
     }
 
-    if (unionAccessor.IsInstanceOf("Lstd/core/String;")) {
+    if (unionAccessor.IsInstanceOf("std.core.String")) {
         std::string stringValue = AniStringToStdStr(env, static_cast<ani_string>(unionValue));
         return stringValue;
     }
 
     ani_boolean boolValue = 0;
-    if (unionAccessor.IsInstanceOf("Lstd/core/Boolean;")) {
+    if (unionAccessor.IsInstanceOf("std.core.Boolean")) {
         if (ANI_OK != env->Object_CallMethodByName_Boolean(unionValue, "unboxed", nullptr, &boolValue)) {
             LOG_ERROR("Object_CallMethodByName_Double unbox Failed");
             return false;
@@ -476,7 +476,7 @@ static PreferencesValue ParsePreferencesValue(ani_env *env, ani_object unionValu
         return PreferencesValue(static_cast<int64_t>(longValue));
     }
 
-    if (unionAccessor.IsInstanceOf("Lstd/core/Object;")) {
+    if (unionAccessor.IsInstanceOf("std.core.Object")) {
         return AniObjectToNativeObject(env, unionValue);
     }
 
@@ -492,14 +492,14 @@ static ani_object DoubleToObject(ani_env *env, double value)
     }
     ani_object aniObject = nullptr;
     ani_double doubleValue = static_cast<ani_double>(value);
-    static const char *className = "Lstd/core/Double;";
+    static const char *className = "std.core.Double";
     ani_class aniClass;
     if (ANI_OK != env->FindClass(className, &aniClass)) {
         LOG_ERROR("Not found '%{public}s'.", className);
         return aniObject;
     }
     ani_method personInfoCtor;
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "D:V", &personInfoCtor)) {
+    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "d:", &personInfoCtor)) {
         LOG_ERROR("Class_GetMethod Failed '%{public}s <ctor>.'", className);
         return aniObject;
     }
@@ -519,7 +519,7 @@ static ani_object BoolToObject(ani_env *env, bool value)
     }
     ani_object aniObject = nullptr;
     ani_boolean boolValue = static_cast<bool>(value);
-    static const char *className = "Lstd/core/Boolean;";
+    static const char *className = "std.core.Boolean";
     ani_class aniClass;
     if (ANI_OK != env->FindClass(className, &aniClass)) {
         LOG_ERROR("Not found '%{public}s.'", className);
@@ -527,7 +527,7 @@ static ani_object BoolToObject(ani_env *env, bool value)
     }
 
     ani_method personInfoCtor;
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "Z:V", &personInfoCtor)) {
+    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "z:", &personInfoCtor)) {
         LOG_ERROR("Class_GetMethod Failed '%{public}s' <ctor>.", className);
         return aniObject;
     }
@@ -551,7 +551,7 @@ static ani_object BigIntToObject(ani_env *env, int64_t value)
         return nullptr;
     }
     ani_object aniObject = nullptr;
-    static const char *className = "Lescompat/BigInt;";
+    static const char *className = "escompat.BigInt";
     ani_class aniClass;
     if (ANI_OK != env->FindClass(className, &aniClass)) {
         LOG_ERROR("Not found '%{public}s'.", className);
@@ -559,7 +559,7 @@ static ani_object BigIntToObject(ani_env *env, int64_t value)
     }
 
     ani_method personInfoCtor;
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "J:V", &personInfoCtor)) {
+    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "l:", &personInfoCtor)) {
         LOG_ERROR("Class_GetMethod Failed '%{public}s' <ctor>.", className);
         return aniObject;
     }
@@ -578,13 +578,13 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> &v
     }
     ani_object aniObject = nullptr;
     ani_class arrayClass;
-    ani_status retCode = env->FindClass("Lescompat/Uint8Array;", &arrayClass);
+    ani_status retCode = env->FindClass("escompat.Uint8Array", &arrayClass);
     if (retCode != ANI_OK) {
         LOG_ERROR("Failed: env->FindClass()");
         return aniObject;
     }
     ani_method arrayCtor;
-    retCode = env->Class_FindMethod(arrayClass, "<ctor>", "I:V", &arrayCtor);
+    retCode = env->Class_FindMethod(arrayClass, "<ctor>", "i:", &arrayCtor);
     if (retCode != ANI_OK) {
         LOG_ERROR("Failed: env->Class_FindMethod()");
         return aniObject;
@@ -620,12 +620,12 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
     }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
-        LOG_INFO("FindClass Lescompat/Array; Failed");
+    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
+        LOG_INFO("FindClass escompat.Array Failed");
     }
 
     ani_method arrayCtor;
-    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor)) {
+    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor)) {
         LOG_ERROR("Class_FindMethod <ctor> Failed");
         return arrayObj;
     }
@@ -641,7 +641,7 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
             LOG_INFO("String_NewUTF8 Faild ");
             break;
         }
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, ani_str)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, ani_str)) {
             LOG_INFO("Object_CallMethodByName_Void  $_set Faild ");
             break;
         }
@@ -658,13 +658,13 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
-        LOG_ERROR("FindClass Lescompat/Array; Failed");
+    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
+        LOG_ERROR("FindClass escompat.Array Failed");
         return arrayObj;
     }
 
     ani_method arrayCtor;
-    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor)) {
+    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor)) {
         LOG_ERROR("Class_FindMethod <ctor> Failed");
         return arrayObj;
     }
@@ -676,7 +676,7 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = BoolToObject(env, value);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniValue)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniValue)) {
             LOG_INFO("Object_CallMethodByName_Void  $_set Faild ");
             break;
         }
@@ -693,13 +693,13 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     }
     ani_object arrayObj = nullptr;
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
-        LOG_ERROR("FindClass Lescompat/Array; Failed");
+    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
+        LOG_ERROR("FindClass escompat.Array Failed");
         return arrayObj;
     }
 
     ani_method arrayCtor;
-    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor)) {
+    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor)) {
         LOG_ERROR("Class_FindMethod <ctor> Failed");
         return arrayObj;
     }
@@ -711,7 +711,7 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = DoubleToObject(env, value);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniValue)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniValue)) {
             LOG_INFO("Object_CallMethodByName_Void  $_set Faild ");
             break;
         }
@@ -807,7 +807,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     }
 
     ani_namespace ns {};
-    if (ANI_OK != env->FindNamespace("L@ohos/data/preferences/preferences;", &ns)) {
+    if (ANI_OK != env->FindNamespace("@ohos.data.preferences.preferences", &ns)) {
         LOG_ERROR("Not found namespace 'Lpreferences'");
         return ANI_ERROR;
     }
