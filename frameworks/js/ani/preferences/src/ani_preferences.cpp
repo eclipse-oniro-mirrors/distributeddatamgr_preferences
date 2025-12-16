@@ -35,7 +35,7 @@ static void ThrowBusinessError(ani_env *env, int errCode, std::string&& errMsg)
         return;
     }
     LOG_INFO("into ThrowBusinessError.");
-    static const char *errorClsName = "L@ohos/base/BusinessError;";
+    static const char *errorClsName = "@ohos.base.BusinessError";
     ani_class cls {};
     ani_status status = env->FindClass(errorClsName, &cls);
     if (status != ANI_OK) {
