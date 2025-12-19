@@ -308,6 +308,18 @@ std::string GetTypeName<BigInt>()
     return "BigInt";
 }
 
+template<>
+std::string GetTypeName<std::vector<int>>()
+{
+    return "intArray";
+}
+
+template<>
+std::string GetTypeName<std::vector<int64_t>>()
+{
+    return "int64Array";
+}
+
 template<typename T>
 static void Convert2PrefValue(const Element &element, T &value)
 {
@@ -608,6 +620,7 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
     }
 
     if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("int"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("int64"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("long"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("bool"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("float"))
@@ -619,6 +632,8 @@ bool ParseNodeElement(const xmlNode *node, Element &element)
     if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("boolArray"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("stringArray"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("doubleArray"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("intArray"))
+        || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("int64Array"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("BigInt"))
         || !xmlStrcmp(node->name, reinterpret_cast<const xmlChar *>("set"))) {
         return ParseArrayNodeElement(node, element);
@@ -802,7 +817,8 @@ static bool WriteXmlElement(xmlTextWriterPtr writer, const std::string &key, con
         XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST ATTR_VALUE, BAD_CAST visitor.valueStr.c_str()) >= 0,
             "Write attr failed");
         XML_CHECK(xmlTextWriterEndElement(writer) >= 0, "End element failed");
-    } else if (visitor.typeTag == "doubleArray" || visitor.typeTag == "stringArray" ||
+    } else if (visitor.typeTag == "intArray" || visitor.typeTag == "int64Array" ||
+        visitor.typeTag == "doubleArray" || visitor.typeTag == "stringArray" ||
         visitor.typeTag == "boolArray" || visitor.typeTag == "BigInt") {
         XML_CHECK(xmlTextWriterStartElement(writer, BAD_CAST tag) >= 0, "Start element failed");
         XML_CHECK(xmlTextWriterWriteAttribute(writer, BAD_CAST ATTR_KEY, BAD_CAST keyPtr) >= 0, "Write attr failed");

@@ -1344,4 +1344,32 @@ HWTEST_F(PreferencesTest, NativePreferencesRegisterTest, TestSize.Level0)
     pref->FlushSync();
     EXPECT_EQ(static_cast<PreferencesObserverCounter *>(observer.get())->notifyTimes, 3);
 }
+
+/**
+ * @tc.name: NativePreferencesTestManyKey
+ * @tc.desc: normal testcase of many key
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesTest, NativePreferencesTestManyKey, TestSize.Level1)
+{
+    int errCode;
+    std::string path = "/data/test/testManyKey";
+    auto prefManyKey = PreferencesHelper::GetPreferences(path, errCode);
+    ASSERT_NE(prefManyKey, nullptr);
+    EXPECT_EQ(errCode, E_OK);
+    for (int i = 0; i <= 10000; i++) {
+        prefManyKey->Put("testKey" + std::to_string(i), "test_perferences_too_long_value_" + std::to_string(i));
+    }
+    prefManyKey->FlushSync();
+    PreferencesHelper::RemovePreferencesFromCache(path);
+    prefManyKey.reset();
+    auto preferences = PreferencesHelper::GetPreferences(path, errCode);
+    ASSERT_NE(preferences, nullptr);
+    EXPECT_EQ(errCode, E_OK);
+    for (int i = 0; i <= 10000; i++) {
+        std::string retStr = preferences->GetString("testKey" + std::to_string(i), "default");
+        EXPECT_EQ(retStr, "test_perferences_too_long_value_"  + std::to_string(i));
+    }
+    PreferencesHelper::DeletePreferences(path);
+}
 } // namespace

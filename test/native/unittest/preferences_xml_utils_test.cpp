@@ -462,4 +462,71 @@ HWTEST_F(PreferencesXmlUtilsTest, ReadSettingXmlTest_007, TestSize.Level1)
     int ret = PreferencesHelper::DeletePreferences(fileName);
     EXPECT_EQ(ret, E_OK);
 }
+
+/**
+* @tc.name: WriteSettingXmlTestIntVector
+* @tc.desc: Test for writing and reading std::vector<int> to/from XML.
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, WriteSettingXmlTestIntVector, TestSize.Level0)
+{
+    std::string file = "/data/test/testIntVector";
+    std::unordered_map<std::string, PreferencesValue> values;
+    std::vector<int> intVec = {1, 2, 3, 42};
+    values.insert({"testKey", intVec});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
+
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool ret = PreferencesXmlUtils::ReadSettingXml(file, "", allDatas);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(allDatas.empty(), false);
+    auto it = allDatas.find("testKey");
+    EXPECT_EQ(it != allDatas.end(), true);
+    auto& readValue = it->second.value_;
+    // Verify the read value matches the original vector<int>
+    bool isEqual = std::visit([&intVec](const auto& val) {
+        using T = std::decay_t<decltype(val)>;
+        if constexpr (std::is_same_v<T, std::vector<int>>) {
+            return val == intVec;
+        } else {
+            return false;
+        }
+    }, readValue);
+
+    EXPECT_EQ(isEqual, true);
+    std::remove(file.c_str());
+}
+
+/**
+* @tc.name: WriteSettingXmlTestInt64Vector
+* @tc.desc: Test for writing and reading std::vector<int64_t> to/from XML.
+* @tc.type: FUNC
+*/
+HWTEST_F(PreferencesXmlUtilsTest, WriteSettingXmlTestInt64Vector, TestSize.Level0)
+{
+    std::string file = "/data/test/testInt64Vector";
+    std::unordered_map<std::string, PreferencesValue> values;
+    std::vector<int64_t> int64Vec = {1LL, 2LL, 3LL, 42LL};
+    values.insert({"testKey", int64Vec});
+    PreferencesXmlUtils::WriteSettingXml(file, "", values);
+
+    std::unordered_map<std::string, PreferencesValue> allDatas;
+    bool ret = PreferencesXmlUtils::ReadSettingXml(file, "", allDatas);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(allDatas.empty(), false);
+    auto it = allDatas.find("testKey");
+    EXPECT_EQ(it != allDatas.end(), true);
+    auto& readValue = it->second.value_;
+    // Verify the read value matches the original vector<int64_t>
+    bool isEqual = std::visit([&int64Vec](const auto& val) {
+        using T = std::decay_t<decltype(val)>;
+        if constexpr (std::is_same_v<T, std::vector<int64_t>>) {
+            return val == int64Vec;
+        } else {
+            return false;
+        }
+    }, readValue);
+    EXPECT_EQ(isEqual, true);
+    std::remove(file.c_str());
+}
 }
