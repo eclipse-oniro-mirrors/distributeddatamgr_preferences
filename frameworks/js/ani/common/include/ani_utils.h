@@ -154,11 +154,11 @@ bool UnionAccessor::TryConvert<std::string>(std::string &value)
 template<>
 bool UnionAccessor::TryConvert<ani_long>(ani_long &value)
 {
-    if (!IsInstanceOf("escompat.BigInt")) {
+    if (!IsInstanceOf("std.core.BigInt")) {
         return false;
     }
     ani_class bigIntCls;
-    const char* className = "escompat.BigInt";
+    const char* className = "std.core.BigInt";
     if (ANI_OK != env_->FindClass(className, &bigIntCls)) {
         return false;
     }

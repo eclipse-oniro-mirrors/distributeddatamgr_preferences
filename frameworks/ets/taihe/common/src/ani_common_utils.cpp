@@ -27,9 +27,9 @@ using PreferencesValue = OHOS::NativePreferences::PreferencesValue;
 static constexpr const char* CLASS_NAME_DOUBLE = "std.core.Double";
 static constexpr const char* CLASS_NAME_BOOLEAN = "std.core.Boolean";
 static constexpr const char* CLASS_NAME_UINT8_ARRAY = "escompat.Uint8Array";
-static constexpr const char* CLASS_NAME_ARRAY = "escompat.Array";
-static constexpr const char* CLASS_NAME_RRECORD = "escompat.Record";
-static constexpr const char* CLASS_NAME_JSON = "escompat.JSON";
+static constexpr const char* CLASS_NAME_ARRAY = "std.core.Array";
+static constexpr const char* CLASS_NAME_RRECORD = "std.core.Record";
+static constexpr const char* CLASS_NAME_JSON = "std.core.JSON";
 
 static constexpr const char* METHOD_NAME_STRINGIFY = "stringify";
 static constexpr const char* METHOD_NAME_CONSTRUCTOR = "<ctor>";
