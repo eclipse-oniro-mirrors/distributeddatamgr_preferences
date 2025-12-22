@@ -24,18 +24,18 @@ namespace EtsUtils {
 using namespace OHOS::NativePreferences;
 using PreferencesValue = OHOS::NativePreferences::PreferencesValue;
 
-static constexpr const char* CLASS_NAME_DOUBLE = "Lstd/core/Double;";
-static constexpr const char* CLASS_NAME_BOOLEAN = "Lstd/core/Boolean;";
-static constexpr const char* CLASS_NAME_UINT8_ARRAY = "Lescompat/Uint8Array;";
-static constexpr const char* CLASS_NAME_ARRAY = "Lescompat/Array;";
-static constexpr const char* CLASS_NAME_RRECORD = "Lescompat/Record;";
-static constexpr const char* CLASS_NAME_JSON = "Lescompat/JSON;";
+static constexpr const char* CLASS_NAME_DOUBLE = "std.core.Double";
+static constexpr const char* CLASS_NAME_BOOLEAN = "std.core.Boolean";
+static constexpr const char* CLASS_NAME_UINT8_ARRAY = "escompat.Uint8Array";
+static constexpr const char* CLASS_NAME_ARRAY = "std.core.Array";
+static constexpr const char* CLASS_NAME_RRECORD = "std.core.Record";
+static constexpr const char* CLASS_NAME_JSON = "std.core.JSON";
 
 static constexpr const char* METHOD_NAME_STRINGIFY = "stringify";
 static constexpr const char* METHOD_NAME_CONSTRUCTOR = "<ctor>";
 static constexpr const char* METHOD_NAME_SET = "$_set";
 
-static constexpr const char* NAMESPACE_NAME_PREFERENCES = "L@ohos/data/preferences/preferences;";
+static constexpr const char* NAMESPACE_NAME_PREFERENCES = "@ohos.data.preferences.preferences";
 static constexpr const char* FUNCTION_NAME_ARRAYBUFFER_TO_BIGINT = "fromArrayBufferToBigInt";
 
 static ani_string StdStringToANIString(ani_env* env, const std::string &str)
@@ -68,7 +68,7 @@ static ani_object DoubleToObject(ani_env *env, double value)
         return nullptr;
     }
     ani_method aniCtor;
-    status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "D:V", &aniCtor);
+    status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "d:", &aniCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
@@ -112,7 +112,7 @@ static ani_object BoolToObject(ani_env *env, bool value)
     }
 
     ani_method aniCtor;
-    status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "Z:V", &aniCtor);
+    status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "z:", &aniCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
@@ -186,7 +186,7 @@ static ani_object Uint8ArrayToObject(ani_env *env, const std::vector<uint8_t> &v
         return nullptr;
     }
     ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayClass, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayClass, METHOD_NAME_CONSTRUCTOR, "i:", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
@@ -232,7 +232,7 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
         return nullptr;
     }
     ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "i:", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
@@ -250,7 +250,7 @@ static ani_object StringArrayToObject(ani_env *env, const std::vector<std::strin
             LOG_ERROR("String_NewUTF8 failed, ret: %{public}d, size: %{public}zu.", status, value.size());
             return nullptr;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "ILstd/core/Object;:V", index, ani_str);
+        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, ani_str);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
             return nullptr;
@@ -275,7 +275,7 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     }
 
     ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "i:", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
@@ -288,7 +288,7 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = BoolToObject(env, value);
-        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "ILstd/core/Object;:V", index, aniValue);
+        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, aniValue);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
             return nullptr;
@@ -312,7 +312,7 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
         return nullptr;
     }
     ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "i:", &arrayCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
@@ -325,7 +325,7 @@ static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> va
     ani_size index = 0;
     for (auto value : values) {
         ani_object aniValue = DoubleToObject(env, value);
-        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "ILstd/core/Object;:V", index, aniValue);
+        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, aniValue);
         if (status != ANI_OK) {
             LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
             break;
@@ -401,7 +401,7 @@ ani_object PreferencesMapToObject(ani_env *env, const std::unordered_map<std::st
     }
 
     ani_method aniCtor;
-    status = env->Class_FindMethod(cls, METHOD_NAME_CONSTRUCTOR, ":V", &aniCtor);
+    status = env->Class_FindMethod(cls, METHOD_NAME_CONSTRUCTOR, ":", &aniCtor);
     if (status != ANI_OK) {
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
@@ -465,7 +465,7 @@ PreferencesValue AniObjectToPreferencesValue(ani_env *env, uintptr_t object)
         return preferencesValue;
     }
     ani_static_method stringify;
-    status = env->Class_FindStaticMethod(cls, METHOD_NAME_STRINGIFY, "Lstd/core/Object;:Lstd/core/String;", &stringify);
+    status = env->Class_FindStaticMethod(cls, METHOD_NAME_STRINGIFY, "C{std.core.Object}:C{std.core.String}", &stringify);
     if (status != ANI_OK) {
         LOG_ERROR("Stringify not found, ret: %{public}d.", status);
         return preferencesValue;
