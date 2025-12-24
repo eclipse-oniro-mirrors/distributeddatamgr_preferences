@@ -14,6 +14,7 @@
 import("//build/test.gni")
 
 ohos_js_stage_unittest("stagePreferencesJsTest") {
+  testonly = true
   hap_profile = "entry/src/main/module.json"
   deps = [
     ":stageprejstest_js_assets",
