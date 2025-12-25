@@ -61,7 +61,6 @@ static ani_object Int64ToObject(ani_env *env, int64_t value)
         return nullptr;
     }
     ani_object aniObject = nullptr;
-    ani_long longValue = static_cast<ani_long>(value);
     ani_class aniClass;
     ani_status status = env->FindClass(CLASS_NAME_LONG, &aniClass);
     if (status != ANI_OK) {
@@ -74,6 +73,7 @@ static ani_object Int64ToObject(ani_env *env, int64_t value)
         LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
         return nullptr;
     }
+    ani_long longValue = static_cast<ani_long>(value);
     status = env->Object_New(aniClass, aniCtor, &aniObject, longValue);
     if (status != ANI_OK) {
         LOG_ERROR("Object_New failed, ret: %{public}d.", status);
@@ -347,7 +347,7 @@ static ani_object Int64ArrayToObject(ani_env *env, const std::vector<int64_t> va
         return nullptr;
     }
     ani_size index = 0;
-    for (auto value : values) {
+    for (const auto value : values) {
         ani_object aniValue = Int64ToObject(env, value);
         status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, aniValue);
         if (status != ANI_OK) {
