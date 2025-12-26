@@ -17,7 +17,7 @@ module_output_path = "preferences/preferences/jsPerformance"
 
 ohos_js_unittest("PreferencesJsPerformanceTest") {
   module_out_path = module_output_path
-
+  testonly = true
   hap_profile = "./config.json"
 
   certificate_profile = "./openharmony_sx.p7b"

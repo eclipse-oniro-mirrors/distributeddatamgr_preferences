@@ -25,6 +25,7 @@ using namespace OHOS::NativePreferences;
 using PreferencesValue = OHOS::NativePreferences::PreferencesValue;
 
 static constexpr const char* CLASS_NAME_DOUBLE = "std.core.Double";
+static constexpr const char* CLASS_NAME_LONG = "std.core.Long";
 static constexpr const char* CLASS_NAME_BOOLEAN = "std.core.Boolean";
 static constexpr const char* CLASS_NAME_UINT8_ARRAY = "escompat.Uint8Array";
 static constexpr const char* CLASS_NAME_ARRAY = "std.core.Array";
@@ -51,6 +52,34 @@ static ani_string StdStringToANIString(ani_env* env, const std::string &str)
         return nullptr;
     }
     return stringAni;
+}
+
+static ani_object Int64ToObject(ani_env *env, int64_t value)
+{
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
+    ani_object aniObject = nullptr;
+    ani_class aniClass;
+    ani_status status = env->FindClass(CLASS_NAME_LONG, &aniClass);
+    if (status != ANI_OK) {
+        LOG_ERROR("long not found, ret: %{public}d.", status);
+        return nullptr;
+    }
+    ani_method aniCtor;
+    status = env->Class_FindMethod(aniClass, METHOD_NAME_CONSTRUCTOR, "l:", &aniCtor);
+    if (status != ANI_OK) {
+        LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
+        return nullptr;
+    }
+    ani_long longValue = static_cast<ani_long>(value);
+    status = env->Object_New(aniClass, aniCtor, &aniObject, longValue);
+    if (status != ANI_OK) {
+        LOG_ERROR("Object_New failed, ret: %{public}d.", status);
+        return nullptr;
+    }
+    return aniObject;
 }
 
 static ani_object DoubleToObject(ani_env *env, double value)
@@ -81,14 +110,9 @@ static ani_object DoubleToObject(ani_env *env, double value)
     return aniObject;
 }
 
-static ani_object IntToObject(ani_env *env, int32_t value)
-{
-    return DoubleToObject(env, static_cast<double>(value));
-}
-
 static ani_object LongToObject(ani_env *env, int64_t value)
 {
-    return DoubleToObject(env, static_cast<double>(value));
+    return Int64ToObject(env, static_cast<int64_t>(value));
 }
 
 static ani_object FloatToObject(ani_env *env, float value)
@@ -298,6 +322,43 @@ static ani_object BoolArrayToObject(ani_env *env, const std::vector<bool> values
     return arrayObj;
 }
 
+static ani_object Int64ArrayToObject(ani_env *env, const std::vector<int64_t> values)
+{
+    if (env == nullptr) {
+        LOG_ERROR("Env is nullptr.");
+        return nullptr;
+    }
+    ani_object arrayObj = nullptr;
+    ani_class arrayCls = nullptr;
+    ani_status status = env->FindClass(CLASS_NAME_ARRAY, &arrayCls);
+    if (status != ANI_OK) {
+        LOG_ERROR("Array not found, ret: %{public}d.", status);
+        return nullptr;
+    }
+    ani_method arrayCtor;
+    status = env->Class_FindMethod(arrayCls, METHOD_NAME_CONSTRUCTOR, "i:", &arrayCtor);
+    if (status != ANI_OK) {
+        LOG_ERROR("Method <ctor> not found, ret: %{public}d.", status);
+        return nullptr;
+    }
+    status = env->Object_New(arrayCls, arrayCtor, &arrayObj, values.size());
+    if (status != ANI_OK) {
+        LOG_ERROR("Object_New failed, ret: %{public}d.", status);
+        return nullptr;
+    }
+    ani_size index = 0;
+    for (const auto value : values) {
+        ani_object aniValue = Int64ToObject(env, value);
+        status = env->Object_CallMethodByName_Void(arrayObj, METHOD_NAME_SET, "iC{std.core.Object}:", index, aniValue);
+        if (status != ANI_OK) {
+            LOG_ERROR("Call $_set failed, ret: %{public}d, index: %{public}d.", status, static_cast<int32_t>(index));
+            break;
+        }
+        index++;
+    }
+    return arrayObj;
+}
+
 static ani_object DoubleArrayToObject(ani_env *env, const std::vector<double> values)
 {
     if (env == nullptr) {
@@ -350,9 +411,6 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
     if (res.IsString()) {
         return StringToObject(env, res);
     }
-    if (res.IsInt()) {
-        return IntToObject(env, res);
-    }
     if (res.IsBool()) {
         return BoolToObject(env, res);
     }
@@ -373,6 +431,9 @@ ani_object PreferencesValueToObject(ani_env *env, const PreferencesValue &res)
     }
     if (res.IsBoolArray()) {
         return BoolArrayToObject(env, res);
+    }
+    if (res.IsInt64Array()) {
+        return Int64ArrayToObject(env, res);
     }
     if (res.IsDoubleArray()) {
         return DoubleArrayToObject(env, res);

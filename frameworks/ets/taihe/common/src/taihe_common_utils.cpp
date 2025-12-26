@@ -29,11 +29,6 @@ namespace PreferencesEtsKit {
 namespace EtsUtils {
 using namespace OHOS::NativePreferences;
 constexpr int32_t OFFSET_OF_SIGN = 63;
-inline PreferencesValue ConvertToInt(const ValueType &valueType)
-{
-    return static_cast<int32_t>(valueType.get_intType_ref());
-}
-
 inline PreferencesValue ConvertToLong(const ValueType &valueType)
 {
     return static_cast<int64_t>(valueType.get_longType_ref());
@@ -73,12 +68,8 @@ PreferencesValue ConvertToArray(const ValueType &valueType)
         return std::vector<double>();
     }
     auto tag = ref.at(0).get_tag();
-    if (tag == ArrayValueType::tag_t::intType) {
-        return ConvertToArrayWithType<double>(ref, [](const ArrayValueType &item) {
-            return item.get_intType_ref();
-        });
-    } else if (tag == ArrayValueType::tag_t::longType) {
-        return ConvertToArrayWithType<double>(ref, [](const ArrayValueType &item) {
+    if (tag == ArrayValueType::tag_t::longType) {
+        return ConvertToArrayWithType<int64_t>(ref, [](const ArrayValueType &item) {
             return item.get_longType_ref();
         });
     } else if (tag == ArrayValueType::tag_t::doubleType) {
@@ -124,7 +115,6 @@ inline PreferencesValue ConvertToObject(const ValueType &valueType)
 PreferencesValue ConvertToPreferencesValue(const ValueType &valueType)
 {
     static std::map<ValueType::tag_t, std::function<PreferencesValue(const ValueType&)>> tag2FunctionMap = {
-        { ValueType::tag_t::intType, ConvertToInt },
         { ValueType::tag_t::longType, ConvertToLong },
         { ValueType::tag_t::doubleType, ConvertToDouble },
         { ValueType::tag_t::stringType, ConvertToString },
@@ -141,11 +131,6 @@ PreferencesValue ConvertToPreferencesValue(const ValueType &valueType)
     } else {
         return PreferencesValue();
     }
-}
-
-inline ValueType ConvertFromInt(int value)
-{
-    return ValueType::make_intType(value);
 }
 
 inline ValueType ConvertFromLong(int64_t value)
@@ -179,6 +164,17 @@ inline ValueType ConvertFromDoubleArray(const std::vector<double> &value)
     result.reserve(value.size());
     std::transform(value.begin(), value.end(), std::back_inserter(result), [](auto item) {
         return ArrayValueType::make_doubleType(item);
+    });
+    auto arr = ::taihe::array<ArrayValueType>(::taihe::move_data_t{}, result.data(), result.size());
+    return ValueType::make_arrayType(std::move(arr));
+}
+
+inline ValueType ConvertFromInt64Array(const std::vector<int64_t> &value)
+{
+    std::vector<ArrayValueType> result;
+    result.reserve(value.size());
+    std::transform(value.begin(), value.end(), std::back_inserter(result), [](auto item) {
+        return ArrayValueType::make_longType(item);
     });
     auto arr = ::taihe::array<ArrayValueType>(::taihe::move_data_t{}, result.data(), result.size());
     return ValueType::make_arrayType(std::move(arr));
@@ -229,9 +225,6 @@ inline ValueType ConvertFromBigint(const BigInt &value)
 
 ValueType ConvertToValueType(const PreferencesValue &value)
 {
-    if (value.IsInt()) {
-        return ConvertFromInt(value);
-    }
     if (value.IsLong()) {
         return ConvertFromLong(value);
     }
@@ -252,6 +245,9 @@ ValueType ConvertToValueType(const PreferencesValue &value)
     }
     if (value.IsBoolArray()) {
         return ConvertFromBoolArray(value);
+    }
+    if (value.IsInt64Array()) {
+        return ConvertFromInt64Array(value);
     }
     if (value.IsDoubleArray()) {
         return ConvertFromDoubleArray(value);

@@ -20,7 +20,6 @@ static { loadLibraryWithPermissionCheck("preferences_taihe_native.z", "@ohos.dat
 @!sts_inject_into_module("import BaseContext from 'application.BaseContext';")
 
 union ArrayValueType {
-    intType: i32;
     longType: i64;
     doubleType: f64;
     stringType: String;
@@ -31,7 +30,6 @@ union ArrayValueType {
 type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
 """)
 union ValueType {
-    intType: i32;
     longType: i64;
     doubleType: f64;
     stringType: String;
