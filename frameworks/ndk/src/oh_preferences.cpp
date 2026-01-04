@@ -244,7 +244,6 @@ uint32_t OH_PreferencesImpl::PackData(OH_PreferencesPair **pairs, std::unordered
         (*pairs)[i].key = strdup(key.c_str());
         if ((*pairs)[i].key == nullptr) {
             LOG_ERROR("malloc key failed");
-            delete((*pairs)[i].key);
             return i;
         }
         OH_PreferencesValueImpl* valueImpl = new (std::nothrow) OH_PreferencesValueImpl();

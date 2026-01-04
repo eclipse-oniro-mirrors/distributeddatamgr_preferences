@@ -182,7 +182,7 @@ void OH_PreferencesPair_Destroy(OH_PreferencesPair *pairs, uint32_t count)
 
     for (uint32_t i = 0; i < count; ++i) {
         if (pairs[i].key != nullptr) {
-            delete(pairs[i].key);
+            free(const_cast<char*>(pairs[i].key));
         }
         OH_PreferencesValue_Destroy(const_cast<OH_PreferencesValue*>(pairs[i].value));
     }
