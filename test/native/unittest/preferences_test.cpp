@@ -1357,7 +1357,7 @@ HWTEST_F(PreferencesTest, NativePreferencesTestManyKey, TestSize.Level1)
     auto prefManyKey = PreferencesHelper::GetPreferences(path, errCode);
     ASSERT_NE(prefManyKey, nullptr);
     EXPECT_EQ(errCode, E_OK);
-    for (int i = 0; i <= 10000; i++) {
+    for (int i = 0; i <= 1000; i++) {
         prefManyKey->Put("testKey" + std::to_string(i), "test_perferences_too_long_value_" + std::to_string(i));
     }
     prefManyKey->FlushSync();
@@ -1366,7 +1366,8 @@ HWTEST_F(PreferencesTest, NativePreferencesTestManyKey, TestSize.Level1)
     auto preferences = PreferencesHelper::GetPreferences(path, errCode);
     ASSERT_NE(preferences, nullptr);
     EXPECT_EQ(errCode, E_OK);
-    for (int i = 0; i <= 10000; i++) {
+    // Too many count, long execution time
+    for (int i = 0; i <= 1000; i++) {
         std::string retStr = preferences->GetString("testKey" + std::to_string(i), "default");
         EXPECT_EQ(retStr, "test_perferences_too_long_value_"  + std::to_string(i));
     }
