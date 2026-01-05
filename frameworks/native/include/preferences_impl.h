@@ -73,9 +73,11 @@ private:
     static void NotifyPreferencesObserver(std::shared_ptr<PreferencesImpl> pref,
         std::shared_ptr<std::unordered_set<std::string>> keysModified,
         std::shared_ptr<std::unordered_map<std::string, PreferencesValue>> writeToDisk);
-    void StartLoadFromDisk();
+    bool StartLoadFromDisk();
     bool PreLoad();
 
+    /* thread function */
+    static void LoadFromDisk(std::shared_ptr<PreferencesImpl> pref);
     bool ReloadFromDisk();
     inline void AwaitLoadFile();
     static int WriteToDiskFile(std::shared_ptr<PreferencesImpl> pref);
