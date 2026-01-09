@@ -26,7 +26,6 @@ config("mock_config") {
   include_dirs = [
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
     "${preferences_native_path}/mock/ability_base/zuri/include",
-    "${preferences_native_path}/mock/third/ffrt/include",
   ]
   if (!is_android) {
     include_dirs +=
@@ -46,6 +45,7 @@ config("adaptor_config") {
 base_sources = [
   "${preferences_native_path}/platform/src/preferences_dfx_adapter.cpp",
   "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
+  "${preferences_native_path}/platform/src/preferences_task_mgr.cpp",
   "${preferences_native_path}/platform/src/preferences_thread.cpp",
   "${preferences_native_path}/src/base64_helper.cpp",
   "${preferences_native_path}/src/preferences_base.cpp",
