@@ -26,6 +26,7 @@ config("mock_config") {
   include_dirs = [
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
     "${preferences_native_path}/mock/ability_base/zuri/include",
+    "${preferences_native_path}/mock/third/ffrt/include",
   ]
   if (!is_android) {
     include_dirs +=
@@ -108,6 +109,7 @@ if (is_ohos) {
       "access_token:libaccesstoken_sdk",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
+      "ffrt:libffrt",
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
@@ -267,6 +269,7 @@ ohos_static_library("native_preferences_static") {
       "access_token:libaccesstoken_sdk",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
+      "ffrt:libffrt",
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",

@@ -54,6 +54,7 @@ ohos_fuzztest("GskvNdkPreferencesGetFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
   ]
 }

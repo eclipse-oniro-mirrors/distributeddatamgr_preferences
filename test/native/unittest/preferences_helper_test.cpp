@@ -255,4 +255,43 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperAndRemoveCache, TestSize.
     ret = PreferencesHelper::DeletePreferences(path);
     EXPECT_EQ(ret, E_OK);
 }
+
+/**
+ * @tc.name: NativePreferencesHelperFfrtTest_001
+ * @tc.desc: normal testcase of GetPreferences
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesHelperTest, NativePreferencesHelperFfrtTest_001, TestSize.Level0)
+{
+    int errCode = E_OK;
+    std::string path = "/data/test/ffrt_preferences";
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    ASSERT_NE(pref, nullptr);
+
+    pref->PutInt("key1", 2);
+    pref->PutString("key2", "test");
+    int ret = pref->FlushSync();
+    EXPECT_EQ(ret, E_OK);
+
+    pref = nullptr;
+    pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    ASSERT_NE(pref, nullptr);
+    auto resStr = pref->GetString("key2", "string_default");
+    EXPECT_EQ(resStr, "test");
+
+    ret = PreferencesHelper::RemovePreferencesFromCache(path);
+    EXPECT_EQ(ret, E_OK);
+
+    pref = nullptr;
+    pref = PreferencesHelper::GetPreferences(path, errCode);
+    EXPECT_EQ(errCode, E_OK);
+    ASSERT_NE(pref, nullptr);
+    auto resInt = pref->GetInt("key1", 0);
+    EXPECT_EQ(resInt, 2);
+
+    ret = PreferencesHelper::DeletePreferences(path);
+    EXPECT_EQ(ret, E_OK);
+}
 }

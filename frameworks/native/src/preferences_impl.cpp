@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "executor_pool.h"
+#include "ffrt.h"
 #include "log_print.h"
 #include "preferences_xml_utils.h"
 #include "preferences_file_operation.h"
@@ -41,6 +42,7 @@ constexpr int32_t WAIT_TIME = 2;
 constexpr int32_t TASK_EXEC_TIME = 100;
 constexpr int32_t LOAD_XML_LOG_TIME = 1000;
 constexpr int32_t MAX_LOG_LENGTH = 3000;
+constexpr const char *FFRT_FLAG = "PreferencesFFRTFlag";
 PreferencesImpl::PreferencesImpl(const Options &options) : PreferencesBase(options)
 {
     loaded_.store(false);
@@ -71,8 +73,10 @@ bool PreferencesImpl::StartLoadFromDisk()
     isNeverUnlock_ = false;
     loadResult_ = false;
 
-    ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
-    return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
+    ffrt::submit([pref = shared_from_this()] { 
+        PreferencesImpl::LoadFromDisk(pref); 
+    }, {}, { FFRT_FLAG }, ffrt::task_attr().qos(5));
+    return true;
 }
 
 /* static */

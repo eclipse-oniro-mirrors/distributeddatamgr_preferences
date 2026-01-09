@@ -62,7 +62,8 @@
                 "ipc",
                 "bounds_checking_function",
                 "libxml2",
-                "runtime_core"
+                "runtime_core",
+                "ffrt"
             ]
         },
         "build": {
