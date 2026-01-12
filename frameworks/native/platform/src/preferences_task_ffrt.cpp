@@ -13,29 +13,25 @@
  * limitations under the License.
  */
 
-#include "preferences_task_mgr.h"
-
-#if !defined(CROSS_PLATFORM)
-#include "ffrt.h"
-#endif
+#include "preferences_task_ffrt.h"
 
 namespace OHOS {
 namespace NativePreferences {
-#if !defined(CROSS_PLATFORM)
 constexpr int32_t FFRT_QOS_USER_INTERACTIVE = 5;
 constexpr const char *FFRT_FLAG = "PreferencesFFRTFlag";
-#else
-ExecutorPool PreferencesTaskMgr::executorPool_ = ExecutorPool(1, 0);
-#endif
-
-bool PreferencesTaskMgr::Submit(std::function<void()> task)
+__attribute__((used)) static bool g_isInit = PreferencesTaskFfrt::Init();
+bool PreferencesTaskFfrt::Execute(std::function<void()> task)
 {
-#if !defined(CROSS_PLATFORM)
     ffrt::submit(task, {}, { FFRT_FLAG }, ffrt::task_attr().qos(FFRT_QOS_USER_INTERACTIVE));
     return true;
-#else
-    return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
-#endif
 }
-} // End of namespace NativePreferences
-} // End of namespace OHOS
+
+bool PreferencesTaskFfrt::Init()
+{
+    static PreferencesTaskFfrt instance;
+    static std::once_flag onceFlag;
+    std::call_once(onceFlag, [&]() { PreferencesTaskAdapter::RegisterTaskInstance(&instance); });
+    return true;
+}
+}
+}

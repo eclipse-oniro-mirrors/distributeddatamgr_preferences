@@ -13,29 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef PREFERENCES_TASK_MGR_H
-#define PREFERENCES_TASK_MGR_H
-
-#include <functional>
-#include <memory>
-
-#if !defined(CROSS_PLATFORM)
-#include "ffrt.h"
-#else
-#include "executor_pool.h"
-#endif
+#include "preferences_task_adapter.h"
 
 namespace OHOS {
 namespace NativePreferences {
-class PreferencesTaskMgr {
-public:
-    static bool Submit(std::function<void()> task);
+PreferencesTaskAdapter *PreferencesTaskAdapter::instance_ = nullptr;
+PreferencesTaskAdapter *PreferencesTaskAdapter::GetInstance()
+{
+    return instance_;
+}
 
-#if defined(CROSS_PLATFORM)
-private:
-    static ExecutorPool executorPool_;
-#endif
-};
-} // namespace NativePreferences
-} // namespace OHOS
-#endif
+bool PreferencesTaskAdapter::RegisterTaskInstance(PreferencesTaskAdapter *instance)
+{
+    if (instance_ != nullptr) {
+        return false;
+    }
+    instance_ = instance;
+    return true;
+}
+}
+}

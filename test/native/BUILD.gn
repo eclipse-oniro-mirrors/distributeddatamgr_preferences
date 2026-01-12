@@ -43,6 +43,7 @@ ohos_unittest("NativePreferencesTest") {
     "unittest/preferences_storage_type_test.cpp",
     "unittest/preferences_test.cpp",
     "unittest/preferences_xml_utils_test.cpp",
+    "${preferences_native_path}/platform/src/preferences_task_ffrt.cpp",
   ]
 
   configs = [ ":module_private_config" ]
@@ -50,6 +51,7 @@ ohos_unittest("NativePreferencesTest") {
   external_deps = [
     "ability_base:zuri",
     "ability_runtime:dataobs_manager",
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
