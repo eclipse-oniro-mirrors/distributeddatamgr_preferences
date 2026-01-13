@@ -17,7 +17,6 @@
 #define PREFERENCES_TASK_EXECUTOR_POOL_H
 
 #include <functional>
-#include <memory>
 
 #include "executor_pool.h"
 #include "preferences_task_adapter.h"
@@ -26,7 +25,7 @@ namespace OHOS {
 namespace NativePreferences {
 class PreferencesTaskExecutorPool final : public PreferencesTaskAdapter {
 public:
-    bool Execute(std::function<void()> task) override;
+    bool Execute(const Task &task) override;
     static bool Init();
 
 private:

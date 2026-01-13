@@ -31,5 +31,5 @@ bool PreferencesTaskAdapter::RegisterTaskInstance(PreferencesTaskAdapter *instan
     instance_ = instance;
     return true;
 }
-}
-}
+} // namespace NativePreferences
+} // namespace OHOS

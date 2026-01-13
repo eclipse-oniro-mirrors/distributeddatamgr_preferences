@@ -17,7 +17,6 @@
 #define PREFERENCES_TASK_FFRT_H
 
 #include <functional>
-#include <memory>
 
 #include "ffrt.h"
 #include "preferences_task_adapter.h"
@@ -26,7 +25,7 @@ namespace OHOS {
 namespace NativePreferences {
 class PreferencesTaskFfrt final : public PreferencesTaskAdapter {
 public:
-    bool Execute(std::function<void()> task) override;
+    bool Execute(const Task &task) override;
     static bool Init();
 };
 } // namespace NativePreferences

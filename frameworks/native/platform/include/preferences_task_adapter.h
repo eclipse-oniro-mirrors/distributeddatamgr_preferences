@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,15 +17,15 @@
 #define PREFERENCES_TASK_MGR_H
  
 #include <functional>
-#include <memory>
  
 namespace OHOS {
 namespace NativePreferences {
+using Task = std::function<void()>;
 class PreferencesTaskAdapter {
 public:
     static PreferencesTaskAdapter *GetInstance();
     ~PreferencesTaskAdapter() = default;
-    virtual bool Execute(std::function<void()> task) = 0;
+    virtual bool Execute(const Task &task) = 0;
     static bool RegisterTaskInstance(PreferencesTaskAdapter *instance);
 private:
     static PreferencesTaskAdapter *instance_;

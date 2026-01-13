@@ -18,11 +18,13 @@
 namespace OHOS {
 namespace NativePreferences {
 __attribute__((used)) static bool g_isInit = PreferencesTaskExecutorPool::Init();
-ExecutorPool PreferencesTaskExecutorPool::executorPool_ = ExecutorPool(1, 0);
+constexpr int32_t MAX_THREADS = 1;
+constexpr int32_t MIN_THREADS = 0;
+ExecutorPool PreferencesTaskExecutorPool::executorPool_ = ExecutorPool(MAX_THREADS, MIN_THREADS);
 
-bool PreferencesTaskExecutorPool::Execute(std::function<void()> task)
+bool PreferencesTaskExecutorPool::Execute(const Task &task)
 {
-    return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
+    return !(executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID);
 }
 
 bool PreferencesTaskExecutorPool::Init()
@@ -32,5 +34,5 @@ bool PreferencesTaskExecutorPool::Init()
     std::call_once(onceFlag, [&]() { PreferencesTaskAdapter::RegisterTaskInstance(&instance); });
     return true;
 }
-}
-}
+} // namespace NativePreferences
+} // namespace OHOS

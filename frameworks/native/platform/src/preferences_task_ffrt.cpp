@@ -20,7 +20,7 @@ namespace NativePreferences {
 constexpr int32_t FFRT_QOS_USER_INTERACTIVE = 5;
 constexpr const char *FFRT_FLAG = "PreferencesFFRTFlag";
 __attribute__((used)) static bool g_isInit = PreferencesTaskFfrt::Init();
-bool PreferencesTaskFfrt::Execute(std::function<void()> task)
+bool PreferencesTaskFfrt::Execute(const Task &task)
 {
     ffrt::submit(task, {}, { FFRT_FLAG }, ffrt::task_attr().qos(FFRT_QOS_USER_INTERACTIVE));
     return true;
@@ -33,5 +33,5 @@ bool PreferencesTaskFfrt::Init()
     std::call_once(onceFlag, [&]() { PreferencesTaskAdapter::RegisterTaskInstance(&instance); });
     return true;
 }
-}
-}
+} // namespace NativePreferences
+} // namespace OHOS

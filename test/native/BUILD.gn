@@ -59,11 +59,43 @@ ohos_unittest("NativePreferencesTest") {
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
 }
 
+ohos_unittest("PreferencesExecutorTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  sources = [
+    "unittest/preferences_helper_executor_pool_test.cpp",
+    "${preferences_native_path}/platform/src/preferences_task_executor_pool.cpp",
+  ]
+
+  configs = [ ":module_private_config" ]
+
+  external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "googletest:gtest_main",
+  ]
+
+  deps = [
+    "${preferences_innerapi_path}:native_preferences_static",
+  ]
+}
+
 ###############################################################################
 group("unittest") {
   testonly = true
 
-  deps = [ ":NativePreferencesTest" ]
+  deps = [ 
+    ":NativePreferencesTest",
+    ":PreferencesExecutorTest",
+  ]
 }
 
 ###############################################################################
