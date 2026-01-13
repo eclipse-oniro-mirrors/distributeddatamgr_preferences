@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ using namespace testing::ext;
 using namespace OHOS::NativePreferences;
 
 namespace {
-class PreferencesHelperTest : public testing::Test {
+class PreferencesHelperExecutorPoolTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -38,32 +38,32 @@ public:
     void TearDown();
 };
 
-void PreferencesHelperTest::SetUpTestCase(void)
+void PreferencesHelperExecutorPoolTest::SetUpTestCase(void)
 {
 }
 
-void PreferencesHelperTest::TearDownTestCase(void)
+void PreferencesHelperExecutorPoolTest::TearDownTestCase(void)
 {
 }
 
-void PreferencesHelperTest::SetUp(void)
+void PreferencesHelperExecutorPoolTest::SetUp(void)
 {
 }
 
-void PreferencesHelperTest::TearDown(void)
+void PreferencesHelperExecutorPoolTest::TearDown(void)
 {
 }
 
 /**
- * @tc.name: NativePreferencesHelperTest_001
+ * @tc.name: NativePreferencesHelperExecutorPoolTest_001
  * @tc.desc: normal testcase of DeletePreferences
  * @tc.type: FUNC
- * @tc.author: xiuhongju
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_001, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTest_001, TestSize.Level0)
 {
     int errCode = E_OK;
-    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("/data/test/test_helper", errCode);
+    std::string path = "/data/test/test_helper_execute";
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_OK);
 
     pref->PutInt("key1", 2);
@@ -73,59 +73,59 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_001, TestSize.Level0
 
     pref = nullptr;
 
-    ret = PreferencesHelper::RemovePreferencesFromCache("/data/test/test_helper");
+    ret = PreferencesHelper::RemovePreferencesFromCache(path);
     EXPECT_EQ(ret, E_OK);
 
-    ret = PreferencesHelper::DeletePreferences("/data/test/test_helper");
+    ret = PreferencesHelper::DeletePreferences(path);
     EXPECT_EQ(ret, E_OK);
 }
 
 /**
- * @tc.name: NativePreferencesHelperTest_002
+ * @tc.name: NativePreferencesHelperExecutorPoolTest_002
  * @tc.desc: error testcase of Preferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_002, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTest_002, TestSize.Level0)
 {
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
     EXPECT_EQ(errCode, E_EMPTY_FILE_PATH);
 
-    pref = PreferencesHelper::GetPreferences("data/test/test_helper", errCode);
+    pref = PreferencesHelper::GetPreferences("data/test/test_helper_execute", errCode);
     EXPECT_EQ(errCode, E_RELATIVE_PATH);
 
-    pref = PreferencesHelper::GetPreferences(":data/test/test_helper", errCode);
+    pref = PreferencesHelper::GetPreferences(":data/test/test_helper_execute", errCode);
     EXPECT_EQ(errCode, E_RELATIVE_PATH);
 
-    std::string path = "/data/test/test_helper" + std::string(4096, 't');
+    std::string path = "/data/test/test_helper_execute" + std::string(4096, 't');
     pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_PATH_EXCEED_MAX_LENGTH);
 
-    pref = PreferencesHelper::GetPreferences(":data/test/test_helper/", errCode);
+    pref = PreferencesHelper::GetPreferences(":data/test/test_helper_execute/", errCode);
     EXPECT_EQ(errCode, E_RELATIVE_PATH);
 }
 
 /**
- * @tc.name: NativePreferencesHelperTest_003
+ * @tc.name: NativePreferencesHelperExecutorPoolTest_003
  * @tc.desc: error testcase of Preferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_003, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTest_003, TestSize.Level0)
 {
     int errCode = E_OK;
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences("", errCode);
     EXPECT_EQ(errCode, E_EMPTY_FILE_PATH);
 
-    pref = PreferencesHelper::GetPreferences("data/test/test_helper", errCode);
+    pref = PreferencesHelper::GetPreferences("data/test/test_helper_execute", errCode);
     EXPECT_EQ(errCode, E_RELATIVE_PATH);
 }
 
 /**
- * @tc.name: NativePreferencesHelperTest_004
+ * @tc.name: NativePreferencesHelperExecutorPoolTest_004
  * @tc.desc: error testcase of DeletePreferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTest_004, TestSize.Level0)
 {
     int pref = PreferencesHelper::DeletePreferences("");
     EXPECT_EQ(pref, E_EMPTY_FILE_PATH);
@@ -135,11 +135,11 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_004, TestSize.Level0
 }
 
 /**
- * @tc.name: NativePreferencesHelperTest_005
+ * @tc.name: NativePreferencesHelperExecutorPoolTest_005
  * @tc.desc: error testcase of GetRealPath
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTest_005, TestSize.Level0)
 {
     Options option = Options("test300", "com.hmos.uttest", "");
     int errCode = E_OK;
@@ -149,13 +149,13 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_005, TestSize.Level0
 }
 
 /**
- * @tc.name: NativePreferencesHelperTest_006
+ * @tc.name: NativePreferencesHelperExecutorPoolTest_006
  * @tc.desc: error testcase of GetRealPath
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTest_006, TestSize.Level0)
 {
-    Options option = Options("/data/test/preferences/test01", "", "");
+    Options option = Options("/data/test/preferences/test01_execute", "", "");
     int errCode = E_OK;
     std::shared_ptr<Preferences> preferences = PreferencesHelper::GetPreferences(option, errCode);
     EXPECT_EQ(errCode, E_OK);
@@ -163,14 +163,14 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTest_006, TestSize.Level0
 }
 
 /**
- * @tc.name: NativePreferencesHelperTestNormal
+ * @tc.name: NativePreferencesHelperExecutorPoolTestNormal
  * @tc.desc: normal testcase of DeletePreferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTestNormal, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTestNormal, TestSize.Level0)
 {
     int errCode = E_OK;
-    std::string path = "/data/test/test_helper_normal";
+    std::string path = "/data/test/test_helper_normal_execute";
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_OK);
     ASSERT_NE(pref, nullptr);
@@ -193,10 +193,10 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperTestNormal, TestSize.Leve
  * @tc.desc: normal testcase of create multiple helper
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativeCreateMultipleHelper, TestSize.Level1)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativeCreateMultipleHelper, TestSize.Level1)
 {
     int errCode = E_OK;
-    std::string path = "/data/test/test_helper_normal";
+    std::string path = "/data/test/test_helper_normal_execute";
     for (int i = 0; i < 50; i++) {
         std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path + std::to_string(i), errCode);
         EXPECT_EQ(errCode, E_OK);
@@ -224,10 +224,10 @@ HWTEST_F(PreferencesHelperTest, NativeCreateMultipleHelper, TestSize.Level1)
  * @tc.desc: normal testcase of RemoveCache and DeletePreferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperAndRemoveCache, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperAndRemoveCache, TestSize.Level0)
 {
     int errCode = E_OK;
-    std::string path = "/data/test/helper_normal";
+    std::string path = "/data/test/helper_normal_execute";
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_OK);
     ASSERT_NE(pref, nullptr);
@@ -261,10 +261,10 @@ HWTEST_F(PreferencesHelperTest, NativePreferencesHelperAndRemoveCache, TestSize.
  * @tc.desc: normal testcase of GetPreferences
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesHelperTest, NativePreferencesHelperFfrtTest_001, TestSize.Level0)
+HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperFfrtTest_001, TestSize.Level0)
 {
     int errCode = E_OK;
-    std::string path = "/data/test/ffrt_preferences";
+    std::string path = "/data/test/ffrt_preferences_execute";
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(path, errCode);
     EXPECT_EQ(errCode, E_OK);
     ASSERT_NE(pref, nullptr);

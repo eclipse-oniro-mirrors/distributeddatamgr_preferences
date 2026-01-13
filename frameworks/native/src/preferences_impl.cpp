@@ -30,6 +30,7 @@
 #include "preferences_file_operation.h"
 #include "preferences_anonymous.h"
 #include "preferences_dfx_adapter.h"
+#include "preferences_task_processor.h"
 #include "preferences_utils.h"
 
 namespace OHOS {
@@ -71,8 +72,10 @@ bool PreferencesImpl::StartLoadFromDisk()
     isNeverUnlock_ = false;
     loadResult_ = false;
 
-    ExecutorPool::Task task = [pref = shared_from_this()] { PreferencesImpl::LoadFromDisk(pref); };
-    return (executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID) ? false : true;
+    auto task = [pref = shared_from_this()] {
+        PreferencesImpl::LoadFromDisk(pref);
+    };
+    return PreferencesTaskProcessor::GetInstance()->Execute(task);
 }
 
 /* static */

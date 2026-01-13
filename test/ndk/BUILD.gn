@@ -53,6 +53,8 @@ ohos_unittest("NDKPreferencesTest") {
     "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
     "${preferences_native_path}/platform/src/preferences_dfx_adapter.cpp",
     "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
+    "${preferences_native_path}/platform/src/preferences_task_processor.cpp",
+    "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
     "${preferences_native_path}/platform/src/preferences_thread.cpp",
     "${preferences_native_path}/src/base64_helper.cpp",
     "${preferences_native_path}/src/preferences_base.cpp",
@@ -79,6 +81,7 @@ ohos_unittest("NDKPreferencesTest") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
