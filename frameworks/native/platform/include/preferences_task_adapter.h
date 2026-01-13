@@ -13,8 +13,8 @@
  * limitations under the License.
  */
  
-#ifndef PREFERENCES_TASK_MGR_H
-#define PREFERENCES_TASK_MGR_H
+#ifndef PREFERENCES_TASK_ADAPTER_H
+#define PREFERENCES_TASK_ADAPTER_H
  
 #include <functional>
  

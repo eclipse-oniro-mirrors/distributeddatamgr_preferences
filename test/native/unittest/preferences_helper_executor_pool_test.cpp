@@ -58,7 +58,6 @@ void PreferencesHelperExecutorPoolTest::TearDown(void)
  * @tc.name: NativePreferencesHelperExecutorPoolTest_001
  * @tc.desc: normal testcase of DeletePreferences
  * @tc.type: FUNC
- * @tc.author: xiuhongju
  */
 HWTEST_F(PreferencesHelperExecutorPoolTest, NativePreferencesHelperExecutorPoolTest_001, TestSize.Level0)
 {
