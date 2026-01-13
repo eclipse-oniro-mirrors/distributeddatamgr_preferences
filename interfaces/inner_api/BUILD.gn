@@ -45,7 +45,7 @@ config("adaptor_config") {
 base_sources = [
   "${preferences_native_path}/platform/src/preferences_dfx_adapter.cpp",
   "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
-  "${preferences_native_path}/platform/src/preferences_task_adapter.cpp",
+  "${preferences_native_path}/platform/src/preferences_task_processor.cpp",
   "${preferences_native_path}/platform/src/preferences_thread.cpp",
   "${preferences_native_path}/src/base64_helper.cpp",
   "${preferences_native_path}/src/preferences_base.cpp",
@@ -94,7 +94,7 @@ if (is_ohos) {
       "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
       "${preferences_native_path}/src/preferences_enhance_impl.cpp",
       "${preferences_native_path}/src/preferences_value_parcel.cpp",
-      "${preferences_native_path}/platform/src/preferences_task_ffrt.cpp",
+      "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
     ]
 
     innerapi_tags = [
@@ -126,7 +126,7 @@ if (is_ohos) {
     sources = base_sources
     sources += mock_sources
     sources += [
-      "${preferences_native_path}/platform/src/preferences_task_executor_pool.cpp",
+      "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
     ]
     innerapi_tags = [ "platformsdk" ]
 
@@ -170,7 +170,7 @@ if (is_ohos) {
     sources = base_sources
     sources += mock_sources
     sources += [
-      "${preferences_native_path}/platform/src/preferences_task_executor_pool.cpp",
+      "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
     ]
 
     defines = [
@@ -196,7 +196,7 @@ if (is_ohos) {
     sources = base_sources
     sources += mock_sources
     sources += [
-      "${preferences_native_path}/platform/src/preferences_task_executor_pool.cpp",
+      "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
     ]
     defines = [
       "IOS_PLATFORM",
@@ -228,7 +228,7 @@ ohos_static_library("native_preferences_static") {
 
     sources += mock_sources
     sources += [
-      "${preferences_native_path}/platform/src/preferences_task_executor_pool.cpp",
+      "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
     ]
     cflags_cc = [
       "-std=c++17",
@@ -274,7 +274,7 @@ ohos_static_library("native_preferences_static") {
         "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
         "${preferences_native_path}/src/preferences_enhance_impl.cpp",
         "${preferences_native_path}/src/preferences_value_parcel.cpp",
-        "${preferences_native_path}/platform/src/preferences_task_ffrt.cpp",
+        "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
       ]
     }
     external_deps = [

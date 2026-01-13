@@ -12,23 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef PREFERENCES_TASK_ADAPTER_H
-#define PREFERENCES_TASK_ADAPTER_H
- 
+
+#ifndef PREFERENCES_EXECUTOR_POOL_TASK_PROCESSOR_H
+#define PREFERENCES_EXECUTOR_POOL_TASK_PROCESSOR_H
+
 #include <functional>
- 
+
+#include "executor_pool.h"
+#include "preferences_task_processor.h"
+
 namespace OHOS {
 namespace NativePreferences {
-using Task = std::function<void()>;
-class PreferencesTaskAdapter {
+class PreferencesExecutorPoolTaskProcessor final : public PreferencesTaskProcessor {
 public:
-    static PreferencesTaskAdapter *GetInstance();
-    ~PreferencesTaskAdapter() = default;
-    virtual bool Execute(const Task &task) = 0;
-    static bool RegisterTaskInstance(PreferencesTaskAdapter *instance);
+    bool Execute(const Task &task) override;
+    static bool Init();
+
 private:
-    static PreferencesTaskAdapter *instance_;
+    static ExecutorPool executorPool_;
 };
 } // namespace NativePreferences
 } // namespace OHOS

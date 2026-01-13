@@ -12,21 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef PREFERENCES_TASK_FFRT_H
-#define PREFERENCES_TASK_FFRT_H
-
+ 
+#ifndef PREFERENCES_TASK_PROCESSOR_H
+#define PREFERENCES_TASK_PROCESSOR_H
+ 
 #include <functional>
-
-#include "ffrt.h"
-#include "preferences_task_adapter.h"
-
+ 
 namespace OHOS {
 namespace NativePreferences {
-class PreferencesTaskFfrt final : public PreferencesTaskAdapter {
+using Task = std::function<void()>;
+class PreferencesTaskProcessor {
 public:
-    bool Execute(const Task &task) override;
-    static bool Init();
+    static PreferencesTaskProcessor *GetInstance();
+    ~PreferencesTaskProcessor() = default;
+    virtual bool Execute(const Task &task) = 0;
+    static bool RegisterTaskProcessor(PreferencesTaskProcessor *instance);
+private:
+    static PreferencesTaskProcessor *instance_;
 };
 } // namespace NativePreferences
 } // namespace OHOS

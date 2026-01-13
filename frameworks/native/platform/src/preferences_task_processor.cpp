@@ -13,24 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef PREFERENCES_TASK_EXECUTOR_POOL_H
-#define PREFERENCES_TASK_EXECUTOR_POOL_H
-
-#include <functional>
-
-#include "executor_pool.h"
-#include "preferences_task_adapter.h"
+#include "preferences_task_processor.h"
 
 namespace OHOS {
 namespace NativePreferences {
-class PreferencesTaskExecutorPool final : public PreferencesTaskAdapter {
-public:
-    bool Execute(const Task &task) override;
-    static bool Init();
+PreferencesTaskProcessor *PreferencesTaskProcessor::instance_ = nullptr;
+PreferencesTaskProcessor *PreferencesTaskProcessor::GetInstance()
+{
+    return instance_;
+}
 
-private:
-    static ExecutorPool executorPool_;
-};
+bool PreferencesTaskProcessor::RegisterTaskProcessor(PreferencesTaskProcessor *instance)
+{
+    if (instance_ != nullptr) {
+        return false;
+    }
+    instance_ = instance;
+    return true;
+}
 } // namespace NativePreferences
 } // namespace OHOS
-#endif

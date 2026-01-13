@@ -43,7 +43,7 @@ ohos_unittest("NativePreferencesTest") {
     "unittest/preferences_storage_type_test.cpp",
     "unittest/preferences_test.cpp",
     "unittest/preferences_xml_utils_test.cpp",
-    "${preferences_native_path}/platform/src/preferences_task_ffrt.cpp",
+    "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
   ]
 
   configs = [ ":module_private_config" ]
@@ -70,7 +70,7 @@ ohos_unittest("PreferencesExecutorTest") {
 
   sources = [
     "unittest/preferences_helper_executor_pool_test.cpp",
-    "${preferences_native_path}/platform/src/preferences_task_executor_pool.cpp",
+    "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
   ]
 
   configs = [ ":module_private_config" ]

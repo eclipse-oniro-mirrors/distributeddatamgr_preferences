@@ -13,24 +13,25 @@
  * limitations under the License.
  */
 
-#include "preferences_task_ffrt.h"
+#include "preferences_executor_pool_task_processor.h"
 
 namespace OHOS {
 namespace NativePreferences {
-constexpr int32_t FFRT_QOS_USER_INTERACTIVE = 5;
-constexpr const char *FFRT_FLAG = "PreferencesFFRTFlag";
-__attribute__((used)) static bool g_isInit = PreferencesTaskFfrt::Init();
-bool PreferencesTaskFfrt::Execute(const Task &task)
+__attribute__((used)) static bool g_isInit = PreferencesExecutorPoolTaskProcessor::Init();
+constexpr int32_t MAX_THREADS = 1;
+constexpr int32_t MIN_THREADS = 0;
+ExecutorPool PreferencesExecutorPoolTaskProcessor::executorPool_ = ExecutorPool(MAX_THREADS, MIN_THREADS);
+
+bool PreferencesExecutorPoolTaskProcessor::Execute(const Task &task)
 {
-    ffrt::submit(task, {}, { FFRT_FLAG }, ffrt::task_attr().qos(FFRT_QOS_USER_INTERACTIVE));
-    return true;
+    return !(executorPool_.Execute(std::move(task)) == ExecutorPool::INVALID_TASK_ID);
 }
 
-bool PreferencesTaskFfrt::Init()
+bool PreferencesExecutorPoolTaskProcessor::Init()
 {
-    static PreferencesTaskFfrt instance;
+    static PreferencesExecutorPoolTaskProcessor instance;
     static std::once_flag onceFlag;
-    std::call_once(onceFlag, [&]() { PreferencesTaskAdapter::RegisterTaskInstance(&instance); });
+    std::call_once(onceFlag, [&]() { PreferencesTaskProcessor::RegisterTaskProcessor(&instance); });
     return true;
 }
 } // namespace NativePreferences

@@ -30,7 +30,7 @@
 #include "preferences_file_operation.h"
 #include "preferences_anonymous.h"
 #include "preferences_dfx_adapter.h"
-#include "preferences_task_adapter.h"
+#include "preferences_task_processor.h"
 #include "preferences_utils.h"
 
 namespace OHOS {
@@ -75,7 +75,7 @@ bool PreferencesImpl::StartLoadFromDisk()
     auto task = [pref = shared_from_this()] {
         PreferencesImpl::LoadFromDisk(pref);
     };
-    return PreferencesTaskAdapter::GetInstance()->Execute(task);
+    return PreferencesTaskProcessor::GetInstance()->Execute(task);
 }
 
 /* static */

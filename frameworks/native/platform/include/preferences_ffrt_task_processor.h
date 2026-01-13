@@ -13,23 +13,21 @@
  * limitations under the License.
  */
 
-#include "preferences_task_adapter.h"
+#ifndef PREFERENCES_FFRT_TASK_PROCESSOR_H
+#define PREFERENCES_FFRT_TASK_PROCESSOR_H
+
+#include <functional>
+
+#include "ffrt.h"
+#include "preferences_task_processor.h"
 
 namespace OHOS {
 namespace NativePreferences {
-PreferencesTaskAdapter *PreferencesTaskAdapter::instance_ = nullptr;
-PreferencesTaskAdapter *PreferencesTaskAdapter::GetInstance()
-{
-    return instance_;
-}
-
-bool PreferencesTaskAdapter::RegisterTaskInstance(PreferencesTaskAdapter *instance)
-{
-    if (instance_ != nullptr) {
-        return false;
-    }
-    instance_ = instance;
-    return true;
-}
+class PreferencesFfrtTaskProcessor final : public PreferencesTaskProcessor {
+public:
+    bool Execute(const Task &task) override;
+    static bool Init();
+};
 } // namespace NativePreferences
 } // namespace OHOS
+#endif
