@@ -30,6 +30,7 @@ using ParamTypeError = PreferencesJsKit::ParamTypeError;
 using InnerError = PreferencesJsKit::InnerError;
 
 static constexpr const char* KEY_EXCEEDS_MAXIMUM_LENGTH = "The key must be less than 1024 bytes.";
+static constexpr const char* VALUE_EXCEEDS_MAXIMUM_LENGTH = "The value must be less than 6*1024*1024 bytes.";
 static constexpr const char* ENV_NOT_FOUND = "Failed to get env.";
 PreferencesProxy::PreferencesProxy() {}
 
@@ -111,6 +112,20 @@ void PreferencesProxy::PutSync(string_view key, ValueType const& value)
     if (std::holds_alternative<std::monostate>(nativeValue.value_)) {
         SetBusinessError(std::make_shared<InnerError>("Failed to parse value."));
         return;
+    }
+    if (ValueType::tag_t::uint8ArrayType == value.get_tag()) {
+        const auto& vec = std::get<std::vector<unsigned char>>(nativeValue.value_);
+        if (vec.size() > NativePreferences::Preferences::MAX_VALUE_LENGTH) {
+            SetBusinessError(std::make_shared<ParamTypeError>(VALUE_EXCEEDS_MAXIMUM_LENGTH));
+            return;
+        }
+    }
+    if (ValueType::tag_t::stringType == value.get_tag()) {
+        const auto& string = std::get<std::string>(nativeValue.value_);
+        if (string.size() > NativePreferences::Preferences::MAX_VALUE_LENGTH) {
+            SetBusinessError(std::make_shared<ParamTypeError>(VALUE_EXCEEDS_MAXIMUM_LENGTH));
+            return;
+        }
     }
     auto errCode = preferences_->Put(keyStr, nativeValue);
     if (errCode != NativePreferences::E_OK) {

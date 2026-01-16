@@ -256,7 +256,7 @@ uint32_t OH_PreferencesImpl::PackData(OH_PreferencesPair **pairs, std::unordered
         (*pairs)[i].value = reinterpret_cast<OH_PreferencesValue*>(valueImpl);
         i++;
     }
-    return OH_Preferences_ErrCode::PREFERENCES_OK;
+    return 0;
 }
 
 int OH_Preferences_GetAll(OH_Preferences *preference, OH_PreferencesPair **pairs, uint32_t *count)
@@ -290,7 +290,7 @@ int OH_Preferences_GetAll(OH_Preferences *preference, OH_PreferencesPair **pairs
     }
 
     uint32_t iCount = preferencesImpl->PackData(pairs, res);
-    if (iCount != OH_Preferences_ErrCode::PREFERENCES_OK) {
+    if (iCount != 0) {
         OH_PreferencesPair_Destroy(*pairs, iCount);
         free(*pairs);
         *pairs = nullptr;
