@@ -24,7 +24,7 @@ using Task = std::function<void()>;
 class PreferencesTaskProcessor {
 public:
     static PreferencesTaskProcessor *GetInstance();
-    virtual ~PreferencesTaskProcessor() = default;
+     ~PreferencesTaskProcessor() = default;
     virtual bool Execute(const Task &task) = 0;
     static bool RegisterTaskProcessor(PreferencesTaskProcessor *instance);
 private:
