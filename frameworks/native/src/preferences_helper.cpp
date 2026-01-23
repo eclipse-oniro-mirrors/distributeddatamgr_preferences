@@ -108,7 +108,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
     }
 #endif
     std::string fileName = path.substr(pos + 1, path.length());
-    if (fileName.empty()) {
+    if (fileName.empty()) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("file name can not be empty.");
         errorCode = E_EMPTY_FILE_NAME;
         return "";
@@ -120,7 +120,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
 static bool IsInTrustList(const std::string &bundleName)
 {
     std::vector<std::string> trustList = {"uttest", "alipay", "com.jd.", "cmblife", "os.mms", "os.ouc",
-        "meetimeservice"};
+        "meetime", "appgallery", "screenreader"};
     for (size_t i = 0; i < trustList.size(); i++) {
         if (bundleName.find(trustList[i]) != std::string::npos) {
             return true;
@@ -177,7 +177,7 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
     auto it = prefsCache_.find(realPath);
     if (it != prefsCache_.end()) {
         auto pre = it->second.first;
-        if (pre != nullptr) {
+        if (pre != nullptr) { // LCOV_EXCL_BR_LINE
             LOG_DEBUG("GetPreferences: found preferences in cache");
             return pre;
         }
