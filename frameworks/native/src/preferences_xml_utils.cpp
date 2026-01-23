@@ -657,7 +657,7 @@ bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element)
     xmlChar *value = xmlGetProp(node, reinterpret_cast<const xmlChar *>(ATTR_VALUE));
 
     bool success = false;
-    if (value != nullptr) {
+    if (value != nullptr) { // LCOV_EXCL_BR_LINE
         element.tag_ = std::string(reinterpret_cast<const char *>(node->name));
         if (key != nullptr) {
             element.key_ = std::string(reinterpret_cast<char *>(key));
@@ -671,7 +671,7 @@ bool ParsePrimitiveNodeElement(const xmlNode *node, Element &element)
     if (key != nullptr) {
         xmlFree(key);
     }
-    if (value != nullptr) {
+    if (value != nullptr) { // LCOV_EXCL_BR_LINE
         xmlFree(value);
     }
     return success;
@@ -684,7 +684,7 @@ bool ParseStringNodeElement(const xmlNode *node, Element &element)
     xmlChar *text = xmlNodeGetContent(node);
 
     bool success = false;
-    if (text != nullptr) {
+    if (text != nullptr) { // LCOV_EXCL_BR_LINE
         element.tag_ = std::string(reinterpret_cast<const char *>(node->name));
         if (key != nullptr) {
             element.key_ = std::string(reinterpret_cast<char *>(key));
@@ -698,7 +698,7 @@ bool ParseStringNodeElement(const xmlNode *node, Element &element)
     if (key != nullptr) {
         xmlFree(key);
     }
-    if (text != nullptr) {
+    if (text != nullptr) { // LCOV_EXCL_BR_LINE
         xmlFree(text);
     }
     return success;

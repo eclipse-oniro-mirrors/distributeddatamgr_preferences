@@ -526,7 +526,8 @@ PreferencesValue AniObjectToPreferencesValue(ani_env *env, uintptr_t object)
         return preferencesValue;
     }
     ani_static_method stringify;
-    status = env->Class_FindStaticMethod(cls, METHOD_NAME_STRINGIFY, "C{std.core.Object}:C{std.core.String}", &stringify);
+    status =
+        env->Class_FindStaticMethod(cls, METHOD_NAME_STRINGIFY, "C{std.core.Object}:C{std.core.String}", &stringify);
     if (status != ANI_OK) {
         LOG_ERROR("Stringify not found, ret: %{public}d.", status);
         return preferencesValue;
