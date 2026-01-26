@@ -83,6 +83,7 @@ if (is_ohos) {
       "ability_runtime:abilitykit_native",
       "ability_runtime:extensionkit_native",
       "ability_runtime:napi_base_context",
+      "ability_runtime:napi_common",
       "c_utils:utils",
       "hilog:libhilog",
       "ipc:ipc_single",
