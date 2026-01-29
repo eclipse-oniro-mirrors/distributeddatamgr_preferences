@@ -89,11 +89,6 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         return "";
     }
 #if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
-    if (path.at(1) != ':') {
-        LOG_ERROR("The path can not be relative path.");
-        errorCode = E_RELATIVE_PATH;
-        return "";
-    }
     std::string filePath = path.substr(0, pos);
     if (Access(filePath) != 0 && !Mkdir(filePath)) {
         LOG_ERROR("Failed to create path");
