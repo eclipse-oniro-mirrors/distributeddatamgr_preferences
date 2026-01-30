@@ -59,6 +59,7 @@ if (is_ohos) {
     external_deps = [
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
+      "ability_runtime:napi_common",
       "c_utils:utils",
       "hilog:libhilog",
       "ipc:ipc_single",
