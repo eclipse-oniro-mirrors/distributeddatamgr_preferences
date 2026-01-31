@@ -241,6 +241,8 @@ uint32_t OH_PreferencesImpl::PackData(OH_PreferencesPair **pairs, std::unordered
 {
     uint32_t i = 0;
     for (auto &[key, value] : res) {
+        (*pairs)[i].cid = PreferencesNdkStructId::PREFERENCES_OH_PAIR_CID;
+        (*pairs)[i].maxIndex = res.size();
         (*pairs)[i].key = strdup(key.c_str());
         if ((*pairs)[i].key == nullptr) {
             LOG_ERROR("malloc key failed");
@@ -292,7 +294,6 @@ int OH_Preferences_GetAll(OH_Preferences *preference, OH_PreferencesPair **pairs
     uint32_t iCount = preferencesImpl->PackData(pairs, res);
     if (iCount != 0) {
         OH_PreferencesPair_Destroy(*pairs, iCount);
-        free(*pairs);
         *pairs = nullptr;
         LOG_ERROR("malloc pairs failed");
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
