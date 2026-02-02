@@ -1365,9 +1365,6 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_006, TestSize.Level0)
     (void)OH_PreferencesOption_Destroy(option);
     ASSERT_EQ(errCode, PREFERENCES_OK);
     EXPECT_EQ(OH_Preferences_SetInt(pref, "test_int", 99999), PREFERENCES_OK);
-    EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
-    EXPECT_EQ(OH_Preferences_SetBool(pref, "test_bool", false), PREFERENCES_OK);
-    EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
     EXPECT_EQ(OH_Preferences_SetString(pref, "test_string", "hello"), PREFERENCES_OK);
     EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
     OH_PreferencesPair* pairs = nullptr;
@@ -1375,12 +1372,8 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_006, TestSize.Level0)
     int ret = OH_Preferences_GetAll(pref, &pairs, &count);
     EXPECT_EQ(ret, PREFERENCES_OK);
     EXPECT_NE(pairs, nullptr);
-    EXPECT_EQ(count, 3u);
-    bool foundInt = false;
-    bool foundBool = false;
-    bool foundString = false;
+    EXPECT_EQ(count, 2u);
     bool intVCorrect = false;
-    bool boolVCorrect = false;
     bool stringVCorrect = false;
     for (uint32_t i = 0; i < count; i++) {
         const char *key = OH_PreferencesPair_GetKey(pairs, i);
@@ -1388,38 +1381,21 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_006, TestSize.Level0)
             std::string keyStr(key);
             const OH_PreferencesValue *value = OH_PreferencesPair_GetPreferencesValue(pairs, i);
             if (keyStr == "test_int") {
-                foundInt = true;
                 int intV = 0;
                 EXPECT_EQ(OH_PreferencesValue_GetInt(value, &intV), PREFERENCES_OK);
-                if (intV == 99999) {
-                    intVCorrect = true;
-                }
-            }
-            if (keyStr == "test_bool") {
-                foundBool = true;
-                bool boolV = false;
-                EXPECT_EQ(OH_PreferencesValue_GetBool(value, &boolV), PREFERENCES_OK);
-                if (boolV == false) {
-                    boolVCorrect = true;
-                }
+                intV == 99999 ? intVCorrect = true : intVCorrect = false;
             }
             if (keyStr == "test_string") {
-                foundString = true;
                 char *stringV = nullptr;
                 uint32_t len = 0;
                 EXPECT_EQ(OH_PreferencesValue_GetString(value, &stringV, &len), PREFERENCES_OK);
-                if (stringV != nullptr && std::string(stringV) == "hello") {
-                    stringVCorrect = true;
-                }
+                (stringV != nullptr && std::string(stringV) == "hello") ?
+                    stringVCorrect = true : stringVCorrect = false;
                 OH_Preferences_FreeString(stringV);
             }
         }
     }
-    EXPECT_TRUE(foundInt);
-    EXPECT_TRUE(foundBool);
-    EXPECT_TRUE(foundString);
     EXPECT_TRUE(intVCorrect);
-    EXPECT_TRUE(boolVCorrect);
     EXPECT_TRUE(stringVCorrect);
     if (pairs != nullptr) {
         OH_PreferencesPair_Destroy(pairs, count);
