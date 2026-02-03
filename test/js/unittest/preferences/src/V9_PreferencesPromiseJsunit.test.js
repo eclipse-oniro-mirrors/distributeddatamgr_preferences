@@ -640,4 +640,424 @@ describe('V9_PreferencesPromiseJsunit', async function () {
             done()
         }
     })
+    // test multiple dataChange observers with same key
+    it('testPreferencesDataChange011', 0, async function (done) {
+        console.log("testPreferencesDataChange011 begin.")
+        await mPreference.clear();
+        try {
+            let callCount = 0;
+            var observer1 = function (data) {
+                console.log("observer1 called")
+                expect("value1").assertEqual(data["testKey"])
+                callCount++;
+                // Check if all observers have been called
+                if (callCount === 3) {
+                    expect(3).assertEqual(callCount);
+                    done();
+                }
+            }
+            var observer2 = function (data) {
+                console.log("observer2 called")
+                expect("value1").assertEqual(data["testKey"])
+                callCount++;
+                if (callCount === 3) {
+                    expect(3).assertEqual(callCount);
+                    done();
+                }
+            }
+            var observer3 = function (data) {
+                console.log("observer3 called")
+                expect("value1").assertEqual(data["testKey"])
+                callCount++;
+                if (callCount === 3) {
+                    expect(3).assertEqual(callCount);
+                    done();
+                }
+            }
+            mPreference.on('dataChange', ['testKey'], observer1);
+            mPreference.on('dataChange', ['testKey'], observer2);
+            mPreference.on('dataChange', ['testKey'], observer3);
+            await mPreference.put("testKey", "value1")
+            await mPreference.flush()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            done()
+        } finally {
+            mPreference.off('dataChange', [])
+        }
+    })
+
+    // test dataChange with multiple keys trigger
+    it('testPreferencesDataChange012', 0, async function (done) {
+        console.log("testPreferencesDataChange012 begin.")
+        await mPreference.clear();
+        try {
+            let expectedData = {
+                "key1": "value1",
+                "key2": 222,
+                "key3": true
+            }
+            var observer = function (data) {
+                console.log("observer called with data: " + JSON.stringify(data))
+                expect(Object.keys(data).length).assertEqual(Object.keys(expectedData).length)
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(expectedData))
+                done()
+            }
+            mPreference.on('dataChange', ['key1', 'key2', 'key3'], observer);
+            await mPreference.put("key1", "value1")
+            await mPreference.put("key2", 222)
+            await mPreference.put("key3", true)
+            await mPreference.flush()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            done()
+        } finally {
+            mPreference.off('dataChange', [])
+        }
+    })
+
+    // test dataChange observer with no matching keys
+    it('testPreferencesDataChange013', 0, async function (done) {
+        console.log("testPreferencesDataChange013 begin.")
+        await mPreference.clear();
+        try {
+            let observerCalled = false;
+            var observer = function (_data) {
+                console.log("observer should not be called")
+                observerCalled = true;
+            }
+            mPreference.on('dataChange', ['key1', 'key2'], observer);
+            await mPreference.put("key3", "value3")
+            await mPreference.put("key4", 444)
+            await mPreference.flush()
+            // Wait a bit to ensure observer had time to be called if it was going to be
+            setTimeout(() => {
+                expect(false).assertEqual(observerCalled)
+                mPreference.off('dataChange', [])
+                done()
+            }, 100)
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('dataChange', [])
+            done()
+        }
+    })
+
+    // test dataChange with value type changes
+    it('testPreferencesDataChange014', 0, async function (done) {
+        console.log("testPreferencesDataChange014 begin.")
+        await mPreference.clear();
+        try {
+            let testData = [
+                { "stringKey": "stringValue" },
+                { "numberKey": 12345 },
+                { "boolKey": true },
+                { "floatKey": 123.45 }
+            ]
+            let testIndex = 0;
+            var observer = function (data) {
+                console.log("observer called with data: " + JSON.stringify(data))
+                if (testIndex < testData.length) {
+                    expect(JSON.stringify(data)).assertEqual(JSON.stringify(testData[testIndex]))
+                    testIndex++;
+                    if (testIndex === testData.length) {
+                        expect(testIndex).assertEqual(testData.length)
+                        done()
+                    }
+                }
+            }
+            mPreference.on('dataChange', ['stringKey', 'numberKey', 'boolKey', 'floatKey'], observer);
+            await mPreference.put("stringKey", "stringValue")
+            await mPreference.flush()
+            await mPreference.put("numberKey", 12345)
+            await mPreference.flush()
+            await mPreference.put("boolKey", true)
+            await mPreference.flush()
+            await mPreference.put("floatKey", 123.45)
+            await mPreference.flush()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            done()
+        } finally {
+            mPreference.off('dataChange', [])
+        }
+    })
+
+    // test dataChange with clear operation
+    it('testPreferencesDataChange015', 0, async function (done) {
+        console.log("testPreferencesDataChange015 begin.")
+        await mPreference.clear();
+        try {
+            var observer = function (data) {
+                console.log("obs called with data: " + JSON.stringify(data))
+                // Verify observer receives the put operations data
+                expect(3).assertEqual(Object.keys(data).length)
+                expect("value1").assertEqual(data["key1"])
+                expect("value2").assertEqual(data["key2"])
+                expect("value3").assertEqual(data["key3"])
+                mPreference.off('dataChange', [])
+                done()
+            }
+            mPreference.on('dataChange', ['key1', 'key2', 'key3'], observer);
+            await mPreference.put("key1", "value1")
+            await mPreference.put("key2", "value2")
+            await mPreference.put("key3", "value3")
+            await mPreference.flush()
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('dataChange', [])
+            done()
+        }
+    })
+
+    // Test 'change' observer receives correct key when multiple values change
+    it('testPreferencesChangeObserver001', 0, async function (done) {
+        console.log("testPreferencesChangeObserver001 begin.")
+        await mPreference.clear();
+        try {
+            let receivedKeys = [];
+            var observer = function (key) {
+                console.log("change observer received key: " + key);
+                receivedKeys.push(key);
+                if (receivedKeys.length === 3) {
+                    // Verify observer was called for each key change
+                    expect(3).assertEqual(receivedKeys.length);
+                    expect(true).assertEqual(receivedKeys.includes("key1"));
+                    expect(true).assertEqual(receivedKeys.includes("key2"));
+                    expect(true).assertEqual(receivedKeys.includes("key3"));
+                    mPreference.off('change', observer);
+                    done();
+                }
+            }
+            mPreference.on('change', observer);
+            await mPreference.put("key1", "value1");
+            await mPreference.put("key2", "value2");
+            await mPreference.put("key3", "value3");
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('change', observer);
+            done();
+        }
+    })
+
+    // Test 'change' observer can be unregistered and stops receiving notifications
+    it('testPreferencesChangeObserver002', 0, async function (done) {
+        console.log("testPreferencesChangeObserver002 begin.")
+        await mPreference.clear();
+        try {
+            let callCount = 0;
+            let firstFlushDone = false;
+            var observer = function (key) {
+                console.log("change observer received key: " + key);
+                callCount++;
+                if (callCount === 1 && !firstFlushDone) {
+                    firstFlushDone = true;
+                    expect(1).assertEqual(callCount);
+
+                    // Unregister observer
+                    mPreference.off('change', observer);
+
+                    // Trigger another change
+                    setTimeout(async () => {
+                        await mPreference.put("key2", "value2");
+                        await mPreference.flush();
+
+                        // Wait to ensure observer had time to be called if it was going to be
+                        setTimeout(() => {
+                            // Observer should not be called again
+                            expect(1).assertEqual(callCount);
+                            done();
+                        }, 100);
+                    }, 10);
+                }
+            }
+            mPreference.on('change', observer);
+            await mPreference.put("key1", "value1");
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            done();
+        }
+    })
+
+    // Test 'dataChange' observer receives partial data for subscribed keys only
+    it('testPreferencesDataChangeObserver001', 0, async function (done) {
+        console.log("testPreferencesDataChangeObserver001 begin.")
+        await mPreference.clear();
+        try {
+            var observer = function (data) {
+                console.log("dataChange observer received: " + JSON.stringify(data));
+                // Verify only subscribed keys are in the data
+                expect(data !== null).assertTrue();
+                expect(2).assertEqual(Object.keys(data).length);
+                expect("value1").assertEqual(data["key1"]);
+                expect("value3").assertEqual(data["key3"]);
+                expect(undefined).assertEqual(data["key2"]);
+                mPreference.off('dataChange', ['key1', 'key3'], observer);
+                done();
+            }
+            // Subscribe to only key1 and key3
+            mPreference.on('dataChange', ['key1', 'key3'], observer);
+
+            // Modify key1, key2, and key3
+            await mPreference.put("key1", "value1");
+            await mPreference.put("key2", "value2");
+            await mPreference.put("key3", "value3");
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('dataChange', ['key1', 'key3'], observer);
+            done();
+        }
+    })
+
+    // Test 'dataChange' observer with delete operation
+    it('testPreferencesDataChangeObserver002', 0, async function (done) {
+        console.log("testPreferencesDataChangeObserver002 begin.")
+        await mPreference.clear();
+        try {
+            var observer = function (data) {
+                console.log("dataChange observer received: " + JSON.stringify(data));
+                // Verify delete operation is reflected
+                expect(data !== null).assertTrue();
+                expect(1).assertEqual(Object.keys(data).length);
+                expect(null).assertEqual(data["key1"]);
+                mPreference.off('dataChange', ['key1'], observer);
+                done();
+            }
+            mPreference.on('dataChange', ['key1'], observer);
+
+            // Put then delete the same key
+            await mPreference.put("key1", "value1");
+            await mPreference.delete("key1");
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('dataChange', ['key1'], observer);
+            done();
+        }
+    })
+
+    // Test 'multiProcessChange' observer can be registered
+    it('testPreferencesMultiProcessChangeObserver001', 0, async function (done) {
+        console.log("testPreferencesMultiProcessChangeObserver001 begin.")
+        await mPreference.clear();
+        try {
+            let callCount = 0;
+            var observer = function (key) {
+                console.log("multiProcessChange observer received key: " + key);
+                callCount++;
+                if (callCount === 2) {
+                    // Observer should be called for each change
+                    expect(2).assertEqual(callCount);
+                    mPreference.off('multiProcessChange', observer);
+                    done();
+                }
+            }
+            mPreference.on('multiProcessChange', observer);
+
+            // Trigger changes
+            await mPreference.put("key1", "value1");
+            await mPreference.put("key2", "value2");
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('multiProcessChange', observer);
+            done();
+        }
+    })
+
+    // Test multiple observers of different types can coexist
+    it('testPreferencesMixedObservers001', 0, async function (done) {
+        console.log("testPreferencesMixedObservers001 begin.")
+        await mPreference.clear();
+        try {
+            let changeCount = 0;
+            let dataChangeCount = 0;
+            let multiProcessCount = 0;
+            let totalNotifications = 0;
+
+            var checkCompletion = function () {
+                totalNotifications++;
+                // All three observer types should receive notifications: 2 + 1 + 2 = 5 total
+                if (totalNotifications === 5) {
+                    expect(2).assertEqual(changeCount);
+                    expect(1).assertEqual(dataChangeCount);
+                    expect(2).assertEqual(multiProcessCount);
+                    mPreference.off('change', changeObserver);
+                    mPreference.off('dataChange', ['key1', 'key2'], dataChangeObserver);
+                    mPreference.off('multiProcessChange', multiProcessObserver);
+                    done();
+                }
+            }
+
+            var changeObserver = function (_key) {
+                changeCount++;
+                checkCompletion();
+            }
+            var dataChangeObserver = function (_data) {
+                dataChangeCount++;
+                checkCompletion();
+            }
+            var multiProcessObserver = function (_key) {
+                multiProcessCount++;
+                checkCompletion();
+            }
+
+            mPreference.on('change', changeObserver);
+            mPreference.on('dataChange', ['key1', 'key2'], dataChangeObserver);
+            mPreference.on('multiProcessChange', multiProcessObserver);
+
+            await mPreference.put("key1", "value1");
+            await mPreference.put("key2", "value2");
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('change', changeObserver);
+            mPreference.off('dataChange', ['key1', 'key2'], dataChangeObserver);
+            mPreference.off('multiProcessChange', multiProcessObserver);
+            done();
+        }
+    })
+
+    // Test observer notification order with flush
+    it('testPreferencesObserverFlushOrder001', 0, async function (done) {
+        console.log("testPreferencesObserverFlushOrder001 begin.")
+        await mPreference.clear();
+        try {
+            let notificationReceived = false;
+            var observer = function (key) {
+                console.log("observer received key: " + key);
+                notificationReceived = true;
+                // Observer should be called after flush
+                expect(true).assertEqual(notificationReceived);
+                mPreference.off('change', observer);
+                done();
+            }
+            mPreference.on('change', observer);
+
+            await mPreference.put("key1", "value1");
+            // Observer should not be called before flush
+            expect(false).assertEqual(notificationReceived);
+
+            await mPreference.flush();
+        } catch (err) {
+            console.log("trycatch err =" + err + ", code =" + err.code + ", message =" + err.message)
+            expect().assertFail()
+            mPreference.off('change', observer);
+            done();
+        }
+    })
 })

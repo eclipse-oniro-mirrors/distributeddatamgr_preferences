@@ -1248,4 +1248,160 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesMultiProcessObserverTest_003, TestSiz
     EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
         OHOS::NativePreferences::E_OK);
 }
+
+/**
+ * @tc.name: NDKPreferencesGetAllTest_004
+ * @tc.desc: Test OH_Preferences_GetAll memory management with multiple key-value pairs
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_004, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    for (int i = 0; i < 50; i++) {
+        std::string key = "test_key_" + std::to_string(i);
+        std::string value = "test_value_" + std::to_string(i);
+        EXPECT_EQ(OH_Preferences_SetString(pref, key.c_str(), value.c_str()), PREFERENCES_OK);
+        EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+    }
+
+    OH_PreferencesPair* pairs = nullptr;
+    uint32_t count = 0;
+    int ret = OH_Preferences_GetAll(pref, &pairs, &count);
+
+    EXPECT_EQ(ret, PREFERENCES_OK);
+    EXPECT_NE(pairs, nullptr);
+    EXPECT_EQ(count, 50u);
+
+    for (uint32_t i = 0; i < count; i++) {
+        const char *key = OH_PreferencesPair_GetKey(pairs, i);
+        EXPECT_NE(key, nullptr);
+        const OH_PreferencesValue *value = OH_PreferencesPair_GetPreferencesValue(pairs, i);
+        EXPECT_NE(value, nullptr);
+    }
+
+    if (pairs != nullptr) {
+        OH_PreferencesPair_Destroy(pairs, count);
+    }
+
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesGetAllTest_005
+ * @tc.desc: Test OH_Preferences_GetAll with basic value types
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_005, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetInt(pref, "int_key", 12345), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetBool(pref, "bool_key", true), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetString(pref, "string_key", "test_string"), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+    OH_PreferencesPair* pairs = nullptr;
+    uint32_t count = 0;
+    int ret = OH_Preferences_GetAll(pref, &pairs, &count);
+    EXPECT_EQ(ret, PREFERENCES_OK);
+    EXPECT_NE(pairs, nullptr);
+    EXPECT_EQ(count, 3u);
+    for (uint32_t i = 0; i < count; i++) {
+        const char *key = OH_PreferencesPair_GetKey(pairs, i);
+        if (key != nullptr) {
+            std::string keyStr(key);
+            const OH_PreferencesValue *value = OH_PreferencesPair_GetPreferencesValue(pairs, i);
+            if (keyStr == "int_key") {
+                int intV = 0;
+                EXPECT_EQ(OH_PreferencesValue_GetInt(value, &intV), PREFERENCES_OK);
+                EXPECT_EQ(intV, 12345);
+            }
+            if (keyStr == "bool_key") {
+                bool boolV = false;
+                EXPECT_EQ(OH_PreferencesValue_GetBool(value, &boolV), PREFERENCES_OK);
+                EXPECT_EQ(boolV, true);
+            }
+            if (keyStr == "string_key") {
+                char *stringV = nullptr;
+                uint32_t len = 0;
+                EXPECT_EQ(OH_PreferencesValue_GetString(value, &stringV, &len), PREFERENCES_OK);
+                EXPECT_STREQ(stringV, "test_string");
+                OH_Preferences_FreeString(stringV);
+            }
+        }
+    }
+    if (pairs != nullptr) {
+        OH_PreferencesPair_Destroy(pairs, count);
+    }
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKPreferencesGetAllTest_006
+ * @tc.desc: Test OH_Preferences_GetAll value verification
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesGetAllTest_006, TestSize.Level0)
+{
+    int errCode = PREFERENCES_OK;
+    OH_PreferencesOption* option = GetCommonOption();
+    OH_Preferences* pref = OH_Preferences_Open(option, &errCode);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetInt(pref, "test_int", 99999), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_SetString(pref, "test_string", "hello"), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+    OH_PreferencesPair* pairs = nullptr;
+    uint32_t count = 0;
+    int ret = OH_Preferences_GetAll(pref, &pairs, &count);
+    EXPECT_EQ(ret, PREFERENCES_OK);
+    EXPECT_NE(pairs, nullptr);
+    EXPECT_EQ(count, 2u);
+    bool intVCorrect = false;
+    bool stringVCorrect = false;
+    for (uint32_t i = 0; i < count; i++) {
+        const char *key = OH_PreferencesPair_GetKey(pairs, i);
+        if (key != nullptr) {
+            std::string keyStr(key);
+            const OH_PreferencesValue *value = OH_PreferencesPair_GetPreferencesValue(pairs, i);
+            if (keyStr == "test_int") {
+                int intV = 0;
+                EXPECT_EQ(OH_PreferencesValue_GetInt(value, &intV), PREFERENCES_OK);
+                intV == 99999 ? intVCorrect = true : intVCorrect = false;
+            }
+            if (keyStr == "test_string") {
+                char *stringV = nullptr;
+                uint32_t len = 0;
+                EXPECT_EQ(OH_PreferencesValue_GetString(value, &stringV, &len), PREFERENCES_OK);
+                (stringV != nullptr && std::string(stringV) == "hello") ?
+                    stringVCorrect = true : stringVCorrect = false;
+                OH_Preferences_FreeString(stringV);
+            }
+        }
+    }
+    EXPECT_TRUE(intVCorrect);
+    EXPECT_TRUE(stringVCorrect);
+    if (pairs != nullptr) {
+        OH_PreferencesPair_Destroy(pairs, count);
+    }
+    EXPECT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
+        OHOS::NativePreferences::E_OK);
+}
 }
