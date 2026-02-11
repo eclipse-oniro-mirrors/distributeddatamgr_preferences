@@ -24,6 +24,7 @@
 #include "oh_preferences_value.h"
 #include "preferences_file_operation.h"
 #include "preferences_helper.h"
+#include "platform_preferences.h"
 #include "preferences_observer.h"
 #include "securec.h"
 
@@ -241,6 +242,8 @@ uint32_t OH_PreferencesImpl::PackData(OH_PreferencesPair **pairs, std::unordered
 {
     uint32_t i = 0;
     for (auto &[key, value] : res) {
+        (*pairs)[i].cid = PreferencesNdkStructId::PREFERENCES_OH_PAIR_CID;
+        (*pairs)[i].maxIndex = res.size();
         (*pairs)[i].key = strdup(key.c_str());
         if ((*pairs)[i].key == nullptr) {
             LOG_ERROR("malloc key failed");
@@ -292,7 +295,6 @@ int OH_Preferences_GetAll(OH_Preferences *preference, OH_PreferencesPair **pairs
     uint32_t iCount = preferencesImpl->PackData(pairs, res);
     if (iCount != 0) {
         OH_PreferencesPair_Destroy(*pairs, iCount);
-        free(*pairs);
         *pairs = nullptr;
         LOG_ERROR("malloc pairs failed");
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
@@ -408,14 +410,14 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
             LOG_ERROR("malloc failed when get string, errno: %{public}d", errno);
             return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
         }
-        int sysErr = memset_s(ptr, (strLen + 1), 0, (strLen + 1));
+        int sysErr = SetPoint(ptr, (strLen + 1), 0, (strLen + 1));
         if (sysErr != EOK) {
-            LOG_ERROR("memset failed when get string, errCode: %{public}d", sysErr);
+            LOG_ERROR("SetPoint failed when get string, errCode: %{public}d", sysErr);
         }
         if (strLen > 0) {
-            sysErr = memcpy_s(ptr, strLen, str.c_str(), strLen);
+            sysErr = CpoyPoint(ptr, strLen, str.c_str(), strLen);
             if (sysErr != EOK) {
-                LOG_ERROR("memcpy failed when get string, errCode: %{public}d", sysErr);
+                LOG_ERROR("CpoyPoint failed when get string, errCode: %{public}d", sysErr);
                 free(ptr);
                 return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
             }
