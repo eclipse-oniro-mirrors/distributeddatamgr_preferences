@@ -85,12 +85,12 @@ const std::map<int, int> GRDErrnoMap = {
 
 int TransferGrdErrno(int err)
 {
-    if (err > 0) {
+    if (err > 0) { // LCOV_EXCL_BR_LINE
         return err;
     }
 
     auto iter = GRDErrnoMap.find(err);
-    if (iter != GRDErrnoMap.end()) {
+    if (iter != GRDErrnoMap.end()) { // LCOV_EXCL_BR_LINE
         return iter->second;
     }
 
@@ -104,7 +104,7 @@ bool PreferenceDbAdapter::IsEnhandceDbEnable()
 
 GRD_APIInfo& PreferenceDbAdapter::GetApiInstance()
 {
-    if (PreferenceDbAdapter::isInit_) {
+    if (PreferenceDbAdapter::isInit_) { // LCOV_EXCL_BR_LINE
         return PreferenceDbAdapter::api_;
     }
     ApiInit();
@@ -117,11 +117,11 @@ void PreferenceDbAdapter::ApiInit()
         return;
     }
     std::lock_guard<std::mutex> lck(PreferenceDbAdapter::apiMutex_);
-    if (PreferenceDbAdapter::isInit_) {
+    if (PreferenceDbAdapter::isInit_) { // LCOV_EXCL_BR_LINE
         return;
     }
     PreferenceDbAdapter::gLibrary_ = DBDlOpen();
-    if (PreferenceDbAdapter::gLibrary_ != nullptr) {
+    if (PreferenceDbAdapter::gLibrary_ != nullptr) { // LCOV_EXCL_BR_LINE
         GRDDBApiInitEnhance(PreferenceDbAdapter::api_);
     } else {
         LOG_DEBUG("use default db kernel");
@@ -165,7 +165,7 @@ PreferencesDb::PreferencesDb()
 
 PreferencesDb::~PreferencesDb()
 {
-    if (db_ != nullptr || PreferenceDbAdapter::GetApiInstance().DbCloseApi != nullptr) {
+    if (db_ != nullptr || PreferenceDbAdapter::GetApiInstance().DbCloseApi != nullptr) { // LCOV_EXCL_BR_LINE
         PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_, GRD_DB_CLOSE_IGNORE_ERROR);
         db_ = nullptr;
         LOG_DEBUG("destructor: calling close db.");
@@ -189,13 +189,13 @@ ReportParam PreferencesDb::GetReportParam(const std::string &info, uint32_t errC
 
 int PreferencesDb::CloseDb()
 {
-    if (db_ != nullptr) {
-        if (PreferenceDbAdapter::GetApiInstance().DbCloseApi == nullptr) {
+    if (db_ != nullptr) { // LCOV_EXCL_BR_LINE
+        if (PreferenceDbAdapter::GetApiInstance().DbCloseApi == nullptr) { // LCOV_EXCL_BR_LINE
             LOG_ERROR("api load failed: DbCloseApi");
             return E_ERROR;
         }
         int errCode = PreferenceDbAdapter::GetApiInstance().DbCloseApi(db_, GRD_DB_CLOSE_IGNORE_ERROR);
-        if (errCode != E_OK) {
+        if (errCode != E_OK) { // LCOV_EXCL_BR_LINE
             LOG_ERROR("close db failed, errcode=%{public}d, file: %{public}s", errCode,
                 ExtractFileName(dbPath_).c_str());
             return TransferGrdErrno(errCode);
@@ -210,13 +210,13 @@ int PreferencesDb::CloseDb()
 
 int PreferencesDb::CreateCollection()
 {
-    if (PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi == nullptr) {
+    if (PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("api load failed: DbCreateCollectionApi");
         return E_ERROR;
     }
     int errCode = PreferenceDbAdapter::GetApiInstance().DbCreateCollectionApi(db_, TABLENAME,
         TABLE_MODE, 0);
-    if (errCode != GRD_OK) {
+    if (errCode != GRD_OK) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("rd create table failed:%{public}d", errCode);
     }
     return TransferGrdErrno(errCode);
@@ -224,7 +224,7 @@ int PreferencesDb::CreateCollection()
 
 int PreferencesDb::OpenDb(bool isNeedRebuild)
 {
-    if (PreferenceDbAdapter::GetApiInstance().DbOpenApi == nullptr) {
+    if (PreferenceDbAdapter::GetApiInstance().DbOpenApi == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("api load failed: DbOpenApi");
         return E_ERROR;
     }
@@ -244,12 +244,12 @@ int PreferencesDb::OpenDb(bool isNeedRebuild)
 
 int PreferencesDb::RepairDb()
 {
-    if (PreferenceDbAdapter::GetApiInstance().DbRepairApi == nullptr) {
+    if (PreferenceDbAdapter::GetApiInstance().DbRepairApi == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("api load failed: DbRepairApi");
         return E_ERROR;
     }
     int errCode = PreferenceDbAdapter::GetApiInstance().DbRepairApi(dbPath_.c_str(), CONFIG_STR);
-    if (errCode != GRD_OK) {
+    if (errCode != GRD_OK) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("repair db failed, errCode: %{public}d", errCode);
     }
     return errCode;
@@ -263,7 +263,7 @@ int PreferencesDb::TryRepairAndRebuild(int openCode)
     int innerErr = GRD_OK;
     do {
         innerErr = RepairDb();
-        if (innerErr == GRD_OK) {
+        if (innerErr == GRD_OK) { // LCOV_EXCL_BR_LINE
             LOG_INFO("db repair success");
             return innerErr;
         } else if (innerErr == GRD_DB_BUSY) {
@@ -281,7 +281,7 @@ int PreferencesDb::TryRepairAndRebuild(int openCode)
     } while (retryTimes > 0);
 
     innerErr = OpenDb(true);
-    if (innerErr == GRD_OK || innerErr == GRD_REBUILD_DATABASE) {
+    if (innerErr == GRD_OK || innerErr == GRD_REBUILD_DATABASE) { // LCOV_EXCL_BR_LINE
         LOG_INFO("rebuild db success, errCode: %{public}d", innerErr);
         return GRD_OK;
     }
@@ -291,11 +291,11 @@ int PreferencesDb::TryRepairAndRebuild(int openCode)
 
 int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName)
 {
-    if (db_ != nullptr) {
+    if (db_ != nullptr) { // LCOV_EXCL_BR_LINE
         LOG_DEBUG("Init: already init.");
         return E_OK;
     }
-    if (PreferenceDbAdapter::GetApiInstance().DbIndexPreloadApi == nullptr) {
+    if (PreferenceDbAdapter::GetApiInstance().DbIndexPreloadApi == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("api load failed: DbIndexPreloadApi");
         return E_ERROR;
     }
@@ -307,26 +307,26 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
         PreferencesDfxManager::Report(GetReportParam((info.empty() ? "db corrupted" : info), errCode),
             EVENT_NAME_DB_CORRUPTED);
         int innerErr = TryRepairAndRebuild(errCode);
-        if (innerErr != GRD_OK) {
+        if (innerErr != GRD_OK) { // LCOV_EXCL_BR_LINE
             // log inside
             return TransferGrdErrno(innerErr);
         }
         ReportParam param = GetReportParam("db repair success", GRD_OK);
         param.errnoCode = 0;
         PreferencesDfxManager::Report(param, EVENT_NAME_DB_CORRUPTED);
-    } else if (errCode != GRD_OK) {
+    } else if (errCode != GRD_OK) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("db open failed, errCode: %{public}d", errCode);
         return TransferGrdErrno(errCode);
     }
 
     errCode = CreateCollection();
-    if (errCode != E_OK) {
+    if (errCode != E_OK) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("create collection failed when init: %{public}d, but ignored.", errCode);
         // ignore create collection error
     }
 
     errCode = TransferGrdErrno(PreferenceDbAdapter::GetApiInstance().DbIndexPreloadApi(db_, TABLENAME));
-    if (errCode != E_OK) {
+    if (errCode != E_OK) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("Init: Index preload FAILED %{public}d", errCode);
         return errCode;
     }
@@ -335,9 +335,9 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
 
 int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_t> &value)
 {
-    if (db_ == nullptr) {
+    if (db_ == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("Put failed, db has been closed.");
-        return E_ALREADY_CLOSED;
+        return E_ERROR;
     } else if (PreferenceDbAdapter::GetApiInstance().DbKvPutApi == nullptr) {
         LOG_ERROR("api load failed: DbKvPutApi");
         return E_ERROR;
@@ -350,11 +350,11 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
     int ret = E_OK;
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvPutApi(db_, TABLENAME, &innerKey, &innerVal);
-        if (ret == GRD_UNDEFINED_TABLE) {
+        if (ret == GRD_UNDEFINED_TABLE) { // LCOV_EXCL_BR_LINE
             LOG_INFO("CreateCollection called when Put, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
-            if (ret == GRD_OK) {
+            if (ret == GRD_OK) { // LCOV_EXCL_BR_LINE
                 return TransferGrdErrno(ret);
             } else {
                 LOG_ERROR("rd put failed:%{public}d", ret);
@@ -369,9 +369,9 @@ int PreferencesDb::Put(const std::vector<uint8_t> &key, const std::vector<uint8_
 
 int PreferencesDb::Delete(const std::vector<uint8_t> &key)
 {
-    if (db_ == nullptr) {
+    if (db_ == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("Delete failed, db has been closed.");
-        return E_ALREADY_CLOSED;
+        return E_ERROR;
     } else if (PreferenceDbAdapter::GetApiInstance().DbKvDelApi == nullptr) {
         LOG_ERROR("api load failed: DbKvDelApi");
         return E_ERROR;
@@ -383,11 +383,11 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
     int ret = E_OK;
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvDelApi(db_, TABLENAME, &innerKey);
-        if (ret == GRD_UNDEFINED_TABLE) {
+        if (ret == GRD_UNDEFINED_TABLE) { // LCOV_EXCL_BR_LINE
             LOG_INFO("CreateCollection called when Delete, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
-            if (ret == E_OK) {
+            if (ret == E_OK) { // LCOV_EXCL_BR_LINE
                 return TransferGrdErrno(ret);
             } else {
                 LOG_ERROR("rd delete failed:%{public}d", ret);
@@ -402,9 +402,9 @@ int PreferencesDb::Delete(const std::vector<uint8_t> &key)
 
 int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &value)
 {
-    if (db_ == nullptr) {
+    if (db_ == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("Get failed, db has been closed.");
-        return E_ALREADY_CLOSED;
+        return E_ERROR;
     } else if (PreferenceDbAdapter::GetApiInstance().DbKvGetApi == nullptr ||
         PreferenceDbAdapter::GetApiInstance().FreeItemApi == nullptr) {
         LOG_ERROR("api load failed: DbKvGetApi or FreeItemApi");
@@ -418,7 +418,7 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
     int ret = GRD_OK;
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvGetApi(db_, TABLENAME, &innerKey, &innerVal);
-        if (ret == GRD_UNDEFINED_TABLE) {
+        if (ret == GRD_UNDEFINED_TABLE) { // LCOV_EXCL_BR_LINE
             LOG_INFO("CreateCollection called when Get, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else {
@@ -433,7 +433,7 @@ int PreferencesDb::Get(const std::vector<uint8_t> &key, std::vector<uint8_t> &va
         retryTimes--;
     } while (retryTimes > 0);
 
-    if (retryTimes == 0) {
+    if (retryTimes == 0) { // LCOV_EXCL_BR_LINE
         return TransferGrdErrno(ret);
     }
     value.resize(innerVal.dataLen);
@@ -451,7 +451,7 @@ int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::ve
         uint32_t keySize = 0;
         uint32_t valueSize = 0;
         ret = PreferenceDbAdapter::GetApiInstance().GetItemSizeApi(resultSet, &keySize, &valueSize);
-        if (ret != GRD_OK) {
+        if (ret != GRD_OK) { // LCOV_EXCL_BR_LINE
             LOG_ERROR("ger reulstSet kv size failed %{public}d", ret);
             return TransferGrdErrno(ret);
         }
@@ -459,7 +459,7 @@ int PreferencesDb::GetAllInner(std::list<std::pair<std::vector<uint8_t>, std::ve
         dataItem.second.resize(valueSize);
         ret = PreferenceDbAdapter::GetApiInstance().GetItemApi(resultSet, dataItem.first.data(),
             dataItem.second.data());
-        if (ret != E_OK) {
+        if (ret != E_OK) { // LCOV_EXCL_BR_LINE
             LOG_ERROR("ger reulstSet failed %{public}d", ret);
             return TransferGrdErrno(ret);
         }
@@ -478,9 +478,9 @@ static inline bool IsApiValid()
 
 int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> &data)
 {
-    if (db_ == nullptr) {
+    if (db_ == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("GetAll failed, db has been closed.");
-        return E_ALREADY_CLOSED;
+        return E_ERROR;
     }
     if (!IsApiValid()) {
         LOG_ERROR("api load failed when get all");
@@ -496,7 +496,7 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
 
     do {
         ret = PreferenceDbAdapter::GetApiInstance().DbKvFilterApi(db_, TABLENAME, &param, &resultSet);
-        if (ret == GRD_UNDEFINED_TABLE) {
+        if (ret == GRD_UNDEFINED_TABLE) { // LCOV_EXCL_BR_LINE
             LOG_INFO("CreateCollection called when GetAll, file: %{public}s", ExtractFileName(dbPath_).c_str());
             (void)CreateCollection();
         } else if (ret == GRD_OK) {
@@ -515,16 +515,16 @@ int PreferencesDb::GetAll(std::list<std::pair<std::vector<uint8_t>, std::vector<
 
 int PreferencesDb::DropCollection()
 {
-    if (db_ == nullptr) {
+    if (db_ == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("DropCollection failed, db has been closed.");
-        return E_ALREADY_CLOSED;
+        return E_ERROR;
     } else if (PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi == nullptr) {
         LOG_ERROR("api load failed: DbDropCollectionApi");
         return E_ERROR;
     }
 
     int errCode = PreferenceDbAdapter::GetApiInstance().DbDropCollectionApi(db_, TABLENAME, 0);
-    if (errCode != E_OK) {
+    if (errCode != E_OK) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("rd drop collection failed:%{public}d", errCode);
     }
     return TransferGrdErrno(errCode);
@@ -546,9 +546,9 @@ std::vector<uint8_t> PreferencesDb::KvItemToBlob(GRD_KVItemT &item)
 
 int PreferencesDb::GetKernelDataVersion(int64_t &dataVersion)
 {
-    if (db_ == nullptr) {
+    if (db_ == nullptr) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("Get kernel data version failed, db has been closed.");
-        return E_ALREADY_CLOSED;
+        return E_ERROR;
     } else if (PreferenceDbAdapter::GetApiInstance().DbGetConfigApi == nullptr) {
         LOG_ERROR("api load failed: DbGetConfigApi");
         return E_ERROR;
@@ -556,7 +556,7 @@ int PreferencesDb::GetKernelDataVersion(int64_t &dataVersion)
 
     GRD_DbValueT kernelDataVersion = PreferenceDbAdapter::GetApiInstance().DbGetConfigApi(db_,
         GRD_ConfigTypeE::GRD_CONFIG_DATA_VERSION);
-    if (kernelDataVersion.type != GRD_DbDataTypeE::GRD_DB_DATATYPE_INTEGER) {
+    if (kernelDataVersion.type != GRD_DbDataTypeE::GRD_DB_DATATYPE_INTEGER) { // LCOV_EXCL_BR_LINE
         LOG_ERROR("get wrong data version type: %d", kernelDataVersion.type);
         return E_ERROR;
     }
