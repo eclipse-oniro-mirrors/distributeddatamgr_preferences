@@ -88,6 +88,7 @@ if (is_ohos) {
       "-std=c++17",
       "-stdlib=libc++",
       "-fvisibility=hidden",
+      "-Werror=vla",
     ]
     sources = base_sources
     sources += [
@@ -138,6 +139,7 @@ if (is_ohos) {
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
+      "-Werror=vla",
     ]
     if (is_mac) {
       buildos = "mac"
@@ -180,7 +182,10 @@ if (is_ohos) {
 
     configs = [ ":native_preferences_config" ]
     configs += [ ":mock_config" ]
-    cflags_cc = [ "-fvisibility=hidden" ]
+    cflags_cc = [
+      "-fvisibility=hidden",
+      "-Werror=vla",
+    ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_android",
       "//commonlibrary/c_utils/base:utilsbase",
@@ -205,7 +210,10 @@ if (is_ohos) {
 
     configs = [ ":native_preferences_config" ]
     configs += [ ":mock_config" ]
-    cflags_cc = [ "-fvisibility=hidden" ]
+    cflags_cc = [
+      "-fvisibility=hidden",
+      "-Werror=vla",
+    ]
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//commonlibrary/c_utils/base:utilsbase",
@@ -233,6 +241,7 @@ ohos_static_library("native_preferences_static") {
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
+      "-Werror=vla",
     ]
     if (is_mac) {
       buildos = "mac"
