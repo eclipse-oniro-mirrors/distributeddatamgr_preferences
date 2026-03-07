@@ -46,6 +46,7 @@ if (is_ohos) {
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
+      "-Werror=vla",
     ]
     deps =
         [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]

@@ -31,6 +31,7 @@ ohos_shared_library("cj_preferences_ffi") {
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
+      "-Werror=vla",
     ]
     if (is_mac) {
       defines = [ "MAC_PLATFORM" ]
@@ -45,6 +46,7 @@ ohos_shared_library("cj_preferences_ffi") {
       cfi_cross_dso = true
       debug = false
     }
+    cflags_cc = [ "-Werror=vla" ]
   }
 
   deps = [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]

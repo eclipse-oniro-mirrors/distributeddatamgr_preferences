@@ -26,6 +26,7 @@ config("module_private_config") {
 ##############################fuzztest##########################################
 ohos_fuzztest("DBPreferencesGetFuzzTest") {
   module_out_path = "preferences/preferences"
+  cflags_cc = [ "-Werror=vla" ]
 
   fuzz_config_file = "//foundation/distributeddatamgr/preferences/test/native/fuzztest/dbpreferencesget_fuzzer"
 
