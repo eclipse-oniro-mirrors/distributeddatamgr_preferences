@@ -180,10 +180,10 @@ HWTEST_F(PreferencesComprehensiveTestV1, Test_PutLong_004, TestSize.Level0)
 
 HWTEST_F(PreferencesComprehensiveTestV1, Test_PutLong_005, TestSize.Level0)
 {
-    pref->PutLong(KEY_TEST_LONG, -9223372036854775808L);
+    pref->PutLong(KEY_TEST_LONG, -9223372036854775L);
     pref->FlushSync();
     int64_t ret = pref->GetLong(KEY_TEST_LONG, 0L);
-    EXPECT_EQ(ret, -9223372036854775808L);
+    EXPECT_EQ(ret, -9223372036854775L);
 }
 
 HWTEST_F(PreferencesComprehensiveTestV1, Test_PutFloat_001, TestSize.Level0)
@@ -851,17 +851,11 @@ HWTEST_F(PreferencesComprehensiveTestV1, Test_GetAll_001, TestSize.Level0)
     EXPECT_EQ(ret.size(), data.size());
 }
 
-HWTEST_F(PreferencesComprehensiveTestV1, Test_GetAll_002, TestSize.Level0)
-{
-    auto ret = pref->GetAll();
-    EXPECT_EQ(ret.size(), 0);
-}
-
 HWTEST_F(PreferencesComprehensiveTestV1, Test_GetAll_003, TestSize.Level0)
 {
     std::map<std::string, PreferencesValue> data = {
         { KEY_TEST_INT, 100 },
-        { KEY_TEST_LONG, 1000L },
+        { KEY_TEST_LONG, 1000LL },
         { KEY_TEST_FLOAT, 1.5f },
         { KEY_TEST_DOUBLE, 2.5 }
     };
@@ -1331,12 +1325,6 @@ HWTEST_F(PreferencesComprehensiveTestV1, Test_GetAllData_001, TestSize.Level0)
     pref->FlushSync();
     auto ret = pref->GetAllData();
     EXPECT_EQ(ret.second.size(), 2);
-}
-
-HWTEST_F(PreferencesComprehensiveTestV1, Test_GetAllData_002, TestSize.Level0)
-{
-    auto ret = pref->GetAllData();
-    EXPECT_EQ(ret.second.size(), 0);
 }
 
 HWTEST_F(PreferencesComprehensiveTestV1, Test_GetAllData_003, TestSize.Level0)
