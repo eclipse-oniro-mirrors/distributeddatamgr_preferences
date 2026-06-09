@@ -64,7 +64,8 @@
                 "bounds_checking_function",
                 "libxml2",
                 "runtime_core",
-                "ffrt"
+                "ffrt",
+                "taihe_ffi_gen"
             ]
         },
         "build": {
