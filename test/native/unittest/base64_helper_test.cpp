@@ -14,11 +14,8 @@
  */
 
 #include "base64_helper.h"
-
 #include <gtest/gtest.h>
-
 #include <string>
-
 #include "log_print.h"
 
 using namespace testing::ext;
