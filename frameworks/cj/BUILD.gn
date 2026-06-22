@@ -51,23 +51,19 @@ ohos_shared_library("cj_preferences_ffi") {
 
   deps = [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
 
-  if (is_mingw || is_mac) {
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-      "napi:cj_bind_ffi",
-      "napi:cj_bind_native",
-    ]
-  } else {
-    external_deps = [
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "napi:ace_napi",
+    "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
+  ]
+
+  if (!is_mingw && !is_mac) {
+    external_deps += [
       "ability_runtime:abilitykit_native",
       "ability_runtime:napi_base_context",
-      "c_utils:utils",
-      "hilog:libhilog",
       "ipc:ipc_single",
-      "napi:ace_napi",
-      "napi:cj_bind_ffi",
-      "napi:cj_bind_native",
     ]
   }
   
