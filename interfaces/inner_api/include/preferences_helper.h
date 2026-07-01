@@ -24,6 +24,8 @@
 #include "preferences.h"
 
 namespace OHOS {
+template <typename _Key, typename _Tp> 
+class ConcurrentStripedMap; 
 namespace NativePreferences {
 /**
  * The observer class of preferences. This class is used to obtain and delete preferences instances.
@@ -77,8 +79,7 @@ public:
 
 private:
     // use bool to mark whether Preferences is EnhancePreferences or not
-    static std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> prefsCache_;
-    static std::mutex prefsCacheMutex_;
+    static ConcurrentStripedMap<std::string, std::pair<std::shared_ptr<Preferences>, bool>> prefsCache_;
     static std::atomic<bool> isReportFault_;
 
     static std::string GetRealPath(const std::string &path, int &errorCode);
