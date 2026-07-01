@@ -32,8 +32,7 @@
 
 namespace OHOS {
 namespace NativePreferences {
-std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
-std::mutex PreferencesHelper::prefsCacheMutex_;
+ConcurrentStripedMap<std::string, std::pair<std::shared_ptr<Preferences>, bool>> PreferencesHelper::prefsCache_;
 std::atomic<bool> PreferencesHelper::isReportFault_(false);
 static constexpr const int DB_SUFFIX_NUM = 6;
 static constexpr const char *DB_SUFFIX[DB_SUFFIX_NUM] = { ".ctrl", ".ctrl.dwr", ".redo", ".undo", ".safe", ".map" };
@@ -168,36 +167,34 @@ std::shared_ptr<Preferences> PreferencesHelper::GetPreferences(const Options &op
         return nullptr;
     }
 
-    std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-    auto it = prefsCache_.find(realPath);
-    if (it != prefsCache_.end()) {
-        auto pre = it->second.first;
-        if (pre != nullptr) { // LCOV_EXCL_BR_LINE
-            LOG_DEBUG("GetPreferences: found preferences in cache");
-            return pre;
-        }
-        LOG_DEBUG("GetPreferences: found preferences in cache but it's null, erase it.");
-        prefsCache_.erase(it);
-    }
-
-    const_cast<Options &>(options).filePath = realPath;
-    std::string::size_type pos = realPath.find_last_of('/');
-    std::string filePath = realPath.substr(0, pos);
-    if (Access(filePath.c_str()) != 0) {
-        LOG_ERROR("The path is invalid, prefName is %{public}s.", ExtractFileName(filePath).c_str());
-        if (!PreferencesHelper::isReportFault_.exchange(true)) {
-            ReportFaultParam param = { "GetPreferences error", options.bundleName, NORMAL_DB,
-                ExtractFileName(options.filePath), E_INVALID_FILE_PATH, "The path is invalid." };
-            PreferencesDfxManager::ReportFault(param);
-        }
-    }
-    bool isEnhancePreferences = false;
     std::shared_ptr<Preferences> pref = nullptr;
-    errCode = GetPreferencesInner(options, isEnhancePreferences, pref);
-    if (errCode != E_OK) {
-        return nullptr;
-    }
-    prefsCache_.insert({realPath, {pref, isEnhancePreferences}});
+    prefsCache_.Compute(realPath, [&realPath, &options, &errCode, &pref](const std::string &key,
+        std::pair<std::shared_ptr<Preferences>, bool> &value) {
+        if (value.first != nullptr) {
+            LOG_DEBUG("GetPreferences: found preferences in cache");
+            pref = value.first;
+            return true;
+        }
+
+        const_cast<Options &>(options).filePath = realPath;
+        std::string::size_type pos = realPath.find_last_of('/');
+        std::string filePath = realPath.substr(0, pos);
+        if (Access(filePath.c_str()) != 0) {
+            LOG_ERROR("The path is invalid, prefName is %{public}s.", ExtractFileName(filePath).c_str());
+            if (!PreferencesHelper::isReportFault_.exchange(true)) {
+                ReportFaultParam param = { "GetPreferences error", options.bundleName, NORMAL_DB,
+                    ExtractFileName(options.filePath), E_INVALID_FILE_PATH, "The path is invalid." };
+                PreferencesDfxManager::ReportFault(param);
+            }
+        }
+        bool isEnhancePreferences = false;
+        errCode = GetPreferencesInner(options, isEnhancePreferences, pref);
+        if (errCode != E_OK) {
+            return false;
+        }
+        value = { pref, isEnhancePreferences };
+        return true;
+    });
     return pref;
 }
 
@@ -205,23 +202,20 @@ std::pair<std::string, int> PreferencesHelper::DeletePreferencesCache(const std:
 {
     std::string bundleName;
     int errCode = E_OK;
-    std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
-    if (it != prefsCache_.end()) {
-        auto pref = it->second.first;
+    prefsCache_.ComputeIfPresent(realPath, [&realPath, &bundleName, &errCode](const std::string &key,
+        std::pair<std::shared_ptr<Preferences>, bool> &value) {
+        auto pref = value.first;
         if (pref != nullptr) {
             LOG_INFO("Begin to Delete Preferences: %{public}s", ExtractFileName(realPath).c_str());
             bundleName = pref->GetBundleName();
-            if (it->second.second) {
+            if (value.second) {
                 errCode = pref->CloseDb();
             } else {
                 errCode = std::static_pointer_cast<PreferencesImpl>(pref)->Close();
             }
         }
-        if (errCode == E_OK) {
-            prefsCache_.erase(it);
-        }
-    }
-
+        return errCode != E_OK;
+    });
     return { bundleName, errCode };
 }
 
@@ -233,16 +227,11 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
         return errCode;
     }
 
-    std::string bundleName;
-    {
-        std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-        auto [ name, code ] = DeletePreferencesCache(realPath);
-        if (code != E_OK) {
-            LOG_ERROR("file %{public}s failed to close when delete preferences, errCode is: %{public}d",
-                ExtractFileName(realPath).c_str(), code);
-            return code;
-        }
-        bundleName = name;
+    auto [ bundleName, code ] = DeletePreferencesCache(realPath);
+    if (code != E_OK) {
+        LOG_ERROR("file %{public}s failed to close when delete preferences, errCode is: %{public}d",
+            ExtractFileName(realPath).c_str(), code);
+        return code;
     }
 
     std::string filePath = realPath.c_str();
@@ -282,29 +271,25 @@ int PreferencesHelper::RemovePreferencesFromCache(const std::string &path)
         return errCode;
     }
 
-    std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-    std::map<std::string, std::pair<std::shared_ptr<Preferences>, bool>>::iterator it = prefsCache_.find(realPath);
-    if (it == prefsCache_.end()) {
-        LOG_DEBUG("RemovePreferencesFromCache: preferences not in cache, just return");
-        return E_OK;
-    }
-
-    auto pref = it->second.first;
-    if (pref != nullptr) {
-        if (it->second.second) {
-            errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();
-            if (errCode != E_OK) {
-                LOG_ERROR("RemovePreferencesFromCache: file %{public}s failed to close db, errCode is %{public}d.",
-                    ExtractFileName(realPath).c_str(), errCode);
-                return E_ERROR;
-            }
-        } else {
-            std::static_pointer_cast<PreferencesImpl>(pref)->Close();
+    prefsCache_.ComputeIfPresent(realPath, [&realPath, &errCode](const std::string &key,
+        std::pair<std::shared_ptr<Preferences>, bool> &value) {
+        auto pref = value.first;
+        if (pref == nullptr) {	 
+            return false;	 
+        }	 
+        if (value.second) {	 
+            errCode = std::static_pointer_cast<PreferencesEnhanceImpl>(pref)->CloseDb();	 
+            if (errCode != E_OK) {	 
+                LOG_ERROR("RemovePreferencesFromCache: file %{public}s failed to close db, errCode is %{public}d.",	 
+                    ExtractFileName(realPath).c_str(), errCode);	 
+                return true;	 
+            }	 
+        } else { 
+            std::static_pointer_cast<PreferencesImpl>(pref)->Close(); 
         }
-    }
-
-    prefsCache_.erase(it);
-    return E_OK;
+        return false;
+    });
+    return errCode == E_OK ? E_OK : E_ERROR;
 }
 
 bool PreferencesHelper::IsStorageTypeSupported(const StorageType &type)
