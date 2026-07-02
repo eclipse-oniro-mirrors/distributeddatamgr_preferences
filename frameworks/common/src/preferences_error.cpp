@@ -43,7 +43,7 @@ static constexpr JsErrorCode JS_ERROR_MAPS[] = {
 
 static constexpr bool IsIncreasing()
 {
-    for (size_t i = 1; i < sizeof(JS_ERROR_MAPS) / sizeof(JSErrorCode); i++) {
+    for (size_t i = 1; i < sizeof(JS_ERROR_MAPS) / sizeof(JsErrorCode); i++) {
         if (JS_ERROR_MAPS[i].nativeCode <= JS_ERROR_MAPS[i - 1].nativeCode) {
             return false;
         }
