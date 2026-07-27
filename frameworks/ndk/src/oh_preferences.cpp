@@ -676,7 +676,7 @@ void NDKPreferencesObserver::OnChange(const std::map<std::string, OHOS::NativePr
         }
         valueImpl->cid = PreferencesNdkStructId::PREFERENCES_OH_VALUE_CID;
         valueImpl->value_ = value;
-        pairs[i++] = OH_PreferencesPair { PreferencesNdkStructId::PREFERENCES_OH_PAIR_CID, keys.c_str(),
+        pairs[i++] = OH_PreferencesPair { PreferencesNdkStructId::PREFERENCES_OH_PAIR_CID, key.c_str(),
             static_cast<OH_PreferencesValue *>(valueImpl), count};
     }
     (dataObserver_)(context_, pairs, count);
