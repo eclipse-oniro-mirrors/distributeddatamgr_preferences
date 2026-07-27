@@ -63,7 +63,7 @@ std::shared_ptr<JSError> GetContextInfo(napi_env env, napi_value value,
     }
 
     auto abilityContext = ability->GetAbilityContext();
-    if (abilityContext == nullptr) {
+    if (ability == nullptr) {
         LOG_ERROR("failed to get ability context.");
         return std::make_shared<ParamTypeError>("The context is invalid.");
     }
