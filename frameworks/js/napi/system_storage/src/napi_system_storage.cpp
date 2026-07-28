@@ -114,11 +114,12 @@ int32_t ConversionToSysStorageErrorCode(const int &errCode)
     }
 }
 
-static void CleanContextResources(napi_env env, AsyncContext *context)
+static void CleanupContextResources(napi_env env, AsyncContext *context)
 {
     if (context == nullptr) {
         return;
     }
+    
     if (context->success != nullptr) {
         napi_delete_reference(env, context->success);
     }
@@ -174,7 +175,7 @@ void Complete(napi_env env, napi_status status, void *data)
     napi_value res = nullptr;
     napi_get_undefined(env, &res);
     napi_resolve_deferred(env, ctx->deferred, res);
-    CleanContextResources(env, ctx);
+    CleanupContextResources(env, ctx);
 }
 
 std::string GetPrefName(napi_env env)
@@ -215,25 +216,25 @@ napi_value Operate(napi_env env, napi_callback_info info, const char *resource, 
     napi_status status = napi_create_string_utf8(env, resource, NAPI_AUTO_LENGTH, &resourceName);
     if (status != napi_ok) {
         LOG_ERROR("Operate get resourceName failed, status = %{public}d", status);
-        CleanContextResources(env, context);
+        CleanupContextResources(env, context);
         return ret;
     }
     status = napi_create_promise(env, &context->deferred, &ret);
     if (status != napi_ok) {
         LOG_ERROR("Operate create promise failed, status = %{public}d", status);
-        CleanContextResources(env, context);
+        CleanupContextResources(env, context);
         return ret;
     }
     status = napi_create_async_work(env, nullptr, resourceName, execute, Complete, context, &context->request);
     if (status != napi_ok) {
         LOG_ERROR("Operate create asyncWork failed, status = %{public}d", status);
-        CleanContextResources(env, context);
+        CleanupContextResources(env, context);
         return ret;
     }
     status = napi_queue_async_work(env, context->request);
     if (status != napi_ok) {
         LOG_ERROR("Operate queue asyncWork failed, status = %{public}d", status);
-        CleanContextResources(env, context);
+        CleanupContextResources(env, context);
     }
     return ret;
 }

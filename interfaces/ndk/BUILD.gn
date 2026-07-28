@@ -29,33 +29,32 @@ config("ndk_preferences_public_config") {
   include_dirs = [ "include" ]
 }
 
-if (is_ohos) {
-  base_sources = [
-    "${preferences_ndk_path}/src/oh_convertor.cpp",
-    "${preferences_ndk_path}/src/oh_preferences.cpp",
-    "${preferences_ndk_path}/src/oh_preferences_option.cpp",
-    "${preferences_ndk_path}/src/oh_preferences_value.cpp",
+base_sources = [
+  "${preferences_ndk_path}/src/oh_convertor.cpp",
+  "${preferences_ndk_path}/src/oh_preferences.cpp",
+  "${preferences_ndk_path}/src/oh_preferences_option.cpp",
+  "${preferences_ndk_path}/src/oh_preferences_value.cpp",
+]
+ohos_shared_library("libohpreferences") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags_cc = [
+    "-std=c++17",
+    "-stdlib=libc++",
+    "-Werror=vla",
   ]
-  ohos_shared_library("libohpreferences") {
-    branch_protector_ret = "pac_ret"
-    sanitize = {
-      cfi = true
-      cfi_cross_dso = true
-      debug = false
-    }
-    cflags_cc = [
-      "-std=c++17",
-      "-stdlib=libc++",
-      "-Werror=vla",
-    ]
-    deps =
-        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
+  deps =
+      [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
 
-    sources = base_sources
+  sources = base_sources
 
-    defines = [ "API_EXPORT=__attribute__((visibility (\"default\")))" ]
+  defines = [ "API_EXPORT=__attribute__((visibility (\"default\")))" ]
 
-    configs = [ ":ndk_preferences_config" ]
+  configs = [ ":ndk_preferences_config" ]
 
     external_deps = [
       "ability_runtime:app_context",
@@ -71,5 +70,4 @@ if (is_ohos) {
     output_name = "ohpreferences"
     subsystem_name = "distributeddatamgr"
     output_extension = "so"
-  }
 }

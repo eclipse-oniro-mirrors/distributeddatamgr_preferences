@@ -18,7 +18,7 @@
 #include "oh_preferences_err_code.h"
 #include "oh_preferences_impl.h"
 #include "oh_preferences_value_impl.h"
-#include "securec.h"
+#include "platform_preferences.h"
 
 using namespace OHOS::PreferencesNdk;
 
@@ -61,6 +61,7 @@ const OH_PreferencesValue *OH_PreferencesPair_GetPreferencesValue(const OH_Prefe
         LOG_ERROR("cid error when get value from pair, cid: %{public}ld", static_cast<long>(pairs[index].cid));
         return nullptr;
     }
+
     return pairs[index].value;
 }
 
@@ -153,14 +154,14 @@ int OH_PreferencesValue_GetString(const OH_PreferencesValue *object, char **valu
             return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
         }
 
-        int sysErr = memset_s(ptr, (strLen + 1), 0, (strLen + 1));
+        int sysErr = SetPoint(ptr, (strLen + 1), 0, (strLen + 1));
         if (sysErr != EOK) {
-            LOG_ERROR("memset failed when value get string, errCode: %{public}d", sysErr);
+            LOG_ERROR("SetPoint failed when value get string, errCode: %{public}d", sysErr);
         }
         if (strLen > 0) {
-            sysErr = memcpy_s(ptr, strLen, str.c_str(), strLen);
+            sysErr = CpoyPoint(ptr, strLen, str.c_str(), strLen);
             if (sysErr != EOK) {
-                LOG_ERROR("memcpy failed when value get string, errCode: %{public}d", sysErr);
+                LOG_ERROR("CpoyPoint failed when value get string, errCode: %{public}d", sysErr);
                 free(ptr);
                 return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
             }

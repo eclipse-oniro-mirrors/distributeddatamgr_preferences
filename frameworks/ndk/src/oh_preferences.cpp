@@ -24,6 +24,7 @@
 #include "oh_preferences_value.h"
 #include "preferences_file_operation.h"
 #include "preferences_helper.h"
+#include "platform_preferences.h"
 #include "preferences_observer.h"
 #include "securec.h"
 
@@ -409,14 +410,14 @@ int OH_Preferences_GetString(OH_Preferences *preference, const char *key, char *
             LOG_ERROR("malloc failed when get string, errno: %{public}d", errno);
             return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
         }
-        int sysErr = memset_s(ptr, (strLen + 1), 0, (strLen + 1));
+        int sysErr = SetPoint(ptr, (strLen + 1), 0, (strLen + 1));
         if (sysErr != EOK) {
-            LOG_ERROR("memset failed when get string, errCode: %{public}d", sysErr);
+            LOG_ERROR("SetPoint failed when get string, errCode: %{public}d", sysErr);
         }
         if (strLen > 0) {
-            sysErr = memcpy_s(ptr, strLen, str.c_str(), strLen);
+            sysErr = CpoyPoint(ptr, strLen, str.c_str(), strLen);
             if (sysErr != EOK) {
-                LOG_ERROR("memcpy failed when get string, errCode: %{public}d", sysErr);
+                LOG_ERROR("CpoyPoint failed when get string, errCode: %{public}d", sysErr);
                 free(ptr);
                 return OH_Preferences_ErrCode::PREFERENCES_ERROR_MALLOC;
             }
@@ -658,13 +659,6 @@ void NDKPreferencesObserver::OnChange(const std::map<std::string, OHOS::NativePr
     if (count == 0) {
         return;
     }
-    
-    std::vector<std::string> keys;
-    keys.reserve(count);
-    for (const auto &[key, value] : records) {
-        keys.push_back(key);
-    }
-    
     OH_PreferencesPair *pairs = new (std::nothrow) OH_PreferencesPair[count];
     if (pairs == nullptr) {
         LOG_ERROR("malloc pairs failed when on change, count: %{public}d, errno:%{public}d", static_cast<int>(count),
@@ -682,9 +676,8 @@ void NDKPreferencesObserver::OnChange(const std::map<std::string, OHOS::NativePr
         }
         valueImpl->cid = PreferencesNdkStructId::PREFERENCES_OH_VALUE_CID;
         valueImpl->value_ = value;
-        pairs[i] = OH_PreferencesPair { PreferencesNdkStructId::PREFERENCES_OH_PAIR_CID, keys[i].c_str(),
+        pairs[i++] = OH_PreferencesPair { PreferencesNdkStructId::PREFERENCES_OH_PAIR_CID, key.c_str(),
             static_cast<OH_PreferencesValue *>(valueImpl), count};
-        i++;
     }
     (dataObserver_)(context_, pairs, count);
     FreePairValue(pairs, count);
