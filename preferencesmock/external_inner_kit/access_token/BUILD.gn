@@ -21,6 +21,11 @@ ohos_source_set("libaccesstoken_sdk") {
   sources = [ "mock_access_token.cpp" ]
   all_dependent_configs = [ ":access_token_config" ]
   public_configs = [ ":access_token_config" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -29,6 +34,11 @@ ohos_source_set("libtokenid_sdk") {
   sources = []
   all_dependent_configs = [ ":access_token_config" ]
   public_configs = [ ":access_token_config" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }

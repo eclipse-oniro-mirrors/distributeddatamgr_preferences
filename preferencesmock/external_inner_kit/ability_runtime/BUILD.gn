@@ -40,6 +40,11 @@ ohos_source_set("abilitykit_native") {
     "c_utils:utils",
     "json:nlohmann_json_static",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -51,6 +56,11 @@ ohos_source_set("napi_base_context") {
   public_configs = [ ":ability_runtime_config" ]
   deps = []
   external_deps = [ "c_utils:utils" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -62,6 +72,11 @@ ohos_source_set("napi_common") {
   public_configs = [ ":ability_runtime_config" ]
   deps = []
   external_deps = [ "c_utils:utils" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -77,6 +92,11 @@ ohos_source_set("dataobs_manager") {
   external_deps = [ "c_utils:utils" ]
   external_deps += external_deps_ipc_core
   external_deps += external_deps_ability_base
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -88,6 +108,11 @@ ohos_source_set("extensionkit_native") {
   public_configs = [ ":ability_runtime_config" ]
   deps = []
   external_deps = [ "c_utils:utils" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -99,6 +124,11 @@ ohos_source_set("app_context") {
   public_configs = [ ":ability_runtime_config" ]
   deps = []
   external_deps = [ "c_utils:utils" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -110,6 +140,11 @@ ohos_source_set("ani_base_context") {
   public_configs = [ ":ability_runtime_config" ]
   deps = []
   external_deps = [ "c_utils:utils" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }

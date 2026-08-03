@@ -35,6 +35,11 @@ ohos_source_set("ipc_single") {
   deps += deps_access_token_libaccesstoken_sdk
   external_deps = [ "c_utils:utils" ]
   external_deps += external_deps_access_token_libaccesstoken_sdk
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -44,6 +49,11 @@ ohos_source_set("ipc_core") {
   all_dependent_configs = [ ":ipc_all_deps_config" ]
   public_configs = [ ":ipc_all_deps_config" ]
   deps = [ ":ipc_single" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }

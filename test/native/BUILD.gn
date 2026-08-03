@@ -38,7 +38,7 @@ ohos_unittest("NativePreferencesTest") {
   cflags_cc = [ "-Werror=vla" ]
   module_out_path = module_output_path
 
-sources = [
+  sources = [
     "unittest/base64_helper_test.cpp",
     "unittest/preferences_file_test.cpp",
     "unittest/preferences_helper_test.cpp",

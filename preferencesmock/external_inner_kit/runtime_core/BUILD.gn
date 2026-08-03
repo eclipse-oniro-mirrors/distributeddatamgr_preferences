@@ -21,6 +21,11 @@ ohos_source_set("ani_helpers") {
   configs = [ ":runtime_core_config" ]
   all_dependent_configs = [ ":runtime_core_config" ]
   public_configs = [ ":runtime_core_config" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }

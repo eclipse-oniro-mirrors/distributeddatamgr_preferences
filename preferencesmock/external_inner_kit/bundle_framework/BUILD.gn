@@ -22,6 +22,11 @@ ohos_source_set("bundle_framework") {
   sources = [ "mock_bundle_framework.cpp" ]
   all_dependent_configs = [ ":bundle_framework_config" ]
   public_configs = [ ":bundle_framework_config" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }

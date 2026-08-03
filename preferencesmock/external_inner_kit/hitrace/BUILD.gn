@@ -21,6 +21,11 @@ ohos_source_set("hitrace_meter") {
   sources = [ "mock_hitrace.cpp" ]
   all_dependent_configs = [ ":hitrace_config" ]
   public_configs = [ ":hitrace_config" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }

@@ -46,6 +46,11 @@ ohos_source_set("ability_base") {
   external_deps += external_deps_common_event_service
   external_deps += external_deps_ipc_core
   external_deps += external_deps_ability_runtime
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
@@ -57,6 +62,11 @@ ohos_source_set("zuri") {
   public_configs = [ ":ability_base_config" ]
   deps = []
   external_deps = [ "c_utils:utils" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }

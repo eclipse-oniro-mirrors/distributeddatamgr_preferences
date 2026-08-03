@@ -27,6 +27,11 @@ ohos_source_set("cesfwk_innerkits") {
   sources = [ "mock_cesfwk_innerkits.cpp" ]
   all_dependent_configs = [ ":common_event_service_config" ]
   public_configs = [ ":common_event_service_config" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
 }
