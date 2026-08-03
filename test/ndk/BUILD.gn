@@ -12,6 +12,7 @@
 # limitations under the License.
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 
 module_output_path = "preferences/preferences/ndk_preferences"
 
@@ -29,6 +30,7 @@ config("module_private_config") {
     "${preferences_base_path}/test/ndk/mock",
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
     "${preferences_native_path}/mock/ability_base/zuri/include",
+    "${preferences_mock_external_kit_path}/ipc/include",
   ]
 }
 
@@ -54,7 +56,6 @@ ohos_unittest("NDKPreferencesTest") {
     "${preferences_native_path}/platform/src/preferences_dfx_adapter.cpp",
     "${preferences_native_path}/platform/src/preferences_file_lock.cpp",
     "${preferences_native_path}/platform/src/preferences_task_processor.cpp",
-    "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
     "${preferences_native_path}/platform/src/preferences_thread.cpp",
     "${preferences_native_path}/src/base64_helper.cpp",
     "${preferences_native_path}/src/preferences_base.cpp",
@@ -76,18 +77,33 @@ ohos_unittest("NDKPreferencesTest") {
     "unittest/preferences_ndk_value_test.cpp",
     "unittest/preferences_test_utils.cpp",
   ]
+  if (preferences_ffrt_enabled) {
+    sources +=
+        [ "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp" ]
+  } else {
+    sources +=
+        [ "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp" ]
+  }
 
   configs = [ ":module_private_config" ]
   external_deps = [
-    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "hitrace:hitrace_meter",
-    "ipc:ipc_single",
     "libxml2:libxml2",
   ]
+  if (preferences_ffrt_enabled) {
+    external_deps += [ "ffrt:libffrt" ]
+  }
+  external_deps += external_deps_access_token_libaccesstoken_sdk
+  external_deps += external_deps_hilog
+  external_deps += external_deps_hisysevent
+  external_deps += external_deps_hitrace
+  external_deps += external_deps_ipc_single
+  deps = []
+  deps += deps_access_token_libaccesstoken_sdk
+  deps += deps_hilog
+  deps += deps_hisysevent
+  deps += deps_hitrace
+  deps += deps_ipc_single
 }
 
 ###############################################################################

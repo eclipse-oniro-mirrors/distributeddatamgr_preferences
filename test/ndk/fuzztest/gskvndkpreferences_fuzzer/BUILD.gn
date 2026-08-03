@@ -15,6 +15,7 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
@@ -27,6 +28,7 @@ config("module_private_config") {
     "${preferences_base_path}/test/ndk/mock",
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
     "${preferences_native_path}/mock/ability_base/zuri/include",
+    "${preferences_mock_external_kit_path}/ipc/include",
   ]
 }
 
@@ -51,12 +53,15 @@ ohos_fuzztest("GskvNdkPreferencesFuzzTest") {
   configs = [ ":module_private_config" ]
 
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
+  deps += deps_hilog
 
   external_deps = [
     "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
   ]
+  if (preferences_ffrt_enabled) {
+    external_deps += [ "ffrt:libffrt" ]
+  }
+  external_deps += external_deps_hilog
 }
 
 ###############################################################################

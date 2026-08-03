@@ -65,6 +65,7 @@
                 "libxml2",
                 "runtime_core",
                 "ffrt",
+                "json",
                 "taihe_ffi_gen"
             ]
         },

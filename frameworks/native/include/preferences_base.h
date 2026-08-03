@@ -17,6 +17,7 @@
 #define PREFERENCES_BASE_H
 
 #include <any>
+#include <atomic>
 #include <condition_variable>
 #include <list>
 #include <map>

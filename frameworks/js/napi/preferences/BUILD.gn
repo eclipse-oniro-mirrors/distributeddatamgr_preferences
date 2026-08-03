@@ -13,6 +13,7 @@
 import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 
 config("preferences_public_config") {
   visibility = [ ":*" ]
@@ -24,23 +25,6 @@ config("preferences_config") {
   include_dirs = [
     "include",
     "${preferences_base_path}/frameworks/common/include",
-  ]
-}
-
-if (!is_ohos) {
-  base_include = [
-    "${preferences_napi_path}/common/include",
-    "${preferences_napi_path}/preferences/include",
-    "${preferences_base_path}/frameworks/common/include",
-  ]
-  common_sources = [
-    "${preferences_napi_path}/common/src/js_common_utils.cpp",
-    "${preferences_napi_path}/common/src/js_observer.cpp",
-    "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
-    "${preferences_napi_path}/common/src/napi_async_call.cpp",
-    "${preferences_base_path}/frameworks/common/src/preferences_error.cpp",
-    "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
-    "${preferences_napi_path}/common/src/uv_queue.cpp",
   ]
 }
 
@@ -79,23 +63,42 @@ if (is_ohos) {
       "${preferences_base_path}/interfaces/inner_api:native_preferences",
       "${preferences_napi_path}/common:preferences_jscommon",
     ]
+    
+    deps += deps_ability_runtime
+    deps += deps_hilog
+    deps += deps_ipc_single
+    deps += deps_napi
 
     external_deps = [
-      "ability_runtime:abilitykit_native",
-      "ability_runtime:extensionkit_native",
-      "ability_runtime:napi_base_context",
-      "ability_runtime:napi_common",
       "c_utils:utils",
-      "hilog:libhilog",
-      "ipc:ipc_single",
-      "napi:ace_napi",
     ]
+    
+    external_deps += external_deps_ability_runtime
+    external_deps += external_deps_ability_runtime_extensionkit_native
+    external_deps += external_deps_hilog
+    external_deps += external_deps_ipc_single
+    external_deps += external_deps_napi
 
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
     relative_install_dir = "module/data"
   }
 } else if (is_mingw || is_mac) {
+  base_include = [
+    "${preferences_napi_path}/common/include",
+    "${preferences_napi_path}/preferences/include",
+    "${preferences_base_path}/frameworks/common/include",
+  ]
+  common_sources = [
+    "${preferences_napi_path}/common/src/js_common_utils.cpp",
+    "${preferences_napi_path}/common/src/js_observer.cpp",
+    "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
+    "${preferences_napi_path}/common/src/napi_async_call.cpp",
+    "${preferences_base_path}/frameworks/common/src/preferences_error.cpp",
+    "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
+    "${preferences_napi_path}/common/src/uv_queue.cpp",
+  ]
+
   ohos_shared_library("preferences") {
     include_dirs = [
       "../common/mock/include",
@@ -135,6 +138,21 @@ if (is_ohos) {
     relative_install_dir = "module/data"
   }
 } else if (is_android) {
+  base_include = [
+    "${preferences_napi_path}/common/include",
+    "${preferences_napi_path}/preferences/include",
+    "${preferences_base_path}/frameworks/common/include",
+  ]
+  common_sources = [
+    "${preferences_napi_path}/common/src/js_common_utils.cpp",
+    "${preferences_napi_path}/common/src/js_observer.cpp",
+    "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
+    "${preferences_napi_path}/common/src/napi_async_call.cpp",
+    "${preferences_base_path}/frameworks/common/src/preferences_error.cpp",
+    "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
+    "${preferences_napi_path}/common/src/uv_queue.cpp",
+  ]
+
   ohos_copy("preferences_declaration") {
     sources = [ "./api" ]
     outputs = [ target_out_dir + "/$target_name/" ]
@@ -169,6 +187,21 @@ if (is_ohos) {
     part_name = "preferences"
   }
 } else if (is_ios) {
+  base_include = [
+    "${preferences_napi_path}/common/include",
+    "${preferences_napi_path}/preferences/include",
+    "${preferences_base_path}/frameworks/common/include",
+  ]
+  common_sources = [
+    "${preferences_napi_path}/common/src/js_common_utils.cpp",
+    "${preferences_napi_path}/common/src/js_observer.cpp",
+    "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
+    "${preferences_napi_path}/common/src/napi_async_call.cpp",
+    "${preferences_base_path}/frameworks/common/src/preferences_error.cpp",
+    "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
+    "${preferences_napi_path}/common/src/uv_queue.cpp",
+  ]
+
   ohos_copy("preferences_declaration") {
     sources = [ "./api" ]
     outputs = [ target_out_dir + "/$target_name/" ]
@@ -200,5 +233,37 @@ if (is_ohos) {
     ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
+  }
+} else {
+  ohos_shared_library("preferences") {
+    sources = base_sources
+    configs = [ ":preferences_config" ]
+    cflags_cc = [
+      "-std=c++17",
+      "-include",
+      "algorithm",
+      "-Werror=vla",
+    ]
+    deps = [
+      "${preferences_base_path}/interfaces/inner_api:native_preferences",
+      "${preferences_napi_path}/common:preferences_jscommon",
+    ]
+    deps += deps_ability_runtime
+    deps += deps_hilog
+    deps += deps_ipc_single
+    deps += deps_napi
+
+    external_deps = [
+      "c_utils:utils",
+    ]
+    external_deps += external_deps_ability_runtime
+    external_deps += external_deps_ability_runtime_extensionkit_native
+    external_deps += external_deps_hilog
+    external_deps += external_deps_ipc_single
+    external_deps += external_deps_napi
+
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+    relative_install_dir = "module/data"
   }
 }

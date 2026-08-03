@@ -56,7 +56,7 @@ static_assert(IsIncreasing(), "JS_ERROR_MAPS must be in increasing order by nati
 const std::optional<JsErrorCode> GetJsErrorCode(int32_t errorCode)
 {
     auto jsErrorCode = JsErrorCode{ errorCode, -1, "" };
-    auto iter = std::lower_bound(JS_ERROR_MAPS, JS_ERROR_MAPS + sizeof(JS_ERROR_MAPS) / sizeof(JS_ERROR_MAPS[0]),
+auto iter = std::lower_bound(JS_ERROR_MAPS, JS_ERROR_MAPS + sizeof(JS_ERROR_MAPS) / sizeof(JS_ERROR_MAPS[0]),
         jsErrorCode, [](const JsErrorCode &jsErrorCode1, const JsErrorCode &jsErrorCode2) {
             return jsErrorCode1.nativeCode < jsErrorCode2.nativeCode;
         });

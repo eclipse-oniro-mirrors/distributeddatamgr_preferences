@@ -14,6 +14,7 @@
  */
 
 #include "dataobs_mgr_client.h"
+#include "errors.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -27,22 +28,25 @@ DataObsMgrClient::~DataObsMgrClient()
 
 std::shared_ptr<DataObsMgrClient> DataObsMgrClient::GetInstance()
 {
-    return nullptr;
+    static std::shared_ptr<DataObsMgrClient> instance = std::make_shared<DataObsMgrClient>();
+    return instance;
 }
 
-int DataObsMgrClient::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+ErrCode DataObsMgrClient::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+    int32_t userId, DataObsOption opt)
 {
-    return -1;
+    return 0;
 }
 
-int DataObsMgrClient::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+ErrCode DataObsMgrClient::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+    int32_t userId, DataObsOption opt)
 {
-    return -1;
+    return 0;
 }
 
-int DataObsMgrClient::NotifyChange(const Uri &uri)
+ErrCode DataObsMgrClient::NotifyChange(const Uri &uri, int32_t userId, DataObsOption opt)
 {
-    return -1;
+    return 0;
 }
 } // namespace AAFwk
 } // namespace OHOS

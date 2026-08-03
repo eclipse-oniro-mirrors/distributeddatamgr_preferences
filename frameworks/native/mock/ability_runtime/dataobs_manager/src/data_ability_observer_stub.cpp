@@ -24,5 +24,11 @@ DataAbilityObserverStub::DataAbilityObserverStub()
 DataAbilityObserverStub::~DataAbilityObserverStub()
 {
 }
+
+int DataAbilityObserverStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    return 0;
+}
 } // namespace AAFwk
 } // namespace OHOS

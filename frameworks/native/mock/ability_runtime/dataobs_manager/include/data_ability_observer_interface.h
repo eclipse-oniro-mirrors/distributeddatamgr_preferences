@@ -15,6 +15,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_DATA_ABILITY_OBSERVER_INTERFACE_H
 #define OHOS_ABILITY_RUNTIME_DATA_ABILITY_OBSERVER_INTERFACE_H
 
+#include <string>
 #include "refbase.h"
 
 namespace OHOS {
