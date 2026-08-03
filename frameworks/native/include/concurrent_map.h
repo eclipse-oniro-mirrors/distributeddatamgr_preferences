@@ -17,6 +17,7 @@
 #define OHOS_DISTRIBUTED_DATA_FRAMEWORKS_COMMON_CONCURRENT_MAP_H
 #include <functional>
 #include <map>
+#include <mutex>
 #include <shared_mutex>
 
 namespace OHOS {

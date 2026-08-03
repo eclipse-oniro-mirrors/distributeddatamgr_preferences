@@ -12,6 +12,7 @@
 # limitations under the License.
 import("//build/ohos.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 
 config("common_public_config") {
   visibility = [ ":*" ]
@@ -26,8 +27,44 @@ config("common_config") {
   ]
 }
 
-if (is_ohos) {
-  ohos_shared_library("preferences_jscommon") {
+ohos_shared_library("preferences_jscommon") {
+  if (is_mingw || is_mac) {
+    include_dirs = [
+      "mock/include",
+      "${preferences_base_path}/frameworks/common/include",
+      "//commonlibrary/c_utils/base/include",
+    ]
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+      "-Werror=vla",
+    ]
+    if (is_mac) {
+      buildos = "mac"
+      defines = [ "MAC_PLATFORM" ]
+    } else {
+      buildos = "windows"
+      defines = [ "WINDOWS_PLATFORM" ]
+    }
+    sources = [
+      "${preferences_napi_path}/common/mock/src/js_ability.cpp",
+      "${preferences_napi_path}/common/src/js_common_utils.cpp",
+      "${preferences_napi_path}/common/src/js_observer.cpp",
+      "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
+      "${preferences_napi_path}/common/src/napi_async_call.cpp",
+      "${preferences_base_path}/frameworks/common/src/preferences_error.cpp",
+      "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
+      "${preferences_napi_path}/common/src/uv_queue.cpp",
+    ]
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
+      "//foundation/arkui/napi:ace_napi",
+      "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
+    ]
+    external_deps = [
+      "bounds_checking_function:libsec_static",
+    ]
+  } else if (is_ohos) {
     branch_protector_ret = "pac_ret"
     sanitize = {
       boundary_sanitize = true
@@ -55,21 +92,63 @@ if (is_ohos) {
     ]
     configs = [ ":common_config" ]
     public_configs = [ ":common_public_config" ]
-    deps =
-        [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
+    deps = [
+      "${preferences_base_path}/interfaces/inner_api:native_preferences",
+    ]
     version_script = "libcommon.map"
     external_deps = [
-      "ability_runtime:abilitykit_native",
-      "ability_runtime:napi_base_context",
-      "ability_runtime:napi_common",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
-      "hilog:libhilog",
-      "ipc:ipc_single",
-      "napi:ace_napi",
+    ]
+    external_deps += external_deps_ability_runtime
+    external_deps += external_deps_hilog
+    external_deps += external_deps_ipc_single
+    external_deps += external_deps_napi
+
+    deps += deps_ability_runtime
+    deps += deps_hilog
+    deps += deps_ipc_single
+    deps += deps_napi
+  } else {
+    cflags_cc = [
+      "-std=c++17",
+      "-include",
+      "algorithm",
+      "-Wno-format",
+      "-Werror=vla",
     ]
 
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
+    sources = [
+      "${preferences_napi_path}/common/src/js_ability.cpp",
+      "${preferences_napi_path}/common/src/js_common_utils.cpp",
+      "${preferences_napi_path}/common/src/js_observer.cpp",
+      "${preferences_napi_path}/common/src/js_sendable_utils.cpp",
+      "${preferences_napi_path}/common/src/napi_async_call.cpp",
+      "${preferences_base_path}/frameworks/common/src/preferences_error.cpp",
+      "${preferences_napi_path}/common/src/napi_preferences_observer.cpp",
+      "${preferences_napi_path}/common/src/uv_queue.cpp",
+    ]
+    configs = [ ":common_config" ]
+    public_configs = [ ":common_public_config" ]
+    deps = [
+      "${preferences_base_path}/interfaces/inner_api:native_preferences",
+    ]
+    version_script = "libcommon.map"
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "c_utils:utils",
+    ]
+    external_deps += external_deps_ability_runtime
+    external_deps += external_deps_hilog
+    external_deps += external_deps_ipc_single
+    external_deps += external_deps_napi
+
+    deps += deps_ability_runtime
+    deps += deps_hilog
+    deps += deps_ipc_single
+    deps += deps_napi
   }
+
+  subsystem_name = "distributeddatamgr"
+  part_name = "preferences"
 }

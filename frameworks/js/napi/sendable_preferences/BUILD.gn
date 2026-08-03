@@ -13,29 +13,52 @@
 import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 
-base_include = [
-  "${preferences_napi_path}/sendable_preferences/include",
-  "${preferences_base_path}/frameworks/common/include",
-]
+ohos_copy("preferences_declaration") {
+  sources = [ "./api" ]
+  outputs = [ target_out_dir + "/$target_name/" ]
+  module_source_dir = target_out_dir + "/$target_name"
+  module_install_name = ""
+  subsystem_name = "distributeddatamgr"
+  part_name = "preferences"
+}
 
-base_sources = [
-  "${preferences_napi_path}/sendable_preferences/src/entry_point.cpp",
-  "${preferences_napi_path}/sendable_preferences/src/napi_preferences.cpp",
-  "${preferences_napi_path}/sendable_preferences/src/napi_preferences_helper.cpp",
-]
-
-if (is_ohos) {
-  ohos_copy("preferences_declaration") {
-    sources = [ "./api" ]
-    outputs = [ target_out_dir + "/$target_name/" ]
-    module_source_dir = target_out_dir + "/$target_name"
-    module_install_name = ""
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
-  }
-
-  ohos_shared_library("sendablepreferences") {
+ohos_shared_library("sendablepreferences") {
+  if (is_mingw || is_mac) {
+    include_dirs = [
+      "${preferences_napi_path}/common/mock/include",
+      "${preferences_napi_path}/sendable_preferences/include",
+      "${preferences_base_path}/frameworks/common/include",
+      "//commonlibrary/c_utils/base/include",
+    ]
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+      "-Werror=vla",
+    ]
+    if (is_mac) {
+      buildos = "mac"
+      defines = [ "MAC_PLATFORM" ]
+    } else {
+      buildos = "windows"
+      defines = [ "WINDOWS_PLATFORM" ]
+    }
+    sources = [
+      "${preferences_napi_path}/sendable_preferences/src/entry_point.cpp",
+      "${preferences_napi_path}/sendable_preferences/src/napi_preferences.cpp",
+      "${preferences_napi_path}/sendable_preferences/src/napi_preferences_helper.cpp",
+      "${preferences_napi_path}/common/mock/src/js_ability.cpp",
+    ]
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
+      "//foundation/arkui/napi:ace_napi",
+      "//foundation/distributeddatamgr/preferences/interfaces/inner_api:native_preferences",
+    ]
+    external_deps = [
+      "bounds_checking_function:libsec_static",
+    ]
+  } else {
     branch_protector_ret = "pac_ret"
     sanitize = {
       boundary_sanitize = true
@@ -44,11 +67,19 @@ if (is_ohos) {
       cfi_cross_dso = true
       debug = false
     }
-    include_dirs = base_include
-    sources = base_sources
+    include_dirs = [
+      "${preferences_napi_path}/sendable_preferences/include",
+      "${preferences_base_path}/frameworks/common/include",
+    ]
+    sources = [
+      "${preferences_napi_path}/sendable_preferences/src/entry_point.cpp",
+      "${preferences_napi_path}/sendable_preferences/src/napi_preferences.cpp",
+      "${preferences_napi_path}/sendable_preferences/src/napi_preferences_helper.cpp",
+    ]
     cflags_cc = [
       "-std=c++17",
-      "-stdlib=libc++",
+      "-include",
+      "algorithm",
       "-Werror=vla",
     ]
 
@@ -56,19 +87,21 @@ if (is_ohos) {
       "${preferences_base_path}/interfaces/inner_api:native_preferences",
       "${preferences_napi_path}/common:preferences_jscommon",
     ]
+    deps += deps_ability_runtime
+    deps += deps_hilog
+    deps += deps_ipc_single
+    deps += deps_napi
 
     external_deps = [
-      "ability_runtime:abilitykit_native",
-      "ability_runtime:napi_base_context",
-      "ability_runtime:napi_common",
       "c_utils:utils",
-      "hilog:libhilog",
-      "ipc:ipc_single",
-      "napi:ace_napi",
     ]
-
-    subsystem_name = "distributeddatamgr"
-    part_name = "preferences"
-    relative_install_dir = "module/data"
+    external_deps += external_deps_ability_runtime
+    external_deps += external_deps_hilog
+    external_deps += external_deps_ipc_single
+    external_deps += external_deps_napi
   }
+
+  subsystem_name = "distributeddatamgr"
+  part_name = "preferences"
+  relative_install_dir = "module/data"
 }

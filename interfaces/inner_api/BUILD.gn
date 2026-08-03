@@ -10,8 +10,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import("//build/ohos.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 config("native_preferences_config") {
   visibility = [ ":*" ]
   include_dirs = [
@@ -24,8 +26,10 @@ config("native_preferences_config") {
 
 config("mock_config") {
   include_dirs = [
+    "${preferences_mock_external_kit_path}/frameworks/native/preferences",
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
-    "${preferences_native_path}/mock/ability_base/zuri/include",
+    "${preferences_mock_external_kit_path}/ipc/include",
+    "${preferences_mock_external_kit_path}/ability_base/include",
   ]
   if (!is_android) {
     include_dirs +=
@@ -57,16 +61,13 @@ base_sources = [
   "${preferences_native_path}/src/preferences_xml_utils.cpp",
 ]
 
-if (!is_ohos) {
-  mock_sources = [
-    "${preferences_native_path}/mock/ability_base/zuri/src/uri.cpp",
-    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/data_ability_observer_stub.cpp",
-    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/dataobs_mgr_client.cpp",
-  ]
-  if (!is_android) {
-    mock_sources +=
-        [ "${preferences_native_path}/mock/c_utils/utils/base/src/refbase.cpp" ]
-  }
+mock_sources = [
+  "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/data_ability_observer_stub.cpp",
+  "${preferences_native_path}/mock/ability_runtime/dataobs_manager/src/dataobs_mgr_client.cpp",
+]
+if (!is_android && !is_ios) {
+  mock_sources +=
+      [ "${preferences_native_path}/mock/c_utils/utils/base/src/refbase.cpp" ]
 }
 
 if (is_ohos) {
@@ -95,8 +96,14 @@ if (is_ohos) {
       "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
       "${preferences_native_path}/src/preferences_enhance_impl.cpp",
       "${preferences_native_path}/src/preferences_value_parcel.cpp",
-      "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
     ]
+    if (preferences_ffrt_enabled) {
+      sources +=
+          [ "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp" ]
+    } else {
+      sources +=
+          [ "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp" ]
+    }
 
     innerapi_tags = [
       "platformsdk",
@@ -106,18 +113,31 @@ if (is_ohos) {
     configs = [ ":native_preferences_config" ]
 
     external_deps = [
-      "ability_base:zuri",
-      "ability_runtime:dataobs_manager",
-      "access_token:libaccesstoken_sdk",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
-      "ffrt:libffrt",
-      "hilog:libhilog",
-      "hisysevent:libhisysevent",
-      "hitrace:hitrace_meter",
-      "ipc:ipc_single",
       "libxml2:libxml2",
     ]
+    if (preferences_ffrt_enabled) {
+      external_deps += [ "ffrt:libffrt" ]
+    }
+    
+    external_deps += external_deps_ability_base_zuri
+    external_deps += external_deps_ability_runtime_dataobs_manager
+    external_deps += external_deps_access_token_libaccesstoken_sdk
+    external_deps += external_deps_hilog
+    external_deps += external_deps_hisysevent
+    external_deps += external_deps_hitrace
+    external_deps += external_deps_ipc_single
+    
+    deps = []
+    deps += deps_ability_base_zuri
+    deps += deps_ability_runtime_dataobs_manager
+    deps += deps_access_token_libaccesstoken_sdk
+    deps += deps_hilog
+    deps += deps_hisysevent
+    deps += deps_hitrace
+    deps += deps_ipc_single
+    
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
@@ -128,6 +148,7 @@ if (is_ohos) {
     sources += mock_sources
     sources += [
       "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
+      "${preferences_mock_external_kit_path}/ability_base/mock_uri.cpp",
     ]
     innerapi_tags = [ "platformsdk" ]
 
@@ -136,12 +157,21 @@ if (is_ohos) {
     configs += [ ":mock_config" ]
     configs += [ ":adaptor_config" ]
 
+    cflags = []
+    if (is_mingw) {
+      cflags += [
+        "-includemock.h",
+        "-Wno-macro-redefined",
+      ]
+    }
+
     branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
       debug = false
     }
+
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
@@ -230,6 +260,51 @@ if (is_ohos) {
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
   }
+} else {
+  ohos_shared_library("native_preferences") {
+    sources = base_sources
+    sources += mock_sources
+    sources += [
+      "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
+    ]
+    innerapi_tags = [ "platformsdk" ]
+
+    configs = [ ":native_preferences_config" ]
+    configs += [ ":mock_config" ]
+    configs += [ ":adaptor_config" ]
+
+    cflags_cc = [
+      "-std=c++17",
+      "-include",
+      "algorithm",
+      "-fvisibility=hidden",
+      "-Werror=vla",
+    ]
+
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "c_utils:utils",
+      "libxml2:libxml2",
+    ]
+    external_deps += external_deps_ability_base_zuri
+    external_deps += external_deps_ability_runtime_dataobs_manager
+    external_deps += external_deps_hilog
+    external_deps += external_deps_hisysevent
+    external_deps += external_deps_hitrace
+    external_deps += external_deps_ipc_single
+
+    deps = []
+    deps += deps_ability_base_zuri
+    deps += deps_ability_runtime_dataobs_manager
+    deps += deps_hilog
+    deps += deps_hisysevent
+    deps += deps_hitrace
+    deps += deps_ipc_single
+
+    public_configs = [ ":native_preferences_public_config" ]
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+  }
 }
 
 ohos_static_library("native_preferences_static") {
@@ -244,6 +319,13 @@ ohos_static_library("native_preferences_static") {
     sources += [
       "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
     ]
+    cflags = []
+    if (is_mingw) {
+      cflags += [
+        "-includemock.h",
+        "-Wno-macro-redefined",
+      ]
+    }
     cflags_cc = [
       "-std=c++17",
       "-stdlib=libc++",
@@ -270,41 +352,102 @@ ohos_static_library("native_preferences_static") {
       "bounds_checking_function:libsec_shared",
       "libxml2:static_libxml2",
     ]
-  } else {
-    if (is_ohos) {
-      defines = []
-      if (!defined(global_parts_info) ||
-          defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
-        defines += [ "ARKDATA_DATABASE_CORE_ENABLE" ]
-      }
-      branch_protector_ret = "pac_ret"
-      sanitize = {
-        boundary_sanitize = true
-        ubsan = true
-        cfi = true
-        cfi_cross_dso = true
-        debug = false
-      }
-      sources += [
-        "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
-        "${preferences_native_path}/src/preferences_enhance_impl.cpp",
-        "${preferences_native_path}/src/preferences_value_parcel.cpp",
-        "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
-      ]
+  } else if (is_ohos) {
+    cflags_cc = [
+      "-std=c++17",
+      "-stdlib=libc++",
+      "-Werror=vla",
+    ]
+
+    defines = []
+    if (!defined(global_parts_info) ||
+        defined(global_parts_info.distributeddatamgr_arkdata_database_core)) {
+      defines += [ "ARKDATA_DATABASE_CORE_ENABLE" ]
     }
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      boundary_sanitize = true
+      ubsan = true
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+    sources += [
+      "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
+      "${preferences_native_path}/src/preferences_enhance_impl.cpp",
+      "${preferences_native_path}/src/preferences_value_parcel.cpp",
+    ]
+
+    if (preferences_ffrt_enabled) {
+      sources +=
+          [ "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp" ]
+    } else {
+      sources +=
+          [ "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp" ]
+    }
+
     external_deps = [
-      "ability_base:zuri",
-      "ability_runtime:dataobs_manager",
-      "access_token:libaccesstoken_sdk",
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
-      "ffrt:libffrt",
-      "hilog:libhilog",
-      "hisysevent:libhisysevent",
-      "hitrace:hitrace_meter",
-      "ipc:ipc_single",
       "libxml2:libxml2",
     ]
+    if (preferences_ffrt_enabled) {
+      external_deps += [ "ffrt:libffrt" ]
+    }
+    
+    external_deps += external_deps_ability_base_zuri
+    external_deps += external_deps_ability_runtime_dataobs_manager
+    external_deps += external_deps_access_token_libaccesstoken_sdk
+    external_deps += external_deps_hilog
+    external_deps += external_deps_hisysevent
+    external_deps += external_deps_hitrace
+    external_deps += external_deps_ipc_single
+    deps = []
+    
+    deps += deps_ability_base_zuri
+    deps += deps_ability_runtime_dataobs_manager
+    deps += deps_access_token_libaccesstoken_sdk
+    deps += deps_hilog
+    deps += deps_hisysevent
+    deps += deps_hitrace
+    deps += deps_ipc_single
+  } else {
+    configs += [ ":mock_config" ]
+    configs += [ ":adaptor_config" ]
+
+    cflags_cc = [
+      "-std=c++17",
+      "-include",
+      "algorithm",
+      "-Werror=vla",
+    ]
+
+    sources += mock_sources
+
+    sources += [
+      "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
+    ]
+
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "c_utils:utils",
+      "libxml2:libxml2",
+    ]
+    
+    external_deps += external_deps_ability_base_zuri
+    external_deps += external_deps_ability_runtime_dataobs_manager
+    external_deps += external_deps_hilog
+    external_deps += external_deps_hisysevent
+    external_deps += external_deps_hitrace
+    external_deps += external_deps_ipc_single
+    deps = []
+    
+    deps += deps_ability_base_zuri
+    deps += deps_ability_runtime_dataobs_manager
+    deps += deps_hilog
+    deps += deps_hisysevent
+    deps += deps_hitrace
+    deps += deps_ipc_single
   }
 
   public_configs = [ ":native_preferences_public_config" ]

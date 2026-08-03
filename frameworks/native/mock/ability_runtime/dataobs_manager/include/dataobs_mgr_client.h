@@ -16,23 +16,33 @@
 #ifndef OHOS_ABILITY_RUNTIME_DATAOBS_MGR_CLIENT_H
 #define OHOS_ABILITY_RUNTIME_DATAOBS_MGR_CLIENT_H
 
+#include <memory>
 #include "data_ability_observer_interface.h"
+#include "errors.h"
 #include "refbase.h"
 #include "uri.h"
 
 namespace OHOS {
 namespace AAFwk {
+struct DataObsOption {
+    bool isSystem = false;
+    bool isDataShare = false;
+};
+
+static constexpr int DATAOBS_DEFAULT_CURRENT_USER = -1;
+
 class DataObsMgrClient {
 public:
     DataObsMgrClient();
     virtual ~DataObsMgrClient();
     static std::shared_ptr<DataObsMgrClient> GetInstance();
 
-    int RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
-
-    int UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver);
-
-    int NotifyChange(const Uri &uri);
+    ErrCode RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        int32_t userId = DATAOBS_DEFAULT_CURRENT_USER, DataObsOption opt = DataObsOption());
+    ErrCode UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        int32_t userId = DATAOBS_DEFAULT_CURRENT_USER, DataObsOption opt = DataObsOption());
+    ErrCode NotifyChange(const Uri &uri, int32_t userId = DATAOBS_DEFAULT_CURRENT_USER,
+        DataObsOption opt = DataObsOption());
 };
 } // namespace AAFwk
 } // namespace OHOS

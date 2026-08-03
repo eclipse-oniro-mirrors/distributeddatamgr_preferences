@@ -15,6 +15,7 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
@@ -35,13 +36,16 @@ ohos_fuzztest("DBPreferencesFuzzTest") {
   configs = [ ":module_private_config" ]
 
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
+  deps += deps_ability_base_zuri
+  deps += deps_ability_runtime_dataobs_manager
+  deps += deps_hilog
 
   external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:dataobs_manager",
     "c_utils:utils",
-    "hilog:libhilog",
   ]
+  external_deps += external_deps_ability_base_zuri
+  external_deps += external_deps_ability_runtime_dataobs_manager
+  external_deps += external_deps_hilog
 }
 
 ###############################################################################

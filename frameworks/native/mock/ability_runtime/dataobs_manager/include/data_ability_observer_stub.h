@@ -18,12 +18,18 @@
 #include <string>
 
 #include "data_ability_observer_interface.h"
+#include "iremote_object.h"
+#include "message_parcel.h"
+#include "message_option.h"
+
 namespace OHOS {
 namespace AAFwk {
 class DataAbilityObserverStub : public IDataAbilityObserver {
 public:
     DataAbilityObserverStub();
     virtual ~DataAbilityObserverStub();
+    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+        MessageOption &option);
 };
 } // namespace AAFwk
 } // namespace OHOS

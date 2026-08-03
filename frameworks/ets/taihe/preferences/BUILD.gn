@@ -15,6 +15,7 @@ import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
 import("//build/ohos/taihe_idl/taihe.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 
 subsystem_name = "distributeddatamgr"
 part_name = "preferences"
@@ -71,13 +72,17 @@ taihe_shared_library("preferences_taihe_native") {
     ":run_taihe",
     "${preferences_base_path}/interfaces/inner_api:native_preferences"
   ]
+  deps += deps_ability_runtime
+  deps += deps_ability_runtime_ani_base_context
+  deps += deps_runtime_core
+  deps += deps_hilog
   external_deps = [
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:ani_base_context",
-    "ability_runtime:napi_common",
     "bounds_checking_function:libsec_shared",
-    "hilog:libhilog"
   ]
+  external_deps += external_deps_ability_runtime
+  external_deps += external_deps_ability_runtime_ani_base_context
+  external_deps += external_deps_runtime_core
+  external_deps += external_deps_hilog
 }
 
 generate_static_abc("preferences_abc") {

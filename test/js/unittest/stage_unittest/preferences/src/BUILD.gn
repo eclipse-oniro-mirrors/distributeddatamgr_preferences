@@ -13,37 +13,43 @@
 
 import("//build/test.gni")
 
-ohos_js_stage_unittest("stagePreferencesJsTest") {
-  testonly = true
-  hap_profile = "entry/src/main/module.json"
-  deps = [
-    ":stageprejstest_js_assets",
-    ":stageprejstest_resources",
-  ]
-  ets2abc = true
-  certificate_profile = "signature/openharmony_sx.p7b"
-  hap_name = "stagePreferencesJsTest"
-  subsystem_name = "distributeddatamgr"
-  part_name = "preferences"
-  module_out_path = "preferences/preferences/jsStage"
-}
+if (is_ohos) {
+  ohos_js_stage_unittest("stagePreferencesJsTest") {
+    testonly = true
+    hap_profile = "entry/src/main/module.json"
+    deps = [
+      ":stageprejstest_js_assets",
+      ":stageprejstest_resources",
+    ]
+    ets2abc = true
+    certificate_profile = "signature/openharmony_sx.p7b"
+    hap_name = "stagePreferencesJsTest"
+    subsystem_name = "distributeddatamgr"
+    part_name = "preferences"
+    module_out_path = "preferences/preferences/jsStage"
+  }
 
-ohos_app_scope("stageprejstest_app_profile") {
-  app_profile = "AppScope/app.json"
-  sources = [ "AppScope/resources" ]
-}
+  ohos_app_scope("stageprejstest_app_profile") {
+    app_profile = "AppScope/app.json"
+    sources = [ "AppScope/resources" ]
+  }
 
-ohos_js_assets("stageprejstest_js_assets") {
-  source_dir = "entry/src/main/ets"
-}
+  ohos_js_assets("stageprejstest_js_assets") {
+    source_dir = "entry/src/main/ets"
+  }
 
-ohos_resources("stageprejstest_resources") {
-  sources = [ "entry/src/main/resources" ]
-  deps = [ ":stageprejstest_app_profile" ]
-  hap_profile = "entry/src/main/module.json"
+  ohos_resources("stageprejstest_resources") {
+    sources = [ "entry/src/main/resources" ]
+    deps = [ ":stageprejstest_app_profile" ]
+    hap_profile = "entry/src/main/module.json"
+  }
 }
 
 group("stage_unittest") {
   testonly = true
-  deps = [ ":stagePreferencesJsTest" ]
+  if (is_ohos) {
+    deps = [ ":stagePreferencesJsTest" ]
+  } else {
+    deps = []
+  }
 }

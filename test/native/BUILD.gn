@@ -12,6 +12,7 @@
 # limitations under the License.
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 
 module_output_path = "preferences/preferences/native_preferences"
 
@@ -37,7 +38,7 @@ ohos_unittest("NativePreferencesTest") {
   cflags_cc = [ "-Werror=vla" ]
   module_out_path = module_output_path
 
-  sources = [
+sources = [
     "unittest/base64_helper_test.cpp",
     "unittest/preferences_file_test.cpp",
     "unittest/preferences_helper_test.cpp",
@@ -45,20 +46,31 @@ ohos_unittest("NativePreferencesTest") {
     "unittest/preferences_storage_type_test.cpp",
     "unittest/preferences_test.cpp",
     "unittest/preferences_xml_utils_test.cpp",
-    "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",
   ]
+  if (preferences_ffrt_enabled) {
+    sources +=
+        [ "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp" ]
+  } else {
+    sources +=
+        [ "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp" ]
+  }
 
   configs = [ ":module_private_config" ]
 
   external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:dataobs_manager",
-    "ffrt:libffrt",
+    "c_utils:utils",
     "googletest:gtest_main",
-    "hilog:libhilog",
   ]
-
+  if (preferences_ffrt_enabled) {
+    external_deps += [ "ffrt:libffrt" ]
+  }
+  external_deps += external_deps_ability_base_zuri
+  external_deps += external_deps_ability_runtime_dataobs_manager
+  external_deps += external_deps_hilog
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
+  deps += deps_ability_base_zuri
+  deps += deps_ability_runtime_dataobs_manager
+  deps += deps_hilog
 }
 
 ohos_unittest("PreferencesExecutorTest") {
@@ -79,16 +91,17 @@ ohos_unittest("PreferencesExecutorTest") {
   configs = [ ":module_private_config" ]
 
   external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:dataobs_manager",
-    "googletest:gtest_main",
-    "hilog:libhilog",
     "googletest:gtest_main",
   ]
-
+  external_deps += external_deps_ability_base_zuri
+  external_deps += external_deps_ability_runtime_dataobs_manager
+  external_deps += external_deps_hilog
   deps = [
     "${preferences_innerapi_path}:native_preferences_static",
   ]
+  deps += deps_ability_base_zuri
+  deps += deps_ability_runtime_dataobs_manager
+  deps += deps_hilog
 }
 
 ###############################################################################

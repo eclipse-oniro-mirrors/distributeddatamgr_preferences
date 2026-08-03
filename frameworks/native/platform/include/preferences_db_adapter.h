@@ -16,6 +16,7 @@
 #ifndef PREFERENCES_DB_ADAPTER_H
 #define PREFERENCES_DB_ADAPTER_H
 
+#include <atomic>
 #include <vector>
 #include <shared_mutex>
 #include <list>

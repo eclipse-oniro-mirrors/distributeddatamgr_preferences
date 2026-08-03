@@ -15,6 +15,7 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
@@ -32,24 +33,37 @@ ohos_fuzztest("PreferencesFuzzTest") {
 
   sources = [
     "preferences_fuzzer.cpp",
-    "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp",  
   ]
+  if (preferences_ffrt_enabled) {
+    sources += [ "${preferences_native_path}/platform/src/preferences_ffrt_task_processor.cpp" ]
+  } else {
+    sources += [ "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp" ]
+  }
 
   include_dirs = [
+    "${preferences_base_path}/frameworks/common/include",
+    "${preferences_native_path}/include/",
     "${preferences_native_path}/platform/include/",
+    "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
+    "${preferences_mock_external_kit_path}/ipc/include",
   ]
 
   configs = [ ":module_private_config" ]
 
   deps = [ "${preferences_innerapi_path}:native_preferences_static" ]
+  deps += deps_ability_base_zuri
+  deps += deps_ability_runtime_dataobs_manager
+  deps += deps_hilog
 
   external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:dataobs_manager",
     "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
   ]
+  if (preferences_ffrt_enabled) {
+    external_deps += [ "ffrt:libffrt" ]
+  }
+  external_deps += external_deps_ability_base_zuri
+  external_deps += external_deps_ability_runtime_dataobs_manager
+  external_deps += external_deps_hilog
 }
 
 ###############################################################################
