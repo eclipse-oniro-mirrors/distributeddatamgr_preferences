@@ -23,6 +23,8 @@ config("ability_base_config") {
     "include/ability_runtime",
     "include/native",
     "${preferences_mock_external_kit_path}/bundle_framework/include/bundlemgr",
+    "${preferences_native_path}/mock/c_utils/utils/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 }
 
@@ -60,6 +62,7 @@ ohos_source_set("zuri") {
   sources = [ "mock_uri.cpp" ]
   all_dependent_configs = [ ":ability_base_config" ]
   public_configs = [ ":ability_base_config" ]
+  defines = [ "CROSS_PLATFORM" ]
   deps = []
   external_deps = [ "c_utils:utils" ]
   sanitize = {

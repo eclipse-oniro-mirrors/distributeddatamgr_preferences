@@ -228,6 +228,7 @@ if (is_ohos) {
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/libxml2:libxml2",
     ]
+    deps += deps_ability_base_zuri
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
@@ -256,6 +257,7 @@ if (is_ohos) {
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/libxml2:libxml2",
     ]
+    deps += deps_ability_base_zuri
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
