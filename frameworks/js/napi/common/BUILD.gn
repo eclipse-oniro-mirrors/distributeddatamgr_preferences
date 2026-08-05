@@ -66,6 +66,7 @@ ohos_shared_library("preferences_jscommon") {
     ]
   } else if (is_ohos) {
     branch_protector_ret = "pac_ret"
+    branch_protector_ret = "bti"
     sanitize = {
       boundary_sanitize = true
       ubsan = true

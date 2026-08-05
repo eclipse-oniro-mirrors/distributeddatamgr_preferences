@@ -44,6 +44,7 @@ if (is_ohos) {
 
   ohos_shared_library("preferences") {
     branch_protector_ret = "pac_ret"
+    branch_protector_ret = "bti"
     sanitize = {
       boundary_sanitize = true
       ubsan = true
@@ -106,6 +107,7 @@ if (is_ohos) {
     ]
     include_dirs += base_include
     branch_protector_ret = "pac_ret"
+    branch_protector_ret = "bti"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
@@ -164,6 +166,13 @@ if (is_ohos) {
     configs = [ "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config" ]
 
     defines = [ "ANDROID_PLATFORM" ]
+    branch_protector_ret = "pac_ret"
+    branch_protector_ret = "bti"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
 
     include_dirs = [
       "../common/mock/cross_platform/include",
@@ -213,6 +222,13 @@ if (is_ohos) {
     configs = [ "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config" ]
 
     defines = [ "IOS_PLATFORM" ]
+    branch_protector_ret = "pac_ret"
+    branch_protector_ret = "bti"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
 
     include_dirs = [
       "../common/mock/cross_platform/include",
@@ -244,6 +260,13 @@ if (is_ohos) {
       "algorithm",
       "-Werror=vla",
     ]
+    branch_protector_ret = "pac_ret"
+    branch_protector_ret = "bti"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
     deps = [
       "${preferences_base_path}/interfaces/inner_api:native_preferences",
       "${preferences_napi_path}/common:preferences_jscommon",
