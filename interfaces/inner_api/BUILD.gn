@@ -215,6 +215,12 @@ if (is_ohos) {
       "ANDROID_PLATFORM",
       "CROSS_PLATFORM",
     ]
+    branch_protector_ret = "pac_ret"
+    sanitize = { 
+      cfi = true 
+      cfi_cross_dso = true 
+      debug = false 
+    }
 
     configs = [ ":native_preferences_config" ]
     configs += [ ":mock_config" ]
@@ -244,6 +250,12 @@ if (is_ohos) {
       "IOS_PLATFORM",
       "CROSS_PLATFORM",
     ]
+    branch_protector_ret = "pac_ret"
+    sanitize = { 
+      cfi = true 
+      cfi_cross_dso = true 
+      debug = false 
+    }
 
     configs = [ ":native_preferences_config" ]
     configs += [ ":mock_config" ]
@@ -274,6 +286,12 @@ if (is_ohos) {
     configs = [ ":native_preferences_config" ]
     configs += [ ":mock_config" ]
     configs += [ ":adaptor_config" ]
+    branch_protector_ret = "pac_ret"
+    sanitize = { 
+      cfi = true 
+      cfi_cross_dso = true 
+      debug = false 
+    }
 
     cflags_cc = [
       "-std=c++17",
