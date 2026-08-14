@@ -28,7 +28,12 @@ namespace OHOS {
 class IRemoteBroker;
 inline std::u16string to_utf16(const std::string &str)
 {
+#ifdef IOS_PLATFORM
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+    return convert.from_bytes(str);
+#else
     return Str8ToStr16(str);
+#endif
 }
 
 class IRemoteObject : public virtual Parcelable, public virtual RefBase {
