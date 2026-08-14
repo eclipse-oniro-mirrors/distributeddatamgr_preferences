@@ -182,18 +182,6 @@ bool PreferencesImpl::HasKey(const std::string &key)
     return result;
 }
 
-OHOS::FFI::RuntimeType* PreferencesImpl::GetRuntimeType()
-{
-    return GetClassType();
-}
-
-OHOS::FFI::RuntimeType* PreferencesImpl::GetClassType()
-{
-    static OHOS::FFI::RuntimeType runtimeType =
-        OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("PreferencesImpl");
-    return &runtimeType;
-}
-
 static bool IsSameFunction(const std::function<void(std::string)> *f1, const std::function<void(std::string)> *f2)
 {
     return f1 == f2;
