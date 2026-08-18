@@ -46,6 +46,7 @@ public:
 };
 
 class PreferencesImpl : public OHOS::FFI::FFIData {
+    DECL_TYPE(PreferencesImpl, OHOS::FFI::FFIData)
 public:
     explicit PreferencesImpl(OHOS::AbilityRuntime::Context* context,
         const std::string& name, const std::string& dataGroupId, int32_t* errCode);
@@ -81,12 +82,7 @@ public:
 
     void Clear();
 
-    OHOS::FFI::RuntimeType* GetRuntimeType() override;
-
 private:
-    friend class OHOS::FFI::TypeBase;
-    friend class OHOS::FFI::RuntimeType;
-    static OHOS::FFI::RuntimeType* GetClassType();
     static constexpr char strChange[] = "change";
     static constexpr char strMultiProcessChange[] = "multiProcessChange";
     std::shared_ptr<NativePreferences::Preferences> preferences;
