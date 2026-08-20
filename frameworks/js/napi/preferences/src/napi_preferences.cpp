@@ -490,6 +490,7 @@ napi_value PreferencesProxy::UnRegisterObserver(napi_env env, napi_callback_info
     if (type == napi_function) {
         errCode = obj->UnRegisteredObserver(args[1], ConvertToRegisterMode(registerMode));
     } else {
+        LOG_INFO("SubEvent op=off_all kit=ArkData event=%{public}s", registerMode.c_str());
         errCode = obj->UnRegisteredAllObservers(ConvertToRegisterMode(registerMode));
     }
     PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
@@ -667,6 +668,7 @@ napi_value PreferencesProxy::UnRegisterDataObserver(napi_env env, size_t argc, n
     if (type == napi_function) {
         errCode = obj->UnRegisteredDataObserver(keys, argv[funcIndex]);
     } else {
+        LOG_INFO("SubEvent op=off_all kit=ArkData event=dataChange");
         errCode = obj->UnRegisteredAllObservers(RegisterMode::DATA_CHANGE, keys);
     }
     PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));
