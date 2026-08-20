@@ -356,6 +356,7 @@ void PreferencesProxy::OffChange(optional_view<uintptr_t> opq)
     if (opq.has_value()) {
         UnRegisteredObserver(RegisterMode::LOCAL_CHANGE, opq.value());
     } else {
+        LOG_INFO("SubEvent op=off_all kit=ArkData event=change");
         UnRegisteredAllObservers(RegisterMode::LOCAL_CHANGE);
     }
 }
@@ -429,6 +430,7 @@ void PreferencesProxy::OffMultiProcessChange(optional_view<uintptr_t> opq)
     if (opq.has_value()) {
         UnRegisteredObserver(RegisterMode::MULTI_PRECESS_CHANGE, opq.value());
     } else {
+        LOG_INFO("SubEvent op=off_all kit=ArkData event=multiProcessChange");
         UnRegisteredAllObservers(RegisterMode::MULTI_PRECESS_CHANGE);
     }
 }
@@ -439,6 +441,7 @@ void PreferencesProxy::OffDataChange(array_view<string> keys, optional_view<uint
     if (opq.has_value()) {
         UnRegisteredDataObserver(nativeKeys, opq.value());
     } else {
+        LOG_INFO("SubEvent op=off_all kit=ArkData event=dataChange");
         UnRegisteredAllDataObserver(nativeKeys);
     }
 }

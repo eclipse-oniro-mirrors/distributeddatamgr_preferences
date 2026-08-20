@@ -481,6 +481,11 @@ napi_value PreferencesProxy::UnregisterObserver(napi_env env, napi_callback_info
     auto [obj, instance] = GetSelfInstance(env, thiz);
     PRE_NAPI_ASSERT(env, obj != nullptr, std::make_shared<InnerError>("Failed to unwrap when unregister callback"));
 
+    if (callback == nullptr) {
+        std::string event = (mode == RegisterMode::DATA_CHANGE) ? "dataChange" : registerMode;
+        LOG_INFO("SubEvent op=off_all kit=ArkData event=%{public}s", event.c_str());
+    }
+
     int errCode = obj->UnregisteredObserver(env, callback, mode, keys);
     LOG_DEBUG("The observer unsubscribe 0x%{public}x.", errCode);
     PRE_NAPI_ASSERT(env, errCode == OK, std::make_shared<InnerError>(errCode));

@@ -204,6 +204,7 @@ int32_t FfiOHOSPreferencesOffAll(int64_t id, const char* mode)
         LOGE("[Preferences] instance not exist. %{public}" PRId64, id);
         return ERR_INVALID_INSTANCE_CODE;
     }
+    LOGI("SubEvent op=off_all kit=ArkData event=%{public}s", mode);
     return instance->UnRegisteredAllObservers(mode);
 }
 
