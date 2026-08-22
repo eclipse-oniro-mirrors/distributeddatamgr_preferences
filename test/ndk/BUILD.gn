@@ -87,8 +87,8 @@ ohos_unittest("NDKPreferencesTest") {
 
   configs = [ ":module_private_config" ]
   external_deps = [
-    "c_utils:utils",
     "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
     "libxml2:libxml2",
   ]
   if (preferences_ffrt_enabled) {
