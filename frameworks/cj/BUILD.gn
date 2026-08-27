@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -63,6 +63,8 @@ if (is_ohos) {
     external_deps += external_deps_cj_bind_ffi
     external_deps += external_deps_cj_bind_native
 
+    version_script = "libcj_preferences_ffi.map"
+
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
     innerapi_tags = [ "platformsdk" ]
@@ -95,6 +97,8 @@ if (is_ohos) {
     external_deps += external_deps_napi
     external_deps += external_deps_cj_bind_ffi
     external_deps += external_deps_cj_bind_native
+
+    version_script = "libcj_preferences_ffi.map"
 
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
@@ -133,6 +137,8 @@ if (is_ohos) {
     external_deps += external_deps_hilog
     external_deps += external_deps_ipc_single
     external_deps += external_deps_napi
+
+    version_script = "libcj_preferences_ffi.map"
 
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
