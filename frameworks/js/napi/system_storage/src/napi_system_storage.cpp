@@ -133,6 +133,7 @@ static void CleanContextResources(napi_env env, AsyncContext *context)
 
 void Complete(napi_env env, napi_status status, void *data)
 {
+    LOG_ERROR("wjq Complete start");
     AsyncContext *ctx = static_cast<AsyncContext *>(data);
     if (status != napi_ok) {
         napi_throw_type_error(env, nullptr, "Execute callback failed.");
@@ -140,6 +141,7 @@ void Complete(napi_env env, napi_status status, void *data)
     }
     size_t len = 0;
     if (ctx->output == E_OK && ctx->success != nullptr) {
+        LOG_ERROR("wjq Complete 111");
         napi_value successCallBack = nullptr;
         NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, ctx->success, &successCallBack));
         napi_value succRes[SUCCOUNT] = { 0 };
@@ -151,6 +153,7 @@ void Complete(napi_env env, napi_status status, void *data)
     }
 
     if (ctx->output != E_OK && ctx->fail != nullptr) {
+        LOG_ERROR("wjq Complete 222");
         napi_value failCallBack = nullptr;
         NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, ctx->fail, &failCallBack));
         napi_value failRes[FAILCOUNT] = { 0 };
@@ -164,6 +167,7 @@ void Complete(napi_env env, napi_status status, void *data)
     }
 
     if (ctx->complete != nullptr) {
+        LOG_ERROR("wjq Complete 333");
         napi_value completeCallBack = nullptr;
         NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, ctx->complete, &completeCallBack));
         napi_value completeCallbackResult = nullptr;
@@ -175,6 +179,7 @@ void Complete(napi_env env, napi_status status, void *data)
     napi_get_undefined(env, &res);
     napi_resolve_deferred(env, ctx->deferred, res);
     CleanContextResources(env, ctx);
+    LOG_ERROR("wjq Complete end");
 }
 
 std::string GetPrefName(napi_env env)
@@ -240,6 +245,7 @@ napi_value Operate(napi_env env, napi_callback_info info, const char *resource, 
 
 napi_value NapiGet(napi_env env, napi_callback_info info)
 {
+    LOG_ERROR("wjq NapiGet start");
     return Operate(env, info, "get", true, [](napi_env env, void *data) {
         AsyncContext *context = static_cast<AsyncContext *>(data);
         if (context->key.size() > MAX_KEY_LENGTH) {
@@ -254,11 +260,13 @@ napi_value NapiGet(napi_env env, napi_callback_info info)
 
         auto pref = PreferencesHelper::GetPreferences(context->prefName, context->output);
         context->val = pref->GetString(context->key, context->def);
+        LOG_ERROR("wjq NapiGet end");
     });
 }
 
 napi_value NapiSet(napi_env env, napi_callback_info info)
 {
+    LOG_ERROR("wjq NapiSet start");
     return Operate(env, info, "set", true, [](napi_env env, void *data) {
         AsyncContext *context = static_cast<AsyncContext *>(data);
         if (context->key.size() > MAX_KEY_LENGTH) {
@@ -272,46 +280,56 @@ napi_value NapiSet(napi_env env, napi_callback_info info)
 
         auto pref = PreferencesHelper::GetPreferences(context->prefName, context->output);
         if (context->output != E_OK) {
+            LOG_ERROR("wjq NapiSet failed end");
             return;
         }
         context->output = pref->PutString(context->key, context->val);
         pref->FlushSync();
+        LOG_ERROR("wjq NapiSet end");
     });
 }
 
 napi_value NapiDelete(napi_env env, napi_callback_info info)
 {
+    LOG_ERROR("wjq NapiDelete start");
     return Operate(env, info, "delete", true, [](napi_env env, void *data) {
         AsyncContext *context = static_cast<AsyncContext *>(data);
         if (context->key.size() > MAX_KEY_LENGTH) {
+            LOG_ERROR("wjq NapiDelete end failed 111");
             context->output = E_KEY_EXCEED_LENGTH_LIMIT;
             return;
         }
 
         auto pref = PreferencesHelper::GetPreferences(context->prefName, context->output);
         if (context->output != E_OK) {
+            LOG_ERROR("wjq NapiDelete end failed 222");
             return;
         }
         context->output = pref->Delete(context->key);
         pref->FlushSync();
+        LOG_ERROR("wjq NapiDelete end");
     });
 }
 
 napi_value NapiClear(napi_env env, napi_callback_info info)
 {
+    LOG_ERROR("wjq NapiClear start");
     return Operate(env, info, "clear", false, [](napi_env env, void *data) {
         AsyncContext *context = static_cast<AsyncContext *>(data);
         auto pref = PreferencesHelper::GetPreferences(context->prefName, context->output);
         if (context->output != E_OK) {
+            LOG_ERROR("wjq NapiClear end failed 111");
             return;
         }
         context->output = pref->Clear();
         pref->FlushSync();
+        LOG_ERROR("wjq NapiClear end");
     });
 }
 
 napi_value InitSystemStorage(napi_env env, napi_value exports)
 {
+    LOG_ERROR("wjq InitSystemStorage start");
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("get", NapiGet),
         DECLARE_NAPI_FUNCTION("delete", NapiDelete),
