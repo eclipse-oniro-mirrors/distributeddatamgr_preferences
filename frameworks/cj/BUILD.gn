@@ -98,8 +98,6 @@ if (is_ohos) {
     external_deps += external_deps_cj_bind_ffi
     external_deps += external_deps_cj_bind_native
 
-    version_script = "libcj_preferences_ffi.map"
-
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
     innerapi_tags = [ "platformsdk" ]
@@ -137,8 +135,6 @@ if (is_ohos) {
     external_deps += external_deps_hilog
     external_deps += external_deps_ipc_single
     external_deps += external_deps_napi
-
-    version_script = "libcj_preferences_ffi.map"
 
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
