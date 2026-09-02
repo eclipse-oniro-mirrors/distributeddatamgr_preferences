@@ -57,6 +57,7 @@ ohos_fuzztest("GskvNdkPreferencesGetFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "bounds_checking_function:libsec_shared",
   ]
   if (preferences_ffrt_enabled) {
     external_deps += [ "ffrt:libffrt" ]
