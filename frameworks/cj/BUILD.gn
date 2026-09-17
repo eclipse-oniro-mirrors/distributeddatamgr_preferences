@@ -44,6 +44,8 @@ if (is_ohos) {
       "-Werror=vla",
     ]
 
+    version_script = "libcj_preferences_ffi.map"
+
     deps = [ "${preferences_base_path}/interfaces/inner_api:native_preferences" ]
 
     deps += deps_ability_runtime
@@ -62,8 +64,6 @@ if (is_ohos) {
     external_deps += external_deps_napi
     external_deps += external_deps_cj_bind_ffi
     external_deps += external_deps_cj_bind_native
-
-    version_script = "libcj_preferences_ffi.map"
 
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
