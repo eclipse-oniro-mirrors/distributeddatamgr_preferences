@@ -22,7 +22,6 @@ config("ndk_preferences_config") {
     "${preferences_base_path}/frameworks/ndk/include",
     "${preferences_native_path}/include",
     "${preferences_native_path}/platform/include/",
-    "${preferences_native_path}/mock/fdsan/include",
   ]
 }
 
@@ -97,8 +96,6 @@ if (is_ohos) {
     defines = [ "API_EXPORT=__attribute__((visibility (\"default\")))" ]
 
     configs = [ ":ndk_preferences_config" ]
-
-    cflags = [ "-includefdsan_mock.h" ]
 
     external_deps = [
       "c_utils:utils",
