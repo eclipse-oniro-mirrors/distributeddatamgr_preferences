@@ -30,6 +30,7 @@ config("module_private_config") {
     "${preferences_base_path}/test/ndk/mock",
     "${preferences_native_path}/mock/ability_runtime/dataobs_manager/include",
     "${preferences_native_path}/mock/ability_base/zuri/include",
+    "${preferences_native_path}/mock/fdsan/include",
     "${preferences_mock_external_kit_path}/ipc/include",
   ]
 }

@@ -65,6 +65,7 @@ constexpr int32_t PRE_OFFSET_SIZE = 1;
 constexpr int32_t AREA_MINI_SIZE = 4;
 constexpr int32_t AREA_OFFSET_SIZE = 5;
 constexpr int32_t FILE_PATH_MINI_SIZE = 6;
+static const uint64_t PREFERENCES_FDSAN_TAG = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, 0xD001653);
 
 static UNUSED_FUNCTION void *DBDlOpen()
 {
@@ -98,7 +99,12 @@ static UNUSED_FUNCTION int Open(const std::string &filePath)
 #if defined(WINDOWS_PLATFORM)
     return _open(filePath.c_str(), _O_WRONLY | _O_CREAT | _O_TRUNC, _S_IREAD | _S_IWRITE);
 #else
-    return open(filePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0660);
+    int fd = open(filePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0660);
+    if (fd == -1) {
+        return -1;
+    }
+    fdsan_exchange_owner_tag(fd, 0, PREFERENCES_FDSAN_TAG);
+    return fd;
 #endif
 }
 
@@ -121,7 +127,7 @@ static UNUSED_FUNCTION int Close(int fd)
 #if defined(WINDOWS_PLATFORM)
     return _close(fd);
 #else
-    return close(fd);
+    return fdsan_close_with_tag(fd, PREFERENCES_FDSAN_TAG);
 #endif
 }
 

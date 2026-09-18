@@ -25,6 +25,7 @@ config("module_private_config") {
     "${preferences_native_path}/platform/include/",
     "${preferences_innerapi_path}/include",
     "${preferences_base_path}/frameworks/common/include",
+    "${preferences_native_path}/mock/fdsan/include",
   ]
 }
 
