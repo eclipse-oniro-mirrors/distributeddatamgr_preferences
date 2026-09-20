@@ -15,9 +15,11 @@
  
 #ifndef DISTRIBUTEDDATAMGR_PREFERENCES_FDSAN_MOCK_H
 #define DISTRIBUTEDDATAMGR_PREFERENCES_FDSAN_MOCK_H
- 
+
+#ifndef __MUSL__
+
 #include <cstdint>
- 
+
 typedef enum {
     FDSAN_OWNER_TYPE_DEFAULT = 0,
     FDSAN_OWNER_TYPE_FILE = 1,
@@ -25,17 +27,19 @@ typedef enum {
     FDSAN_OWNER_TYPE_UNIQUE_FD = 3,
     FDSAN_OWNER_TYPE_ZIP_ARCHIVE = 4,
 } fdsan_owner_type;
- 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
- 
+
 uint64_t fdsan_create_owner_tag(fdsan_owner_type type, uint64_t tag);
 void fdsan_exchange_owner_tag(int fd, uint64_t expected_tag, uint64_t new_tag);
 int fdsan_close_with_tag(int fd, uint64_t tag);
- 
+
 #ifdef __cplusplus
 }
 #endif
- 
+
+#endif // __MUSL__
+
 #endif // DISTRIBUTEDDATAMGR_PREFERENCES_FDSAN_MOCK_H
