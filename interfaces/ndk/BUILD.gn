@@ -30,6 +30,11 @@ config("ndk_preferences_public_config") {
   include_dirs = [ "include" ]
 }
 
+config("ndk_fdsan_mock_config") {
+  include_dirs = [ "${preferences_native_path}/mock/fdsan/include" ]
+  cflags = [ "-includefdsan_mock.h" ]
+}
+
 if (is_ohos) {
   base_sources = [
     "${preferences_ndk_path}/src/oh_convertor.cpp",
@@ -95,10 +100,10 @@ if (is_ohos) {
 
     defines = [ "API_EXPORT=__attribute__((visibility (\"default\")))" ]
 
-    configs = [ ":ndk_preferences_config" ]
-
-    cflags = [ "-includefdsan_mock.h" ]
-    include_dirs += [ "${preferences_native_path}/mock/fdsan/include" ]
+    configs = [
+      ":ndk_preferences_config",
+      ":ndk_fdsan_mock_config",
+    ]
 
     external_deps = [
       "c_utils:utils",
