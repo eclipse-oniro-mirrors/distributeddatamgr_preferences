@@ -63,7 +63,9 @@ if (!is_mingw && !is_mac) {
     deps += deps_hilog
     deps += deps_napi
 
-    external_deps = []
+    external_deps = [
+      "node:node_header_notice",
+    ]
     external_deps += external_deps_ability_runtime
     external_deps += external_deps_hilog
     external_deps += external_deps_napi
