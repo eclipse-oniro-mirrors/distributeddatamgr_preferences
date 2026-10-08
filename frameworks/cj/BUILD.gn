@@ -57,6 +57,7 @@ if (is_ohos) {
 
     external_deps = [
       "c_utils:utils",
+      "node:node_header_notice",
     ]
     external_deps += external_deps_ability_runtime
     external_deps += external_deps_hilog
@@ -92,7 +93,9 @@ if (is_ohos) {
     deps += deps_cj_bind_ffi
     deps += deps_cj_bind_native
 
-    external_deps = []
+    external_deps = [
+      "node:node_header_notice",
+    ]
     external_deps += external_deps_hilog
     external_deps += external_deps_napi
     external_deps += external_deps_cj_bind_ffi
@@ -130,6 +133,7 @@ if (is_ohos) {
 
     external_deps = [
       "c_utils:utils",
+      "node:node_header_notice",
     ]
     external_deps += external_deps_ability_runtime
     external_deps += external_deps_hilog

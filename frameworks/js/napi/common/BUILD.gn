@@ -63,6 +63,7 @@ ohos_shared_library("preferences_jscommon") {
     ]
     external_deps = [
       "bounds_checking_function:libsec_static",
+      "node:node_header_notice",
     ]
   } else if (is_ohos) {
     branch_protector_ret = "pac_ret"
@@ -100,6 +101,7 @@ ohos_shared_library("preferences_jscommon") {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
+      "node:node_header_notice",
     ]
     external_deps += external_deps_ability_runtime
     external_deps += external_deps_hilog
@@ -138,6 +140,7 @@ ohos_shared_library("preferences_jscommon") {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
+      "node:node_header_notice",
     ]
     external_deps += external_deps_ability_runtime
     external_deps += external_deps_hilog
