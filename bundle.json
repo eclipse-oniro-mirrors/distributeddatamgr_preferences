@@ -41,7 +41,9 @@
             "SystemCapability.DistributedDataManager.Preferences.Core",
             "SystemCapability.DistributedDataManager.Preferences.Core.Lite"
         ],
-        "features": [],
+        "features": [
+            "preferences_data_fabric_address"
+        ],
         "adapted_system_type": [
             "standard"
         ],
@@ -67,7 +69,9 @@
                 "runtime_core",
                 "ffrt",
                 "json",
-                "taihe_ffi_gen"
+                "taihe_ffi_gen",
+                "kv_store",
+                "samgr"
             ]
         },
         "build": {
