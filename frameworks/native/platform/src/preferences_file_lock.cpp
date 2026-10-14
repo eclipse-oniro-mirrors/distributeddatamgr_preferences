@@ -65,7 +65,7 @@ PreferencesFileLock::~PreferencesFileLock()
         if (fcntl(fd_, F_SETLK, &fileLockInfo) == -1) {
             LOG_ERROR("failed to release file lock error %{public}d.", errno);
         }
-        close(fd_);
+        fdsan_close_with_tag(fd_, PREFERENCES_FDSAN_TAG);
         fd_ = -1;
     }
 }
@@ -90,6 +90,7 @@ void PreferencesFileLock::Lock(short lockType, bool &isMultiProcessing)
         LOG_ERROR("Couldn't open file %{public}s errno %{public}d.", ExtractFileName(filePath_).c_str(), errno);
         return;
     }
+    fdsan_exchange_owner_tag(fd_, 0, PREFERENCES_FDSAN_TAG);
     struct flock fileLockInfo = { 0 };
     fileLockInfo.l_type = lockType;
     fileLockInfo.l_whence = SEEK_SET;

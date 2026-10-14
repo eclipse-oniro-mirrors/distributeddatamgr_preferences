@@ -78,6 +78,7 @@ taihe_shared_library("preferences_taihe_native") {
   deps += deps_hilog
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "node:node_header_notice",
   ]
   external_deps += external_deps_ability_runtime
   external_deps += external_deps_ability_runtime_ani_base_context

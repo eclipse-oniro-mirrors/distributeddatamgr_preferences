@@ -54,6 +54,7 @@
                 "access_token",
                 "ets_frontend",
                 "napi",
+                "node",
                 "hilog",
                 "c_utils",
                 "ability_base",

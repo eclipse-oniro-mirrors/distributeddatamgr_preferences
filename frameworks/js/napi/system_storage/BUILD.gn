@@ -65,6 +65,7 @@ if (!is_mingw && !is_mac) {
 
     external_deps = [
       "c_utils:utils",
+      "node:node_header_notice",
     ]
     external_deps += external_deps_ability_runtime
     external_deps += external_deps_ability_runtime_extensionkit_native
