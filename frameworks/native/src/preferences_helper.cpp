@@ -234,16 +234,14 @@ int PreferencesHelper::DeletePreferences(const std::string &path)
     }
 
     std::string bundleName;
-    {
-        std::lock_guard<std::mutex> lock(prefsCacheMutex_);
-        auto [ name, code ] = DeletePreferencesCache(realPath);
-        if (code != E_OK) {
-            LOG_ERROR("file %{public}s failed to close when delete preferences, errCode is: %{public}d",
-                ExtractFileName(realPath).c_str(), code);
-            return code;
-        }
-        bundleName = name;
+    std::lock_guard<std::mutex> lock(prefsCacheMutex_);
+    auto [ name, code ] = DeletePreferencesCache(realPath);
+    if (code != E_OK) {
+        LOG_ERROR("file %{public}s failed to close when delete preferences, errCode is: %{public}d",
+            ExtractFileName(realPath).c_str(), code);
+        return code;
     }
+    bundleName = name;
 
     std::string filePath = realPath.c_str();
     std::string backupPath = PreferencesUtils::MakeFilePath(filePath, PreferencesUtils::STR_BACKUP);
