@@ -21,6 +21,7 @@ config("native_preferences_config") {
     "${preferences_base_path}/frameworks/common/include",
     "${preferences_native_path}/include",
     "${preferences_native_path}/platform/include/",
+    "${preferences_native_path}/data_fabric_address/include/",
   ]
 }
 
@@ -42,6 +43,9 @@ config("mock_config") {
 config("native_preferences_public_config") {
   visibility = [ ":*" ]
   include_dirs = [ "include" ]
+  if (preferences_data_fabric_address) {
+    include_dirs += [ "${preferences_native_path}/data_fabric_address/include/" ]
+  }
 }
 
 config("adaptor_config") {
@@ -99,6 +103,7 @@ if (is_ohos) {
       "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
       "${preferences_native_path}/src/preferences_enhance_impl.cpp",
       "${preferences_native_path}/src/preferences_value_parcel.cpp",
+      "${preferences_native_path}/data_fabric_address/src/data_fabric_address_errors.cpp",
     ]
     if (preferences_ffrt_enabled) {
       sources +=
@@ -106,6 +111,15 @@ if (is_ohos) {
     } else {
       sources +=
           [ "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp" ]
+    }
+    if (preferences_data_fabric_address && preferences_samgr_enabled) {
+      sources += [
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_api_helper.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_callback_stub.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_client.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_proxy.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_types.cpp"
+      ]
     }
 
     innerapi_tags = [
@@ -123,7 +137,11 @@ if (is_ohos) {
     if (preferences_ffrt_enabled) {
       external_deps += [ "ffrt:libffrt" ]
     }
-    
+    if (preferences_data_fabric_address && preferences_samgr_enabled) {
+      external_deps += [ "kv_store:distributeddata_mgr" ]
+      external_deps += external_deps_samgr_proxy
+    }
+
     external_deps += external_deps_ability_base_zuri
     external_deps += external_deps_ability_runtime_dataobs_manager
     external_deps += external_deps_access_token_libaccesstoken_sdk
@@ -131,8 +149,11 @@ if (is_ohos) {
     external_deps += external_deps_hisysevent
     external_deps += external_deps_hitrace
     external_deps += external_deps_ipc_single
-    
+
     deps = []
+    if (preferences_data_fabric_address && preferences_samgr_enabled) {
+      deps += deps_samgr_proxy
+    }
     deps += deps_ability_base_zuri
     deps += deps_ability_runtime_dataobs_manager
     deps += deps_access_token_libaccesstoken_sdk
@@ -140,7 +161,7 @@ if (is_ohos) {
     deps += deps_hisysevent
     deps += deps_hitrace
     deps += deps_ipc_single
-    
+
     public_configs = [ ":native_preferences_public_config" ]
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
@@ -399,6 +420,7 @@ ohos_static_library("native_preferences_static") {
       "${preferences_native_path}/platform/src/preferences_db_adapter.cpp",
       "${preferences_native_path}/src/preferences_enhance_impl.cpp",
       "${preferences_native_path}/src/preferences_value_parcel.cpp",
+      "${preferences_native_path}/data_fabric_address/src/data_fabric_address_errors.cpp",
     ]
 
     if (preferences_ffrt_enabled) {
@@ -407,6 +429,15 @@ ohos_static_library("native_preferences_static") {
     } else {
       sources +=
           [ "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp" ]
+    }
+    if (preferences_data_fabric_address) {
+      sources += [
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_api_helper.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_callback_stub.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_client.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_proxy.cpp",
+        "${preferences_native_path}/data_fabric_address/src/data_fabric_address_types.cpp"
+      ]
     }
 
     external_deps = [
@@ -417,6 +448,10 @@ ohos_static_library("native_preferences_static") {
     if (preferences_ffrt_enabled) {
       external_deps += [ "ffrt:libffrt" ]
     }
+    if (preferences_data_fabric_address) {
+      external_deps += [ "kv_store:distributeddata_mgr" ]
+      external_deps += external_deps_samgr_proxy
+    }
     
     external_deps += external_deps_ability_base_zuri
     external_deps += external_deps_ability_runtime_dataobs_manager
@@ -426,7 +461,10 @@ ohos_static_library("native_preferences_static") {
     external_deps += external_deps_hitrace
     external_deps += external_deps_ipc_single
     deps = []
-    
+    if (preferences_data_fabric_address) {
+      deps += deps_samgr_proxy
+    }
+
     deps += deps_ability_base_zuri
     deps += deps_ability_runtime_dataobs_manager
     deps += deps_access_token_libaccesstoken_sdk

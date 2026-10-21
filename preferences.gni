@@ -24,3 +24,7 @@ preferences_innerapi_path = "${preferences_base_path}/interfaces/inner_api"
 preferences_ndk_path = "${preferences_base_path}/frameworks/ndk"
 
 preferences_interfaces_path = "${preferences_base_path}/interfaces"
+
+declare_args() {
+  preferences_data_fabric_address = true
+}

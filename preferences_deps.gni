@@ -104,6 +104,13 @@ declare_args() {
   } else {
     preferences_ffrt_enabled = false
   }
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.systemabilitymgr_samgr)) {
+    preferences_samgr_enabled = true
+  } else {
+    preferences_samgr_enabled = false
+  }
 }
 
 if (preferences_ability_base_enabled) {
@@ -277,4 +284,12 @@ if (preferences_ffrt_enabled) {
 } else {
   external_deps_ffrt = []
   deps_ffrt = []
+}
+
+if (preferences_samgr_enabled) {
+  external_deps_samgr_proxy = [ "samgr:samgr_proxy" ]
+  deps_samgr_proxy = []
+} else {
+  external_deps_samgr_proxy = []
+  deps_samgr_proxy = [ "${preferences_mock_external_kit_path}/samgr:samgr_proxy" ]
 }
