@@ -17,6 +17,8 @@
 #define DATA_FABRIC_ADDRESS_CLIENT_H
 
 #include <atomic>
+#include <map>
+#include <memory>
 #include <mutex>
 
 #include "data_fabric_address_callback.h"

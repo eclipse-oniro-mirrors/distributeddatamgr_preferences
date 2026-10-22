@@ -304,6 +304,7 @@ if (is_ohos) {
     sources += mock_sources
     sources += [
       "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
+      "${preferences_native_path}/data_fabric_address/src/data_fabric_address_errors.cpp",
     ]
     innerapi_tags = [ "platformsdk" ]
 

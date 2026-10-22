@@ -33,7 +33,7 @@ int32_t DataFabricAddressProxy::Subscribe(const DataFabricAddressParams& inputPa
         LOG_ERROR("Write descriptor failed.");
         return INTERNAL_EXCEPTION;
     }
-    if (!MarshallingDataFabricAddressParams(inputParams, data)) {
+    if (!inputParams.Marshal(data)) {
         LOG_ERROR("Write params failed.");
         return INTERNAL_EXCEPTION;
     }
@@ -71,7 +71,7 @@ int32_t DataFabricAddressProxy::Unsubscribe(const DataFabricAddressParams& input
         LOG_ERROR("Write descriptor failed.");
         return INTERNAL_EXCEPTION;
     }
-    if (!MarshallingDataFabricAddressParams(inputParams, data)) {
+    if (!inputParams.Marshal(data)) {
         LOG_ERROR("Write params failed.");
         return INTERNAL_EXCEPTION;
     }
@@ -95,31 +95,6 @@ int32_t DataFabricAddressProxy::Unsubscribe(const DataFabricAddressParams& input
     }
     LOG_INFO("Unsubscribe exit, result code=%{public}d.", result);
     return result;
-}
-
-bool DataFabricAddressProxy::MarshallingDataFabricAddressParams(const DataFabricAddressParams& inputParams,
-    MessageParcel &parcel)
-{
-    if (!parcel.WriteInt32(static_cast<int32_t>(inputParams.scenarioType)) ||
-        !parcel.WriteInt32(static_cast<int32_t>(inputParams.locationInfo.actionType))) {
-        LOG_ERROR("Write scenario type or action type failed.");
-        return false;
-    }
-    size_t pointsCount = inputParams.locationInfo.points.size();
-    if (!parcel.WriteInt32(static_cast<int32_t>(pointsCount))) {
-        LOG_ERROR("Write reference points count failed.");
-        return false;
-    }
-    for (size_t i = 0; i < pointsCount; ++i) {
-        if (!parcel.WriteInt32(static_cast<int32_t>(inputParams.locationInfo.points[i].labelType)) ||
-            !parcel.WriteInt32(static_cast<int32_t>(inputParams.locationInfo.points[i].coordinateSystemType)) ||
-            !parcel.WriteDouble(inputParams.locationInfo.points[i].locationPoint.latitude) ||
-            !parcel.WriteDouble(inputParams.locationInfo.points[i].locationPoint.longitude)) {
-            LOG_ERROR("Write reference point label type, coordinate system type, latitude or longitude failed.");
-            return false;
-        }
-    }
-    return true;
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

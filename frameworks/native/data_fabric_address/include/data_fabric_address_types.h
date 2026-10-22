@@ -18,8 +18,14 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "preferences_visibility.h"
+
+namespace OHOS {
+class MessageParcel;
+} // namespace OHOS
 
 namespace OHOS {
 namespace NativePreferences {
@@ -59,22 +65,34 @@ enum StatusCode : int32_t {
 struct LocationPoint {
     double latitude = DEFAULT_INVALID_LAT_VALUE;
     double longitude = DEFAULT_INVALID_LNG_VALUE;
+
+    PREF_API_EXPORT bool Marshal(MessageParcel &parcel) const;
+    PREF_API_EXPORT bool Unmarshal(MessageParcel &parcel);
 };
 
 struct LocationInfo {
     LabelType labelType;
     CoordinateSystemType coordinateSystemType;
     LocationPoint locationPoint;
+
+    PREF_API_EXPORT bool Marshal(MessageParcel &parcel) const;
+    PREF_API_EXPORT bool Unmarshal(MessageParcel &parcel);
 };
 
 struct ReferenceLocationInfo {
     ActionType actionType;
     std::vector<LocationInfo> points;
+
+    PREF_API_EXPORT bool Marshal(MessageParcel &parcel) const;
+    PREF_API_EXPORT bool Unmarshal(MessageParcel &parcel);
 };
 
 struct DataFabricAddressParams {
     BusinessScenario scenarioType;
     ReferenceLocationInfo locationInfo;
+
+    PREF_API_EXPORT bool Marshal(MessageParcel &parcel) const;
+    PREF_API_EXPORT bool Unmarshal(MessageParcel &parcel);
 
     bool operator<(const DataFabricAddressParams& other) const
     {

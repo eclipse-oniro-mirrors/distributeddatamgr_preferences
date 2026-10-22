@@ -39,7 +39,8 @@
         "subsystem": "distributeddatamgr",
         "syscap": [
             "SystemCapability.DistributedDataManager.Preferences.Core",
-            "SystemCapability.DistributedDataManager.Preferences.Core.Lite"
+            "SystemCapability.DistributedDataManager.Preferences.Core.Lite",
+            "SystemCapability.DistributedDataManager.DataFabric.Address"
         ],
         "features": [
             "preferences_data_fabric_address"
@@ -83,7 +84,9 @@
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/sendable_preferences:sendablepreferences",
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/storage:storage",
                 "//foundation/distributeddatamgr/preferences/frameworks/js/napi/system_storage:storage_napi",
-                "//foundation/distributeddatamgr/preferences/frameworks/ets/taihe/preferences:preferences_taihe"
+                "//foundation/distributeddatamgr/preferences/frameworks/ets/taihe/preferences:preferences_taihe",
+                "//foundation/distributeddatamgr/preferences/frameworks/js/napi/data_fabric_address:datafabricaddress_napi",
+                "//foundation/distributeddatamgr/preferences/frameworks/ets/taihe/data_fabric_address:datafabricaddress_taihe"
             ],
             "inner_kits": [
                 {

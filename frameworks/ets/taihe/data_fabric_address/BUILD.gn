@@ -1,0 +1,112 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//build/ohos/taihe_idl/taihe.gni")
+import("//foundation/distributeddatamgr/preferences/preferences.gni")
+import("//foundation/distributeddatamgr/preferences/preferences_deps.gni")
+copy_taihe_idl("datafabricaddress_copy_taihe") {
+  sources = [ "idl/ohos.data.dataFabricAddress.taihe" ]
+}
+
+subsystem_name = "distributeddatamgr"
+part_name = "preferences"
+taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name/dataFabricAddress"
+ohos_taihe("run_taihe") {
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  deps = [ ":datafabricaddress_copy_taihe" ]
+  outputs = [
+    "$taihe_generated_file_path/src/ohos.data.dataFabricAddress.ani.cpp",
+    "$taihe_generated_file_path/src/ohos.data.dataFabricAddress.abi.c",
+  ]
+}
+taihe_shared_library("datafabricaddress_ani") {
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  part_name = "$part_name"
+  subsystem_name = "$subsystem_name"
+  sources = get_target_outputs(":run_taihe")
+  branch_protector_ret = "pac_ret"
+  shlib_type = "ani"
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags_cc = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-Oz",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+  ]
+  ldflags = [
+    "-Wl,--gc-sections",
+    "-flto=full",
+  ]
+  include_dirs = [
+    "include",
+    "${preferences_base_path}/frameworks/common/include/",
+    "${preferences_native_path}/data_fabric_address/include/",
+  ]
+  defines = []
+  if (preferences_data_fabric_address && preferences_samgr_enabled) {
+    defines += [ "ARKDATA_DATA_FABRIC_ADDRESS_ENABLE" ]
+  }
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  sources += [
+    "src/ani_constructor.cpp",
+    "src/data_fabric_address_ani.cpp",
+    "src/ohos.data.dataFabricAddress.impl.cpp"
+  ]
+  deps = [
+    ":run_taihe",
+    "${preferences_base_path}/interfaces/inner_api:native_preferences"
+  ]
+  external_deps += external_deps_ipc_single
+  external_deps += external_deps_samgr_proxy
+  deps += deps_ipc_single
+  deps += deps_samgr_proxy
+}
+generate_static_abc("datafabricaddress_abc") {
+  base_url = "$taihe_generated_file_path"
+  files = [ "$taihe_generated_file_path/@ohos.data.dataFabricAddress.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/datafabricaddress_abc.abc"
+  dependencies = [ ":run_taihe" ]
+}
+ohos_prebuilt_etc("datafabricaddress_etc") {
+  source = "$target_out_dir/datafabricaddress_abc.abc"
+  module_install_dir = "framework"
+  part_name = "$part_name"
+  subsystem_name = "$subsystem_name"
+  deps = [ ":datafabricaddress_abc" ]
+}
+generate_static_abc("datafabricaddress_test") {
+  base_url = "${preferences_base_path}/frameworks/ets/taihe/data_fabric_address"
+  files = [ "$base_url/test/test_main.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/datafabricaddress_test.abc"
+}
+
+group("datafabricaddress_taihe") {
+  deps = [
+    ":datafabricaddress_etc",
+    ":datafabricaddress_ani"
+  ]
+}
