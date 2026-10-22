@@ -45,6 +45,8 @@ struct PreferencesInfo {
     std::string bundleName;
     std::string dataGroupId;
     StorageType storageType = StorageType::XML;
+    uint32_t cacheSize = 0;
+    bool hasCacheSize = false;
 };
 
 std::shared_ptr<JSError> ParseOptions(TaiheOptions const& options, PreferencesInfo &preferencesInfo)
@@ -61,6 +63,21 @@ std::shared_ptr<JSError> ParseOptions(TaiheOptions const& options, PreferencesIn
         }
         preferencesInfo.storageType = (storageTypeVal == static_cast<int32_t>(StorageType::XML)) ?
             StorageType::XML : StorageType::GSKV;
+    }
+    if (options.cacheSize.has_value()) {
+        int32_t cacheSize = options.cacheSize.value();
+        if (cacheSize < 0) {
+            return std::make_shared<ParamTypeError>("The cacheSize must be non-negative.");
+        }
+        if (cacheSize > 0) {
+            constexpr int32_t CACHE_SIZE_MIN = 256;
+            constexpr int32_t CACHE_SIZE_MAX = 1112784;
+            if (cacheSize < CACHE_SIZE_MIN || cacheSize > CACHE_SIZE_MAX) {
+                return std::make_shared<ParamTypeError>("The cacheSize must be in [256, 1112784] or 0.");
+            }
+        }
+        preferencesInfo.cacheSize = static_cast<uint32_t>(cacheSize);
+        preferencesInfo.hasCacheSize = true;
     }
     return nullptr;
 }
@@ -88,7 +105,8 @@ TaihePreferences GetPreferences(uintptr_t context, PreferencesInfo &info)
         SetBusinessError(err);
         return make_holder<PreferencesProxy, TaihePreferences>();
     }
-    Options nativeOptions(info.path, info.bundleName, info.dataGroupId, info.storageType == StorageType::GSKV);
+    Options nativeOptions(info.path, info.bundleName, info.dataGroupId, info.storageType == StorageType::GSKV,
+        info.cacheSize, info.hasCacheSize);
     int32_t errCode = OHOS::NativePreferences::E_OK;
     auto preferences = PreferencesHelper::GetPreferences(nativeOptions, errCode);
     if (errCode != OHOS::NativePreferences::E_OK) {

@@ -54,11 +54,20 @@ public:
     {
     }
 
+    Options(const std::string &inputFilePath, const std::string &inputbundleName, const std::string &inputdataGroupId,
+        bool inputIsEnhance, uint32_t inputCacheSize, bool inputHasCacheSize)
+        : filePath(inputFilePath), bundleName(inputbundleName), dataGroupId(inputdataGroupId),
+        isEnhance(inputIsEnhance), cacheSize(inputCacheSize), hasCacheSize(inputHasCacheSize)
+    {
+    }
+
 public:
     std::string filePath{ "" };
     std::string bundleName{ "" };
     std::string dataGroupId{ "" };
     bool isEnhance = false;
+    uint32_t cacheSize = 0;
+    bool hasCacheSize = false;
 };
 /**
  * The function class of the preference. Various operations on preferences instances are provided in this class.

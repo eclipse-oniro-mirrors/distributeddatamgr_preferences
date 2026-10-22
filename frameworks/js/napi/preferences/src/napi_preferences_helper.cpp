@@ -30,6 +30,7 @@ namespace PreferencesJsKit {
 constexpr const char* DATA_GROUP_ID = "dataGroupId";
 constexpr const char* NAME = "name";
 constexpr const char* STORAGE_TYPE = "storageType";
+constexpr const char* CACHE_SIZE = "cacheSize";
 
 struct HelperAsyncContext : public BaseContext {
     std::string path;
@@ -39,12 +40,48 @@ struct HelperAsyncContext : public BaseContext {
     std::shared_ptr<NativePreferences::Preferences> proxy;
     StorageType storageType = StorageType::XML;
     bool isStorageTypeSupported = false;
+    int32_t cacheSize = 0;
+    bool hasCacheSize = false;
 
     HelperAsyncContext()
     {
     }
     virtual ~HelperAsyncContext(){};
 };
+
+int ParseCacheSize(const napi_env env, napi_value options, std::shared_ptr<HelperAsyncContext> context)
+{
+    bool hasCacheSize = false;
+    PRE_CHECK_RETURN_ERR_SET(napi_has_named_property(env, options, CACHE_SIZE, &hasCacheSize) == napi_ok,
+        std::make_shared<ParamTypeError>("napi call failed when check cacheSize"));
+    if (hasCacheSize) {
+        napi_value cacheSizeValue = nullptr;
+        PRE_CHECK_RETURN_ERR_SET(napi_get_named_property(env, options, CACHE_SIZE, &cacheSizeValue) == napi_ok,
+            std::make_shared<ParamTypeError>("napi call failed when get cacheSize."));
+        napi_valuetype cacheSizeType = napi_undefined;
+        napi_status cacheStatus = napi_typeof(env, cacheSizeValue, &cacheSizeType);
+        if (cacheStatus == napi_ok && (cacheSizeType != napi_null && cacheSizeType != napi_undefined)) {
+            PRE_CHECK_RETURN_ERR_SET(cacheSizeType == napi_number,
+                std::make_shared<ParamTypeError>("The cacheSize must be number."));
+            int32_t cacheSize = 0;
+            PRE_CHECK_RETURN_ERR_SET(napi_get_value_int32(env, cacheSizeValue, &cacheSize) == napi_ok,
+                std::make_shared<ParamTypeError>("The cacheSize must be number."));
+            PRE_CHECK_RETURN_ERR_SET(cacheSize >= 0,
+                std::make_shared<ParamTypeError>("The cacheSize must be non-negative."));
+            if (cacheSize > 0) {
+                constexpr int32_t CACHE_SIZE_MIN = 256;
+                constexpr int32_t CACHE_SIZE_MAX = 1112784;
+                PRE_CHECK_RETURN_ERR_SET(cacheSize >= CACHE_SIZE_MIN && cacheSize <= CACHE_SIZE_MAX,
+                    std::make_shared<ParamTypeError>("The cacheSize must be in [256, 1112784] or 0."));
+            }
+            context->cacheSize = cacheSize;
+            context->hasCacheSize = true;
+        }
+        PRE_CHECK_RETURN_ERR_SET(cacheStatus == napi_ok,
+            std::make_shared<InnerError>("parse cacheSize: type of api failed"));
+    }
+    return OK;
+}
 
 int ParseOptionalParameters(const napi_env env, napi_value *argv, std::shared_ptr<HelperAsyncContext> context)
 {
@@ -86,6 +123,8 @@ int ParseOptionalParameters(const napi_env env, napi_value *argv, std::shared_pt
         PRE_CHECK_RETURN_ERR_SET(status == napi_ok,
             std::make_shared<InnerError>("parse storage type: type of api failed"));
     }
+    PRE_CHECK_RETURN_ERR_SET(ParseCacheSize(env, argv[1], context) == OK,
+        std::make_shared<ParamTypeError>("parse cacheSize failed"));
     return OK;
 }
 
@@ -119,7 +158,8 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
     auto exec = [context]() -> int {
         int errCode = E_OK;
         Options options(context->path, context->bundleName, context->dataGroupId,
-            context->storageType == StorageType::GSKV);
+            context->storageType == StorageType::GSKV,
+            static_cast<uint32_t>(context->cacheSize), context->hasCacheSize);
         context->proxy = PreferencesHelper::GetPreferences(options, errCode);
         return errCode;
     };

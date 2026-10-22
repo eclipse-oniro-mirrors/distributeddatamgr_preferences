@@ -345,4 +345,316 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_007, TestSize.Lev
     ASSERT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences(TEST_PATH + "CStorageTypeTest007Fake.db"),
         OHOS::NativePreferences::E_OK);
 }
+
+/**
+ * @tc.name: NDKCacheSizeConfigTest_001
+ * @tc.desc: test OH_PreferencesOption_SetCacheSize/GetCacheSize API basic behavior
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_001, TestSize.Level0)
+{
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    ASSERT_NE(option, nullptr);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(option, "NDKCacheSize001"), PREFERENCES_OK);
+
+    // default cacheSize should be 0 when not set
+    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 0);
+
+    // set cacheSize=256
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 256), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 256);
+
+    // set cacheSize=0
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 0), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 0);
+
+    // set cacheSize=max boundary
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 1112784), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 1112784);
+
+    // invalid args
+    EXPECT_EQ(OH_PreferencesOption_SetCacheSize(nullptr, 256), PREFERENCES_ERROR_INVALID_PARAM);
+
+    (void)OH_PreferencesOption_Destroy(option);
+}
+
+/**
+ * @tc.name: NDKCacheSizeConfigTest_002
+ * @tc.desc: test GSKV open with cacheSize=256, SetInt + GetInt + Flush verification
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_002, TestSize.Level0)
+{
+    bool isEnhance = false;
+    ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
+        PREFERENCES_OK);
+    if (!isEnhance) {
+        return;
+    }
+    const char *fileName = "NDKCacheSize002";
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    ASSERT_NE(option, nullptr);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetBundleName(option, "com.uttest"), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
+        PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 256), PREFERENCES_OK);
+
+    int errCode = PREFERENCES_OK;
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    ASSERT_NE(pref, nullptr);
+
+    ASSERT_EQ(OH_Preferences_SetInt(pref, "int_key", 42), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_SetString(pref, "str_key", "hello"), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+
+    int intVal = 0;
+    ASSERT_EQ(OH_Preferences_GetInt(pref, "int_key", &intVal), PREFERENCES_OK);
+    EXPECT_EQ(intVal, 42);
+
+    char *strVal = nullptr;
+    uint32_t strLen = 0;
+    ASSERT_EQ(OH_Preferences_GetString(pref, "str_key", &strVal, &strLen), PREFERENCES_OK);
+    EXPECT_STREQ(strVal, "hello");
+    OH_Preferences_FreeString(strVal);
+
+    EXPECT_EQ(OH_Preferences_HasKey(pref, "int_key"), true);
+    EXPECT_EQ(OH_Preferences_HasKey(pref, "str_key"), true);
+
+    ASSERT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences(TEST_PATH + std::string(fileName)),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKCacheSizeConfigTest_003
+ * @tc.desc: test GSKV open with cacheSize=0 (disable map file), SetInt + GetInt verification
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_003, TestSize.Level0)
+{
+    bool isEnhance = false;
+    ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
+        PREFERENCES_OK);
+    if (!isEnhance) {
+        return;
+    }
+    const char *fileName = "NDKCacheSize003";
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    ASSERT_NE(option, nullptr);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetBundleName(option, "com.uttest"), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
+        PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 0), PREFERENCES_OK);
+
+    int errCode = PREFERENCES_OK;
+    OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    ASSERT_NE(pref, nullptr);
+
+    ASSERT_EQ(OH_Preferences_SetInt(pref, "zero_key", 2024), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+
+    int val = 0;
+    ASSERT_EQ(OH_Preferences_GetInt(pref, "zero_key", &val), PREFERENCES_OK);
+    EXPECT_EQ(val, 2024);
+
+    ASSERT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(option);
+    ASSERT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences(TEST_PATH + std::string(fileName)),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKCacheSizeUpgradeTest_001
+ * @tc.desc: upgrade scenario: default(no cacheSize) -> cacheSize=256,
+ *           old data should be readable after reopen with new cacheSize
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_001, TestSize.Level0)
+{
+    bool isEnhance = false;
+    ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
+        PREFERENCES_OK);
+    if (!isEnhance) {
+        return;
+    }
+    const char *fileName = "NDKCacheSizeUpg001";
+
+    // Step1: open with default (no cacheSize), write data
+    OH_PreferencesOption *opt1 = OH_PreferencesOption_Create();
+    ASSERT_NE(opt1, nullptr);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(opt1, fileName), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetBundleName(opt1, "com.uttest"), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetStorageType(opt1, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
+        PREFERENCES_OK);
+    int errCode = PREFERENCES_OK;
+    OH_Preferences *pref1 = OH_Preferences_Open(opt1, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_SetInt(pref1, "upg_key", 100), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_SetString(pref1, "upg_str", "upgrade_val"), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Flush(pref1), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Close(pref1), PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(opt1);
+
+    // Step2: reopen with cacheSize=256, verify old data
+    OH_PreferencesOption *opt2 = OH_PreferencesOption_Create();
+    ASSERT_NE(opt2, nullptr);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(opt2, fileName), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetBundleName(opt2, "com.uttest"), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetStorageType(opt2, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
+        PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(opt2, 256), PREFERENCES_OK);
+    OH_Preferences *pref2 = OH_Preferences_Open(opt2, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    int intVal = 0;
+    ASSERT_EQ(OH_Preferences_GetInt(pref2, "upg_key", &intVal), PREFERENCES_OK);
+    EXPECT_EQ(intVal, 100);
+    char *strVal = nullptr;
+    uint32_t strLen = 0;
+    ASSERT_EQ(OH_Preferences_GetString(pref2, "upg_str", &strVal, &strLen), PREFERENCES_OK);
+    EXPECT_STREQ(strVal, "upgrade_val");
+    OH_Preferences_FreeString(strVal);
+
+    // write new data
+    ASSERT_EQ(OH_Preferences_SetInt(pref2, "new_key", 200), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Flush(pref2), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Close(pref2), PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(opt2);
+
+    ASSERT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences(TEST_PATH + std::string(fileName)),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKCacheSizeUpgradeTest_002
+ * @tc.desc: upgrade scenario: cacheSize=256 -> cacheSize=0,
+ *           verify old data readable + delete + new write after reopen
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_002, TestSize.Level0)
+{
+    bool isEnhance = false;
+    ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
+        PREFERENCES_OK);
+    if (!isEnhance) {
+        return;
+    }
+    const char *fileName = "NDKCacheSizeUpg002";
+
+    // Step1: open with cacheSize=256, write data
+    OH_PreferencesOption *opt1 = OH_PreferencesOption_Create();
+    ASSERT_NE(opt1, nullptr);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(opt1, fileName), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetBundleName(opt1, "com.uttest"), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetStorageType(opt1, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
+        PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(opt1, 256), PREFERENCES_OK);
+    int errCode = PREFERENCES_OK;
+    OH_Preferences *pref1 = OH_Preferences_Open(opt1, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_SetString(pref1, "k1", "v1"), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_SetInt(pref1, "n1", 10), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Flush(pref1), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Close(pref1), PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(opt1);
+
+    // Step2: reopen with cacheSize=0, verify old data + delete + new write
+    OH_PreferencesOption *opt2 = OH_PreferencesOption_Create();
+    ASSERT_NE(opt2, nullptr);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(opt2, fileName), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetBundleName(opt2, "com.uttest"), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetStorageType(opt2, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
+        PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(opt2, 0), PREFERENCES_OK);
+    OH_Preferences *pref2 = OH_Preferences_Open(opt2, &errCode);
+    ASSERT_EQ(errCode, PREFERENCES_OK);
+
+    // verify old data
+    char *strVal = nullptr;
+    uint32_t strLen = 0;
+    ASSERT_EQ(OH_Preferences_GetString(pref2, "k1", &strVal, &strLen), PREFERENCES_OK);
+    EXPECT_STREQ(strVal, "v1");
+    OH_Preferences_FreeString(strVal);
+    int intVal = 0;
+    ASSERT_EQ(OH_Preferences_GetInt(pref2, "n1", &intVal), PREFERENCES_OK);
+    EXPECT_EQ(intVal, 10);
+
+    // delete k1 and write k2
+    ASSERT_EQ(OH_Preferences_Delete(pref2, "k1"), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_SetString(pref2, "k2", "v2"), PREFERENCES_OK);
+    ASSERT_EQ(OH_Preferences_Flush(pref2), PREFERENCES_OK);
+    EXPECT_EQ(OH_Preferences_HasKey(pref2, "k1"), false);
+    EXPECT_EQ(OH_Preferences_HasKey(pref2, "k2"), true);
+
+    ASSERT_EQ(OH_Preferences_Close(pref2), PREFERENCES_OK);
+    (void)OH_PreferencesOption_Destroy(opt2);
+
+    ASSERT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences(TEST_PATH + std::string(fileName)),
+        OHOS::NativePreferences::E_OK);
+}
+
+/**
+ * @tc.name: NDKCacheSizeChainedUpgradeTest
+ * @tc.desc: chained upgrade: default -> 256 -> 0 -> 65536 -> 1112784,
+ *           each step reopen and verify old data readable + write step marker
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+static OH_Preferences *OpenChainPref(const char *fileName, int32_t cacheSize, bool setCache, int *errCode)
+{
+    OH_PreferencesOption *opt = OH_PreferencesOption_Create();
+    if (opt == nullptr) { return nullptr; }
+    OH_PreferencesOption_SetFileName(opt, fileName);
+    OH_PreferencesOption_SetBundleName(opt, "com.uttest");
+    OH_PreferencesOption_SetStorageType(opt, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
+    if (setCache) { OH_PreferencesOption_SetCacheSize(opt, cacheSize); }
+    OH_Preferences *pref = OH_Preferences_Open(opt, errCode);
+    OH_PreferencesOption_Destroy(opt);
+    return pref;
+}
+
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeChainedUpgradeTest, TestSize.Level0)
+{
+    bool isEnhance = false;
+    OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
+    if (!isEnhance) { return; }
+    const char *fileName = "NDKCacheSizeChain";
+    struct ChainCfg { int32_t cacheSize; bool setCache; };
+    std::vector<ChainCfg> chain = {{0, false}, {256, true}, {0, true}, {65536, true}, {1112784, true}};
+    for (size_t i = 0; i < chain.size(); i++) {
+        int errCode = PREFERENCES_OK;
+        OH_Preferences *pref = OpenChainPref(fileName, chain[i].cacheSize, chain[i].setCache, &errCode);
+        ASSERT_EQ(errCode, PREFERENCES_OK) << "step " << i << " open failed";
+        if (i == 0) {
+            ASSERT_EQ(OH_Preferences_SetString(pref, "chain_key", "chain_value"), PREFERENCES_OK);
+            ASSERT_EQ(OH_Preferences_SetInt(pref, "chain_num", 1), PREFERENCES_OK);
+            ASSERT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+        } else {
+            char *strVal = nullptr;
+            uint32_t strLen = 0;
+            ASSERT_EQ(OH_Preferences_GetString(pref, "chain_key", &strVal, &strLen), PREFERENCES_OK);
+            EXPECT_STREQ(strVal, "chain_value");
+            OH_Preferences_FreeString(strVal);
+            int intVal = 0;
+            ASSERT_EQ(OH_Preferences_GetInt(pref, "chain_num", &intVal), PREFERENCES_OK);
+            EXPECT_EQ(intVal, 1);
+            std::string stepKey = "step_" + std::to_string(i);
+            ASSERT_EQ(OH_Preferences_SetString(pref, stepKey.c_str(), ("val_" + std::to_string(i)).c_str()),
+                PREFERENCES_OK);
+            ASSERT_EQ(OH_Preferences_Flush(pref), PREFERENCES_OK);
+        }
+        ASSERT_EQ(OH_Preferences_Close(pref), PREFERENCES_OK);
+    }
+    OHOS::NativePreferences::PreferencesHelper::DeletePreferences(TEST_PATH + std::string(fileName));
+}
 } // namespace

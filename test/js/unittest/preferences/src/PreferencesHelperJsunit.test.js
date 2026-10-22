@@ -262,4 +262,181 @@ describe('PreferencesHelperJsunit', function () {
         await mPreferences.off('change', observer);
         await mPreferences.put(KEY_TEST_STRING_ELEMENT, "abc");
     })
+
+    /**
+     * @tc.name getPreferences with cacheSize positive value
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_001
+     * @tc.desc getPreferences with cacheSize=4096 should succeed
+     */
+    it('testGetPreferencesCacheSize001', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_cacheSize_001', cacheSize: 256 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_cacheSize_001' });
+            await data_preferences.deletePreferences(context, { name: 'test_cacheSize_001' });
+            done();
+        } catch (err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize zero value
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_002
+     * @tc.desc getPreferences with cacheSize=0 should succeed
+     */
+    it('testGetPreferencesCacheSize002', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_cacheSize_002', cacheSize: 0 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_cacheSize_002' });
+            await data_preferences.deletePreferences(context, { name: 'test_cacheSize_002' });
+            done();
+        } catch (err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize negative value
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_003
+     * @tc.desc getPreferences with negative cacheSize should throw error
+     */
+    it('testGetPreferencesCacheSize003', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_cacheSize_003', cacheSize: -1 });
+            expect(null).assertFail();
+        } catch (err) {
+            expect(err.code == 15500000 || err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize non-number type
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_004
+     * @tc.desc getPreferences with non-number cacheSize should throw error
+     */
+    it('testGetPreferencesCacheSize004', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_cacheSize_004', cacheSize: 'invalid' });
+            expect(null).assertFail();
+        } catch (err) {
+            expect(err.code == 15500000 || err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences without cacheSize
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_005
+     * @tc.desc getPreferences without cacheSize should succeed (backward compatible)
+     */
+    it('testGetPreferencesCacheSize005', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_cacheSize_005' });
+            expect(pref != null).assertTrue();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_cacheSize_005' });
+            await data_preferences.deletePreferences(context, { name: 'test_cacheSize_005' });
+            done();
+        } catch (err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize below minimum range
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_006
+     * @tc.desc getPreferences with cacheSize=1 (below 4096) should throw error 401
+     */
+    it('testGetPreferencesCacheSize006', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_cacheSize_006', cacheSize: 1 });
+            expect(null).assertFail();
+        } catch (err) {
+            expect(err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize above maximum range
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_007
+     * @tc.desc getPreferences with cacheSize=9999999 (above 1112784) should throw error 401
+     */
+    it('testGetPreferencesCacheSize007', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_cacheSize_007', cacheSize: 9999999 });
+            expect(null).assertFail();
+        } catch (err) {
+            expect(err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize boundary values
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_008
+     * @tc.desc getPreferences with cacheSize=4096 and 1112784 (boundary) should succeed
+     */
+    it('testGetPreferencesCacheSize008', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_cacheSize_008a', cacheSize: 256 });
+            expect(pref != null).assertTrue();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_cacheSize_008a' });
+            await data_preferences.deletePreferences(context, { name: 'test_cacheSize_008a' });
+
+            pref = await data_preferences.getPreferences(context, { name: 'test_cacheSize_008b', cacheSize: 1112784 });
+            expect(pref != null).assertTrue();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_cacheSize_008b' });
+            await data_preferences.deletePreferences(context, { name: 'test_cacheSize_008b' });
+            done();
+        } catch (err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize in XML mode (silently ignored)
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_009
+     * @tc.desc getPreferences with storageType XML and cacheSize=4096 should succeed, cacheSize silently ignored
+     */
+    it('testGetPreferencesCacheSize009', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context,
+                { name: 'test_cacheSize_009', storageType: 0, cacheSize: 256 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_cacheSize_009' });
+            await data_preferences.deletePreferences(context, { name: 'test_cacheSize_009' });
+            done();
+        } catch (err) {
+            expect(err).assertFail();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with cacheSize=0 in XML mode (silently ignored)
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_cacheSize_010
+     * @tc.desc getPreferences with storageType XML and cacheSize=0 should succeed, cacheSize silently ignored
+     */
+    it('testGetPreferencesCacheSize010', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context,
+                { name: 'test_cacheSize_010', storageType: 0, cacheSize: 0 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_cacheSize_010' });
+            await data_preferences.deletePreferences(context, { name: 'test_cacheSize_010' });
+            done();
+        } catch (err) {
+            expect(err).assertFail();
+        }
+    })
 })

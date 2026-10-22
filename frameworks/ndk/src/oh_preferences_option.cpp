@@ -58,6 +58,25 @@ Preferences_StorageType OH_PreferencesOption::GetStorageType()
     return storageType;
 }
 
+void OH_PreferencesOption::SetCacheSize(int32_t size)
+{
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
+    cacheSize = size;
+    hasCacheSize = true;
+}
+
+int32_t OH_PreferencesOption::GetCacheSize()
+{
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
+    return cacheSize;
+}
+
+bool OH_PreferencesOption::GetHasCacheSize()
+{
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
+    return hasCacheSize;
+}
+
 std::string OH_PreferencesOption::GetFileName()
 {
     std::shared_lock<std::shared_mutex> readLock(opMutex_);
@@ -147,6 +166,37 @@ int OH_PreferencesOption_SetStorageType(OH_PreferencesOption *option, Preference
 
     option->SetStorageType(type);
     return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int OH_PreferencesOption_SetCacheSize(OH_PreferencesOption *option, int32_t cacheSize)
+{
+    if (option == nullptr || !NDKPreferencesUtils::PreferencesStructValidCheck(
+        option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("set option's cacheSize failed, option is null: %{public}d", (option == nullptr));
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    if (cacheSize < 0) {
+        LOG_ERROR("set option's cacheSize failed, cacheSize is negative: %{public}d", cacheSize);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    constexpr int32_t CACHE_SIZE_MIN = 256;
+    constexpr int32_t CACHE_SIZE_MAX = 1112784;
+    if (cacheSize > 0 && (cacheSize < CACHE_SIZE_MIN || cacheSize > CACHE_SIZE_MAX)) {
+        LOG_ERROR("set option's cacheSize failed, cacheSize out of range: %{public}d", cacheSize);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    option->SetCacheSize(cacheSize);
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int32_t OH_PreferencesOption_GetCacheSize(OH_PreferencesOption *option)
+{
+    if (option == nullptr || !NDKPreferencesUtils::PreferencesStructValidCheck(
+        option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("get option's cacheSize failed, option is null: %{public}d", (option == nullptr));
+        return 0;
+    }
+    return option->GetCacheSize();
 }
 
 int OH_PreferencesOption_Destroy(OH_PreferencesOption* option)

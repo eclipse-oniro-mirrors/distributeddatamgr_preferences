@@ -87,8 +87,11 @@ OH_Preferences *OH_Preferences_Open(OH_PreferencesOption *option, int *errCode)
     std::string filePath = dirRes.second + "/" + option->GetFileName();
 
     Preferences_StorageType type = option->GetStorageType();
+    int32_t cacheSize = option->GetCacheSize();
+    bool hasCacheSize = option->GetHasCacheSize();
     OHOS::NativePreferences::Options nativeOptions(filePath, option->GetBundleName(),
-        option->GetDataGroupId(), type == PREFERENCES_STORAGE_GSKV);
+        option->GetDataGroupId(), type == PREFERENCES_STORAGE_GSKV,
+        static_cast<uint32_t>(cacheSize), hasCacheSize);
 
     int nativeErr = OHOS::NativePreferences::E_OK;
     std::shared_ptr<OHOS::NativePreferences::Preferences> innerPreferences=
