@@ -347,45 +347,45 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKStorageTypeGSKVTest_007, TestSize.Lev
 }
 
 /**
- * @tc.name: NDKCacheSizeConfigTest_001
- * @tc.desc: test OH_PreferencesOption_SetCacheSize/GetCacheSize API basic behavior
+ * @tc.name: NDKSharedMapSizeConfigTest_001
+ * @tc.desc: test OH_PreferencesOption_SetSharedMapSize/GetSharedMapSize API basic behavior
  * @tc.type: FUNC
  * @tc.require: NA
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_001, TestSize.Level0)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKSharedMapSizeConfigTest_001, TestSize.Level0)
 {
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     ASSERT_NE(option, nullptr);
-    ASSERT_EQ(OH_PreferencesOption_SetFileName(option, "NDKCacheSize001"), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetFileName(option, "NDKSharedMapSize001"), PREFERENCES_OK);
 
-    // default cacheSize should be 0 when not set
-    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 0);
+    // default sharedMapSize should be 0 when not set
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 0);
 
-    // set cacheSize=256
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 256), PREFERENCES_OK);
-    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 256);
+    // set sharedMapSize=256
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 256), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 256);
 
-    // set cacheSize=0
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 0), PREFERENCES_OK);
-    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 0);
+    // set sharedMapSize=0
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 0), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 0);
 
-    // set cacheSize=max boundary
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 1112784), PREFERENCES_OK);
-    EXPECT_EQ(OH_PreferencesOption_GetCacheSize(option), 1112784);
+    // set sharedMapSize=max boundary
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 1112784), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 1112784);
 
     // invalid args
-    EXPECT_EQ(OH_PreferencesOption_SetCacheSize(nullptr, 256), PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(nullptr, 256), PREFERENCES_ERROR_INVALID_PARAM);
 
     (void)OH_PreferencesOption_Destroy(option);
 }
 
 /**
- * @tc.name: NDKCacheSizeConfigTest_002
- * @tc.desc: test GSKV open with cacheSize=256, SetInt + GetInt + Flush verification
+ * @tc.name: NDKSharedMapSizeConfigTest_002
+ * @tc.desc: test GSKV open with sharedMapSize=256, SetInt + GetInt + Flush verification
  * @tc.type: FUNC
  * @tc.require: NA
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_002, TestSize.Level0)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKSharedMapSizeConfigTest_002, TestSize.Level0)
 {
     bool isEnhance = false;
     ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
@@ -393,14 +393,14 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_002, TestSize.Lev
     if (!isEnhance) {
         return;
     }
-    const char *fileName = "NDKCacheSize002";
+    const char *fileName = "NDKSharedMapSize002";
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     ASSERT_NE(option, nullptr);
     ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetBundleName(option, "com.uttest"), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
         PREFERENCES_OK);
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 256), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 256), PREFERENCES_OK);
 
     int errCode = PREFERENCES_OK;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
@@ -431,12 +431,12 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_002, TestSize.Lev
 }
 
 /**
- * @tc.name: NDKCacheSizeConfigTest_003
- * @tc.desc: test GSKV open with cacheSize=0 (disable map file), SetInt + GetInt verification
+ * @tc.name: NDKSharedMapSizeConfigTest_003
+ * @tc.desc: test GSKV open with sharedMapSize=0 (disable map file), SetInt + GetInt verification
  * @tc.type: FUNC
  * @tc.require: NA
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_003, TestSize.Level0)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKSharedMapSizeConfigTest_003, TestSize.Level0)
 {
     bool isEnhance = false;
     ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
@@ -444,14 +444,14 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_003, TestSize.Lev
     if (!isEnhance) {
         return;
     }
-    const char *fileName = "NDKCacheSize003";
+    const char *fileName = "NDKSharedMapSize003";
     OH_PreferencesOption *option = OH_PreferencesOption_Create();
     ASSERT_NE(option, nullptr);
     ASSERT_EQ(OH_PreferencesOption_SetFileName(option, fileName), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetBundleName(option, "com.uttest"), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetStorageType(option, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
         PREFERENCES_OK);
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(option, 0), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 0), PREFERENCES_OK);
 
     int errCode = PREFERENCES_OK;
     OH_Preferences *pref = OH_Preferences_Open(option, &errCode);
@@ -472,13 +472,13 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeConfigTest_003, TestSize.Lev
 }
 
 /**
- * @tc.name: NDKCacheSizeUpgradeTest_001
- * @tc.desc: upgrade scenario: default(no cacheSize) -> cacheSize=256,
- *           old data should be readable after reopen with new cacheSize
+ * @tc.name: NDKSharedMapSizeUpgradeTest_001
+ * @tc.desc: upgrade scenario: default(no sharedMapSize) -> sharedMapSize=256,
+ *           old data should be readable after reopen with new sharedMapSize
  * @tc.type: FUNC
  * @tc.require: NA
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_001, TestSize.Level0)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKSharedMapSizeUpgradeTest_001, TestSize.Level0)
 {
     bool isEnhance = false;
     ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
@@ -486,9 +486,9 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_001, TestSize.Le
     if (!isEnhance) {
         return;
     }
-    const char *fileName = "NDKCacheSizeUpg001";
+    const char *fileName = "NDKSharedMapSizeUpg001";
 
-    // Step1: open with default (no cacheSize), write data
+    // Step1: open with default (no sharedMapSize), write data
     OH_PreferencesOption *opt1 = OH_PreferencesOption_Create();
     ASSERT_NE(opt1, nullptr);
     ASSERT_EQ(OH_PreferencesOption_SetFileName(opt1, fileName), PREFERENCES_OK);
@@ -504,14 +504,14 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_001, TestSize.Le
     ASSERT_EQ(OH_Preferences_Close(pref1), PREFERENCES_OK);
     (void)OH_PreferencesOption_Destroy(opt1);
 
-    // Step2: reopen with cacheSize=256, verify old data
+    // Step2: reopen with sharedMapSize=256, verify old data
     OH_PreferencesOption *opt2 = OH_PreferencesOption_Create();
     ASSERT_NE(opt2, nullptr);
     ASSERT_EQ(OH_PreferencesOption_SetFileName(opt2, fileName), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetBundleName(opt2, "com.uttest"), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetStorageType(opt2, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
         PREFERENCES_OK);
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(opt2, 256), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(opt2, 256), PREFERENCES_OK);
     OH_Preferences *pref2 = OH_Preferences_Open(opt2, &errCode);
     ASSERT_EQ(errCode, PREFERENCES_OK);
 
@@ -535,13 +535,13 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_001, TestSize.Le
 }
 
 /**
- * @tc.name: NDKCacheSizeUpgradeTest_002
- * @tc.desc: upgrade scenario: cacheSize=256 -> cacheSize=0,
+ * @tc.name: NDKSharedMapSizeUpgradeTest_002
+ * @tc.desc: upgrade scenario: sharedMapSize=256 -> sharedMapSize=0,
  *           verify old data readable + delete + new write after reopen
  * @tc.type: FUNC
  * @tc.require: NA
  */
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_002, TestSize.Level0)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKSharedMapSizeUpgradeTest_002, TestSize.Level0)
 {
     bool isEnhance = false;
     ASSERT_EQ(OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance),
@@ -549,16 +549,16 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_002, TestSize.Le
     if (!isEnhance) {
         return;
     }
-    const char *fileName = "NDKCacheSizeUpg002";
+    const char *fileName = "NDKSharedMapSizeUpg002";
 
-    // Step1: open with cacheSize=256, write data
+    // Step1: open with sharedMapSize=256, write data
     OH_PreferencesOption *opt1 = OH_PreferencesOption_Create();
     ASSERT_NE(opt1, nullptr);
     ASSERT_EQ(OH_PreferencesOption_SetFileName(opt1, fileName), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetBundleName(opt1, "com.uttest"), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetStorageType(opt1, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
         PREFERENCES_OK);
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(opt1, 256), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(opt1, 256), PREFERENCES_OK);
     int errCode = PREFERENCES_OK;
     OH_Preferences *pref1 = OH_Preferences_Open(opt1, &errCode);
     ASSERT_EQ(errCode, PREFERENCES_OK);
@@ -568,14 +568,14 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_002, TestSize.Le
     ASSERT_EQ(OH_Preferences_Close(pref1), PREFERENCES_OK);
     (void)OH_PreferencesOption_Destroy(opt1);
 
-    // Step2: reopen with cacheSize=0, verify old data + delete + new write
+    // Step2: reopen with sharedMapSize=0, verify old data + delete + new write
     OH_PreferencesOption *opt2 = OH_PreferencesOption_Create();
     ASSERT_NE(opt2, nullptr);
     ASSERT_EQ(OH_PreferencesOption_SetFileName(opt2, fileName), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetBundleName(opt2, "com.uttest"), PREFERENCES_OK);
     ASSERT_EQ(OH_PreferencesOption_SetStorageType(opt2, Preferences_StorageType::PREFERENCES_STORAGE_GSKV),
         PREFERENCES_OK);
-    ASSERT_EQ(OH_PreferencesOption_SetCacheSize(opt2, 0), PREFERENCES_OK);
+    ASSERT_EQ(OH_PreferencesOption_SetSharedMapSize(opt2, 0), PREFERENCES_OK);
     OH_Preferences *pref2 = OH_Preferences_Open(opt2, &errCode);
     ASSERT_EQ(errCode, PREFERENCES_OK);
 
@@ -604,36 +604,36 @@ HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeUpgradeTest_002, TestSize.Le
 }
 
 /**
- * @tc.name: NDKCacheSizeChainedUpgradeTest
+ * @tc.name: NDKSharedMapSizeChainedUpgradeTest
  * @tc.desc: chained upgrade: default -> 256 -> 0 -> 65536 -> 1112784,
  *           each step reopen and verify old data readable + write step marker
  * @tc.type: FUNC
  * @tc.require: NA
  */
-static OH_Preferences *OpenChainPref(const char *fileName, int32_t cacheSize, bool setCache, int *errCode)
+static OH_Preferences *OpenChainPref(const char *fileName, int32_t sharedMapSize, bool setCache, int *errCode)
 {
     OH_PreferencesOption *opt = OH_PreferencesOption_Create();
     if (opt == nullptr) { return nullptr; }
     OH_PreferencesOption_SetFileName(opt, fileName);
     OH_PreferencesOption_SetBundleName(opt, "com.uttest");
     OH_PreferencesOption_SetStorageType(opt, Preferences_StorageType::PREFERENCES_STORAGE_GSKV);
-    if (setCache) { OH_PreferencesOption_SetCacheSize(opt, cacheSize); }
+    if (setCache) { OH_PreferencesOption_SetSharedMapSize(opt, sharedMapSize); }
     OH_Preferences *pref = OH_Preferences_Open(opt, errCode);
     OH_PreferencesOption_Destroy(opt);
     return pref;
 }
 
-HWTEST_F(PreferencesNdkStorageTypeTest, NDKCacheSizeChainedUpgradeTest, TestSize.Level0)
+HWTEST_F(PreferencesNdkStorageTypeTest, NDKSharedMapSizeChainedUpgradeTest, TestSize.Level0)
 {
     bool isEnhance = false;
     OH_Preferences_IsStorageTypeSupported(Preferences_StorageType::PREFERENCES_STORAGE_GSKV, &isEnhance);
     if (!isEnhance) { return; }
-    const char *fileName = "NDKCacheSizeChain";
-    struct ChainCfg { int32_t cacheSize; bool setCache; };
+    const char *fileName = "NDKSharedMapSizeChain";
+    struct ChainCfg { int32_t sharedMapSize; bool setCache; };
     std::vector<ChainCfg> chain = {{0, false}, {256, true}, {0, true}, {65536, true}, {1112784, true}};
     for (size_t i = 0; i < chain.size(); i++) {
         int errCode = PREFERENCES_OK;
-        OH_Preferences *pref = OpenChainPref(fileName, chain[i].cacheSize, chain[i].setCache, &errCode);
+        OH_Preferences *pref = OpenChainPref(fileName, chain[i].sharedMapSize, chain[i].setCache, &errCode);
         ASSERT_EQ(errCode, PREFERENCES_OK) << "step " << i << " open failed";
         if (i == 0) {
             ASSERT_EQ(OH_Preferences_SetString(pref, "chain_key", "chain_value"), PREFERENCES_OK);

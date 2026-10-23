@@ -30,7 +30,7 @@ namespace PreferencesJsKit {
 constexpr const char* DATA_GROUP_ID = "dataGroupId";
 constexpr const char* NAME = "name";
 constexpr const char* STORAGE_TYPE = "storageType";
-constexpr const char* CACHE_SIZE = "cacheSize";
+constexpr const char* SHARED_MAP_SIZE = "sharedMapSize";
 
 struct HelperAsyncContext : public BaseContext {
     std::string path;
@@ -40,8 +40,8 @@ struct HelperAsyncContext : public BaseContext {
     std::shared_ptr<NativePreferences::Preferences> proxy;
     StorageType storageType = StorageType::XML;
     bool isStorageTypeSupported = false;
-    int32_t cacheSize = 0;
-    bool hasCacheSize = false;
+    int32_t sharedMapSize = 0;
+    bool hasSharedMapSize = false;
 
     HelperAsyncContext()
     {
@@ -49,36 +49,36 @@ struct HelperAsyncContext : public BaseContext {
     virtual ~HelperAsyncContext(){};
 };
 
-int ParseCacheSize(const napi_env env, napi_value options, std::shared_ptr<HelperAsyncContext> context)
+int ParseSharedMapSize(const napi_env env, napi_value options, std::shared_ptr<HelperAsyncContext> context)
 {
-    bool hasCacheSize = false;
-    PRE_CHECK_RETURN_ERR_SET(napi_has_named_property(env, options, CACHE_SIZE, &hasCacheSize) == napi_ok,
-        std::make_shared<ParamTypeError>("napi call failed when check cacheSize"));
-    if (hasCacheSize) {
-        napi_value cacheSizeValue = nullptr;
-        PRE_CHECK_RETURN_ERR_SET(napi_get_named_property(env, options, CACHE_SIZE, &cacheSizeValue) == napi_ok,
-            std::make_shared<ParamTypeError>("napi call failed when get cacheSize."));
-        napi_valuetype cacheSizeType = napi_undefined;
-        napi_status cacheStatus = napi_typeof(env, cacheSizeValue, &cacheSizeType);
-        if (cacheStatus == napi_ok && (cacheSizeType != napi_null && cacheSizeType != napi_undefined)) {
-            PRE_CHECK_RETURN_ERR_SET(cacheSizeType == napi_number,
-                std::make_shared<ParamTypeError>("The cacheSize must be number."));
-            int32_t cacheSize = 0;
-            PRE_CHECK_RETURN_ERR_SET(napi_get_value_int32(env, cacheSizeValue, &cacheSize) == napi_ok,
-                std::make_shared<ParamTypeError>("The cacheSize must be number."));
-            PRE_CHECK_RETURN_ERR_SET(cacheSize >= 0,
-                std::make_shared<ParamTypeError>("The cacheSize must be non-negative."));
-            if (cacheSize > 0) {
-                constexpr int32_t CACHE_SIZE_MIN = 256;
-                constexpr int32_t CACHE_SIZE_MAX = 1112784;
-                PRE_CHECK_RETURN_ERR_SET(cacheSize >= CACHE_SIZE_MIN && cacheSize <= CACHE_SIZE_MAX,
-                    std::make_shared<ParamTypeError>("The cacheSize must be in [256, 1112784] or 0."));
+    bool hasSharedMapSize = false;
+    PRE_CHECK_RETURN_ERR_SET(napi_has_named_property(env, options, SHARED_MAP_SIZE, &hasSharedMapSize) == napi_ok,
+        std::make_shared<ParamTypeError>("napi call failed when check sharedMapSize"));
+    if (hasSharedMapSize) {
+        napi_value sharedMapSizeValue = nullptr;
+        PRE_CHECK_RETURN_ERR_SET(napi_get_named_property(env, options, SHARED_MAP_SIZE, &sharedMapSizeValue) == napi_ok,
+            std::make_shared<ParamTypeError>("napi call failed when get sharedMapSize."));
+        napi_valuetype sharedMapSizeType = napi_undefined;
+        napi_status cacheStatus = napi_typeof(env, sharedMapSizeValue, &sharedMapSizeType);
+        if (cacheStatus == napi_ok && (sharedMapSizeType != napi_null && sharedMapSizeType != napi_undefined)) {
+            PRE_CHECK_RETURN_ERR_SET(sharedMapSizeType == napi_number,
+                std::make_shared<ParamTypeError>("The sharedMapSize must be number."));
+            int32_t sharedMapSize = 0;
+            PRE_CHECK_RETURN_ERR_SET(napi_get_value_int32(env, sharedMapSizeValue, &sharedMapSize) == napi_ok,
+                std::make_shared<ParamTypeError>("The sharedMapSize must be number."));
+            PRE_CHECK_RETURN_ERR_SET(sharedMapSize >= 0,
+                std::make_shared<ParamTypeError>("The sharedMapSize must be non-negative."));
+            if (sharedMapSize > 0) {
+                constexpr int32_t SHARED_MAP_SIZE_MIN = 256;
+                constexpr int32_t SHARED_MAP_SIZE_MAX = 1112784;
+                PRE_CHECK_RETURN_ERR_SET(sharedMapSize >= SHARED_MAP_SIZE_MIN && sharedMapSize <= SHARED_MAP_SIZE_MAX,
+                    std::make_shared<ParamTypeError>("The sharedMapSize must be in [256, 1112784] or 0."));
             }
-            context->cacheSize = cacheSize;
-            context->hasCacheSize = true;
+            context->sharedMapSize = sharedMapSize;
+            context->hasSharedMapSize = true;
         }
         PRE_CHECK_RETURN_ERR_SET(cacheStatus == napi_ok,
-            std::make_shared<InnerError>("parse cacheSize: type of api failed"));
+            std::make_shared<InnerError>("parse sharedMapSize: type of api failed"));
     }
     return OK;
 }
@@ -123,8 +123,8 @@ int ParseOptionalParameters(const napi_env env, napi_value *argv, std::shared_pt
         PRE_CHECK_RETURN_ERR_SET(status == napi_ok,
             std::make_shared<InnerError>("parse storage type: type of api failed"));
     }
-    PRE_CHECK_RETURN_ERR_SET(ParseCacheSize(env, argv[1], context) == OK,
-        std::make_shared<ParamTypeError>("parse cacheSize failed"));
+    PRE_CHECK_RETURN_ERR_SET(ParseSharedMapSize(env, argv[1], context) == OK,
+        std::make_shared<ParamTypeError>("parse sharedMapSize failed"));
     return OK;
 }
 
@@ -159,7 +159,7 @@ napi_value GetPreferences(napi_env env, napi_callback_info info)
         int errCode = E_OK;
         Options options(context->path, context->bundleName, context->dataGroupId,
             context->storageType == StorageType::GSKV,
-            static_cast<uint32_t>(context->cacheSize), context->hasCacheSize);
+            static_cast<uint32_t>(context->sharedMapSize), context->hasSharedMapSize);
         context->proxy = PreferencesHelper::GetPreferences(options, errCode);
         return errCode;
     };

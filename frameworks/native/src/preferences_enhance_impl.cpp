@@ -55,7 +55,7 @@ int PreferencesEnhanceImpl::Init()
     }
     db_ = std::make_shared<PreferencesDb>();
     cachedDataVersion_ = 0;
-    int errCode = db_->Init(options_.filePath, options_.bundleName, options_.cacheSize, options_.hasCacheSize);
+    int errCode = db_->Init(options_.filePath, options_.bundleName, options_.sharedMapSize, options_.hasSharedMapSize);
     if (errCode != E_OK) {
         db_ = nullptr;
     }

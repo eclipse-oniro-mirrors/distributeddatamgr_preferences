@@ -612,18 +612,18 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeApiTest013, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeConfigTest001
- * @tc.desc: test GSKV Init with cacheSize=0 (hasCacheSize=true), should open db successfully without map file
+ * @tc.name: SharedMapSizeConfigTest001
+ * @tc.desc: test GSKV Init with sharedMapSize=0 (hasSharedMapSize=true), should open db successfully without map file
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest001, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeConfigTest001, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeTest001";
+    std::string filePath = "/data/test/SharedMapSizeTest001";
     Options option = Options(filePath, "com.hmos.uttest", "", true, 0, true);
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -635,18 +635,18 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest001, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeConfigTest002
- * @tc.desc: test GSKV Init with cacheSize=256 (hasCacheSize=true), should open db successfully
+ * @tc.name: SharedMapSizeConfigTest002
+ * @tc.desc: test GSKV Init with sharedMapSize=256 (hasSharedMapSize=true), should open db successfully
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest002, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeConfigTest002, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeTest002";
+    std::string filePath = "/data/test/SharedMapSizeTest002";
     Options option = Options(filePath, "com.hmos.uttest", "", true, 256, true);
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -658,18 +658,18 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest002, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeConfigTest003
- * @tc.desc: test GSKV Init without cacheSize (hasCacheSize=false), behavior should be backward compatible
+ * @tc.name: SharedMapSizeConfigTest003
+ * @tc.desc: test GSKV Init without sharedMapSize (hasSharedMapSize=false), behavior should be backward compatible
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest003, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeConfigTest003, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeTest003";
+    std::string filePath = "/data/test/SharedMapSizeTest003";
     Options option = Options(filePath, "com.hmos.uttest", "", true);
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -681,18 +681,18 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest003, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeConfigTest004
- * @tc.desc: test GSKV Init with cacheSize=1112784 (max boundary), should open db successfully
+ * @tc.name: SharedMapSizeConfigTest004
+ * @tc.desc: test GSKV Init with sharedMapSize=1112784 (max boundary), should open db successfully
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest004, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeConfigTest004, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeTest004";
+    std::string filePath = "/data/test/SharedMapSizeTest004";
     Options option = Options(filePath, "com.hmos.uttest", "", true, 1112784, true);
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -704,38 +704,38 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest004, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeConfigTest005
- * @tc.desc: test Options struct cacheSize and hasCacheSize fields with different constructors
+ * @tc.name: SharedMapSizeConfigTest005
+ * @tc.desc: test Options struct sharedMapSize and hasSharedMapSize fields with different constructors
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeConfigTest005, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeConfigTest005, TestSize.Level0)
 {
     Options opt1 = Options("/data/test/test", "com.test", "");
-    EXPECT_EQ(opt1.cacheSize, 0u);
-    EXPECT_EQ(opt1.hasCacheSize, false);
+    EXPECT_EQ(opt1.sharedMapSize, 0u);
+    EXPECT_EQ(opt1.hasSharedMapSize, false);
 
     Options opt2 = Options("/data/test/test", "com.test", "", true);
-    EXPECT_EQ(opt2.cacheSize, 0u);
-    EXPECT_EQ(opt2.hasCacheSize, false);
+    EXPECT_EQ(opt2.sharedMapSize, 0u);
+    EXPECT_EQ(opt2.hasSharedMapSize, false);
 
     Options opt3 = Options("/data/test/test", "com.test", "", true, 256, true);
-    EXPECT_EQ(opt3.cacheSize, 256u);
-    EXPECT_EQ(opt3.hasCacheSize, true);
+    EXPECT_EQ(opt3.sharedMapSize, 256u);
+    EXPECT_EQ(opt3.hasSharedMapSize, true);
 
     Options opt4 = Options("/data/test/test", "com.test", "", true, 0, true);
-    EXPECT_EQ(opt4.cacheSize, 0u);
-    EXPECT_EQ(opt4.hasCacheSize, true);
+    EXPECT_EQ(opt4.sharedMapSize, 0u);
+    EXPECT_EQ(opt4.hasSharedMapSize, true);
 }
 
 /**
- * @tc.name: CacheSizeXmlSilentIgnoreTest001
- * @tc.desc: test XML mode with cacheSize=256, cacheSize should be silently ignored
+ * @tc.name: SharedMapSizeXmlSilentIgnoreTest001
+ * @tc.desc: test XML mode with sharedMapSize=256, sharedMapSize should be silently ignored
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeXmlSilentIgnoreTest001, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeXmlSilentIgnoreTest001, TestSize.Level0)
 {
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeXmlTest001";
+    std::string filePath = "/data/test/SharedMapSizeXmlTest001";
     Options option = Options(filePath, "com.hmos.uttest", "", false, 256, true);
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -747,14 +747,14 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeXmlSilentIgnoreTest001, TestSize.L
 }
 
 /**
- * @tc.name: CacheSizeXmlSilentIgnoreTest002
- * @tc.desc: test XML mode with cacheSize=0, cacheSize should be silently ignored
+ * @tc.name: SharedMapSizeXmlSilentIgnoreTest002
+ * @tc.desc: test XML mode with sharedMapSize=0, sharedMapSize should be silently ignored
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeXmlSilentIgnoreTest002, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeXmlSilentIgnoreTest002, TestSize.Level0)
 {
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeXmlTest002";
+    std::string filePath = "/data/test/SharedMapSizeXmlTest002";
     Options option = Options(filePath, "com.hmos.uttest", "", false, 0, true);
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -766,20 +766,20 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeXmlSilentIgnoreTest002, TestSize.L
 }
 
 /**
- * @tc.name: CacheSizeUpgradeTest001
- * @tc.desc: upgrade scenario: default(no cacheSize) -> cacheSize=256, old data should be readable
+ * @tc.name: SharedMapSizeUpgradeTest001
+ * @tc.desc: upgrade scenario: default(no sharedMapSize) -> sharedMapSize=256, old data should be readable
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest001, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeUpgradeTest001, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeUpgrade001";
+    std::string filePath = "/data/test/SharedMapSizeUpgrade001";
 
-    // Step1: open with default (no cacheSize), write data
+    // Step1: open with default (no sharedMapSize), write data
     Options opt1 = Options(filePath, "com.hmos.uttest", "", true);
     std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences(opt1, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -790,7 +790,7 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest001, TestSize.Level0)
     // Step2: remove from cache
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
 
-    // Step3: reopen with cacheSize=256, verify old data
+    // Step3: reopen with sharedMapSize=256, verify old data
     Options opt2 = Options(filePath, "com.hmos.uttest", "", true, 256, true);
     std::shared_ptr<Preferences> pref2 = PreferencesHelper::GetPreferences(opt2, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -802,20 +802,20 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest001, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeUpgradeTest002
- * @tc.desc: upgrade scenario: cacheSize=256 -> cacheSize=0, old data should be readable
+ * @tc.name: SharedMapSizeUpgradeTest002
+ * @tc.desc: upgrade scenario: sharedMapSize=256 -> sharedMapSize=0, old data should be readable
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest002, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeUpgradeTest002, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeUpgrade002";
+    std::string filePath = "/data/test/SharedMapSizeUpgrade002";
 
-    // Step1: open with cacheSize=256, write data
+    // Step1: open with sharedMapSize=256, write data
     Options opt1 = Options(filePath, "com.hmos.uttest", "", true, 256, true);
     std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences(opt1, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -826,7 +826,7 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest002, TestSize.Level0)
     // Step2: remove from cache
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
 
-    // Step3: reopen with cacheSize=0, verify old data
+    // Step3: reopen with sharedMapSize=0, verify old data
     Options opt2 = Options(filePath, "com.hmos.uttest", "", true, 0, true);
     std::shared_ptr<Preferences> pref2 = PreferencesHelper::GetPreferences(opt2, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -838,20 +838,20 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest002, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeUpgradeTest003
- * @tc.desc: upgrade scenario: cacheSize=0 -> cacheSize=65536, old data should be readable
+ * @tc.name: SharedMapSizeUpgradeTest003
+ * @tc.desc: upgrade scenario: sharedMapSize=0 -> sharedMapSize=65536, old data should be readable
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest003, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeUpgradeTest003, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeUpgrade003";
+    std::string filePath = "/data/test/SharedMapSizeUpgrade003";
 
-    // Step1: open with cacheSize=0, write data
+    // Step1: open with sharedMapSize=0, write data
     Options opt1 = Options(filePath, "com.hmos.uttest", "", true, 0, true);
     std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences(opt1, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -862,7 +862,7 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest003, TestSize.Level0)
     // Step2: remove from cache
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
 
-    // Step3: reopen with cacheSize=65536, verify old data
+    // Step3: reopen with sharedMapSize=65536, verify old data
     Options opt2 = Options(filePath, "com.hmos.uttest", "", true, 65536, true);
     std::shared_ptr<Preferences> pref2 = PreferencesHelper::GetPreferences(opt2, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -874,22 +874,22 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeTest003, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeChainedUpgradeTest
+ * @tc.name: SharedMapSizeChainedUpgradeTest
  * @tc.desc: chained upgrade: default -> 256 -> 0 -> 65536 -> default -> 1112784,
  *           each step removeFromCache and reopen, verify old data readable and write new data
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeChainedUpgradeTest, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeChainedUpgradeTest, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeChainedUpgrade";
+    std::string filePath = "/data/test/SharedMapSizeChainedUpgrade";
 
-    // chain of cacheSize configs: -1 means default (hasCacheSize=false)
-    struct ChainConfig { int32_t cacheSize; bool hasCacheSize; };
+    // chain of sharedMapSize configs: -1 means default (hasSharedMapSize=false)
+    struct ChainConfig { int32_t sharedMapSize; bool hasSharedMapSize; };
     std::vector<ChainConfig> chain = {
         {0, false},   // default
         {256, true},
@@ -901,7 +901,7 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeChainedUpgradeTest, TestSize.Level
 
     for (size_t i = 0; i < chain.size(); i++) {
         ChainConfig cfg = chain[i];
-        Options opt = Options(filePath, "com.hmos.uttest", "", true, cfg.cacheSize, cfg.hasCacheSize);
+        Options opt = Options(filePath, "com.hmos.uttest", "", true, cfg.sharedMapSize, cfg.hasSharedMapSize);
         std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(opt, errCode);
         ASSERT_EQ(errCode, E_OK) << "step " << i << " open failed";
 
@@ -930,33 +930,33 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeChainedUpgradeTest, TestSize.Level
 }
 
 /**
- * @tc.name: CacheSizeReadWriteTest
- * @tc.desc: read/write verification under cacheSize config: put/get/hasKey/delete/clear with
+ * @tc.name: SharedMapSizeReadWriteTest
+ * @tc.desc: read/write verification under sharedMapSize config: put/get/hasKey/delete/clear with
  *           int/string types, verify data consistency across operations
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeReadWriteTest, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeReadWriteTest, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeReadWrite";
+    std::string filePath = "/data/test/SharedMapSizeReadWrite";
     Options option = Options(filePath, "com.hmos.uttest", "", true, 65536, true);
     std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
     ASSERT_EQ(errCode, E_OK);
 
     // put int and string
     ASSERT_EQ(pref->PutInt("int_key", 42), E_OK);
-    ASSERT_EQ(pref->PutString("str_key", "hello_cacheSize"), E_OK);
+    ASSERT_EQ(pref->PutString("str_key", "hello_sharedMapSize"), E_OK);
     ASSERT_EQ(pref->PutInt("neg_key", -99), E_OK);
     ASSERT_EQ(pref->PutString("empty_key", ""), E_OK);
     ASSERT_EQ(pref->FlushSync(), E_OK);
 
     // get and verify
     EXPECT_EQ(pref->GetInt("int_key", -1), 42);
-    EXPECT_EQ(pref->GetString("str_key", "default"), "hello_cacheSize");
+    EXPECT_EQ(pref->GetString("str_key", "default"), "hello_sharedMapSize");
     EXPECT_EQ(pref->GetInt("neg_key", 0), -99);
     EXPECT_EQ(pref->GetString("empty_key", "default"), "");
 
@@ -985,21 +985,21 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeReadWriteTest, TestSize.Level0)
 }
 
 /**
- * @tc.name: CacheSizeUpgradeReadWriteTest
- * @tc.desc: upgrade + read/write cross-validation: write with cacheSize=256, upgrade to
- *           cacheSize=0, verify old data + write new data + upgrade back to 65536, verify all
+ * @tc.name: SharedMapSizeUpgradeReadWriteTest
+ * @tc.desc: upgrade + read/write cross-validation: write with sharedMapSize=256, upgrade to
+ *           sharedMapSize=0, verify old data + write new data + upgrade back to 65536, verify all
  * @tc.type: FUNC
  */
-HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeReadWriteTest, TestSize.Level0)
+HWTEST_F(PreferencesStorageTypeTest, SharedMapSizeUpgradeReadWriteTest, TestSize.Level0)
 {
     bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
     if (!isEnhance) {
         return;
     }
     int errCode = E_OK;
-    std::string filePath = "/data/test/CacheSizeUpgradeRW";
+    std::string filePath = "/data/test/SharedMapSizeUpgradeRW";
 
-    // Step1: cacheSize=256, write multiple data types
+    // Step1: sharedMapSize=256, write multiple data types
     Options opt1 = Options(filePath, "com.hmos.uttest", "", true, 256, true);
     std::shared_ptr<Preferences> pref1 = PreferencesHelper::GetPreferences(opt1, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -1010,7 +1010,7 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeReadWriteTest, TestSize.Lev
     ASSERT_EQ(pref1->FlushSync(), E_OK);
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
 
-    // Step2: upgrade to cacheSize=0, verify old data + delete one + add new
+    // Step2: upgrade to sharedMapSize=0, verify old data + delete one + add new
     Options opt2 = Options(filePath, "com.hmos.uttest", "", true, 0, true);
     std::shared_ptr<Preferences> pref2 = PreferencesHelper::GetPreferences(opt2, errCode);
     ASSERT_EQ(errCode, E_OK);
@@ -1026,7 +1026,7 @@ HWTEST_F(PreferencesStorageTypeTest, CacheSizeUpgradeReadWriteTest, TestSize.Lev
     EXPECT_TRUE(pref2->HasKey("s3"));
     ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
 
-    // Step3: upgrade to cacheSize=65536, verify all remaining data
+    // Step3: upgrade to sharedMapSize=65536, verify all remaining data
     Options opt3 = Options(filePath, "com.hmos.uttest", "", true, 65536, true);
     std::shared_ptr<Preferences> pref3 = PreferencesHelper::GetPreferences(opt3, errCode);
     ASSERT_EQ(errCode, E_OK);

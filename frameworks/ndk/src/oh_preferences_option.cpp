@@ -58,23 +58,23 @@ Preferences_StorageType OH_PreferencesOption::GetStorageType()
     return storageType;
 }
 
-void OH_PreferencesOption::SetCacheSize(int32_t size)
+void OH_PreferencesOption::SetSharedMapSize(int32_t size)
 {
     std::unique_lock<std::shared_mutex> writeLock(opMutex_);
-    cacheSize = size;
-    hasCacheSize = true;
+    sharedMapSize = size;
+    hasSharedMapSize = true;
 }
 
-int32_t OH_PreferencesOption::GetCacheSize()
+int32_t OH_PreferencesOption::GetSharedMapSize()
 {
     std::shared_lock<std::shared_mutex> readLock(opMutex_);
-    return cacheSize;
+    return sharedMapSize;
 }
 
-bool OH_PreferencesOption::GetHasCacheSize()
+bool OH_PreferencesOption::GetHasSharedMapSize()
 {
     std::shared_lock<std::shared_mutex> readLock(opMutex_);
-    return hasCacheSize;
+    return hasSharedMapSize;
 }
 
 std::string OH_PreferencesOption::GetFileName()
@@ -168,35 +168,35 @@ int OH_PreferencesOption_SetStorageType(OH_PreferencesOption *option, Preference
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 
-int OH_PreferencesOption_SetCacheSize(OH_PreferencesOption *option, int32_t cacheSize)
+int OH_PreferencesOption_SetSharedMapSize(OH_PreferencesOption *option, int32_t sharedMapSize)
 {
     if (option == nullptr || !NDKPreferencesUtils::PreferencesStructValidCheck(
         option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
-        LOG_ERROR("set option's cacheSize failed, option is null: %{public}d", (option == nullptr));
+        LOG_ERROR("set option's sharedMapSize failed, option is null: %{public}d", (option == nullptr));
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
-    if (cacheSize < 0) {
-        LOG_ERROR("set option's cacheSize failed, cacheSize is negative: %{public}d", cacheSize);
+    if (sharedMapSize < 0) {
+        LOG_ERROR("set option's sharedMapSize failed, sharedMapSize is negative: %{public}d", sharedMapSize);
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
-    constexpr int32_t CACHE_SIZE_MIN = 256;
-    constexpr int32_t CACHE_SIZE_MAX = 1112784;
-    if (cacheSize > 0 && (cacheSize < CACHE_SIZE_MIN || cacheSize > CACHE_SIZE_MAX)) {
-        LOG_ERROR("set option's cacheSize failed, cacheSize out of range: %{public}d", cacheSize);
+    constexpr int32_t SHARED_MAP_SIZE_MIN = 256;
+    constexpr int32_t SHARED_MAP_SIZE_MAX = 1112784;
+    if (sharedMapSize > 0 && (sharedMapSize < SHARED_MAP_SIZE_MIN || sharedMapSize > SHARED_MAP_SIZE_MAX)) {
+        LOG_ERROR("set option's sharedMapSize failed, sharedMapSize out of range: %{public}d", sharedMapSize);
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
-    option->SetCacheSize(cacheSize);
+    option->SetSharedMapSize(sharedMapSize);
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
 
-int32_t OH_PreferencesOption_GetCacheSize(OH_PreferencesOption *option)
+int32_t OH_PreferencesOption_GetSharedMapSize(OH_PreferencesOption *option)
 {
     if (option == nullptr || !NDKPreferencesUtils::PreferencesStructValidCheck(
         option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
-        LOG_ERROR("get option's cacheSize failed, option is null: %{public}d", (option == nullptr));
+        LOG_ERROR("get option's sharedMapSize failed, option is null: %{public}d", (option == nullptr));
         return 0;
     }
-    return option->GetCacheSize();
+    return option->GetSharedMapSize();
 }
 
 int OH_PreferencesOption_Destroy(OH_PreferencesOption* option)

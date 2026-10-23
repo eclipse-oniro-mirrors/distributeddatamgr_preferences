@@ -130,14 +130,14 @@ int OH_PreferencesOption_SetStorageType(OH_PreferencesOption *option, Preference
  * @brief Sets the cache size in an {@Link OH_PreferencesOption} instance.
  *
  * @param option Pointer to the target {@Link OH_PreferencesOption} instance.
- * @param cacheSize Cache size to set, in KB. The value 0 indicates that no map file is generated.
+ * @param sharedMapSize Cache size to set, in KB. The value 0 indicates that no map file is generated.
  * @return Returns the status code of the execution.
  *         {@link PREFERENCES_OK} success.
  *         {@link PREFERENCES_ERROR_INVALID_PARAM} indicates invalid args are passed in.
  * @see OH_PreferencesOption.
  * @since 26.2.0
  */
-int OH_PreferencesOption_SetCacheSize(OH_PreferencesOption *option, int32_t cacheSize);
+int OH_PreferencesOption_SetSharedMapSize(OH_PreferencesOption *option, int32_t sharedMapSize);
 
 /**
  * @brief Gets the cache size from an {@Link OH_PreferencesOption} instance.
@@ -147,7 +147,7 @@ int OH_PreferencesOption_SetCacheSize(OH_PreferencesOption *option, int32_t cach
  * @see OH_PreferencesOption.
  * @since 26.2.0
  */
-int32_t OH_PreferencesOption_GetCacheSize(OH_PreferencesOption *option);
+int32_t OH_PreferencesOption_GetSharedMapSize(OH_PreferencesOption *option);
 
 /**
  * @brief Destroys an {@Link OH_PreferencesOption} instance.

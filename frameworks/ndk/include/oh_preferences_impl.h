@@ -94,11 +94,11 @@ struct OH_PreferencesOption {
     Preferences_StorageType storageType = Preferences_StorageType::PREFERENCES_STORAGE_GSKV;
     void SetStorageType(const Preferences_StorageType &type);
     Preferences_StorageType GetStorageType();
-    int32_t cacheSize = 0;
-    bool hasCacheSize = false;
-    void SetCacheSize(int32_t size);
-    int32_t GetCacheSize();
-    bool GetHasCacheSize();
+    int32_t sharedMapSize = 0;
+    bool hasSharedMapSize = false;
+    void SetSharedMapSize(int32_t size);
+    int32_t GetSharedMapSize();
+    bool GetHasSharedMapSize();
     std::shared_mutex opMutex_;
 };
 
