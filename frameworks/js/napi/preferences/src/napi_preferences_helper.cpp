@@ -40,7 +40,7 @@ struct HelperAsyncContext : public BaseContext {
     std::shared_ptr<NativePreferences::Preferences> proxy;
     StorageType storageType = StorageType::XML;
     bool isStorageTypeSupported = false;
-    int32_t sharedMapSize = 0;
+    int64_t sharedMapSize = 0;
     bool hasSharedMapSize = false;
 
     HelperAsyncContext()
@@ -63,14 +63,14 @@ int ParseSharedMapSize(const napi_env env, napi_value options, std::shared_ptr<H
         if (cacheStatus == napi_ok && (sharedMapSizeType != napi_null && sharedMapSizeType != napi_undefined)) {
             PRE_CHECK_RETURN_ERR_SET(sharedMapSizeType == napi_number,
                 std::make_shared<ParamTypeError>("The sharedMapSize must be number."));
-            int32_t sharedMapSize = 0;
-            PRE_CHECK_RETURN_ERR_SET(napi_get_value_int32(env, sharedMapSizeValue, &sharedMapSize) == napi_ok,
+            int64_t sharedMapSize = 0;
+            PRE_CHECK_RETURN_ERR_SET(napi_get_value_int64(env, sharedMapSizeValue, &sharedMapSize) == napi_ok,
                 std::make_shared<ParamTypeError>("The sharedMapSize must be number."));
             PRE_CHECK_RETURN_ERR_SET(sharedMapSize >= 0,
                 std::make_shared<ParamTypeError>("The sharedMapSize must be non-negative."));
             if (sharedMapSize > 0) {
-                constexpr int32_t SHARED_MAP_SIZE_MIN = 256;
-                constexpr int32_t SHARED_MAP_SIZE_MAX = 1112784;
+                constexpr int64_t SHARED_MAP_SIZE_MIN = 256;
+                constexpr int64_t SHARED_MAP_SIZE_MAX = 1112784;
                 PRE_CHECK_RETURN_ERR_SET(sharedMapSize >= SHARED_MAP_SIZE_MIN && sharedMapSize <= SHARED_MAP_SIZE_MAX,
                     std::make_shared<ParamTypeError>("The sharedMapSize must be in [256, 1112784] or 0."));
             }

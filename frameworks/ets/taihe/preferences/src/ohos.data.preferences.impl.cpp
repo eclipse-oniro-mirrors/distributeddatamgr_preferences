@@ -65,13 +65,13 @@ std::shared_ptr<JSError> ParseOptions(TaiheOptions const& options, PreferencesIn
             StorageType::XML : StorageType::GSKV;
     }
     if (options.sharedMapSize.has_value()) {
-        int32_t sharedMapSize = options.sharedMapSize.value();
+        int64_t sharedMapSize = options.sharedMapSize.value();
         if (sharedMapSize < 0) {
             return std::make_shared<ParamTypeError>("The sharedMapSize must be non-negative.");
         }
         if (sharedMapSize > 0) {
-            constexpr int32_t SHARED_MAP_SIZE_MIN = 256;
-            constexpr int32_t SHARED_MAP_SIZE_MAX = 1112784;
+            constexpr int64_t SHARED_MAP_SIZE_MIN = 256;
+            constexpr int64_t SHARED_MAP_SIZE_MAX = 1112784;
             if (sharedMapSize < SHARED_MAP_SIZE_MIN || sharedMapSize > SHARED_MAP_SIZE_MAX) {
                 return std::make_shared<ParamTypeError>("The sharedMapSize must be in [256, 1112784] or 0.");
             }
