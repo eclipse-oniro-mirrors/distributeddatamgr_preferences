@@ -40,7 +40,7 @@ int DataFabricAddressListenerCallbackStub::OnRemoteRequest(uint32_t code,
     }
 
     switch (code) {
-        case static_cast<int>(IDataFabricAddressCallback::CMD_MINING_FINISHED): {
+        case static_cast<int>(IDataFabricAddressCallback::CMD_DATA_CHANGED): {
             return OnDataFabricAddressChangedStub(data);
         }
         default: {

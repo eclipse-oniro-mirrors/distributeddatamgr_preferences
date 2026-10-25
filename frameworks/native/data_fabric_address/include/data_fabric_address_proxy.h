@@ -35,9 +35,6 @@ public:
     int32_t Subscribe(const DataFabricAddressParams& inputParams,
         sptr<IDataFabricAddressCallback> callback) override;
     int32_t Unsubscribe(const DataFabricAddressParams& inputParams) override;
-private:
-    bool MarshallingDataFabricAddressParams(const DataFabricAddressParams& inputParams,
-        MessageParcel &parcel);
 };
 } // End of namespace NativePreferences
 } // End of namespace OHOS

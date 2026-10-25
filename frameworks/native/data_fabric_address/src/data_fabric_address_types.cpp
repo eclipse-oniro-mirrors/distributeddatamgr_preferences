@@ -16,6 +16,7 @@
 #include "data_fabric_address_types.h"
 
 #include "log_print.h"
+#include "message_parcel.h"
 
 #undef LOG_TAG
 #define LOG_TAG "DataFabricAddressTypes"
@@ -63,6 +64,82 @@ bool DataFabricAddressTypes::StringEnumToInteger(std::unordered_map<std::string,
 
     intValue = map[strValue];
     return true;
+}
+
+bool LocationPoint::Marshal(MessageParcel &parcel) const
+{
+    return parcel.WriteDouble(latitude) && parcel.WriteDouble(longitude);
+}
+
+bool LocationPoint::Unmarshal(MessageParcel &parcel)
+{
+    return parcel.ReadDouble(latitude) && parcel.ReadDouble(longitude);
+}
+
+bool LocationInfo::Marshal(MessageParcel &parcel) const
+{
+    return parcel.WriteInt32(static_cast<int32_t>(labelType)) &&
+        parcel.WriteInt32(static_cast<int32_t>(coordinateSystemType)) && locationPoint.Marshal(parcel);
+}
+
+bool LocationInfo::Unmarshal(MessageParcel &parcel)
+{
+    int32_t labelValue = 0;
+    int32_t coordinateSystemValue = 0;
+    if (!parcel.ReadInt32(labelValue) || !parcel.ReadInt32(coordinateSystemValue)) {
+        return false;
+    }
+    labelType = static_cast<LabelType>(labelValue);
+    coordinateSystemType = static_cast<CoordinateSystemType>(coordinateSystemValue);
+    return locationPoint.Unmarshal(parcel);
+}
+
+bool ReferenceLocationInfo::Marshal(MessageParcel &parcel) const
+{
+    if (!parcel.WriteInt32(static_cast<int32_t>(actionType)) ||
+        !parcel.WriteInt32(static_cast<int32_t>(points.size()))) {
+        return false;
+    }
+    for (const auto &point : points) {
+        if (!point.Marshal(parcel)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ReferenceLocationInfo::Unmarshal(MessageParcel &parcel)
+{
+    int32_t actionValue = 0;
+    int32_t pointsCount = 0;
+    if (!parcel.ReadInt32(actionValue) || !parcel.ReadInt32(pointsCount)) {
+        return false;
+    }
+    actionType = static_cast<ActionType>(actionValue);
+    points.clear();
+    for (int32_t i = 0; i < pointsCount; ++i) {
+        LocationInfo point;
+        if (!point.Unmarshal(parcel)) {
+            return false;
+        }
+        points.push_back(point);
+    }
+    return true;
+}
+
+bool DataFabricAddressParams::Marshal(MessageParcel &parcel) const
+{
+    return parcel.WriteInt32(static_cast<int32_t>(scenarioType)) && locationInfo.Marshal(parcel);
+}
+
+bool DataFabricAddressParams::Unmarshal(MessageParcel &parcel)
+{
+    int32_t scenarioValue = 0;
+    if (!parcel.ReadInt32(scenarioValue)) {
+        return false;
+    }
+    scenarioType = static_cast<BusinessScenario>(scenarioValue);
+    return locationInfo.Unmarshal(parcel);
 }
 } // End of namespace NativePreferences
 } // End of namespace OHOS

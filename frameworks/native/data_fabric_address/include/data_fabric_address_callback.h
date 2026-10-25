@@ -26,7 +26,7 @@ namespace NativePreferences {
 class IDataFabricAddressCallback : public IRemoteBroker {
 public:
     enum {
-        CMD_MINING_FINISHED = 0,
+        CMD_DATA_CHANGED = 0,
     };
 
     virtual void OnDataFabricAddressChanged(const DataProcessingResponse& response) = 0;

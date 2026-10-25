@@ -17,6 +17,7 @@
 #include "data_fabric_address_errors.h"
 #include "data_fabric_address_mock.h"
 #include "data_fabric_address_types.h"
+#include "message_parcel.h"
 
 #include <gtest/gtest.h>
 
@@ -75,6 +76,13 @@ static DataFabricAddressParams CreateParams(BusinessScenario scenario, ActionTyp
     params.locationInfo.actionType = action;
     params.locationInfo.points = std::move(points);
     return params;
+}
+
+static void WriteInt32s(MessageParcel &parcel, const std::vector<int32_t> &values)
+{
+    for (int32_t value : values) {
+        parcel.WriteInt32(value);
+    }
 }
 
 /**
@@ -399,7 +407,7 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_013, TestSize.Level0
     MessageParcel reply;
     MessageOption option;
     int ret = callback->OnRemoteRequest(
-        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_MINING_FINISHED), data, reply, option);
+        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_DATA_CHANGED), data, reply, option);
 
     EXPECT_EQ(ret, 0);
     EXPECT_EQ(callback->changedCount_, 1);
@@ -421,7 +429,7 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_014, TestSize.Level0
     MessageParcel reply;
     MessageOption option;
     int ret = callback->OnRemoteRequest(
-        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_MINING_FINISHED), data, reply, option);
+        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_DATA_CHANGED), data, reply, option);
 
     EXPECT_EQ(ret, INTERNAL_EXCEPTION);
     EXPECT_EQ(callback->changedCount_, 0);
@@ -463,7 +471,7 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_016, TestSize.Level0
     MessageParcel reply;
     MessageOption option;
     int ret = callback->OnRemoteRequest(
-        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_MINING_FINISHED), data, reply, option);
+        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_DATA_CHANGED), data, reply, option);
 
     EXPECT_EQ(ret, 0);
     EXPECT_EQ(listener->changedCount_, 1);
@@ -477,7 +485,7 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_016, TestSize.Level0
     EXPECT_TRUE(data2.WriteString("result"));
     MessageParcel reply2;
     int ret2 = nullListenerCallback->OnRemoteRequest(
-        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_MINING_FINISHED), data2, reply2, option);
+        static_cast<uint32_t>(IDataFabricAddressCallback::CMD_DATA_CHANGED), data2, reply2, option);
     EXPECT_EQ(ret2, 0);
     EXPECT_EQ(listener->changedCount_, 1);
 }
@@ -635,5 +643,145 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_023, TestSize.Level0
     EXPECT_DOUBLE_EQ(mockRemote->points_[0].locationPoint.longitude, 116.4);
     EXPECT_DOUBLE_EQ(mockRemote->points_[1].locationPoint.latitude, 31.2);
     EXPECT_DOUBLE_EQ(mockRemote->points_[1].locationPoint.longitude, 121.5);
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressTest_024
+ * @tc.desc: testcase of DataFabricAddressParams Marshal and Unmarshal round trip with multiple reference points
+ * @tc.type: FUNC
+ * @tc.author: agent
+ */
+HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_024, TestSize.Level0)
+{
+    const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::SUBSCRIPTION,
+        { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 39.9, 116.4),
+            CreateLocationInfo(LabelType::COMPANY, CoordinateSystemType::GCJ02, 31.2, 121.5) });
+
+    MessageParcel parcel;
+    ASSERT_TRUE(params.Marshal(parcel));
+    DataFabricAddressParams unmarshaled;
+    ASSERT_TRUE(unmarshaled.Unmarshal(parcel));
+
+    EXPECT_EQ(unmarshaled.scenarioType, params.scenarioType);
+    EXPECT_EQ(unmarshaled.locationInfo.actionType, params.locationInfo.actionType);
+    EXPECT_EQ(unmarshaled.locationInfo.points.size(), params.locationInfo.points.size());
+    EXPECT_TRUE(unmarshaled == params);
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressTest_025
+ * @tc.desc: testcase of DataFabricAddressParams Unmarshal fails when the parcel is truncated
+ * @tc.type: FUNC
+ * @tc.author: agent
+ */
+HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_025, TestSize.Level0)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteInt32(static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE)));
+    ASSERT_TRUE(parcel.WriteInt32(static_cast<int32_t>(ActionType::SUBSCRIPTION)));
+    ASSERT_TRUE(parcel.WriteInt32(1)); // pointsCount, but no point data follows
+
+    DataFabricAddressParams inputParams;
+    EXPECT_FALSE(inputParams.Unmarshal(parcel));
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressTest_026
+ * @tc.desc: testcase of LocationPoint::Unmarshal fails when the parcel is truncated
+ * @tc.type: FUNC
+ * @tc.author: agent
+ */
+HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_026, TestSize.Level0)
+{
+    MessageParcel emptyParcel;
+    LocationPoint point;
+    EXPECT_FALSE(point.Unmarshal(emptyParcel));
+
+    MessageParcel missingLongitude;
+    ASSERT_TRUE(missingLongitude.WriteDouble(39.9));
+    EXPECT_FALSE(point.Unmarshal(missingLongitude));
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressTest_027
+ * @tc.desc: testcase of LocationInfo::Unmarshal fails when the parcel is truncated
+ * @tc.type: FUNC
+ * @tc.author: agent
+ */
+HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_027, TestSize.Level0)
+{
+    MessageParcel emptyParcel;
+    LocationInfo info;
+    EXPECT_FALSE(info.Unmarshal(emptyParcel));
+
+    MessageParcel missingCoord;
+    WriteInt32s(missingCoord, { static_cast<int32_t>(LabelType::HOME) });
+    EXPECT_FALSE(info.Unmarshal(missingCoord));
+
+    MessageParcel missingPoint;
+    WriteInt32s(missingPoint, { static_cast<int32_t>(LabelType::HOME),
+        static_cast<int32_t>(CoordinateSystemType::WGS84) });
+    EXPECT_FALSE(info.Unmarshal(missingPoint));
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressTest_028
+ * @tc.desc: testcase of ReferenceLocationInfo::Unmarshal succeeds with zero reference points
+ * @tc.type: FUNC
+ * @tc.author: agent
+ */
+HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_028, TestSize.Level0)
+{
+    MessageParcel parcel;
+    WriteInt32s(parcel, { static_cast<int32_t>(ActionType::SUBSCRIPTION), 0 });
+
+    ReferenceLocationInfo referenceInfo;
+    ASSERT_TRUE(referenceInfo.Unmarshal(parcel));
+    EXPECT_EQ(referenceInfo.actionType, ActionType::SUBSCRIPTION);
+    EXPECT_TRUE(referenceInfo.points.empty());
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressTest_029
+ * @tc.desc: testcase of ReferenceLocationInfo::Unmarshal fails when the parcel is truncated
+ * @tc.type: FUNC
+ * @tc.author: agent
+ */
+HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_029, TestSize.Level0)
+{
+    MessageParcel emptyParcel;
+    ReferenceLocationInfo referenceInfo;
+    EXPECT_FALSE(referenceInfo.Unmarshal(emptyParcel));
+
+    MessageParcel missingCount;
+    WriteInt32s(missingCount, { static_cast<int32_t>(ActionType::SUBSCRIPTION) });
+    EXPECT_FALSE(referenceInfo.Unmarshal(missingCount));
+
+    MessageParcel missingFirstPoint;
+    WriteInt32s(missingFirstPoint, { static_cast<int32_t>(ActionType::SUBSCRIPTION), 1 });
+    EXPECT_FALSE(referenceInfo.Unmarshal(missingFirstPoint));
+
+    MessageParcel missingSecondPoint;
+    WriteInt32s(missingSecondPoint, { static_cast<int32_t>(ActionType::SUBSCRIPTION), 2 });
+    CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 39.9, 116.4).Marshal(missingSecondPoint);
+    EXPECT_FALSE(referenceInfo.Unmarshal(missingSecondPoint));
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressTest_030
+ * @tc.desc: testcase of DataFabricAddressParams::Unmarshal fails when the parcel is truncated
+ * @tc.type: FUNC
+ * @tc.author: agent
+ */
+HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_030, TestSize.Level0)
+{
+    MessageParcel emptyParcel;
+    DataFabricAddressParams inputParams;
+    EXPECT_FALSE(inputParams.Unmarshal(emptyParcel));
+
+    MessageParcel missingLocation;
+    WriteInt32s(missingLocation, { static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE) });
+    EXPECT_FALSE(inputParams.Unmarshal(missingLocation));
 }
 } // namespace
