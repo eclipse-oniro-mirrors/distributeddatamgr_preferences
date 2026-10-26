@@ -185,6 +185,9 @@ int OH_PreferencesOption_SetSharedMapSize(OH_PreferencesOption *option, int32_t 
         LOG_ERROR("set option's sharedMapSize failed, sharedMapSize out of range: %{public}d", sharedMapSize);
         return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
     }
+    if (option->GetStorageType() == Preferences_StorageType::PREFERENCES_STORAGE_XML) {
+        LOG_INFO("set option's sharedMapSize: storageType is XML, sharedMapSize will be ignored");
+    }
     option->SetSharedMapSize(sharedMapSize);
     return OH_Preferences_ErrCode::PREFERENCES_OK;
 }
