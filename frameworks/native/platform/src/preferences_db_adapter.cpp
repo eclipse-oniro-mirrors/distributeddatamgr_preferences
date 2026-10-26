@@ -38,6 +38,9 @@ static const std::chrono::milliseconds WAIT_REPAIRE_TIMEOUT(5);
 
 const char * const TABLENAME = "preferences_data";
 const char * const TABLE_MODE = "{\"mode\" : \"kv\", \"indextype\" : \"hash\"}";
+const char * const CONFIG_STR_PREFIX =
+    "{\"pageSize\": 4, \"redoFlushByTrx\": 2, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
+    "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", ";
 const char * const CONFIG_STR_BASE =
     "{\"pageSize\": 4, \"redoFlushByTrx\": 2, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
     "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", "
@@ -228,15 +231,13 @@ std::string PreferencesDb::BuildConfigStr() const
         return CONFIG_STR_BASE;
     }
     if (cacheSize_ > 0) {
-        return std::string("{\"pageSize\": 4, \"redoFlushByTrx\": 2, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
-            "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", "
-            "\"sharedModeEnable\" : 1, \"MetaInfoBak\": 1, "
-            "\"mapFileSize\": ") + std::to_string(cacheSize_) + "}";
+        return std::string(CONFIG_STR_PREFIX)
+            + "\"sharedModeEnable\" : 1, \"MetaInfoBak\": 1, "
+            "\"mapFileSize\": " + std::to_string(cacheSize_) + "}";
     }
     // mapFileSize == 0: disable map file and shared mode
-    return std::string("{\"pageSize\": 4, \"redoFlushByTrx\": 2, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
-        "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", "
-        "\"sharedModeEnable\" : 0, \"MetaInfoBak\": 1}");
+    return std::string(CONFIG_STR_PREFIX)
+        + "\"sharedModeEnable\" : 0, \"MetaInfoBak\": 1}";
 }
 
 int PreferencesDb::OpenDb(bool isNeedRebuild)
