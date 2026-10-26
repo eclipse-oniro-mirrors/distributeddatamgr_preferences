@@ -60,7 +60,9 @@ int ParseSharedMapSize(const napi_env env, napi_value options, std::shared_ptr<H
             std::make_shared<ParamTypeError>("napi call failed when get sharedMapSize."));
         napi_valuetype sharedMapSizeType = napi_undefined;
         napi_status cacheStatus = napi_typeof(env, sharedMapSizeValue, &sharedMapSizeType);
-        if (cacheStatus == napi_ok && (sharedMapSizeType != napi_null && sharedMapSizeType != napi_undefined)) {
+        PRE_CHECK_RETURN_ERR_SET(cacheStatus == napi_ok,
+            std::make_shared<InnerError>("parse sharedMapSize: type of api failed"));
+        if (sharedMapSizeType != napi_undefined) {
             PRE_CHECK_RETURN_ERR_SET(sharedMapSizeType == napi_number,
                 std::make_shared<ParamTypeError>("The sharedMapSize must be number."));
             int64_t sharedMapSize = 0;
@@ -77,8 +79,6 @@ int ParseSharedMapSize(const napi_env env, napi_value options, std::shared_ptr<H
             context->sharedMapSize = sharedMapSize;
             context->hasSharedMapSize = true;
         }
-        PRE_CHECK_RETURN_ERR_SET(cacheStatus == napi_ok,
-            std::make_shared<InnerError>("parse sharedMapSize: type of api failed"));
     }
     return OK;
 }
