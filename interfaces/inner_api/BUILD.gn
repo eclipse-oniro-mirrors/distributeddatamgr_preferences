@@ -171,6 +171,7 @@ if (is_ohos) {
     sources = base_sources
     sources += mock_sources
     sources += [
+      "${preferences_native_path}/data_fabric_address/src/data_fabric_address_errors.cpp",
       "${preferences_native_path}/platform/src/preferences_executor_pool_task_processor.cpp",
       "${preferences_mock_external_kit_path}/ability_base/mock_uri.cpp",
     ]
