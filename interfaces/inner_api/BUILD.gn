@@ -166,7 +166,7 @@ if (is_ohos) {
     subsystem_name = "distributeddatamgr"
     part_name = "preferences"
   }
-} else if (is_mingw || is_mac) {
+} else if (is_mingw || is_mac || is_linux) {
   ohos_shared_library("native_preferences") {
     sources = base_sources
     sources += mock_sources
@@ -198,22 +198,30 @@ if (is_ohos) {
 
     cflags_cc = [
       "-std=c++17",
-      "-stdlib=libc++",
       "-Werror=vla",
     ]
+    if (!is_linux) {
+      cflags_cc += [ "-stdlib=libc++" ]
+    }
     if (is_mac) {
       buildos = "mac"
       defines = [
         "MAC_PLATFORM",
         "CROSS_PLATFORM",
       ]
-    } else {
+    } else if (is_mingw) {
       buildos = "windows"
       defines = [
         "WINDOWS_PLATFORM",
         "CROSS_PLATFORM",
       ]
       ldflags = [ "-lws2_32" ]
+    } else {
+      buildos = "linux"
+      defines = [
+        "LINUX_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
     }
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
@@ -372,22 +380,30 @@ ohos_static_library("native_preferences_static") {
     }
     cflags_cc = [
       "-std=c++17",
-      "-stdlib=libc++",
       "-Werror=vla",
     ]
+    if (!is_linux) {
+      cflags_cc += [ "-stdlib=libc++" ]
+    }
     if (is_mac) {
       buildos = "mac"
       defines = [
         "MAC_PLATFORM",
         "CROSS_PLATFORM",
       ]
-    } else {
+    } else if (is_mingw) {
       buildos = "windows"
       defines = [
         "WINDOWS_PLATFORM",
         "CROSS_PLATFORM",
       ]
       ldflags = [ "-lws2_32" ]
+    } else {
+      buildos = "linux"
+      defines = [
+        "LINUX_PLATFORM",
+        "CROSS_PLATFORM",
+      ]
     }
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${buildos}",
@@ -399,9 +415,11 @@ ohos_static_library("native_preferences_static") {
   } else if (is_ohos) {
     cflags_cc = [
       "-std=c++17",
-      "-stdlib=libc++",
       "-Werror=vla",
     ]
+    if (!is_linux) {
+      cflags_cc += [ "-stdlib=libc++" ]
+    }
 
     defines = []
     if (!defined(global_parts_info) ||

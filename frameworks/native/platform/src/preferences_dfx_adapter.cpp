@@ -20,7 +20,7 @@
 #include <iomanip>
 #include <sstream>
 
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM) && !defined(LINUX_PLATFORM)
 #include <thread>
 
 #include "accesstoken_kit.h"
@@ -33,7 +33,7 @@ namespace NativePreferences {
 
 ConcurrentMap<std::string, uint64_t> PreferencesDfxManager::reportedFaults_;
 
-#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
+#if !defined(WINDOWS_PLATFORM) && !defined(MAC_PLATFORM) && !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM) && !defined(LINUX_PLATFORM)
 std::string GetCurrentTime()
 {
     auto now = std::chrono::system_clock::now();
