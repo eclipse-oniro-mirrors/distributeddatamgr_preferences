@@ -262,4 +262,272 @@ describe('PreferencesHelperJsunit', function () {
         await mPreferences.off('change', observer);
         await mPreferences.put(KEY_TEST_STRING_ELEMENT, "abc");
     })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize positive value
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_001
+     * @tc.desc getPreferences with sharedMapSize=256 should succeed
+     */
+    it('testGetPreferencesCacheSize001', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_001', sharedMapSize: 256 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_001' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_001' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize zero value
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_002
+     * @tc.desc getPreferences with sharedMapSize=0 should succeed
+     */
+    it('testGetPreferencesCacheSize002', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_002', sharedMapSize: 0 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_002' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_002' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize negative value
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_003
+     * @tc.desc getPreferences with negative sharedMapSize should throw error
+     */
+    it('testGetPreferencesCacheSize003', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_003', sharedMapSize: -1 });
+            expect(null).assertFail();
+            done();
+        } catch (err) {
+            expect(err.code == 15500000 || err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize non-number type
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_004
+     * @tc.desc getPreferences with non-number sharedMapSize should throw error
+     */
+    it('testGetPreferencesCacheSize004', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_004', sharedMapSize: 'invalid' });
+            expect(null).assertFail();
+            done();
+        } catch (err) {
+            expect(err.code == 15500000 || err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences without sharedMapSize
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_005
+     * @tc.desc getPreferences without sharedMapSize should succeed (backward compatible)
+     */
+    it('testGetPreferencesCacheSize005', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_005' });
+            expect(pref != null).assertTrue();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_005' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_005' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize below minimum range
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_006
+     * @tc.desc getPreferences with sharedMapSize=1 (below 256) should throw error 401
+     */
+    it('testGetPreferencesCacheSize006', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_006', sharedMapSize: 1 });
+            expect(null).assertFail();
+            done();
+        } catch (err) {
+            expect(err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize above maximum range
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_007
+     * @tc.desc getPreferences with sharedMapSize=9999999 (above 1112784) should throw error 401
+     */
+    it('testGetPreferencesCacheSize007', 0, async function (done) {
+        try {
+            await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_007', sharedMapSize: 9999999 });
+            expect(null).assertFail();
+            done();
+        } catch (err) {
+            expect(err.code == 401).assertTrue();
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize boundary values
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_008
+     * @tc.desc getPreferences with sharedMapSize=256 and 1112784 (boundary) should succeed
+     */
+    it('testGetPreferencesCacheSize008', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_008a', sharedMapSize: 256 });
+            expect(pref != null).assertTrue();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_008a' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_008a' });
+
+            pref = await data_preferences.getPreferences(context, { name: 'test_sharedMapSize_008b', sharedMapSize: 1112784 });
+            expect(pref != null).assertTrue();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_008b' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_008b' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize in XML mode (silently ignored)
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_009
+     * @tc.desc getPreferences with storageType XML and sharedMapSize=256 should succeed, sharedMapSize silently ignored
+     */
+    it('testGetPreferencesCacheSize009', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context,
+                { name: 'test_sharedMapSize_009', storageType: 0, sharedMapSize: 256 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_009' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_009' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with sharedMapSize=0 in XML mode (silently ignored)
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_010
+     * @tc.desc getPreferences with storageType XML and sharedMapSize=0 should succeed, sharedMapSize silently ignored
+     */
+    it('testGetPreferencesCacheSize010', 0, async function (done) {
+        try {
+            let pref = await data_preferences.getPreferences(context,
+                { name: 'test_sharedMapSize_010', storageType: 0, sharedMapSize: 0 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_010' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_010' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with GSKV mode and sharedMapSize=256
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_011
+     * @tc.desc getPreferences with storageType GSKV and sharedMapSize=256 should succeed
+     */
+    it('testGetPreferencesCacheSize011', 0, async function (done) {
+        let isGskvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
+        if (!isGskvSupported) {
+            console.info('GSKV not supported, skip this test');
+            done();
+            return;
+        }
+        try {
+            let pref = await data_preferences.getPreferences(context,
+                { name: 'test_sharedMapSize_011', storageType: 1, sharedMapSize: 256 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_011' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_011' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with GSKV mode and sharedMapSize=0
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_012
+     * @tc.desc getPreferences with storageType GSKV and sharedMapSize=0 should succeed
+     */
+    it('testGetPreferencesCacheSize012', 0, async function (done) {
+        let isGskvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
+        if (!isGskvSupported) {
+            console.info('GSKV not supported, skip this test');
+            done();
+            return;
+        }
+        try {
+            let pref = await data_preferences.getPreferences(context,
+                { name: 'test_sharedMapSize_012', storageType: 1, sharedMapSize: 0 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_012' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_012' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name getPreferences with GSKV mode and sharedMapSize=1112784 (max boundary)
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_sharedMapSize_013
+     * @tc.desc getPreferences with storageType GSKV and sharedMapSize=1112784 should succeed
+     */
+    it('testGetPreferencesCacheSize013', 0, async function (done) {
+        let isGskvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
+        if (!isGskvSupported) {
+            console.info('GSKV not supported, skip this test');
+            done();
+            return;
+        }
+        try {
+            let pref = await data_preferences.getPreferences(context,
+                { name: 'test_sharedMapSize_013', storageType: 1, sharedMapSize: 1112784 });
+            expect(pref != null).assertTrue();
+            await pref.put('key', 'value');
+            await pref.flush();
+        } catch (err) {
+            expect(err).assertFail();
+        } finally {
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_sharedMapSize_013' });
+            await data_preferences.deletePreferences(context, { name: 'test_sharedMapSize_013' });
+            done();
+        }
+    })
 })

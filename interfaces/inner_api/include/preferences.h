@@ -54,11 +54,20 @@ public:
     {
     }
 
+    Options(const std::string &inputFilePath, const std::string &inputbundleName, const std::string &inputdataGroupId,
+        bool inputIsEnhance, uint32_t inputSharedMapSize, bool inputHasSharedMapSize)
+        : filePath(inputFilePath), bundleName(inputbundleName), dataGroupId(inputdataGroupId),
+        isEnhance(inputIsEnhance), sharedMapSize(inputSharedMapSize), hasSharedMapSize(inputHasSharedMapSize)
+    {
+    }
+
 public:
     std::string filePath{ "" };
     std::string bundleName{ "" };
     std::string dataGroupId{ "" };
     bool isEnhance = false;
+    uint32_t sharedMapSize = 0;
+    bool hasSharedMapSize = false;
 };
 /**
  * The function class of the preference. Various operations on preferences instances are provided in this class.

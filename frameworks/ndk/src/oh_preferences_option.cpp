@@ -58,6 +58,25 @@ Preferences_StorageType OH_PreferencesOption::GetStorageType()
     return storageType;
 }
 
+void OH_PreferencesOption::SetSharedMapSize(int32_t size)
+{
+    std::unique_lock<std::shared_mutex> writeLock(opMutex_);
+    sharedMapSize = size;
+    hasSharedMapSize = true;
+}
+
+int32_t OH_PreferencesOption::GetSharedMapSize()
+{
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
+    return sharedMapSize;
+}
+
+bool OH_PreferencesOption::GetHasSharedMapSize()
+{
+    std::shared_lock<std::shared_mutex> readLock(opMutex_);
+    return hasSharedMapSize;
+}
+
 std::string OH_PreferencesOption::GetFileName()
 {
     std::shared_lock<std::shared_mutex> readLock(opMutex_);
@@ -147,6 +166,40 @@ int OH_PreferencesOption_SetStorageType(OH_PreferencesOption *option, Preference
 
     option->SetStorageType(type);
     return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int OH_PreferencesOption_SetSharedMapSize(OH_PreferencesOption *option, int32_t sharedMapSize)
+{
+    if (option == nullptr || !NDKPreferencesUtils::PreferencesStructValidCheck(
+        option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("set option's sharedMapSize failed, option is null: %{public}d", (option == nullptr));
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    if (sharedMapSize < 0) {
+        LOG_ERROR("set option's sharedMapSize failed, sharedMapSize is negative: %{public}d", sharedMapSize);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    constexpr int32_t SHARED_MAP_SIZE_MIN = 256;
+    constexpr int32_t SHARED_MAP_SIZE_MAX = 1112784;
+    if (sharedMapSize > 0 && (sharedMapSize < SHARED_MAP_SIZE_MIN || sharedMapSize > SHARED_MAP_SIZE_MAX)) {
+        LOG_ERROR("set option's sharedMapSize failed, sharedMapSize out of range: %{public}d", sharedMapSize);
+        return OH_Preferences_ErrCode::PREFERENCES_ERROR_INVALID_PARAM;
+    }
+    if (option->GetStorageType() == Preferences_StorageType::PREFERENCES_STORAGE_XML) {
+        LOG_INFO("set option's sharedMapSize: storageType is XML, sharedMapSize will be ignored");
+    }
+    option->SetSharedMapSize(sharedMapSize);
+    return OH_Preferences_ErrCode::PREFERENCES_OK;
+}
+
+int32_t OH_PreferencesOption_GetSharedMapSize(OH_PreferencesOption *option)
+{
+    if (option == nullptr || !NDKPreferencesUtils::PreferencesStructValidCheck(
+        option->cid, PreferencesNdkStructId::PREFERENCES_OH_OPTION_CID)) {
+        LOG_ERROR("get option's sharedMapSize failed, option is null: %{public}d", (option == nullptr));
+        return 0;
+    }
+    return option->GetSharedMapSize();
 }
 
 int OH_PreferencesOption_Destroy(OH_PreferencesOption* option)
