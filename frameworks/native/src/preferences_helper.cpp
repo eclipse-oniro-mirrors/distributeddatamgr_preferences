@@ -88,7 +88,7 @@ std::string PreferencesHelper::GetRealPath(const std::string &path, int &errorCo
         errorCode = E_RELATIVE_PATH;
         return "";
     }
-#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM)
+#if defined(WINDOWS_PLATFORM) || defined(MAC_PLATFORM) || defined(LINUX_PLATFORM)
     std::string filePath = path.substr(0, pos);
     if (Access(filePath) != 0 && !Mkdir(filePath)) {
         LOG_ERROR("Failed to create path");
