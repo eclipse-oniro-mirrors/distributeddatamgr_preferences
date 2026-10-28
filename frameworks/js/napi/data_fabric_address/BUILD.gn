@@ -59,6 +59,7 @@ ohos_shared_library("datafabricaddress_napi") {
     "c_utils:utils",
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
   external_deps += external_deps_ipc_single
   external_deps += external_deps_samgr_proxy
