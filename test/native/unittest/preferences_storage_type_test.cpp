@@ -610,4 +610,75 @@ HWTEST_F(PreferencesStorageTypeTest, StorageTypeApiTest013, TestSize.Level0)
     }
 }
 
+/**
+ * @tc.name: EnhanceClosedPutTest001
+ * @tc.desc: after RemovePreferencesFromCache, Put should return E_ALREADY_CLOSED
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesStorageTypeTest, EnhanceClosedPutTest001, TestSize.Level0)
+{
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
+    if (!isEnhance) {
+        return;
+    }
+    int errCode = E_OK;
+    std::string filePath = "/data/test/EnhanceClosedPut001";
+    Options option = Options(filePath, "com.hmos.uttest", "", true);
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
+    ASSERT_EQ(errCode, E_OK);
+    ASSERT_EQ(pref->PutString("key", "value"), E_OK);
+
+    ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
+    EXPECT_EQ(pref->PutString("key", "new_value"), E_ALREADY_CLOSED);
+
+    ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath), E_OK);
+}
+
+/**
+ * @tc.name: EnhanceClosedDeleteTest001
+ * @tc.desc: after RemovePreferencesFromCache, Delete should return E_ALREADY_CLOSED
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesStorageTypeTest, EnhanceClosedDeleteTest001, TestSize.Level0)
+{
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
+    if (!isEnhance) {
+        return;
+    }
+    int errCode = E_OK;
+    std::string filePath = "/data/test/EnhanceClosedDelete001";
+    Options option = Options(filePath, "com.hmos.uttest", "", true);
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
+    ASSERT_EQ(errCode, E_OK);
+    ASSERT_EQ(pref->PutString("key", "value"), E_OK);
+
+    ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
+    EXPECT_EQ(pref->Delete("key"), E_ALREADY_CLOSED);
+
+    ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath), E_OK);
+}
+
+/**
+ * @tc.name: EnhanceClosedClearTest001
+ * @tc.desc: after RemovePreferencesFromCache, Clear should return E_ALREADY_CLOSED
+ * @tc.type: FUNC
+ */
+HWTEST_F(PreferencesStorageTypeTest, EnhanceClosedClearTest001, TestSize.Level0)
+{
+    bool isEnhance = PreferencesHelper::IsStorageTypeSupported(StorageType::GSKV);
+    if (!isEnhance) {
+        return;
+    }
+    int errCode = E_OK;
+    std::string filePath = "/data/test/EnhanceClosedClear001";
+    Options option = Options(filePath, "com.hmos.uttest", "", true);
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(option, errCode);
+    ASSERT_EQ(errCode, E_OK);
+    ASSERT_EQ(pref->PutString("key", "value"), E_OK);
+
+    ASSERT_EQ(PreferencesHelper::RemovePreferencesFromCache(filePath), E_OK);
+    EXPECT_EQ(pref->Clear(), E_ALREADY_CLOSED);
+
+    ASSERT_EQ(PreferencesHelper::DeletePreferences(filePath), E_OK);
+}
 } // namespace
