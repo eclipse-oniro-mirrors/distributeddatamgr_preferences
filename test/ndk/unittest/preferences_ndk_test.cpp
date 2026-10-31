@@ -1567,4 +1567,49 @@ HWTEST_F(PreferencesNdkTest, NDKPreferencesObserverCallbackTest_003, TestSize.Le
     EXPECT_EQ(OHOS::NativePreferences::PreferencesHelper::DeletePreferences("/data/test/testdb"),
         OHOS::NativePreferences::E_OK);
 }
+
+/**
+ * @tc.name: NDKPreferencesSharedMapSizeTest_001
+ * @tc.desc: test OH_PreferencesOption_SetSharedMapSize/GetSharedMapSize with valid values, zero, default, negative
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(PreferencesNdkTest, NDKPreferencesSharedMapSizeTest_001, TestSize.Level0)
+{
+    // nullptr test
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(nullptr, 1024), PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(nullptr), 0);
+
+    OH_PreferencesOption *option = OH_PreferencesOption_Create();
+    ASSERT_NE(option, nullptr);
+
+    // default value without SetSharedMapSize
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 0);
+
+    // set positive value and verify round-trip
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 8192), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 8192);
+
+    // set zero value and verify round-trip
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 0), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 0);
+
+    // negative value should return error
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, -1), PREFERENCES_ERROR_INVALID_PARAM);
+
+    // value below minimum (256) should return error
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 1), PREFERENCES_ERROR_INVALID_PARAM);
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 255), PREFERENCES_ERROR_INVALID_PARAM);
+
+    // value above maximum (1112784) should return error
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 1112785), PREFERENCES_ERROR_INVALID_PARAM);
+
+    // boundary values: 256 and 1112784 should succeed
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 256), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 256);
+    EXPECT_EQ(OH_PreferencesOption_SetSharedMapSize(option, 1112784), PREFERENCES_OK);
+    EXPECT_EQ(OH_PreferencesOption_GetSharedMapSize(option), 1112784);
+
+    EXPECT_EQ(OH_PreferencesOption_Destroy(option), PREFERENCES_OK);
+}
 }

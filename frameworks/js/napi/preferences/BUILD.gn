@@ -56,9 +56,11 @@ if (is_ohos) {
     configs = [ ":preferences_config" ]
     cflags_cc = [
       "-std=c++17",
-      "-stdlib=libc++",
       "-Werror=vla",
     ]
+    if (!is_linux) {
+      cflags_cc += [ "-stdlib=libc++" ]
+    }
 
     deps = [
       "${preferences_base_path}/interfaces/inner_api:native_preferences",
@@ -85,7 +87,7 @@ if (is_ohos) {
     part_name = "preferences"
     relative_install_dir = "module/data"
   }
-} else if (is_mingw || is_mac) {
+} else if (is_mingw || is_mac || is_linux) {
   base_include = [
     "${preferences_napi_path}/common/include",
     "${preferences_napi_path}/preferences/include",
@@ -117,15 +119,20 @@ if (is_ohos) {
 
     cflags_cc = [
       "-std=c++17",
-      "-stdlib=libc++",
       "-Werror=vla",
     ]
+    if (!is_linux) {
+      cflags_cc += [ "-stdlib=libc++" ]
+    }
     if (is_mac) {
       buildos = "mac"
       defines = [ "MAC_PLATFORM" ]
-    } else {
+    } else if (is_mingw) {
       buildos = "windows"
       defines = [ "WINDOWS_PLATFORM" ]
+    } else {
+      buildos = "linux"
+      defines = [ "LINUX_PLATFORM" ]
     }
 
     sources = common_sources + base_sources

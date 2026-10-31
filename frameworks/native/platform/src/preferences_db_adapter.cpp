@@ -38,7 +38,10 @@ static const std::chrono::milliseconds WAIT_REPAIRE_TIMEOUT(5);
 
 const char * const TABLENAME = "preferences_data";
 const char * const TABLE_MODE = "{\"mode\" : \"kv\", \"indextype\" : \"hash\"}";
-const char * const CONFIG_STR =
+const char * const CONFIG_STR_PREFIX =
+    "{\"pageSize\": 4, \"redoFlushByTrx\": 2, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
+    "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", ";
+const char * const CONFIG_STR_BASE =
     "{\"pageSize\": 4, \"redoFlushByTrx\": 2, \"redoPubBufSize\": 256, \"maxConnNum\": 100, "
     "\"bufferPoolSize\": 1024, \"crcCheckEnable\": 0, \"bufferPoolPolicy\" : \"BUF_PRIORITY_INDEX\", "
     "\"sharedModeEnable\" : 1, \"MetaInfoBak\": 1}";
@@ -222,6 +225,21 @@ int PreferencesDb::CreateCollection()
     return TransferGrdErrno(errCode);
 }
 
+std::string PreferencesDb::BuildConfigStr() const
+{
+    if (!hasCacheSize_) {
+        return CONFIG_STR_BASE;
+    }
+    if (cacheSize_ > 0) {
+        return std::string(CONFIG_STR_PREFIX)
+            + "\"sharedModeEnable\" : 1, \"MetaInfoBak\": 1, "
+            "\"mapFileSize\": " + std::to_string(cacheSize_) + "}";
+    }
+    // mapFileSize == 0: disable map file and shared mode
+    return std::string(CONFIG_STR_PREFIX)
+        + "\"sharedModeEnable\" : 0, \"MetaInfoBak\": 1}";
+}
+
 int PreferencesDb::OpenDb(bool isNeedRebuild)
 {
     if (PreferenceDbAdapter::GetApiInstance().DbOpenApi == nullptr) {
@@ -232,7 +250,8 @@ int PreferencesDb::OpenDb(bool isNeedRebuild)
     if (isNeedRebuild) {
         flag |= GRD_DB_OPEN_CHECK;
     }
-    int errCode = PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(), CONFIG_STR, flag, &db_);
+    std::string configStr = BuildConfigStr();
+    int errCode = PreferenceDbAdapter::GetApiInstance().DbOpenApi(dbPath_.c_str(), configStr.c_str(), flag, &db_);
     if (errCode != GRD_OK) {
         // log outside
         std::string errMsg = isNeedRebuild ? "open db failed with open_create | open_check" :
@@ -248,7 +267,8 @@ int PreferencesDb::RepairDb()
         LOG_ERROR("api load failed: DbRepairApi");
         return E_ERROR;
     }
-    int errCode = PreferenceDbAdapter::GetApiInstance().DbRepairApi(dbPath_.c_str(), CONFIG_STR);
+    std::string configStr = BuildConfigStr();
+    int errCode = PreferenceDbAdapter::GetApiInstance().DbRepairApi(dbPath_.c_str(), configStr.c_str());
     if (errCode != GRD_OK) {
         LOG_ERROR("repair db failed, errCode: %{public}d", errCode);
     }
@@ -289,7 +309,8 @@ int PreferencesDb::TryRepairAndRebuild(int openCode)
     return innerErr;
 }
 
-int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName)
+int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName,
+    uint32_t cacheSize, bool hasCacheSize)
 {
     if (db_ != nullptr) {
         LOG_DEBUG("Init: already init.");
@@ -301,6 +322,8 @@ int PreferencesDb::Init(const std::string &dbPath, const std::string &bundleName
     }
     dbPath_ = dbPath + ".db";
     bundleName_ = bundleName;
+    cacheSize_ = cacheSize;
+    hasCacheSize_ = hasCacheSize;
     int errCode = OpenDb(false);
     if (errCode == GRD_DATA_CORRUPTED) {
         std::string info = PreferenceDbAdapter::GetDbEventInfo();

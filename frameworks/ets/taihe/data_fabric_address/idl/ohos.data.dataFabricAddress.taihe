@@ -1,0 +1,86 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.data.dataFabricAddress", "dataFabricAddress")
+@!sts_inject("""
+static { loadLibraryWithPermissionCheck("datafabricaddress_ani.z", "@ohos.data.dataFabricAddress") }
+""")
+
+enum BusinessScenario : i32 {
+    SCENARIO_NAVIGATION_COMMUTE = 0,
+    OTHERS = 1
+}
+
+enum ActionType : i32 {
+    SUBSCRIPTION = 0,
+    UPDATE = 1
+}
+
+enum LabelName : String {
+    HOME = "HOME",
+    COMPANY = "COMPANY"
+}
+
+enum CoordinateSystemName : String {
+    WGS84 = "WGS84",
+    GCJ02 = "GCJ02"
+}
+
+enum StatusCode : i32 {
+    SUCCESS = 0,
+    FAILURE = 1
+}
+
+struct LocationPoint {
+    latitude: f64;
+    longitude: f64;
+}
+
+struct LocationInfo {
+    label: LabelName;
+    coordinateSystemName: CoordinateSystemName;
+    locationPoint: LocationPoint;
+}
+
+struct ReferenceLocationInfo {
+    actionType: ActionType;
+    points: Array<LocationInfo>;
+}
+
+struct DataProcessingResponse {
+    code: StatusCode;
+    result: String;
+}
+
+struct DataFabricAddressParams {
+    scenarioType: BusinessScenario;
+    locationInfo: ReferenceLocationInfo;
+}
+
+@!sts_inject("""
+    function onDataFabricAddress(inputParams: DataFabricAddressParams,
+        callback: (info: DataProcessingResponse) => void): void {
+        return onDataFabricAddressInner(inputParams, callback, callback);
+    }
+    function offDataFabricAddress(inputParams: DataFabricAddressParams,
+        callback?: (info: DataProcessingResponse) => void): void {
+        return offDataFabricAddressInner(inputParams, callback);
+    }
+""")
+
+function OnDataFabricAddressInner(inputParams: DataFabricAddressParams,
+    callback: (info: DataProcessingResponse) => void, opq: Opaque);
+function OffDataFabricAddressInner(inputParams: DataFabricAddressParams,
+    opq: Optional<Opaque>);

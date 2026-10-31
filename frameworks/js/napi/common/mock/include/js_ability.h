@@ -16,6 +16,7 @@
 #ifndef DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H
 #define DISTRIBUTEDDATAMGR_APPDATAMGR_JSABILITY_H
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "preferences_error.h"

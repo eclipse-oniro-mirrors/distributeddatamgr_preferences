@@ -48,6 +48,13 @@ std::shared_ptr<JSError> GetContextInfo(napi_env env, napi_value value,
         contextInfo.preferencesDir = baseDir + "/HuaweiDevEcoStudioPreferences";
     }
 #endif
+
+#ifdef LINUX_PLATFORM
+    baseDir = getenv("HOME");
+    if (!baseDir.empty()) {
+        contextInfo.preferencesDir = baseDir + "/.HuaweiDevEcoStudioPreferences";
+    }
+#endif
     return nullptr;
 }
 } // namespace JSAbility

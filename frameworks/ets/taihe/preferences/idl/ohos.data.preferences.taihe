@@ -65,6 +65,7 @@ struct Options {
     name: String;
     dataGroupId: OptionalString;
     storageType: OptionalStorageType;
+    sharedMapSize: Optional<i64>;
 }
 
 interface Preferences {

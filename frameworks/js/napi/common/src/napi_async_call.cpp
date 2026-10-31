@@ -15,6 +15,7 @@
 
 #include "napi_async_call.h"
 #include <chrono>
+#include <cinttypes>
 
 namespace OHOS {
 namespace PreferencesJsKit {
@@ -130,7 +131,8 @@ napi_value AsyncCall::Async(napi_env env, std::shared_ptr<BaseContext> context, 
     auto end_time = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
     if (duration.count() > ASYNC_PROCESS_WARNING_TIME) {
-        LOG_ERROR("The execution time of %{public}s is %{public}lld.", name.c_str(), duration.count());
+        int64_t milliseconds = duration.count();
+        LOG_ERROR("The execution time of %{public}s is %{public}" PRIi64 ".", name.c_str(), milliseconds);
     }
     return promise;
 }
