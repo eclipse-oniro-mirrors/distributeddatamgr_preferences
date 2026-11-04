@@ -56,6 +56,7 @@ class PREF_API_EXPORT DataFabricAddressClient final : public DelayedRefSingleton
     DECLARE_DELAYED_REF_SINGLETON(DataFabricAddressClient)
 public:
     DISALLOW_COPY_AND_MOVE(DataFabricAddressClient);
+    static DataFabricAddressClient& GetInstance();
     int32_t Subscribe(const DataFabricAddressParams& inputParams,
         std::shared_ptr<IDataFabricAddressListener> listener);
     int32_t Unsubscribe(const DataFabricAddressParams& inputParams);
@@ -76,6 +77,7 @@ private:
     bool Connect();
     bool ConnectProxy();
     void ResetProxy(const wptr<IRemoteObject>& remote);
+    bool HasActiveSubscription(const DataFabricAddressParams& inputParams) const;
 
     enum class ConnectState : int32_t {
         DISCONNECTED = 0,

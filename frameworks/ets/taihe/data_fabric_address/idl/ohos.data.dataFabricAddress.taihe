@@ -19,8 +19,7 @@ static { loadLibraryWithPermissionCheck("datafabricaddress_ani.z", "@ohos.data.d
 """)
 
 enum BusinessScenario : i32 {
-    SCENARIO_NAVIGATION_COMMUTE = 0,
-    OTHERS = 1
+    SCENARIO_NAVIGATION_COMMUTE = 0
 }
 
 enum ActionType : i32 {

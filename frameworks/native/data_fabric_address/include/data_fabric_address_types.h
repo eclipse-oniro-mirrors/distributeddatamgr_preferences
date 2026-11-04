@@ -39,7 +39,6 @@ const std::string GCJ02_NAME = "GCJ02";
 
 enum BusinessScenario : int32_t {
     SCENARIO_NAVIGATION_COMMUTE = 0,
-    OTHERS = 1,
 };
 
 enum ActionType : int32_t {

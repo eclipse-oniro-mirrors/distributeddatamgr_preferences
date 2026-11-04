@@ -48,7 +48,6 @@ const std::vector<std::string> EXPECTED_STATIC_ARG_TYPES_R2 = { "object" };
 #endif // ARKDATA_DATA_FABRIC_ADDRESS_ENABLE
 
 constexpr const char* ENUM_ATTR_SCENARIO_NAVIGATION_COMMUTE = "SCENARIO_NAVIGATION_COMMUTE";
-constexpr const char* ENUM_ATTR_SCENARIO_OTHERS = "OTHERS";
 constexpr const char* ENUM_ATTR_ACTION_SUBSCRIPTION = "SUBSCRIPTION";
 constexpr const char* ENUM_ATTR_ACTION_UPDATE = "UPDATE";
 constexpr const char* ENUM_ATTR_LABEL_HOME = "HOME";
@@ -127,22 +126,28 @@ napi_value DataFabricAddressNapi::OffDataFabricAddress(napi_env env, napi_callba
         ThrowErr(env, NativePreferences::PARAMETER_EXCEPTION, "Wrong number of arguments.");
         return nullptr;
     }
-    std::vector<std::string> expectedTypes;
-    if (argc == NAPI_ARG_COUNT_WITH_CALLBACK) {
-        expectedTypes = EXPECTED_STATIC_ARG_TYPES_R1;
-    } else {
-        expectedTypes = EXPECTED_STATIC_ARG_TYPES_R2;
-    }
-    if (!ValidateArgsType(env, args, argc, expectedTypes)) {
+    if (!ValidateArgsType(env, args, NAPI_ARG_COUNT_NO_CALLBACK, EXPECTED_STATIC_ARG_TYPES_R2)) {
         ThrowErr(env, NativePreferences::PARAMETER_EXCEPTION, "Valid arguments type failed.");
         return nullptr;
     }
     DataFabricAddressParams inputParams;
     if (!CheckInputParams(env, args[0], inputParams)) {
-        ThrowErr(env, NativePreferences::PARAMETER_EXCEPTION, "Check input params failed..");
+        ThrowErr(env, NativePreferences::PARAMETER_EXCEPTION, "Check input params failed.");
         return nullptr;
     }
-    napi_value callback = (argc == NAPI_ARG_COUNT_WITH_CALLBACK) ? args[1] : nullptr;
+    napi_value callback = nullptr;
+    if (argc == NAPI_ARG_COUNT_WITH_CALLBACK) {
+        napi_valuetype valueType = napi_undefined;
+        if (napi_typeof(env, args[1], &valueType) != napi_ok) {
+            ThrowErr(env, NativePreferences::INTERNAL_EXCEPTION, "Get callback type failed.");
+            return nullptr;
+        }
+        if (valueType == napi_function) {
+            callback = args[1];
+        } else {
+            LOG_INFO("The input callback is not a function, treat it as not passed.");
+        }
+    }
     if (!DoUnsubscribe(env, callback, inputParams)) {
         return nullptr;
     }
@@ -166,7 +171,6 @@ void DataFabricAddressNapi::DefineBusinessScenario(napi_env env, napi_value expo
     }
     SetInt32Property(env, scenarioType, static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE),
         ENUM_ATTR_SCENARIO_NAVIGATION_COMMUTE);
-    SetInt32Property(env, scenarioType, static_cast<int32_t>(BusinessScenario::OTHERS), ENUM_ATTR_SCENARIO_OTHERS);
     SetPropertyName(env, exports, "BusinessScenario", scenarioType);
 }
 
@@ -314,9 +318,7 @@ bool DataFabricAddressNapi::CheckInputParams(napi_env env, napi_value jsParams, 
         LOG_ERROR("Get scenario type from napi failed.");
         return false;
     }
-    if (!NativePreferences::DataFabricAddressApiHelper::IsValidIntEnumValue(scenarioType,
-        static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE),
-        static_cast<int32_t>(BusinessScenario::OTHERS))) {
+    if (scenarioType != static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE)) {
         LOG_ERROR("The scenario type is out of range for enum 'BusinessScenario'.");
         return false;
     }
@@ -527,20 +529,18 @@ bool DataFabricAddressNapi::DoSubscribe(napi_env env, napi_value callback,
     LOG_INFO("DoSubscribe enter.");
     auto instance = TryGetExistingInstance(env);
     if (instance == nullptr) {
-        ThrowErr(env, NativePreferences::SUBSCRIBE_EXCEPTION, "Get napi instance failed.");
+        ThrowErr(env, NativePreferences::INTERNAL_EXCEPTION, "Get napi instance failed.");
         return false;
     }
-    if (!instance->AddCallback(env, callback, inputParams)) {
-        ThrowErr(env, NativePreferences::SUBSCRIBE_EXCEPTION, "Add callback to cache failed.");
+    int32_t result = instance->AddCallback(env, callback, inputParams);
+    if (result != NativePreferences::RUN_OK) {
+        ThrowErr(env, result, "Add callback to cache failed.");
         return false;
     }
     auto listener = std::make_shared<DataFabricAddressListener>(env, inputParams);
-    int32_t result = DataFabricAddressClient::GetInstance().Subscribe(inputParams, listener);
+    result = DataFabricAddressClient::GetInstance().Subscribe(inputParams, listener);
     if (result != NativePreferences::RUN_OK) {
-        if (!instance->RollbackCallback(env, inputParams)) {
-            ThrowErr(env, NativePreferences::SUBSCRIBE_EXCEPTION, "Rollback callback from cache failed.");
-            return false;
-        }
+        instance->RollbackCallback(env, inputParams);
         ThrowErr(env, result, "Subscribe service failed.");
         return false;
     }
@@ -554,23 +554,21 @@ bool DataFabricAddressNapi::DoUnsubscribe(napi_env env, napi_value callback,
     LOG_INFO("DoUnsubscribe enter.");
     auto instance = TryGetExistingInstance(env);
     if (instance == nullptr) {
-        ThrowErr(env, NativePreferences::UNSUBSCRIBE_EXCEPTION, "Get napi instance failed.");
+        ThrowErr(env, NativePreferences::INTERNAL_EXCEPTION, "Get napi instance failed.");
         return false;
     }
-    if (!instance->HasCallback(inputParams)) {
-        ThrowErr(env, NativePreferences::UNSUBSCRIBE_EXCEPTION, "No callback in the cache.");
+    int32_t result = instance->CheckCallback(env, callback, inputParams);
+    if (result != NativePreferences::RUN_OK) {
+        ThrowErr(env, result, "Check callback before unsubscribe failed.");
         return false;
     }
-    int32_t result = DataFabricAddressClient::GetInstance().Unsubscribe(inputParams);
+    result = DataFabricAddressClient::GetInstance().Unsubscribe(inputParams);
     if (result != NativePreferences::RUN_OK) {
         ThrowErr(env, result, "Unsubscribe service failed.");
         return false;
     }
-    if (!instance->RemoveCallback(env, callback, inputParams)) {
-        ThrowErr(env, NativePreferences::UNSUBSCRIBE_EXCEPTION, "Remove callback from cache failed.");
-        return false;
-    }
-    LOG_INFO("DoSubscribe exit.");
+    instance->RemoveCallback(inputParams);
+    LOG_INFO("DoUnsubscribe exit.");
     return true;
 }
 
@@ -671,105 +669,99 @@ void DataFabricAddressNapi::RollbackSaveInstances(napi_env env, const std::share
     LOG_INFO("RollbackSaveInstances exit.");
 }
 
-bool DataFabricAddressNapi::AddCallback(napi_env env, napi_value refHandler,
+int32_t DataFabricAddressNapi::AddCallback(napi_env env, napi_value refHandler,
     const DataFabricAddressParams& inputParams)
 {
     LOG_INFO("AddCallback enter.");
     if (inputParams.locationInfo.actionType == ActionType::UPDATE) {
         LOG_INFO("The update action do not need to add callback.");
-        return true;
+        return NativePreferences::RUN_OK;
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = jsCbMap_.find(inputParams);
     if (iter != jsCbMap_.end()) {
         LOG_ERROR("Subscribe callback is already registered.");
-        return false;
+        return NativePreferences::SUBSCRIBE_EXCEPTION;
     }
     napi_ref newHandlerRef = nullptr;
     napi_status status = napi_create_reference(env, refHandler, 1, &newHandlerRef);
     if (status != napi_ok || newHandlerRef == nullptr) {
         LOG_ERROR("napi_create_reference failed.");
-        return false;
+        return NativePreferences::INTERNAL_EXCEPTION;
     }
     auto listener = std::make_shared<DataFabricAddressListenerNapi>();
     listener->env = env;
     listener->handlerRef = newHandlerRef;
     jsCbMap_.emplace(inputParams, listener);
     LOG_INFO("AddCallback exit.");
-    return true;
+    return NativePreferences::RUN_OK;
 }
 
-bool DataFabricAddressNapi::RollbackCallback(napi_env env, const DataFabricAddressParams& inputParams)
+void DataFabricAddressNapi::RollbackCallback(napi_env env, const DataFabricAddressParams& inputParams)
 {
     LOG_INFO("RollbackCallback enter.");
     if (inputParams.locationInfo.actionType == ActionType::UPDATE) {
         LOG_INFO("The update action do not need to rollback callback.");
-        return true;
+        return;
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = jsCbMap_.find(inputParams);
     if (iter == jsCbMap_.end()) {
-        LOG_ERROR("The inputParams not found in the jsCbMap_.");
-        return false;
+        LOG_INFO("The inputParams not found in the jsCbMap_, do not need to remove.");
+        return;
     }
     jsCbMap_.erase(iter);
     LOG_INFO("RollbackCallback exit.");
-    return true;
 }
 
-bool DataFabricAddressNapi::RemoveCallback(napi_env env, napi_value refHandler,
+int32_t DataFabricAddressNapi::CheckCallback(napi_env env, napi_value refHandler,
     const DataFabricAddressParams& inputParams)
 {
-    LOG_INFO("RemoveCallback enter.");
+    LOG_INFO("CheckCallback enter.");
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = jsCbMap_.find(inputParams);
     if (iter == jsCbMap_.end()) {
         LOG_ERROR("The inputParams not found in the jsCbMap_.");
-        return false;
+        return NativePreferences::UNSUBSCRIBE_EXCEPTION;
     }
     if (refHandler == nullptr) {
-        LOG_INFO("The refHandler is null, remove cache callback.");
-        jsCbMap_.erase(iter);
-        return true;
+        LOG_INFO("The refHandler is null, skip the callback check.");
+        return NativePreferences::RUN_OK;
     }
 
     napi_value onHandler = nullptr;
     napi_status status = napi_get_reference_value(env, iter->second->handlerRef, &onHandler);
     if (status != napi_ok) {
         LOG_ERROR("napi_get_reference_value failed.");
-        return false;
+        return NativePreferences::INTERNAL_EXCEPTION;
     }
-    if (!IsSameValue(env, refHandler, onHandler)) {
+    bool isEqual = false;
+    status = napi_strict_equals(env, refHandler, onHandler, &isEqual);
+    if (status != napi_ok) {
+        LOG_ERROR("Failed to call napi_strict_equals.");
+        return NativePreferences::INTERNAL_EXCEPTION;
+    }
+    if (!isEqual) {
         LOG_ERROR("The input callback is not equal with cache callback.");
-        return false;
+        return NativePreferences::UNSUBSCRIBE_EXCEPTION;
     }
-    jsCbMap_.erase(iter);
-    LOG_INFO("RemoveCallback exit.");
-    return true;
+    LOG_INFO("CheckCallback exit.");
+    return NativePreferences::RUN_OK;
 }
 
-bool DataFabricAddressNapi::HasCallback(const DataFabricAddressParams& inputParams)
+void DataFabricAddressNapi::RemoveCallback(const DataFabricAddressParams& inputParams)
 {
+    LOG_INFO("RemoveCallback enter.");
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = jsCbMap_.find(inputParams);
     if (iter == jsCbMap_.end()) {
-        LOG_ERROR("The inputParams not found in the jsCbMap_.");
-        return false;
+        LOG_INFO("The inputParams not found in the jsCbMap_, do not need to remove.");
+        return;
     }
-    return true;
-}
-
-bool DataFabricAddressNapi::IsSameValue(napi_env env, napi_value lhs, napi_value rhs)
-{
-    bool isEqual = false;
-    napi_status status = napi_strict_equals(env, lhs, rhs, &isEqual);
-    if (status != napi_ok) {
-        LOG_ERROR("Failed to call napi_strict_equals.");
-        return false;
-    }
-    return isEqual;
+    jsCbMap_.erase(iter);
+    LOG_INFO("RemoveCallback exit.");
 }
 
 void DataFabricAddressNapi::SendToJs(napi_env env, napi_value handler, const DataProcessingResponse& response)

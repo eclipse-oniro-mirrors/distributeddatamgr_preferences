@@ -58,6 +58,9 @@ void DataFabricAddressTest::TearDown(void)
 {
 }
 
+// An out-of-range scenario type, used to verify that scenarioType takes part in the comparison operators.
+constexpr int32_t INVALID_SCENARIO_TYPE = 1;
+
 static LocationInfo CreateLocationInfo(LabelType label, CoordinateSystemType coord, double latitude, double longitude)
 {
     LocationInfo locationInfo;
@@ -92,13 +95,6 @@ static void WriteInt32s(MessageParcel &parcel, const std::vector<int32_t> &value
  */
 HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_001, TestSize.Level0)
 {
-    const int32_t minValue = static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE);
-    const int32_t maxValue = static_cast<int32_t>(BusinessScenario::OTHERS);
-    EXPECT_FALSE(DataFabricAddressApiHelper::IsValidIntEnumValue(minValue - 1, minValue, maxValue));
-    EXPECT_FALSE(DataFabricAddressApiHelper::IsValidIntEnumValue(maxValue + 1, minValue, maxValue));
-    EXPECT_TRUE(DataFabricAddressApiHelper::IsValidIntEnumValue(minValue, minValue, maxValue));
-    EXPECT_TRUE(DataFabricAddressApiHelper::IsValidIntEnumValue(maxValue, minValue, maxValue));
-
     constexpr int32_t generalMinValue = 5;
     constexpr int32_t generalMaxValue = 10;
     EXPECT_FALSE(DataFabricAddressApiHelper::IsValidIntEnumValue(generalMinValue - 1, generalMinValue,
@@ -193,7 +189,8 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_006, TestSize.Level0
 {
     const DataFabricAddressParams base = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
         ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
-    DataFabricAddressParams other = CreateParams(BusinessScenario::OTHERS, ActionType::SUBSCRIPTION,
+    DataFabricAddressParams other = CreateParams(static_cast<BusinessScenario>(INVALID_SCENARIO_TYPE),
+        ActionType::SUBSCRIPTION,
         { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
     EXPECT_FALSE(base == other);
 
@@ -271,7 +268,7 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_007, TestSize.Level0
     EXPECT_FALSE(lhs < rhs);
     EXPECT_TRUE(rhs < lhs);
 
-    rhs = CreateParams(BusinessScenario::OTHERS, ActionType::SUBSCRIPTION,
+    rhs = CreateParams(static_cast<BusinessScenario>(INVALID_SCENARIO_TYPE), ActionType::SUBSCRIPTION,
         { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
     EXPECT_TRUE(lhs < rhs);
 }
@@ -336,7 +333,8 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_010, TestSize.Level0
     mockRemote->replyResult_ = RUN_OK;
     DataFabricAddressProxy proxy(mockRemote);
 
-    const DataFabricAddressParams params = CreateParams(BusinessScenario::OTHERS, ActionType::UPDATE, {});
+    const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::UPDATE, {});
     sptr<IDataFabricAddressCallback> callback = new DataFabricAddressListenerCallbackStub();
     int32_t ret = proxy.Subscribe(params, callback);
 
@@ -385,7 +383,8 @@ HWTEST_F(DataFabricAddressTest, NativeDataFabricAddressTest_012, TestSize.Level0
     mockRemote->replyResult_ = RUN_OK;
     DataFabricAddressProxy proxy(mockRemote);
 
-    const DataFabricAddressParams params = CreateParams(BusinessScenario::OTHERS, ActionType::UPDATE, {});
+    const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::UPDATE, {});
     int32_t ret = proxy.Unsubscribe(params);
 
     EXPECT_EQ(ret, INTERNAL_EXCEPTION);

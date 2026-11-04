@@ -122,11 +122,10 @@ private:
     static bool CallNapiWrap(napi_env env, napi_value wrapTarget, InstanceHolder *holder);
     static void RollbackSaveInstances(napi_env env, const std::shared_ptr<DataFabricAddressNapi> &sp);
 
-    bool AddCallback(napi_env env, napi_value refHandler, const DataFabricAddressParams& inputParams);
-    bool RollbackCallback(napi_env env, const DataFabricAddressParams& inputParams);
-    bool RemoveCallback(napi_env env, napi_value refHandler, const DataFabricAddressParams& inputParams);
-    bool HasCallback(const DataFabricAddressParams& inputParams);
-    bool IsSameValue(napi_env env, napi_value lhs, napi_value rhs);
+    int32_t AddCallback(napi_env env, napi_value refHandler, const DataFabricAddressParams& inputParams);
+    int32_t CheckCallback(napi_env env, napi_value refHandler, const DataFabricAddressParams& inputParams);
+    void RemoveCallback(const DataFabricAddressParams& inputParams);
+    void RollbackCallback(napi_env env, const DataFabricAddressParams& inputParams);
     void SetInt32Value(napi_env env, const std::string &fieldStr, int32_t intValue, napi_value &result);
     void SetUtf8StringValue(napi_env env, const std::string &fieldStr, const std::string strValue, napi_value &result);
 
