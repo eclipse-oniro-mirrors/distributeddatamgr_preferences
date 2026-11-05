@@ -530,4 +530,93 @@ describe('PreferencesHelperJsunit', function () {
             done();
         }
     })
+    /**
+     * @tc.name put after removePreferencesFromCache in GSKV mode should throw E_ALREADY_CLOSED
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_EnhanceClosed_001
+     * @tc.desc after removePreferencesFromCache, put should throw error with code 15500000
+     */
+    it('testGskvPutAfterRemoveCache001', 0, async function (done) {
+        let isGskvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
+        if (!isGskvSupported) {
+            console.info('GSKV not supported, skip this test');
+            done();
+            return;
+        }
+        let pref;
+        try {
+            pref = await data_preferences.getPreferences(context,
+                { name: 'test_enhance_closed_put', storageType: 1 });
+            await pref.put('key', 'value');
+            await pref.flush();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_enhance_closed_put' });
+            await pref.put('key', 'new_value');
+            expect(true).assertFail();
+        } catch (err) {
+            console.info('testGskvPutAfterRemoveCache001 err code=' + err.code + ', message=' + err.message);
+            expect(err.code).assertEqual(15500000);
+        } finally {
+            await data_preferences.deletePreferences(context, { name: 'test_enhance_closed_put' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name delete after removePreferencesFromCache in GSKV mode should throw E_ALREADY_CLOSED
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_EnhanceClosed_002
+     * @tc.desc after removePreferencesFromCache, delete should throw error with code 15500000
+     */
+    it('testGskvDeleteAfterRemoveCache001', 0, async function (done) {
+        let isGskvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
+        if (!isGskvSupported) {
+            console.info('GSKV not supported, skip this test');
+            done();
+            return;
+        }
+        let pref;
+        try {
+            pref = await data_preferences.getPreferences(context,
+                { name: 'test_enhance_closed_delete', storageType: 1 });
+            await pref.put('key', 'value');
+            await pref.flush();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_enhance_closed_delete' });
+            await pref.delete('key');
+            expect(true).assertFail();
+        } catch (err) {
+            console.info('testGskvDeleteAfterRemoveCache001 err code=' + err.code + ', message=' + err.message);
+            expect(err.code).assertEqual(15500000);
+        } finally {
+            await data_preferences.deletePreferences(context, { name: 'test_enhance_closed_delete' });
+            done();
+        }
+    })
+
+    /**
+     * @tc.name clear after removePreferencesFromCache in GSKV mode should throw E_ALREADY_CLOSED
+     * @tc.number SUB_DDM_AppDataFWK_JSPreferences_EnhanceClosed_003
+     * @tc.desc after removePreferencesFromCache, clear should throw error with code 15500000
+     */
+    it('testGskvClearAfterRemoveCache001', 0, async function (done) {
+        let isGskvSupported = data_preferences.isStorageTypeSupported(data_preferences.StorageType.GSKV);
+        if (!isGskvSupported) {
+            console.info('GSKV not supported, skip this test');
+            done();
+            return;
+        }
+        let pref;
+        try {
+            pref = await data_preferences.getPreferences(context,
+                { name: 'test_enhance_closed_clear', storageType: 1 });
+            await pref.put('key', 'value');
+            await pref.flush();
+            await data_preferences.removePreferencesFromCache(context, { name: 'test_enhance_closed_clear' });
+            await pref.clear();
+            expect(true).assertFail();
+        } catch (err) {
+            console.info('testGskvClearAfterRemoveCache001 err code=' + err.code + ', message=' + err.message);
+            expect(err.code).assertEqual(15500000);
+        } finally {
+            await data_preferences.deletePreferences(context, { name: 'test_enhance_closed_clear' });
+            done();
+        }
+    })
 })

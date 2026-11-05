@@ -161,7 +161,7 @@ int PreferencesEnhanceImpl::Put(const std::string &key, const PreferencesValue &
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:Put failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     std::vector<uint8_t> oriValue;
@@ -205,7 +205,7 @@ int PreferencesEnhanceImpl::Delete(const std::string &key)
     std::unique_lock<std::shared_mutex> writeLock(dbMutex_);
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:Delete failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     std::vector<uint8_t> oriKey(key.begin(), key.end());
@@ -316,7 +316,7 @@ int PreferencesEnhanceImpl::Clear()
     LOG_INFO("Clear called, file: %{public}s", ExtractFileName(options_.filePath).c_str());
     if (db_ == nullptr) {
         LOG_ERROR("PreferencesEnhanceImpl:Clear failed, db has been closed.");
-        return E_ERROR;
+        return E_ALREADY_CLOSED;
     }
 
     std::pair<int, std::unordered_map<std::string, PreferencesValue>> res = GetAllInner();
