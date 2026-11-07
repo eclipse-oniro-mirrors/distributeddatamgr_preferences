@@ -58,7 +58,7 @@ void DataFabricAddressAni::OnDataFabricAddress(const JsDataFabricAddressParams &
         ani_ref callbackRef;
         ani_env *env = get_env();
         if (env == nullptr || ANI_OK != env->GlobalReference_Create(callbackObj, &callbackRef)) {
-            ThrowErr(NativePreferences::SUBSCRIBE_EXCEPTION, "Create global reference failed.");
+            ThrowErr(NativePreferences::INTERNAL_EXCEPTION, "Create global reference failed.");
             return;
         }
         jsCbMap_.emplace(inputParams, std::make_shared<CallbackObject>(callback, callbackRef));
@@ -68,10 +68,7 @@ void DataFabricAddressAni::OnDataFabricAddress(const JsDataFabricAddressParams &
     auto listener = std::make_shared<DataFabricAddressListener>(inputParams);
     int32_t result = DataFabricAddressClient::GetInstance().Subscribe(inputParams, listener);
     if (result != NativePreferences::RUN_OK) {
-        if (!RollbackCallback(inputParams)) {
-            ThrowErr(NativePreferences::SUBSCRIBE_EXCEPTION, "Rollback callback from cache failed.");
-            return;
-        }
+        RollbackCallback(inputParams);
         ThrowErr(result, "Subscribe service failed.");
         return;
     }
@@ -91,25 +88,19 @@ void DataFabricAddressAni::OffDataFabricAddress(const JsDataFabricAddressParams 
         ThrowErr(NativePreferences::PARAMETER_EXCEPTION, "Check inputParams failed.");
         return;
     }
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-        auto iter = jsCbMap_.find(inputParams);
-        if (iter == jsCbMap_.end()) {
-            ThrowErr(NativePreferences::UNSUBSCRIBE_EXCEPTION, "The inputParams not found in the jsCbMap_.");
-            return;
-        }
+    int32_t result = CheckCallback(inputParams, opq);
+    if (result != NativePreferences::RUN_OK) {
+        ThrowErr(result, "Check callback before unsubscribe failed.");
+        return;
     }
     LOG_INFO("Unsubscribe service is ready to run.");
-    int32_t result = DataFabricAddressClient::GetInstance().Unsubscribe(inputParams);
+    result = DataFabricAddressClient::GetInstance().Unsubscribe(inputParams);
     if (result != NativePreferences::RUN_OK) {
         ThrowErr(result, "Unsubscribe service failed.");
         return;
     }
     LOG_INFO("Unsubscribe service success.");
-    if (!RemoveCallback(inputParams, opq)) {
-        ThrowErr(NativePreferences::UNSUBSCRIBE_EXCEPTION, "Remove callback from cache failed.");
-        return;
-    }
+    RemoveCallback(inputParams);
     LOG_INFO("OffDataFabricAddress exit.");
 #else
     ThrowErr(NativePreferences::DEVICE_EXCEPTION, "Device not supported the interface OffDataFabricAddress.");
@@ -134,9 +125,7 @@ bool DataFabricAddressAni::CheckInputParams(const JsDataFabricAddressParams &jsP
 {
     // 校验并获取 scenarioType
     int32_t scenarioType = static_cast<int32_t>(jsParams.scenarioType);
-    if (!NativePreferences::DataFabricAddressApiHelper::IsValidIntEnumValue(scenarioType,
-        static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE),
-        static_cast<int32_t>(BusinessScenario::OTHERS))) {
+    if (scenarioType != static_cast<int32_t>(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE)) {
         LOG_ERROR("The scenario type is out of range for enum 'BusinessScenario'.");
         return false;
     }
@@ -213,61 +202,72 @@ bool DataFabricAddressAni::ReadLocationPoint(const  JsLocationPoint& jsLocationP
     return true;
 }
 
-bool DataFabricAddressAni::RollbackCallback(const DataFabricAddressParams &inputParams)
+void DataFabricAddressAni::RollbackCallback(const DataFabricAddressParams &inputParams)
 {
     LOG_INFO("RollbackCallback enter.");
     if (inputParams.locationInfo.actionType == ActionType::UPDATE) {
-        LOG_ERROR("The update action do not need to rollback callback.");
-        return true;
+        LOG_INFO("The update action do not need to rollback callback.");
+        return;
     }
 
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto iter = jsCbMap_.find(inputParams);
     if (iter == jsCbMap_.end()) {
-        LOG_ERROR("The inputParams not found in the jsCbMap_.");
-        return false;
+        LOG_INFO("The inputParams not found in the jsCbMap_, do not need to remove.");
+        return;
     }
     jsCbMap_.erase(iter);
     LOG_INFO("RollbackCallback exit.");
-    return true;
 }
 
-bool DataFabricAddressAni::RemoveCallback(const DataFabricAddressParams &inputParams, optional_view<uintptr_t> opq)
+int32_t DataFabricAddressAni::CheckCallback(const DataFabricAddressParams &inputParams,
+    optional_view<uintptr_t> opq)
+{
+    LOG_INFO("CheckCallback enter.");
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    auto iter = jsCbMap_.find(inputParams);
+    if (iter == jsCbMap_.end()) {
+        LOG_ERROR("The inputParams not found in the jsCbMap_.");
+        return NativePreferences::UNSUBSCRIBE_EXCEPTION;
+    }
+    if (!opq.has_value()) {
+        LOG_INFO("The input callback is not passed, skip the callback check.");
+        return NativePreferences::RUN_OK;
+    }
+    auto env = get_env();
+    if (env == nullptr) {
+        LOG_ERROR("env is nullptr.");
+        return NativePreferences::INTERNAL_EXCEPTION;
+    }
+    GlobalRefGuard guard(env, reinterpret_cast<ani_object>(opq.value()));
+    if (!guard) {
+        LOG_ERROR("GlobalRefGuard is false!");
+        return NativePreferences::INTERNAL_EXCEPTION;
+    }
+    ani_boolean isEqual = false;
+    if (ANI_OK != env->Reference_StrictEquals(guard.get(), iter->second->ref, &isEqual)) {
+        LOG_ERROR("Failed to call Reference_StrictEquals.");
+        return NativePreferences::INTERNAL_EXCEPTION;
+    }
+    if (!isEqual) {
+        LOG_ERROR("The input callback is not equal with cache callback.");
+        return NativePreferences::UNSUBSCRIBE_EXCEPTION;
+    }
+    LOG_INFO("CheckCallback exit.");
+    return NativePreferences::RUN_OK;
+}
+
+void DataFabricAddressAni::RemoveCallback(const DataFabricAddressParams &inputParams)
 {
     LOG_INFO("RemoveCallback enter.");
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto iter = jsCbMap_.find(inputParams);
     if (iter == jsCbMap_.end()) {
-        LOG_ERROR("The inputParams not found in the jsCbMap_.");
-        return false;
-    }
-    if (!opq.has_value()) {
-        LOG_INFO("The input callback is null, remove cache callback.");
-        jsCbMap_.erase(iter);
-        return true;
-    }
-    auto env = get_env();
-    if (env == nullptr) {
-        LOG_ERROR("env is nullptr.");
-        return false;
-    }
-    GlobalRefGuard guard(env, reinterpret_cast<ani_object>(opq.value()));
-    if (!guard) {
-        LOG_ERROR("GlobalRefGuard is false!");
-        return false;
-    }
-    ani_boolean isEqual = false;
-    if (ANI_OK != env->Reference_StrictEquals(guard.get(), iter->second->ref, &isEqual)) {
-        LOG_ERROR("Failed to call Reference_StrictEquals.");
-        return false;
-    }
-    if (!isEqual) {
-        LOG_ERROR("The input callback is not equal with cache callback.");
-        return false;
+        LOG_INFO("The inputParams not found in the jsCbMap_, do not need to remove.");
+        return;
     }
     jsCbMap_.erase(iter);
     LOG_INFO("RemoveCallback exit.");
-    return true;
 }
 
 std::optional<callbackType> DataFabricAddressAni::GetCallback(const DataFabricAddressParams &inputParams)

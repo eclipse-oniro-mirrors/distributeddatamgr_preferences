@@ -31,6 +31,11 @@ namespace NativePreferences {
 
 constexpr int32_t LOAD_SA_TIMEOUT_MS = 2000;
 
+DataFabricAddressClient& DataFabricAddressClient::GetInstance()
+{
+    return DelayedRefSingleton<DataFabricAddressClient>::GetInstance();
+}
+
 DataFabricAddressClient::DataFabricAddressClient()
 {
 }
@@ -48,14 +53,9 @@ DataFabricAddressClient::~DataFabricAddressClient()
 bool DataFabricAddressClient::Connect()
 {
     LOG_INFO("Client connect enter.");
-    if (connectState_.load() == ConnectState::CONNECTED) {
-        LOG_INFO("proxy has been created");
-        return true;
-    }
-
     std::lock_guard<std::mutex> lock(mutex_);
-    if (connectState_.load() == ConnectState::CONNECTED) {
-        LOG_INFO("proxy has been created in lock.");
+    if (connectState_.load() == ConnectState::CONNECTED && proxy_ != nullptr) {
+        LOG_INFO("proxy has been created.");
         return true;
     }
 
@@ -89,17 +89,6 @@ bool DataFabricAddressClient::ConnectProxy()
         return false;
     }
 
-    deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new ServiceDeathRecipient());
-    if (deathRecipient_ == nullptr) {
-        LOG_ERROR("Create service death recipient failed.");
-        return false;
-    }
-
-    if (remote->IsProxyObject() && (!remote->AddDeathRecipient(deathRecipient_))) {
-        LOG_ERROR("Add death recipient failed.");
-        return false;
-    }
-
     auto service = ability->GetFeatureInterface("data_fabric_address");
     if (service == nullptr) {
         LOG_ERROR("Get data fabric address service object failed.");
@@ -111,14 +100,47 @@ bool DataFabricAddressClient::ConnectProxy()
         LOG_ERROR("Get data fabric address service proxy failed.");
         return false;
     }
+
+    auto remoteObject = proxy_->AsObject();
+    if (remoteObject == nullptr) {
+        LOG_ERROR("Get data fabric address remote object failed.");
+        proxy_ = nullptr;
+        return false;
+    }
+
+    deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new ServiceDeathRecipient());
+    if (deathRecipient_ == nullptr) {
+        LOG_ERROR("Create service death recipient failed.");
+        proxy_ = nullptr;
+        return false;
+    }
+    if (!remoteObject->AddDeathRecipient(deathRecipient_)) {
+        LOG_ERROR("Add death recipient failed.");
+        proxy_ = nullptr;
+        return false;
+    }
     LOG_INFO("ConnectProxy exit.");
     return true;
+}
+
+bool DataFabricAddressClient::HasActiveSubscription(const DataFabricAddressParams& inputParams) const
+{
+    DataFabricAddressParams cacheKey = inputParams;
+    cacheKey.locationInfo.actionType = ActionType::SUBSCRIPTION;
+    return clientCbMap_.find(cacheKey) != clientCbMap_.end();
 }
 
 int32_t DataFabricAddressClient::Subscribe(const DataFabricAddressParams& inputParams,
     std::shared_ptr<IDataFabricAddressListener> listener)
 {
     LOG_INFO("Client subscribe enter.");
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        if (inputParams.locationInfo.actionType == ActionType::UPDATE && !HasActiveSubscription(inputParams)) {
+            LOG_ERROR("The update action requires an existing subscription of the input params.");
+            return ABNORMAL_OPERATION_EXCEPTION;
+        }
+    }
     if (!Connect()) {
         LOG_ERROR("Client subscribe failed, because connect service error.");
         return INTERNAL_EXCEPTION;

@@ -148,8 +148,9 @@ private:
     bool ReadReferenceLocationInfo(const JsReferenceLocationInfo &jsLocationInfo, ReferenceLocationInfo& locationInfo);
     bool ReadReferencePointInfo(const JsLocationInfo &jsLocationPointInfo, LocationInfo& locationPointInfo);
     bool ReadLocationPoint(const JsLocationPoint& jsLocationPoint, LocationPoint& locationPoint);
-    bool RollbackCallback(const DataFabricAddressParams &inputParams);
-    bool RemoveCallback(const DataFabricAddressParams &inputParams, optional_view<uintptr_t> opq);
+    int32_t CheckCallback(const DataFabricAddressParams &inputParams, optional_view<uintptr_t> opq);
+    void RollbackCallback(const DataFabricAddressParams &inputParams);
+    void RemoveCallback(const DataFabricAddressParams &inputParams);
 
     std::recursive_mutex mutex_;
     std::map<DataFabricAddressParams, std::shared_ptr<CallbackObject>> jsCbMap_;

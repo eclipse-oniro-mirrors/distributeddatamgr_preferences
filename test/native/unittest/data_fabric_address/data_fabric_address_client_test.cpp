@@ -119,7 +119,7 @@ void DataFabricAddressClientTest::ExpectSuccessConnect(const sptr<MockRemoteObje
     remote->isProxy_ = true;
     remote->isDead_ = false;
     remote->addDeathRecipientResult_ = true;
-    EXPECT_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillOnce(Return(remote));
+    ON_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillByDefault(Return(remote));
 }
 
 DataFabricAddressParams DataFabricAddressClientTest::CreateParams(const BusinessScenario scenario,
@@ -159,8 +159,8 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_001, Tes
     EXPECT_EQ(ret, RUN_OK);
     EXPECT_TRUE(client.proxy_ != nullptr);
     EXPECT_EQ(client.clientCbMap_.size(), 1u);
-    EXPECT_TRUE(remote->deathRecipient_ != nullptr);
-    EXPECT_EQ(client.deathRecipient_, remote->deathRecipient_);
+    EXPECT_TRUE(featureRemote_->deathRecipient_ != nullptr);
+    EXPECT_EQ(client.deathRecipient_, featureRemote_->deathRecipient_);
     EXPECT_FALSE(remote->removedDeathRecipient_);
     EXPECT_EQ(featureRemote_->requestCode_,
         static_cast<uint32_t>(IDataFabricAddressService::RemoteOperation::SUBSCRIBE));
@@ -182,8 +182,8 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_002, Tes
 
     auto& client = DataFabricAddressClient::GetInstance();
     ASSERT_TRUE(client.proxy_ != nullptr);
-    const DataFabricAddressParams second = CreateParams(BusinessScenario::OTHERS, ActionType::UPDATE,
-        { CreateLocationInfo(LabelType::COMPANY, CoordinateSystemType::GCJ02, 3.0, 4.0) });
+    const DataFabricAddressParams second = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::UPDATE, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
     EXPECT_EQ(client.Subscribe(second, listener_), RUN_OK);
     EXPECT_EQ(client.clientCbMap_.size(), 1u);
 }
@@ -201,9 +201,9 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_003, Tes
     sptr<MockRemoteObject> aliveRemote = new MockRemoteObject();
     aliveRemote->isProxy_ = true;
     aliveRemote->isDead_ = false;
-    EXPECT_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillOnce(Return(deadRemote));
-    EXPECT_CALL(*samgr_, LoadSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, An<int32_t>()))
-        .WillOnce(Return(aliveRemote));
+    ON_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillByDefault(Return(deadRemote));
+    ON_CALL(*samgr_, LoadSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, An<int32_t>()))
+        .WillByDefault(Return(aliveRemote));
 
     const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
         ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
@@ -212,8 +212,8 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_003, Tes
     EXPECT_EQ(ret, RUN_OK);
     auto& client = DataFabricAddressClient::GetInstance();
     EXPECT_TRUE(client.proxy_ != nullptr);
-    EXPECT_TRUE(aliveRemote->deathRecipient_ != nullptr);
-    EXPECT_EQ(client.deathRecipient_, aliveRemote->deathRecipient_);
+    EXPECT_TRUE(featureRemote_->deathRecipient_ != nullptr);
+    EXPECT_EQ(client.deathRecipient_, featureRemote_->deathRecipient_);
 }
 
 /**
@@ -223,10 +223,10 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_003, Tes
  */
 HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_004, TestSize.Level0)
 {
-    EXPECT_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID))
-        .WillOnce(Return(sptr<IRemoteObject>()));
-    EXPECT_CALL(*samgr_, LoadSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, An<int32_t>()))
-        .WillOnce(Return(sptr<IRemoteObject>()));
+    ON_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID))
+        .WillByDefault(Return(sptr<IRemoteObject>()));
+    ON_CALL(*samgr_, LoadSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, An<int32_t>()))
+        .WillByDefault(Return(sptr<IRemoteObject>()));
 
     const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
         ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
@@ -249,10 +249,10 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_005, Tes
     sptr<MockRemoteObject> reloadDeadRemote = new MockRemoteObject();
     reloadDeadRemote->isProxy_ = true;
     reloadDeadRemote->isDead_ = true;
-    EXPECT_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID))
-        .WillOnce(Return(exceptRemote));
-    EXPECT_CALL(*samgr_, LoadSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, An<int32_t>()))
-        .WillOnce(Return(reloadDeadRemote));
+    ON_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID))
+        .WillByDefault(Return(exceptRemote));
+    ON_CALL(*samgr_, LoadSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, An<int32_t>()))
+        .WillByDefault(Return(reloadDeadRemote));
 
     const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
         ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
@@ -272,7 +272,7 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_006, Tes
     sptr<MockRemoteObject> remote = new MockRemoteObject();
     remote->isProxy_ = false;
     remote->isDead_ = false;
-    EXPECT_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillOnce(Return(remote));
+    ON_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillByDefault(Return(remote));
 
     const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
         ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
@@ -328,8 +328,8 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_009, Tes
     sptr<MockRemoteObject> remote = new MockRemoteObject();
     remote->isProxy_ = true;
     remote->isDead_ = false;
-    remote->addDeathRecipientResult_ = false;
-    EXPECT_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillOnce(Return(remote));
+    featureRemote_->addDeathRecipientResult_ = false;
+    ON_CALL(*samgr_, CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID)).WillByDefault(Return(remote));
 
     const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
         ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
@@ -377,7 +377,8 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_011, Tes
     ASSERT_EQ(client.Subscribe(subscribed, listener_), RUN_OK);
     ASSERT_EQ(client.clientCbMap_.size(), 1u);
 
-    const DataFabricAddressParams notSubscribed = CreateParams(BusinessScenario::OTHERS, ActionType::UPDATE, {});
+    const DataFabricAddressParams notSubscribed = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::UPDATE, {});
     int32_t ret = client.Unsubscribe(notSubscribed);
 
     EXPECT_EQ(ret, RUN_OK);
@@ -523,7 +524,7 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_018, Tes
     ASSERT_EQ(client.Subscribe(params, listener_), RUN_OK);
     ASSERT_TRUE(client.proxy_ != nullptr);
 
-    EXPECT_CALL(*samgr_, SubscribeSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, _)).WillOnce(Return(0));
+    ON_CALL(*samgr_, SubscribeSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, _)).WillByDefault(Return(0));
     client.ResetProxy(wptr<IRemoteObject>(featureRemote_));
 
     EXPECT_TRUE(client.proxy_ == nullptr);
@@ -579,7 +580,7 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_021, Tes
 {
     auto& client = DataFabricAddressClient::GetInstance();
     client.SAStatusCallback_ = new DataFabricAddressClient::SAStatusChange();
-    EXPECT_CALL(*sam_, GetSystemAbilityManager()).WillOnce(Return(sptr<ISystemAbilityManager>()));
+    ON_CALL(*sam_, GetSystemAbilityManager()).WillByDefault(Return(sptr<ISystemAbilityManager>()));
 
     DataFabricAddressClient::SAStatusChange statusChange;
     statusChange.OnAddSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, "");
@@ -604,7 +605,7 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_022, Tes
     client.ResetProxy(wptr<IRemoteObject>(featureRemote_));
     ASSERT_TRUE(client.SAStatusCallback_ != nullptr);
 
-    EXPECT_CALL(*samgr_, UnSubscribeSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, _)).WillOnce(Return(0));
+    ON_CALL(*samgr_, UnSubscribeSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, _)).WillByDefault(Return(0));
     DataFabricAddressClient::SAStatusChange statusChange;
     statusChange.OnAddSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, "");
 }
@@ -654,5 +655,48 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_025, Tes
     EXPECT_TRUE(client->proxy_ == nullptr);
     EXPECT_TRUE(client->clientCbMap_.empty());
     delete client;
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressClientTest_026
+ * @tc.desc: testcase of DataFabricAddressClient::Subscribe when the update action has no existing subscription
+ * @tc.type: FUNC
+ */
+HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_026, TestSize.Level0)
+{
+    const DataFabricAddressParams params = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::UPDATE, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
+    int32_t ret = DataFabricAddressClient::GetInstance().Subscribe(params, listener_);
+
+    EXPECT_EQ(ret, ABNORMAL_OPERATION_EXCEPTION);
+    EXPECT_TRUE(DataFabricAddressClient::GetInstance().proxy_ == nullptr);
+    EXPECT_EQ(DataFabricAddressClient::GetInstance().clientCbMap_.size(), 0u);
+    EXPECT_EQ(featureRemote_->requestCode_, 0u);
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressClientTest_027
+ * @tc.desc: testcase of DataFabricAddressClient::Subscribe when the update action does not match
+ * any active subscription
+ * @tc.type: FUNC
+ */
+HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_027, TestSize.Level0)
+{
+    sptr<MockRemoteObject> remote = new MockRemoteObject();
+    ExpectSuccessConnect(remote);
+    auto& client = DataFabricAddressClient::GetInstance();
+    const DataFabricAddressParams subscribed = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
+    ASSERT_EQ(client.Subscribe(subscribed, listener_), RUN_OK);
+    ASSERT_EQ(client.clientCbMap_.size(), 1u);
+
+    const DataFabricAddressParams mismatched = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::UPDATE, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 9.0, 8.0) });
+    int32_t ret = client.Subscribe(mismatched, listener_);
+
+    EXPECT_EQ(ret, ABNORMAL_OPERATION_EXCEPTION);
+    EXPECT_EQ(client.clientCbMap_.size(), 1u);
+    EXPECT_EQ(featureRemote_->requestCode_,
+        static_cast<uint32_t>(IDataFabricAddressService::RemoteOperation::SUBSCRIBE));
 }
 } // namespace
