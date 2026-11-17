@@ -358,6 +358,8 @@ napi_value StorageProxy::GetValue(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         PRE_CHECK_RETURN_VOID(ParseDefValue(env, argv[1], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when getting value."));
     };
     auto exec = [context]() -> int {
         int errCode = OK;
@@ -448,6 +450,8 @@ napi_value StorageProxy::SetValue(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         PRE_CHECK_RETURN_VOID(ParseDefValue(env, argv[1], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when setting value."));
     };
     auto exec = [context]() -> int {
         int errCode = OK;
@@ -504,6 +508,8 @@ napi_value StorageProxy::Delete(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when deleting value."));
     };
     auto exec = [context]() -> int {
         StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
@@ -552,6 +558,8 @@ napi_value StorageProxy::HasKey(napi_env env, napi_callback_info info)
         PRE_CHECK_RETURN_VOID_SET(argc == 1, std::make_shared<ParamNumError>("1 or 2"));
         PRE_CHECK_RETURN_VOID(ParseKey(env, argv[0], context) == OK);
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when having key."));
     };
     auto exec = [context]() -> int {
         StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
@@ -577,6 +585,8 @@ napi_value StorageProxy::Flush(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when flushing."));
     };
     auto exec = [context]() -> int {
         StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
@@ -625,6 +635,8 @@ napi_value StorageProxy::Clear(napi_env env, napi_callback_info info)
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) {
         PRE_CHECK_RETURN_VOID_SET(argc == 0, std::make_shared<ParamNumError>("0 or 1"));
         napi_unwrap(env, self, &context->boundObj);
+        PRE_CHECK_RETURN_VOID_SET(context->boundObj != nullptr,
+            std::make_shared<InnerError>("Failed to unwrap when clearing."));
     };
     auto exec = [context]() -> int {
         StorageProxy *obj = reinterpret_cast<StorageProxy *>(context->boundObj);
