@@ -123,11 +123,37 @@ bool DataFabricAddressClient::ConnectProxy()
     return true;
 }
 
+bool DataFabricAddressClient::IsSameSubscriptionIgnoringCoords(const DataFabricAddressParams& candidate,
+    const DataFabricAddressParams& storedSubscription) const
+{
+    if (candidate.scenarioType != storedSubscription.scenarioType) {
+        return false;
+    }
+    if (candidate.locationInfo.points.size() != storedSubscription.locationInfo.points.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < candidate.locationInfo.points.size(); ++i) {
+        if (candidate.locationInfo.points[i].labelType != storedSubscription.locationInfo.points[i].labelType) {
+            return false;
+        }
+        if (candidate.locationInfo.points[i].coordinateSystemType !=
+            storedSubscription.locationInfo.points[i].coordinateSystemType) {
+            return false;
+        }
+        // Intentionally ignore the coordinate value (lat/lng), it changes on update.
+    }
+    return true;
+}
+
 bool DataFabricAddressClient::HasActiveSubscription(const DataFabricAddressParams& inputParams) const
 {
-    DataFabricAddressParams cacheKey = inputParams;
-    cacheKey.locationInfo.actionType = ActionType::SUBSCRIPTION;
-    return clientCbMap_.find(cacheKey) != clientCbMap_.end();
+    for (const auto& kv : clientCbMap_) {
+        if (kv.first.locationInfo.actionType == ActionType::SUBSCRIPTION &&
+            IsSameSubscriptionIgnoringCoords(inputParams, kv.first)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int32_t DataFabricAddressClient::Subscribe(const DataFabricAddressParams& inputParams,
@@ -240,8 +266,7 @@ void DataFabricAddressClient::SAStatusChange::OnRemoveSystemAbility(int32_t syst
 
 void DataFabricAddressCallback::OnDataFabricAddressChanged(const DataProcessingResponse& response)
 {
-    LOG_INFO("Client OnDataFabricAddressChanged code:%{public}d, result:%{public}s",
-        static_cast<int32_t>(response.code), response.result.c_str());
+    LOG_INFO("Client OnDataFabricAddressChanged code:%{public}d", static_cast<int32_t>(response.code));
     if (dataFabricAddressListener_ == nullptr) {
         LOG_ERROR("OnDataFabricAddressChanged dataFabricAddressListener_is null.");
         return;

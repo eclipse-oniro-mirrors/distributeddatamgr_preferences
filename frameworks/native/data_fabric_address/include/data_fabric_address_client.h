@@ -78,6 +78,8 @@ private:
     bool ConnectProxy();
     void ResetProxy(const wptr<IRemoteObject>& remote);
     bool HasActiveSubscription(const DataFabricAddressParams& inputParams) const;
+    bool IsSameSubscriptionIgnoringCoords(const DataFabricAddressParams& candidate,
+        const DataFabricAddressParams& storedSubscription) const;
 
     enum class ConnectState : int32_t {
         DISCONNECTED = 0,
