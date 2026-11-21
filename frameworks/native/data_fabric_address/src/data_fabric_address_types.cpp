@@ -24,6 +24,8 @@
 namespace OHOS {
 namespace NativePreferences {
 
+constexpr int32_t POINTS_MAX_COUNT {128};
+
 const std::unordered_map<std::string, int32_t> labelMap = {
     { HOME_LABEL_NAME, static_cast<int32_t>(LabelType::HOME) },
     { COMPANY_LABEL_NAME, static_cast<int32_t>(LabelType::COMPANY) }
@@ -113,6 +115,9 @@ bool ReferenceLocationInfo::Unmarshal(MessageParcel &parcel)
     int32_t actionValue = 0;
     int32_t pointsCount = 0;
     if (!parcel.ReadInt32(actionValue) || !parcel.ReadInt32(pointsCount)) {
+        return false;
+    }
+    if (pointsCount > POINTS_MAX_COUNT) {
         return false;
     }
     actionType = static_cast<ActionType>(actionValue);

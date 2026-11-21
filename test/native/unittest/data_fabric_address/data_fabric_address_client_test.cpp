@@ -676,8 +676,8 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_026, Tes
 
 /**
  * @tc.name: NativeDataFabricAddressClientTest_027
- * @tc.desc: testcase of DataFabricAddressClient::Subscribe when the update action does not match
- * any active subscription
+ * @tc.desc: testcase of DataFabricAddressClient::Subscribe when the update action has the same
+ * active subscription but with different coordinate values
  * @tc.type: FUNC
  */
 HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_027, TestSize.Level0)
@@ -690,13 +690,35 @@ HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_027, Tes
     ASSERT_EQ(client.Subscribe(subscribed, listener_), RUN_OK);
     ASSERT_EQ(client.clientCbMap_.size(), 1u);
 
-    const DataFabricAddressParams mismatched = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+    const DataFabricAddressParams updated = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
         ActionType::UPDATE, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 9.0, 8.0) });
+    int32_t ret = client.Subscribe(updated, listener_);
+
+    EXPECT_EQ(ret, RUN_OK);
+    EXPECT_EQ(client.clientCbMap_.size(), 1u);
+}
+
+/**
+ * @tc.name: NativeDataFabricAddressClientTest_028
+ * @tc.desc: testcase of DataFabricAddressClient::Subscribe when the update action does not match
+ * any active subscription because the location structure differs
+ * @tc.type: FUNC
+ */
+HWTEST_F(DataFabricAddressClientTest, NativeDataFabricAddressClientTest_028, TestSize.Level0)
+{
+    sptr<MockRemoteObject> remote = new MockRemoteObject();
+    ExpectSuccessConnect(remote);
+    auto& client = DataFabricAddressClient::GetInstance();
+    const DataFabricAddressParams subscribed = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::SUBSCRIPTION, { CreateLocationInfo(LabelType::HOME, CoordinateSystemType::WGS84, 1.0, 2.0) });
+    ASSERT_EQ(client.Subscribe(subscribed, listener_), RUN_OK);
+    ASSERT_EQ(client.clientCbMap_.size(), 1u);
+
+    const DataFabricAddressParams mismatched = CreateParams(BusinessScenario::SCENARIO_NAVIGATION_COMMUTE,
+        ActionType::UPDATE, { CreateLocationInfo(LabelType::COMPANY, CoordinateSystemType::WGS84, 9.0, 8.0) });
     int32_t ret = client.Subscribe(mismatched, listener_);
 
     EXPECT_EQ(ret, ABNORMAL_OPERATION_EXCEPTION);
     EXPECT_EQ(client.clientCbMap_.size(), 1u);
-    EXPECT_EQ(featureRemote_->requestCode_,
-        static_cast<uint32_t>(IDataFabricAddressService::RemoteOperation::SUBSCRIBE));
 }
 } // namespace

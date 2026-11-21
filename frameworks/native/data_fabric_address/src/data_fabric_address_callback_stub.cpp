@@ -55,8 +55,7 @@ int32_t DataFabricAddressListenerCallbackStub::OnDataFabricAddressChangedStub(Me
     DataProcessingResponse response;
     response.code = static_cast<StatusCode>(data.ReadInt32());
     response.result = data.ReadString();
-    LOG_INFO("OnDataFabricAddressChangedStub code:%{public}d, result:%{public}s",
-        static_cast<int32_t>(response.code), response.result.c_str());
+    LOG_INFO("OnDataFabricAddressChangedStub code:%{public}d", static_cast<int32_t>(response.code));
     OnDataFabricAddressChanged(response);
     LOG_INFO("Exit");
     return RUN_OK;

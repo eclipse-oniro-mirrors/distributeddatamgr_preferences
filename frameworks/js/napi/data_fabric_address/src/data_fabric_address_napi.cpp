@@ -448,7 +448,7 @@ bool DataFabricAddressNapi::ReadLocationPoint(napi_env env, napi_value jsParams,
         return false;
     }
     if (!NativePreferences::DataFabricAddressApiHelper::IsValidLatLng(latitude, longitude)) {
-        LOG_ERROR("Check the input latitude=%{public}.6f or longitude=%{public}.6f failed.", latitude, longitude);
+        LOG_ERROR("Check the input latitude=%{private}.6f or longitude=%{private}.6f failed.", latitude, longitude);
         return false;
     }
     locationPoint.latitude = latitude;
@@ -861,8 +861,7 @@ void DataFabricAddressNapi::SetUtf8StringValue(napi_env env, const std::string &
 
 void DataFabricAddressListener::OnDataFabricAddressChanged(const DataProcessingResponse& response)
 {
-    LOG_INFO("NAPI callback enter, code:%{public}d, result:%{public}s", static_cast<int32_t>(response.code),
-        response.result.c_str());
+    LOG_INFO("NAPI callback enter, code:%{public}d", static_cast<int32_t>(response.code));
     napi_env env = env_;
     DataFabricAddressParams params = inputParams_;
     auto task = [env, params, response]() {
